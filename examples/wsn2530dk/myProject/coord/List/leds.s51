@@ -1,0 +1,1112 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:49 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\dev\leds.c                  /
+//    Command line       =  D:\myWork\myWork\core\dev\leds.c -D               /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\leds.s51                                  /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME leds
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?L_ADD_TO_X
+        EXTERN ?V0
+        EXTERN __INIT_XDATA_Z
+
+        PUBLIC ??leds_blink?relay
+        FUNCTION ??leds_blink?relay,0203H
+        PUBLIC ??leds_get?relay
+        FUNCTION ??leds_get?relay,0203H
+        PUBLIC ??leds_init?relay
+        FUNCTION ??leds_init?relay,0203H
+        PUBLIC ??leds_invert?relay
+        FUNCTION ??leds_invert?relay,0203H
+        PUBLIC ??leds_off?relay
+        FUNCTION ??leds_off?relay,0203H
+        PUBLIC ??leds_on?relay
+        FUNCTION ??leds_on?relay,0203H
+        PUBLIC ??leds_toggle?relay
+        FUNCTION ??leds_toggle?relay,0203H
+        FUNCTION ??show_leds?relay,0203H
+        PUBWEAK T1CNTH
+        PUBWEAK T1CNTL
+        PUBLIC leds_blink
+        FUNCTION leds_blink,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC leds_get
+        FUNCTION leds_get,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC leds_init
+        FUNCTION leds_init,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC leds_invert
+        FUNCTION leds_invert,021203H
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC leds_off
+        FUNCTION leds_off,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC leds_on
+        FUNCTION leds_on,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC leds_toggle
+        FUNCTION leds_toggle,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        FUNCTION show_leds,021203H
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 12, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+clock_delay_usec    SYMBOL "clock_delay_usec"
+??clock_delay_usec?relay SYMBOL "?relay", clock_delay_usec
+leds_arch_get       SYMBOL "leds_arch_get"
+??leds_arch_get?relay SYMBOL "?relay", leds_arch_get
+leds_arch_init      SYMBOL "leds_arch_init"
+??leds_arch_init?relay SYMBOL "?relay", leds_arch_init
+leds_arch_set       SYMBOL "leds_arch_set"
+??leds_arch_set?relay SYMBOL "?relay", leds_arch_set
+leds_blink          SYMBOL "leds_blink"
+??leds_blink?relay  SYMBOL "?relay", leds_blink
+leds_get            SYMBOL "leds_get"
+??leds_get?relay    SYMBOL "?relay", leds_get
+leds_init           SYMBOL "leds_init"
+??leds_init?relay   SYMBOL "?relay", leds_init
+leds_invert         SYMBOL "leds_invert"
+??leds_invert?relay SYMBOL "?relay", leds_invert
+leds_off            SYMBOL "leds_off"
+??leds_off?relay    SYMBOL "?relay", leds_off
+leds_on             SYMBOL "leds_on"
+??leds_on?relay     SYMBOL "?relay", leds_on
+leds_toggle         SYMBOL "leds_toggle"
+??leds_toggle?relay SYMBOL "?relay", leds_toggle
+
+        EXTERN ??clock_delay_usec?relay
+        FUNCTION ??clock_delay_usec?relay,00H
+        EXTERN ??leds_arch_get?relay
+        FUNCTION ??leds_arch_get?relay,00H
+        EXTERN ??leds_arch_init?relay
+        FUNCTION ??leds_arch_init?relay,00H
+        EXTERN ??leds_arch_set?relay
+        FUNCTION ??leds_arch_set?relay,00H
+        EXTERN clock_delay_usec
+        FUNCTION clock_delay_usec,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN energest_current_mode
+        EXTERN energest_current_time
+        EXTERN energest_total_time
+        EXTERN leds_arch_get
+        FUNCTION leds_arch_get,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN leds_arch_init
+        FUNCTION leds_arch_init,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN leds_arch_set
+        FUNCTION leds_arch_set,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+
+        ASEGN SFR_AN:DATA:NOROOT,0e2H
+// unsigned char volatile __sfr T1CNTL
+T1CNTL:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0e3H
+// unsigned char volatile __sfr T1CNTH
+T1CNTH:
+        DATA8
+        DS 1
+// D:\myWork\myWork\core\dev\leds.c
+//    1 /*
+//    2  * Copyright (c) 2005, Swedish Institute of Computer Science
+//    3  * All rights reserved.
+//    4  *
+//    5  * Redistribution and use in source and binary forms, with or without
+//    6  * modification, are permitted provided that the following conditions
+//    7  * are met:
+//    8  * 1. Redistributions of source code must retain the above copyright
+//    9  *    notice, this list of conditions and the following disclaimer.
+//   10  * 2. Redistributions in binary form must reproduce the above copyright
+//   11  *    notice, this list of conditions and the following disclaimer in the
+//   12  *    documentation and/or other materials provided with the distribution.
+//   13  * 3. Neither the name of the Institute nor the names of its contributors
+//   14  *    may be used to endorse or promote products derived from this software
+//   15  *    without specific prior written permission.
+//   16  *
+//   17  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   18  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   19  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   20  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   21  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   22  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   23  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   24  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   25  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   26  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   27  * SUCH DAMAGE.
+//   28  *
+//   29  * This file is part of the Contiki operating system.
+//   30  *
+//   31  */
+//   32 
+//   33 #include "dev/leds.h"
+//   34 #include "sys/clock.h"
+//   35 #include "sys/energest.h"
+//   36 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   37 static unsigned char leds, invert;
+leds:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+invert:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+//   38 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   39 static void
+//   40 show_leds(unsigned char changed)
+show_leds:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function show_leds
+        CODE
+//   41 {
+        FUNCALL show_leds, leds_arch_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R6,A
+//   42   if(changed & LEDS_GREEN) {
+        MOV     A,R6
+        MOV     C,0xE0 /* A   */.1
+        JNC     ??show_leds_0
+//   43     /* Green did change */
+//   44     if((invert ^ leds) & LEDS_GREEN) {
+        MOV     DPTR,#leds
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     DPTR,#invert
+        MOVX    A,@DPTR
+        XRL     A,R0
+        ANL     A,#0x2
+        JZ      ??show_leds_1
+//   45       ENERGEST_ON(ENERGEST_TYPE_LED_GREEN);
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     DPTR,#energest_current_time + 6
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        MOV     DPTR,#energest_current_mode + 3
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+        SJMP    ??show_leds_0
+//   46     } else {
+//   47       ENERGEST_OFF(ENERGEST_TYPE_LED_GREEN);
+??show_leds_1:
+        MOV     DPTR,#energest_current_mode + 3
+        MOVX    A,@DPTR
+        JZ      ??show_leds_0
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R2,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R3,A
+        MOV     DPTR,#energest_current_time + 6
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R2
+        CLR     C
+        SUBB    A,R0
+        MOV     ?V0 + 0,A
+        MOV     A,R3
+        SUBB    A,R1
+        MOV     ?V0 + 1,A
+        CLR     A
+        MOV     ?V0 + 2,A
+        MOV     ?V0 + 3,A
+        MOV     DPTR,#energest_total_time + 12
+        MOV     R0,#?V0 + 0
+        LCALL   ?L_ADD_TO_X
+        MOV     DPTR,#energest_current_mode + 3
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   48     }
+//   49   }
+//   50   if(changed & LEDS_YELLOW) {
+??show_leds_0:
+        MOV     A,R6
+        MOV     C,0xE0 /* A   */.2
+        JNC     ??show_leds_2
+//   51     if((invert ^ leds) & LEDS_YELLOW) {
+        MOV     DPTR,#leds
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     DPTR,#invert
+        MOVX    A,@DPTR
+        XRL     A,R0
+        ANL     A,#0x4
+        JZ      ??show_leds_3
+//   52       ENERGEST_ON(ENERGEST_TYPE_LED_YELLOW);
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     DPTR,#energest_current_time + 8
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        MOV     DPTR,#energest_current_mode + 4
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+        SJMP    ??show_leds_2
+//   53     } else {
+//   54       ENERGEST_OFF(ENERGEST_TYPE_LED_YELLOW);
+??show_leds_3:
+        MOV     DPTR,#energest_current_mode + 4
+        MOVX    A,@DPTR
+        JZ      ??show_leds_2
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R2,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R3,A
+        MOV     DPTR,#energest_current_time + 8
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R2
+        CLR     C
+        SUBB    A,R0
+        MOV     ?V0 + 0,A
+        MOV     A,R3
+        SUBB    A,R1
+        MOV     ?V0 + 1,A
+        CLR     A
+        MOV     ?V0 + 2,A
+        MOV     ?V0 + 3,A
+        MOV     DPTR,#energest_total_time + 16
+        MOV     R0,#?V0 + 0
+        LCALL   ?L_ADD_TO_X
+        MOV     DPTR,#energest_current_mode + 4
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   55     }
+//   56   }
+//   57   if(changed & LEDS_RED) {
+??show_leds_2:
+        MOV     A,R6
+        MOV     C,0xE0 /* A   */.0
+        JNC     ??show_leds_4
+//   58     if((invert ^ leds) & LEDS_RED) {
+        MOV     DPTR,#invert
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.0
+        MOV     B.0,C
+        MOV     DPTR,#leds
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.0
+        JNB     B.0,??show_leds_5
+        CPL     C
+??show_leds_5:
+        JNC     ??show_leds_6
+//   59       ENERGEST_ON(ENERGEST_TYPE_LED_RED);
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     DPTR,#energest_current_time + 10
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        MOV     DPTR,#energest_current_mode + 5
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+        SJMP    ??show_leds_4
+//   60     } else {
+//   61       ENERGEST_OFF(ENERGEST_TYPE_LED_RED);
+??show_leds_6:
+        MOV     DPTR,#energest_current_mode + 5
+        MOVX    A,@DPTR
+        JZ      ??show_leds_4
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R2,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R3,A
+        MOV     DPTR,#energest_current_time + 10
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R2
+        CLR     C
+        SUBB    A,R0
+        MOV     ?V0 + 0,A
+        MOV     A,R3
+        SUBB    A,R1
+        MOV     ?V0 + 1,A
+        CLR     A
+        MOV     ?V0 + 2,A
+        MOV     ?V0 + 3,A
+        MOV     DPTR,#energest_total_time + 20
+        MOV     R0,#?V0 + 0
+        LCALL   ?L_ADD_TO_X
+        MOV     DPTR,#energest_current_mode + 5
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   62     }
+//   63   }
+//   64   leds_arch_set(leds ^ invert);
+??show_leds_4:
+        ; Setup parameters for call to function leds_arch_set
+        MOV     DPTR,#invert
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     DPTR,#leds
+        MOVX    A,@DPTR
+        XRL     A,R0
+        MOV     R1,A
+        LCALL   ??leds_arch_set?relay
+//   65 }
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock0
+        REQUIRE T1CNTL
+        REQUIRE T1CNTH
+//   66 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   67 void
+//   68 leds_init(void)
+leds_init:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function leds_init
+        CODE
+//   69 {
+        FUNCALL leds_init, leds_arch_init
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   70   leds_arch_init();
+        ; Setup parameters for call to function leds_arch_init
+        LCALL   ??leds_arch_init?relay
+//   71   leds = invert = 0;
+        MOV     A,#0x0
+        MOV     DPTR,#invert
+        MOVX    @DPTR,A
+        MOV     DPTR,#leds
+        MOVX    @DPTR,A
+//   72 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock1
+//   73 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   74 void
+//   75 leds_blink(void)
+leds_blink:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function leds_blink
+        CODE
+//   76 {
+        FUNCALL leds_blink, leds_invert
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL leds_blink, clock_delay_usec
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL leds_blink, leds_invert
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+//   77   /* Blink all leds. */
+//   78   unsigned char inv;
+//   79   inv = ~(leds ^ invert);
+        MOV     DPTR,#invert
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     DPTR,#leds
+        MOVX    A,@DPTR
+        XRL     A,R0
+        CPL     A
+        MOV     R6,A
+//   80   leds_invert(inv);
+        ; Setup parameters for call to function leds_invert
+        MOV     A,R6
+        MOV     R1,A
+        LCALL   ??leds_invert?relay
+//   81 
+//   82   clock_delay(400);
+        ; Setup parameters for call to function clock_delay_usec
+        MOV     R2,#-0x70
+        MOV     R3,#0x1
+        LCALL   ??clock_delay_usec?relay
+//   83 
+//   84   leds_invert(inv);
+        ; Setup parameters for call to function leds_invert
+        MOV     A,R6
+        MOV     R1,A
+        LCALL   ??leds_invert?relay
+//   85 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//   86 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   87 unsigned char
+//   88 leds_get(void) {
+leds_get:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function leds_get
+        CODE
+        FUNCALL leds_get, leds_arch_get
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   89   return leds_arch_get();
+        ; Setup parameters for call to function leds_arch_get
+        LCALL   ??leds_arch_get?relay
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock3
+//   90 }
+//   91 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   92 void
+//   93 leds_on(unsigned char ledv)
+leds_on:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function leds_on
+        CODE
+//   94 {
+        FUNCALL leds_on, show_leds
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R6,A
+//   95   unsigned char changed;
+//   96   changed = (~leds) & ledv;
+        MOV     DPTR,#leds
+        MOVX    A,@DPTR
+        CPL     A
+        ANL     A,R6
+        MOV     R1,A
+//   97   leds |= ledv;
+        MOV     DPTR,#leds
+        MOVX    A,@DPTR
+        ORL     A,R6
+        MOVX    @DPTR,A
+//   98   show_leds(changed);
+        ; Setup parameters for call to function show_leds
+        LCALL   ??show_leds?relay
+//   99 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock4
+//  100 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  101 void
+//  102 leds_off(unsigned char ledv)
+leds_off:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function leds_off
+        CODE
+//  103 {
+        FUNCALL leds_off, show_leds
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R6,A
+//  104   unsigned char changed;
+//  105   changed = leds & ledv;
+        MOV     DPTR,#leds
+        MOVX    A,@DPTR
+        ANL     A,R6
+        MOV     R1,A
+//  106   leds &= ~ledv;
+        MOV     A,R6
+        CPL     A
+        MOV     R0,A
+        MOV     DPTR,#leds
+        MOVX    A,@DPTR
+        ANL     A,R0
+        MOVX    @DPTR,A
+//  107   show_leds(changed);
+        ; Setup parameters for call to function show_leds
+        LCALL   ??show_leds?relay
+//  108 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock5
+//  109 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  110 void
+//  111 leds_toggle(unsigned char ledv)
+leds_toggle:
+          CFI Block cfiBlock6 Using cfiCommon0
+          CFI Function leds_toggle
+        CODE
+//  112 {
+        FUNCALL leds_toggle, leds_invert
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R6,A
+//  113   leds_invert(ledv);
+        ; Setup parameters for call to function leds_invert
+        MOV     R1,A
+        LCALL   ??leds_invert?relay
+//  114 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock6
+//  115 /*---------------------------------------------------------------------------*/
+//  116 /*   invert the invert register using the leds parameter */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  117 void
+//  118 leds_invert(unsigned char ledv) {
+leds_invert:
+          CFI Block cfiBlock7 Using cfiCommon0
+          CFI Function leds_invert
+        CODE
+        FUNCALL leds_invert, show_leds
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R6,A
+//  119   invert = invert ^ ledv;
+        MOV     DPTR,#invert
+        MOVX    A,@DPTR
+        XRL     A,R6
+        MOVX    @DPTR,A
+//  120   show_leds(ledv);
+        ; Setup parameters for call to function show_leds
+        MOV     A,R6
+        MOV     R1,A
+        LCALL   ??show_leds?relay
+//  121 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock7
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??show_leds?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    show_leds
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??leds_init?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    leds_init
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??leds_blink?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    leds_blink
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??leds_get?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    leds_get
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??leds_on?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    leds_on
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??leds_off?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    leds_off
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??leds_toggle?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    leds_toggle
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??leds_invert?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    leds_invert
+
+        END
+//  122 /*---------------------------------------------------------------------------*/
+// 
+// 551 bytes in segment BANKED_CODE
+//  48 bytes in segment BANK_RELAYS
+//   2 bytes in segment SFR_AN
+//   2 bytes in segment XDATA_Z
+// 
+// 599 bytes of CODE  memory
+//   0 bytes of DATA  memory (+ 2 bytes shared)
+//   2 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

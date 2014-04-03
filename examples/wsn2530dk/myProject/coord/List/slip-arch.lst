@@ -1,0 +1,253 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:43 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\platform\wsn2530dk\dev\slip-arch. #
+#                          c                                                  #
+#    Command line       =  D:\myWork\myWork\platform\wsn2530dk\dev\slip-arch. #
+#                          c -D AUTOSTART_ENABLE -D PROJECT_CONF_H -lC        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\slip-arch.lst                               #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\slip-arch.r51                                #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
+   \                                 In  segment SFR_AN, at 0xc2
+   \   unsigned char volatile __sfr U0BAUD
+   \                     U0BAUD:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xc5
+   \   unsigned char volatile __sfr U0GCR
+   \                     U0GCR:
+   \   000000                DS 1
+D:\myWork\myWork\platform\wsn2530dk\dev\slip-arch.c
+      1          /*
+      2           * Copyright (c) 2006, Swedish Institute of Computer Science
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           */
+     30          
+     31          /*
+     32           * Machine dependent cc253x SLIP routines.
+     33           */
+     34          
+     35          #include "dev/slip.h"
+     36          #include "dev/io-arch.h"
+     37          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     38          void
+     39          slip_arch_writeb(unsigned char c)
+   \                     slip_arch_writeb:
+     40          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   E9           MOV     A,R1
+   \   000006   FE           MOV     R6,A
+     41            io_arch_writeb(c);
+   \   000007                ; Setup parameters for call to function uart0_writeb
+   \   000007   F9           MOV     R1,A
+   \   000008   12....       LCALL   ??uart0_writeb?relay
+     42          }
+   \   00000B   7F01         MOV     R7,#0x1
+   \   00000D   02....       LJMP    ?BANKED_LEAVE_XDATA
+     43          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     44          void
+     45          slip_arch_init(unsigned long ubr)
+   \                     slip_arch_init:
+     46          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   8C..         MOV     ?V0 + 2,R4
+   \   00000B   8D..         MOV     ?V0 + 3,R5
+     47            if(ubr==115200)
+   \   00000D   90....       MOV     DPTR,#__Constant_1c200
+   \   000010   78..         MOV     R0,#?V0 + 0
+   \   000012   12....       LCALL   ?L_EQ_X
+   \   000015   7008         JNZ     ??slip_arch_init_0
+     48              UART_SET_SPEED(0, UART_115_M, UART_115_E);
+   \   000017   75C2D8       MOV     0xc2,#-0x28
+   \   00001A   75C50B       MOV     0xc5,#0xb
+   \   00001D   802A         SJMP    ??slip_arch_init_1
+     49            else if(ubr==38400)
+   \                     ??slip_arch_init_0:
+   \   00001F   90....       MOV     DPTR,#__Constant_9600
+   \   000022   78..         MOV     R0,#?V0 + 0
+   \   000024   12....       LCALL   ?L_EQ_X
+   \   000027   7008         JNZ     ??slip_arch_init_2
+     50              UART_SET_SPEED(0, UART_38_M, UART_38_E);
+   \   000029   75C23B       MOV     0xc2,#0x3b
+   \   00002C   75C50A       MOV     0xc5,#0xa
+   \   00002F   8018         SJMP    ??slip_arch_init_1
+     51            else if(ubr==9600)
+   \                     ??slip_arch_init_2:
+   \   000031   90....       MOV     DPTR,#__Constant_2580
+   \   000034   78..         MOV     R0,#?V0 + 0
+   \   000036   12....       LCALL   ?L_EQ_X
+   \   000039   7008         JNZ     ??slip_arch_init_3
+     52              UART_SET_SPEED(0, UART_9_M, UART_9_E);
+   \   00003B   75C23B       MOV     0xc2,#0x3b
+   \   00003E   75C508       MOV     0xc5,#0x8
+   \   000041   8006         SJMP    ??slip_arch_init_1
+     53            else
+     54              UART_SET_SPEED(0, UART_38_M, UART_38_E); //defalut baudrate
+   \                     ??slip_arch_init_3:
+   \   000043   75C23B       MOV     0xc2,#0x3b
+   \   000046   75C50A       MOV     0xc5,#0xa
+     55            
+     56            io_arch_set_input(slip_input_byte);
+   \                     ??slip_arch_init_1:
+   \   000049                ; Setup parameters for call to function uart0_set_input
+   \   000049   7A..         MOV     R2,#??slip_input_byte?relay & 0xff
+   \   00004B   7B..         MOV     R3,#(??slip_input_byte?relay >> 8) & 0xff
+   \   00004D   12....       LCALL   ??uart0_set_input?relay
+     57          }
+   \   000050   7F04         MOV     R7,#0x4
+   \   000052   02....       LJMP    ?BANKED_LEAVE_XDATA
+   \   000055                REQUIRE U0BAUD
+   \   000055                REQUIRE U0GCR
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     __Constant_1c200:
+   \   000000                DS 4
+   \   000004                REQUIRE `?<Initializer for __Constant_1c200>`
+   \   000004                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for __Constant_1c200>`:
+   \   000000   00C20100     DD 115200
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     __Constant_9600:
+   \   000000                DS 4
+   \   000004                REQUIRE `?<Initializer for __Constant_9600>`
+   \   000004                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for __Constant_9600>`:
+   \   000000   00960000     DD 38400
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     __Constant_2580:
+   \   000000                DS 4
+   \   000004                REQUIRE `?<Initializer for __Constant_2580>`
+   \   000004                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for __Constant_2580>`:
+   \   000000   80250000     DD 9600
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??slip_arch_writeb?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    slip_arch_writeb
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??slip_arch_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    slip_arch_init
+     58          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     12  slip_arch_init
+                          0 0 12 -> uart0_set_input
+       0      0      9  slip_arch_writeb
+                          0 0  9 -> uart0_writeb
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       4  ?<Initializer for __Constant_1c200>
+       4  ?<Initializer for __Constant_2580>
+       4  ?<Initializer for __Constant_9600>
+       6  ??slip_arch_init?relay
+       6  ??slip_arch_writeb?relay
+       1  U0BAUD
+       1  U0GCR
+       4  __Constant_1c200
+       4  __Constant_2580
+       4  __Constant_9600
+      85  slip_arch_init
+      16  slip_arch_writeb
+
+ 
+ 101 bytes in segment BANKED_CODE
+  12 bytes in segment BANK_RELAYS
+   2 bytes in segment SFR_AN
+  12 bytes in segment XDATA_I
+  12 bytes in segment XDATA_ID
+ 
+ 113 bytes of CODE  memory (+ 12 bytes shared)
+   0 bytes of DATA  memory (+  2 bytes shared)
+   0 bytes of XDATA memory (+ 12 bytes shared)
+
+Errors: none
+Warnings: none

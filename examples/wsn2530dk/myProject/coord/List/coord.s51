@@ -1,0 +1,1275 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:46 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd.c                                              /
+//    Command line       =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd.c -D AUTOSTART_ENABLE -D PROJECT_CONF_H -lC    /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\coord.s51                                 /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME coord
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?US_SWITCH_SPARSE
+        EXTERN ?V0
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??process_thread_test_receive_process?relay,0203H
+        FUNCTION ??process_thread_test_send_process?relay,0203H
+        PUBLIC ??uart_rx_callback?relay
+        FUNCTION ??uart_rx_callback?relay,0203H
+        PUBLIC autostart_processes
+        FUNCTION process_thread_test_receive_process,0a1603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        FUNCTION process_thread_test_send_process,0a1603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        PUBLIC test_receive_process
+        PUBLIC test_send_process
+        PUBLIC uart_rx_callback
+        FUNCTION uart_rx_callback,0603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 3, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+etimer_expired      SYMBOL "etimer_expired"
+??etimer_expired?relay SYMBOL "?relay", etimer_expired
+etimer_reset        SYMBOL "etimer_reset"
+??etimer_reset?relay SYMBOL "?relay", etimer_reset
+etimer_set          SYMBOL "etimer_set"
+??etimer_set?relay  SYMBOL "?relay", etimer_set
+getInformationListLength SYMBOL "getInformationListLength"
+??getInformationListLength?relay SYMBOL "?relay", getInformationListLength
+instructionSend     SYMBOL "instructionSend"
+??instructionSend?relay SYMBOL "?relay", instructionSend
+memset              SYMBOL "memset"
+??memset?relay      SYMBOL "?relay", memset
+putstring           SYMBOL "putstring"
+??putstring?relay   SYMBOL "?relay", putstring
+sink_printItemOfList SYMBOL "sink_printItemOfList"
+??sink_printItemOfList?relay SYMBOL "?relay", sink_printItemOfList
+strcmp              SYMBOL "strcmp"
+??strcmp?relay      SYMBOL "?relay", strcmp
+strcpy              SYMBOL "strcpy"
+??strcpy?relay      SYMBOL "?relay", strcpy
+strncmp             SYMBOL "strncmp"
+??strncmp?relay     SYMBOL "?relay", strncmp
+uart0_set_input     SYMBOL "uart0_set_input"
+??uart0_set_input?relay SYMBOL "?relay", uart0_set_input
+uart_rx_callback    SYMBOL "uart_rx_callback"
+??uart_rx_callback?relay SYMBOL "?relay", uart_rx_callback
+
+        EXTERN ??etimer_expired?relay
+        FUNCTION ??etimer_expired?relay,00H
+        EXTERN ??etimer_reset?relay
+        FUNCTION ??etimer_reset?relay,00H
+        EXTERN ??etimer_set?relay
+        FUNCTION ??etimer_set?relay,00H
+        EXTERN ??getInformationListLength?relay
+        FUNCTION ??getInformationListLength?relay,00H
+        EXTERN ??instructionSend?relay
+        FUNCTION ??instructionSend?relay,00H
+        EXTERN ??memset?relay
+        FUNCTION ??memset?relay,00H
+        EXTERN ??putstring?relay
+        FUNCTION ??putstring?relay,00H
+        EXTERN ??sink_printItemOfList?relay
+        FUNCTION ??sink_printItemOfList?relay,00H
+        EXTERN ??strcmp?relay
+        FUNCTION ??strcmp?relay,00H
+        EXTERN ??strcpy?relay
+        FUNCTION ??strcpy?relay,00H
+        EXTERN ??strncmp?relay
+        FUNCTION ??strncmp?relay,00H
+        EXTERN ??uart0_set_input?relay
+        FUNCTION ??uart0_set_input?relay,00H
+        EXTERN etimer_expired
+        FUNCTION etimer_expired,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN etimer_reset
+        FUNCTION etimer_reset,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN etimer_set
+        FUNCTION etimer_set,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN getInformationListLength
+        FUNCTION getInformationListLength,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN instructionSend
+        FUNCTION instructionSend,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memset
+        FUNCTION memset,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN putstring
+        FUNCTION putstring,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN sink_printItemOfList
+        FUNCTION sink_printItemOfList,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN strcmp
+        FUNCTION strcmp,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN strcpy
+        FUNCTION strcpy,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN strncmp
+        FUNCTION strncmp,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uart0_set_input
+        FUNCTION uart0_set_input,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "">`:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+// D:\myWork\myWork\examples\wsn2530dk\myProject\coord.c
+//    1 /**
+//    2  * \file
+//    3  *         
+//    4  * \author
+//    5  Dongbo Huang-CUMT
+//    6  */     
+//    7 
+//    8 
+//    9 
+//   10 #include "contiki.h"
+//   11 #include "soc.h"
+//   12 #include "stack.h"
+//   13 #include "sys/clock.h"
+//   14 #include "sys/autostart.h"
+//   15 #include "dev/serial-line.h"
+//   16 #include "dev/slip.h"
+//   17 #include "dev/leds.h"
+//   18 #include "dev/io-arch.h"
+//   19 #include "dev/dma.h"
+//   20 #include "dev/cc2530-rf.h"
+//   21 #include "dev/watchdog.h"
+//   22 #include "dev/clock-isr.h"
+//   23 #include "dev/port2.h"
+//   24 #include "dev/lpm.h"
+//   25 #include "dev/button-sensor.h"
+//   26 #include "dev/adc-sensor.h"
+//   27 #include "dev/leds-arch.h"
+//   28 #include "net/rime.h"
+//   29 #include "net/netstack.h"
+//   30 #include "net/mac/frame802154.h"
+//   31 #include "debug.h"
+//   32 #include "cc253x.h"
+//   33 #include "sfr-bits.h"
+//   34 #include "contiki-lib.h"
+//   35 #include "contiki-net.h"
+//   36 
+//   37 #include <stdio.h> /* For printf() */
+//   38 #include <string.h>
+//   39 
+//   40 
+//   41 
+//   42 #include "dataformat/dataformat.h"
+//   43 
+//   44 
+//   45 //static process_event_t event_temperature_send;
+//   46 //static process_event_t event_uart_send;
+//   47 
+//   48 
+//   49 
+//   50 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   51 static unsigned char serial_rxbuf[128];
+serial_rxbuf:
+        DS 128
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   52 static int buf_pos=0;
+buf_pos:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   53 static int buf_len=0;
+buf_len:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "hl">`:
+        DS 3
+        REQUIRE `?<Initializer for <Constant "hl">>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "hello data sent\\r\\n">`:
+        DS 18
+        REQUIRE `?<Initializer for <Constant "hello data sent\\r`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "frame build failed!!!\\r\\n">`:
+        DS 24
+        REQUIRE `?<Initializer for <Constant "frame build faile`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "sleep">`:
+        DS 6
+        REQUIRE `?<Initializer for <Constant "sleep">>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "sleep data sent\\r\\n">`:
+        DS 18
+        REQUIRE `?<Initializer for <Constant "sleep data sent\\r`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "data sent failed\\r\\n">`:
+        DS 19
+        REQUIRE `?<Initializer for <Constant "data sent failed\\`
+        REQUIRE __INIT_XDATA_I
+//   54 
+//   55 
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+//   56 PROCESS(test_receive_process,"Testing receive process");
+test_receive_process:
+        DATA8
+        DS 8
+        REQUIRE `?<Initializer for test_receive_process>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+//   57 PROCESS(test_send_process, "Testing send data");
+test_send_process:
+        DATA8
+        DS 8
+        REQUIRE `?<Initializer for test_send_process>`
+        REQUIRE __INIT_XDATA_I
+//   58 
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+//   59 AUTOSTART_PROCESSES(&test_send_process,&test_receive_process);
+autostart_processes:
+        DS 6
+        REQUIRE `?<Initializer for autostart_processes>`
+        REQUIRE __INIT_XDATA_I
+//   60 //AUTOSTART_PROCESSES(&sensors_test_process);
+//   61 
+//   62 //uart input handler communication 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   63 int uart_rx_callback(unsigned char c)
+uart_rx_callback:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function uart_rx_callback
+        CODE
+//   64 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   65     serial_rxbuf[buf_pos] = c;
+        MOV     A,R1
+        PUSH    A
+          CFI CFA_SP SP+-6
+        MOV     DPTR,#buf_pos
+        MOVX    A,@DPTR
+        ADD     A,#serial_rxbuf & 0xff
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#(serial_rxbuf >> 8) & 0xff
+        MOV     R3,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        POP     A
+          CFI CFA_SP SP+-5
+        MOVX    @DPTR,A
+//   66     buf_pos++;
+        MOV     DPTR,#buf_pos
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOVX    @DPTR,A
+//   67     buf_len++;
+        MOV     DPTR,#buf_len
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOVX    @DPTR,A
+//   68     return 1;
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock0
+//   69 }
+//   70 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   71 PROCESS_THREAD(test_send_process, ev, data)
+process_thread_test_send_process:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function process_thread_test_send_process
+        CODE
+//   72 {
+        FUNCALL process_thread_test_send_process, etimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_test_send_process, etimer_expired
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_test_send_process, strcmp
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_test_send_process, memset
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_test_send_process, instructionSend
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_test_send_process, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_test_send_process, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_test_send_process, strncmp
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_test_send_process, memset
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_test_send_process, instructionSend
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_test_send_process, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_test_send_process, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_test_send_process, strcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_test_send_process, getInformationListLength
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_test_send_process, sink_printItemOfList
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_test_send_process, etimer_reset
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//   73     static struct etimer et;
+//   74     PROCESS_BEGIN();
+        MOV     R2,#0x1
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     ?V0 + 0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 1,A
+        MOV     R0,#?V0 + 0
+        LCALL   ?US_SWITCH_SPARSE
+`?<Jumptable for process_thread_test_send_proce_0`:
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        2
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_test_send_process_0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        80
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_test_send_process_1
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_test_send_process_2
+        CODE
+//   75 
+//   76     etimer_set(&et,CLOCK_CONF_SECOND/100);
+??process_thread_test_send_process_0:
+        ; Setup parameters for call to function etimer_set
+        MOV     R4,#0x1
+        MOV     R5,#0x0
+        MOV     R2,#??et & 0xff
+        MOV     R3,#(??et >> 8) & 0xff
+        LCALL   ??etimer_set?relay
+//   77 
+//   78     while(1) 
+//   79     {
+//   80         PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+??process_thread_test_send_process_3:
+        MOV     R2,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#0x50
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+??process_thread_test_send_process_1:
+        MOV     A,R2
+        JZ      ??process_thread_test_send_process_4
+        ; Setup parameters for call to function etimer_expired
+        MOV     R2,#??et & 0xff
+        MOV     R3,#(??et >> 8) & 0xff
+        LCALL   ??etimer_expired?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     ??process_thread_test_send_process_5
+??process_thread_test_send_process_4:
+        MOV     R1,#0x1
+        LJMP    ??process_thread_test_send_process_6 & 0xFFFF
+//   81 
+//   82         
+//   83         if(strcmp(serial_rxbuf,"hl") == 0)
+??process_thread_test_send_process_5:
+        ; Setup parameters for call to function strcmp
+        MOV     R4,#`?<Constant "hl">` & 0xff
+        MOV     R5,#(`?<Constant "hl">` >> 8) & 0xff
+        MOV     R2,#serial_rxbuf & 0xff
+        MOV     R3,#(serial_rxbuf >> 8) & 0xff
+        LCALL   ??strcmp?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     ??process_thread_test_send_process_7
+//   84         //if(serial_rxbuf == 0x00)
+//   85         {
+//   86             memset(serial_rxbuf,0,sizeof(serial_rxbuf));
+        ; Setup parameters for call to function memset
+        MOV     ?V0 + 0,#-0x80
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R2,#serial_rxbuf & 0xff
+        MOV     R3,#(serial_rxbuf >> 8) & 0xff
+        LCALL   ??memset?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+//   87             buf_pos = 0;
+        MOV     DPTR,#buf_pos
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   88             buf_len = 0;
+        MOV     DPTR,#buf_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   89             //cc2530_rf_driver.on();
+//   90             if(instructionSend(HELLOMSG))
+        ; Setup parameters for call to function instructionSend
+        MOV     R1,#0x0
+        LCALL   ??instructionSend?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??process_thread_test_send_process_8
+//   91                 putstring("hello data sent\r\n");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "hello data sent\\r\\n">` & 0xff
+        MOV     R3,#(`?<Constant "hello data sent\\r\\n">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+        LJMP    ??process_thread_test_send_process_9 & 0xFFFF
+//   92             else
+//   93                 putstring("frame build failed!!!\r\n");
+??process_thread_test_send_process_8:
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "frame build failed!!!\\r\\n">` & 0xff
+        MOV     R3,#(`?<Constant "frame build failed!!!\\r\\n">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+        LJMP    ??process_thread_test_send_process_9 & 0xFFFF
+//   94             
+//   95         }
+//   96         else if(strncmp(serial_rxbuf,"sleep",5) == 0)
+??process_thread_test_send_process_7:
+        ; Setup parameters for call to function strncmp
+        MOV     ?V0 + 0,#0x5
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     R4,#`?<Constant "sleep">` & 0xff
+        MOV     R5,#(`?<Constant "sleep">` >> 8) & 0xff
+        MOV     R2,#serial_rxbuf & 0xff
+        MOV     R3,#(serial_rxbuf >> 8) & 0xff
+        LCALL   ??strncmp?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     ??process_thread_test_send_process_10
+//   97         {
+//   98             memset(serial_rxbuf,0,sizeof(serial_rxbuf));
+        ; Setup parameters for call to function memset
+        MOV     ?V0 + 0,#-0x80
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R2,#serial_rxbuf & 0xff
+        MOV     R3,#(serial_rxbuf >> 8) & 0xff
+        LCALL   ??memset?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+//   99             buf_pos = 0;
+        MOV     DPTR,#buf_pos
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  100             buf_len = 0;
+        MOV     DPTR,#buf_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  101             if(instructionSend(SLEEPMSG))
+        ; Setup parameters for call to function instructionSend
+        MOV     R1,#-0x1
+        LCALL   ??instructionSend?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??process_thread_test_send_process_11
+//  102                 putstring("sleep data sent\r\n");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "sleep data sent\\r\\n">` & 0xff
+        MOV     R3,#(`?<Constant "sleep data sent\\r\\n">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+        SJMP    ??process_thread_test_send_process_9
+//  103             else
+//  104                 putstring("data sent failed\r\n");
+??process_thread_test_send_process_11:
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "data sent failed\\r\\n">` & 0xff
+        MOV     R3,#(`?<Constant "data sent failed\\r\\n">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+        SJMP    ??process_thread_test_send_process_9
+//  105         }
+//  106         else
+//  107         {
+//  108             strcpy(serial_rxbuf,"");
+??process_thread_test_send_process_10:
+        ; Setup parameters for call to function strcpy
+        MOV     R4,#`?<Constant "">` & 0xff
+        MOV     R5,#(`?<Constant "">` >> 8) & 0xff
+        MOV     R2,#serial_rxbuf & 0xff
+        MOV     R3,#(serial_rxbuf >> 8) & 0xff
+        LCALL   ??strcpy?relay
+//  109             buf_pos = 0;
+        MOV     DPTR,#buf_pos
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  110             buf_len = 0;
+        MOV     DPTR,#buf_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  111         }
+//  112         if(getInformationListLength()!= 0)
+??process_thread_test_send_process_9:
+        ; Setup parameters for call to function getInformationListLength
+        LCALL   ??getInformationListLength?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??process_thread_test_send_process_12
+//  113         {
+//  114             sink_printItemOfList();
+        ; Setup parameters for call to function sink_printItemOfList
+        LCALL   ??sink_printItemOfList?relay
+//  115         }
+//  116         
+//  117         etimer_reset(&et);
+??process_thread_test_send_process_12:
+        ; Setup parameters for call to function etimer_reset
+        MOV     R2,#??et & 0xff
+        MOV     R3,#(??et >> 8) & 0xff
+        LCALL   ??etimer_reset?relay
+        LJMP    ??process_thread_test_send_process_3 & 0xFFFF
+//  118     }
+//  119     PROCESS_END();
+??process_thread_test_send_process_2:
+        MOV     R2,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     R1,#0x3
+??process_thread_test_send_process_6:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//  120 }
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+??et:
+        DS 8
+        REQUIRE __INIT_XDATA_Z
+//  121 
+//  122 //serial communication process
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  123 PROCESS_THREAD(test_receive_process, ev, data)
+process_thread_test_receive_process:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function process_thread_test_receive_process
+        CODE
+//  124 {
+        FUNCALL process_thread_test_receive_process, uart0_set_input
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  125 
+//  126     PROCESS_BEGIN();
+        MOV     R2,#0x1
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     ?V0 + 0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 1,A
+        MOV     R0,#?V0 + 0
+        LCALL   ?US_SWITCH_SPARSE
+`?<Jumptable for process_thread_test_receive_pr_0`:
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        2
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_test_receive_process_0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        132
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_test_receive_process_1
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_test_receive_process_2
+        CODE
+//  127 
+//  128     uart0_set_input(uart_rx_callback);
+??process_thread_test_receive_process_0:
+        ; Setup parameters for call to function uart0_set_input
+        MOV     R2,#??uart_rx_callback?relay & 0xff
+        MOV     R3,#(??uart_rx_callback?relay >> 8) & 0xff
+        LCALL   ??uart0_set_input?relay
+//  129 
+//  130     while(1) 
+//  131     {
+//  132         PROCESS_YIELD(); 
+??process_thread_test_receive_process_3:
+        MOV     R2,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#-0x7c
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+??process_thread_test_receive_process_1:
+        MOV     A,R2
+        JNZ     ??process_thread_test_receive_process_3
+        MOV     R1,#0x1
+        SJMP    ??process_thread_test_receive_process_4
+//  133     }
+//  134 
+//  135     PROCESS_END();
+??process_thread_test_receive_process_2:
+        MOV     R2,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     R1,#0x3
+??process_thread_test_receive_process_4:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//  136 }
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "hl">>`:
+        DB "hl"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "hello data sent\\r`:
+        DB "hello data sent\015\012"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "frame build faile`:
+        DB "frame build failed!!!\015\012"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "sleep">>`:
+        DB "sleep"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "sleep data sent\\r`:
+        DB "sleep data sent\015\012"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "data sent failed\\`:
+        DB "data sent failed\015\012"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for test_receive_process>`:
+        DATA16
+        DW 0H
+        DW ??process_thread_test_receive_process?relay
+        DB 0, 0, 0, 0
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for test_send_process>`:
+        DATA16
+        DW 0H
+        DW ??process_thread_test_send_process?relay
+        DB 0, 0, 0, 0
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for autostart_processes>`:
+        DATA16
+        DW test_send_process
+        DW test_receive_process
+        DW 0H
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uart_rx_callback?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uart_rx_callback
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_thread_test_send_process?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_thread_test_send_process
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_thread_test_receive_process?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_thread_test_receive_process
+
+        END
+//  137 
+//  138 
+//  139 
+// 
+// 536 bytes in segment BANKED_CODE
+//  18 bytes in segment BANK_RELAYS
+// 110 bytes in segment XDATA_I
+// 110 bytes in segment XDATA_ID
+// 141 bytes in segment XDATA_Z
+// 
+// 664 bytes of CODE  memory
+// 251 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: 3

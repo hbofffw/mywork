@@ -1,0 +1,741 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:46 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d.c                                                #
+#    Command line       =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d.c -D AUTOSTART_ENABLE -D PROJECT_CONF_H -lC      #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\coord.lst                                   #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\coord.r51                                    #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\examples\wsn2530dk\myProject\coord.c
+      1          /**
+      2           * \file
+      3           *         
+      4           * \author
+      5           Dongbo Huang-CUMT
+      6           */     
+      7          
+      8          
+      9          
+     10          #include "contiki.h"
+     11          #include "soc.h"
+     12          #include "stack.h"
+     13          #include "sys/clock.h"
+     14          #include "sys/autostart.h"
+     15          #include "dev/serial-line.h"
+     16          #include "dev/slip.h"
+     17          #include "dev/leds.h"
+     18          #include "dev/io-arch.h"
+     19          #include "dev/dma.h"
+     20          #include "dev/cc2530-rf.h"
+     21          #include "dev/watchdog.h"
+     22          #include "dev/clock-isr.h"
+     23          #include "dev/port2.h"
+     24          #include "dev/lpm.h"
+     25          #include "dev/button-sensor.h"
+     26          #include "dev/adc-sensor.h"
+     27          #include "dev/leds-arch.h"
+     28          #include "net/rime.h"
+     29          #include "net/netstack.h"
+     30          #include "net/mac/frame802154.h"
+     31          #include "debug.h"
+     32          #include "cc253x.h"
+     33          #include "sfr-bits.h"
+     34          #include "contiki-lib.h"
+     35          #include "contiki-net.h"
+     36          
+     37          #include <stdio.h> /* For printf() */
+     38          #include <string.h>
+     39          
+     40          
+     41          
+     42          #include "dataformat/dataformat.h"
+     43          
+     44          
+     45          //static process_event_t event_temperature_send;
+     46          //static process_event_t event_uart_send;
+     47          
+     48          
+     49          
+     50          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     51          static unsigned char serial_rxbuf[128];
+   \                     serial_rxbuf:
+   \   000000                DS 128
+   \   000080                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     52          static int buf_pos=0;
+   \                     buf_pos:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     53          static int buf_len=0;
+   \                     buf_len:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     54          
+     55          
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     56          PROCESS(test_receive_process,"Testing receive process");
+   \                     test_receive_process:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for test_receive_process>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     57          PROCESS(test_send_process, "Testing send data");
+   \                     test_send_process:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for test_send_process>`
+   \   000008                REQUIRE __INIT_XDATA_I
+     58          
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     59          AUTOSTART_PROCESSES(&test_send_process,&test_receive_process);
+   \                     autostart_processes:
+   \   000000                DS 6
+   \   000006                REQUIRE `?<Initializer for autostart_processes>`
+   \   000006                REQUIRE __INIT_XDATA_I
+     60          //AUTOSTART_PROCESSES(&sensors_test_process);
+     61          
+     62          //uart input handler communication 
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     63          int uart_rx_callback(unsigned char c)
+   \                     uart_rx_callback:
+     64          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     65              serial_rxbuf[buf_pos] = c;
+   \   000004   E9           MOV     A,R1
+   \   000005   C0E0         PUSH    A
+   \   000007   90....       MOV     DPTR,#buf_pos
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   24..         ADD     A,#serial_rxbuf & 0xff
+   \   00000D   FA           MOV     R2,A
+   \   00000E   A3           INC     DPTR
+   \   00000F   E0           MOVX    A,@DPTR
+   \   000010   34..         ADDC    A,#(serial_rxbuf >> 8) & 0xff
+   \   000012   FB           MOV     R3,A
+   \   000013   8A82         MOV     DPL,R2
+   \   000015   8B83         MOV     DPH,R3
+   \   000017   D0E0         POP     A
+   \   000019   F0           MOVX    @DPTR,A
+     66              buf_pos++;
+   \   00001A   90....       MOV     DPTR,#buf_pos
+   \   00001D   E0           MOVX    A,@DPTR
+   \   00001E   2401         ADD     A,#0x1
+   \   000020   F0           MOVX    @DPTR,A
+   \   000021   A3           INC     DPTR
+   \   000022   E0           MOVX    A,@DPTR
+   \   000023   3400         ADDC    A,#0x0
+   \   000025   F0           MOVX    @DPTR,A
+     67              buf_len++;
+   \   000026   90....       MOV     DPTR,#buf_len
+   \   000029   E0           MOVX    A,@DPTR
+   \   00002A   2401         ADD     A,#0x1
+   \   00002C   F0           MOVX    @DPTR,A
+   \   00002D   A3           INC     DPTR
+   \   00002E   E0           MOVX    A,@DPTR
+   \   00002F   3400         ADDC    A,#0x0
+   \   000031   F0           MOVX    @DPTR,A
+     68              return 1;
+   \   000032   7A01         MOV     R2,#0x1
+   \   000034   7B00         MOV     R3,#0x0
+   \   000036   D083         POP     DPH
+   \   000038   D082         POP     DPL
+   \   00003A   02....       LJMP    ?BRET
+     69          }
+     70          
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     71          PROCESS_THREAD(test_send_process, ev, data)
+   \                     process_thread_test_send_process:
+     72          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+     73              static struct etimer et;
+     74              PROCESS_BEGIN();
+   \   000009   7A01         MOV     R2,#0x1
+   \   00000B   8E82         MOV     DPL,R6
+   \   00000D   8F83         MOV     DPH,R7
+   \   00000F   E0           MOVX    A,@DPTR
+   \   000010   F5..         MOV     ?V0 + 0,A
+   \   000012   A3           INC     DPTR
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   F5..         MOV     ?V0 + 1,A
+   \   000016   78..         MOV     R0,#?V0 + 0
+   \   000018   12....       LCALL   ?US_SWITCH_SPARSE
+   \                     `?<Jumptable for process_thread_test_send_proce_0`:
+   \   00001B   0000         DW        0
+   \   00001D   0200         DW        2
+   \   00001F   0000         DW        0
+   \   000021   ....         DW        ??process_thread_test_send_process_0
+   \   000023   5000         DW        80
+   \   000025   ....         DW        ??process_thread_test_send_process_1
+   \   000027   ....         DW        ??process_thread_test_send_process_2
+     75          
+     76              etimer_set(&et,CLOCK_CONF_SECOND/100);
+   \                     ??process_thread_test_send_process_0:
+   \   000029                ; Setup parameters for call to function etimer_set
+   \   000029   7C01         MOV     R4,#0x1
+   \   00002B   7D00         MOV     R5,#0x0
+   \   00002D   7A..         MOV     R2,#??et & 0xff
+   \   00002F   7B..         MOV     R3,#(??et >> 8) & 0xff
+   \   000031   12....       LCALL   ??etimer_set?relay
+     77          
+     78              while(1) 
+     79              {
+     80                  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+   \                     ??process_thread_test_send_process_3:
+   \   000034   7A00         MOV     R2,#0x0
+   \   000036   8E82         MOV     DPL,R6
+   \   000038   8F83         MOV     DPH,R7
+   \   00003A   7450         MOV     A,#0x50
+   \   00003C   F0           MOVX    @DPTR,A
+   \   00003D   A3           INC     DPTR
+   \   00003E   7400         MOV     A,#0x0
+   \   000040   F0           MOVX    @DPTR,A
+   \                     ??process_thread_test_send_process_1:
+   \   000041   EA           MOV     A,R2
+   \   000042   6011         JZ      ??process_thread_test_send_process_4
+   \   000044                ; Setup parameters for call to function etimer_expired
+   \   000044   7A..         MOV     R2,#??et & 0xff
+   \   000046   7B..         MOV     R3,#(??et >> 8) & 0xff
+   \   000048   12....       LCALL   ??etimer_expired?relay
+   \   00004B   8A..         MOV     ?V0 + 0,R2
+   \   00004D   8B..         MOV     ?V0 + 1,R3
+   \   00004F   E5..         MOV     A,?V0 + 0
+   \   000051   45..         ORL     A,?V0 + 1
+   \   000053   7005         JNZ     ??process_thread_test_send_process_5
+   \                     ??process_thread_test_send_process_4:
+   \   000055   7901         MOV     R1,#0x1
+   \   000057   02....       LJMP    ??process_thread_test_send_process_6 & 0xFFFF
+     81          
+     82                  
+     83                  if(strcmp(serial_rxbuf,"hl") == 0)
+                                   ^
+Warning[Pe167]: argument of type "unsigned char *" is incompatible with
+          parameter of type "char const *"
+   \                     ??process_thread_test_send_process_5:
+   \   00005A                ; Setup parameters for call to function strcmp
+   \   00005A   7C..         MOV     R4,#`?<Constant "hl">` & 0xff
+   \   00005C   7D..         MOV     R5,#(`?<Constant "hl">` >> 8) & 0xff
+   \   00005E   7A..         MOV     R2,#serial_rxbuf & 0xff
+   \   000060   7B..         MOV     R3,#(serial_rxbuf >> 8) & 0xff
+   \   000062   12....       LCALL   ??strcmp?relay
+   \   000065   8A..         MOV     ?V0 + 0,R2
+   \   000067   8B..         MOV     ?V0 + 1,R3
+   \   000069   E5..         MOV     A,?V0 + 0
+   \   00006B   45..         ORL     A,?V0 + 1
+   \   00006D   7052         JNZ     ??process_thread_test_send_process_7
+     84                  //if(serial_rxbuf == 0x00)
+     85                  {
+     86                      memset(serial_rxbuf,0,sizeof(serial_rxbuf));
+   \   00006F                ; Setup parameters for call to function memset
+   \   00006F   75..80       MOV     ?V0 + 0,#-0x80
+   \   000072   75..00       MOV     ?V0 + 1,#0x0
+   \   000075   78..         MOV     R0,#?V0 + 0
+   \   000077   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00007A   7C00         MOV     R4,#0x0
+   \   00007C   7D00         MOV     R5,#0x0
+   \   00007E   7A..         MOV     R2,#serial_rxbuf & 0xff
+   \   000080   7B..         MOV     R3,#(serial_rxbuf >> 8) & 0xff
+   \   000082   12....       LCALL   ??memset?relay
+   \   000085   7402         MOV     A,#0x2
+   \   000087   12....       LCALL   ?DEALLOC_XSTACK8
+     87                      buf_pos = 0;
+   \   00008A   90....       MOV     DPTR,#buf_pos
+   \   00008D   7400         MOV     A,#0x0
+   \   00008F   F0           MOVX    @DPTR,A
+   \   000090   A3           INC     DPTR
+   \   000091   7400         MOV     A,#0x0
+   \   000093   F0           MOVX    @DPTR,A
+     88                      buf_len = 0;
+   \   000094   90....       MOV     DPTR,#buf_len
+   \   000097   7400         MOV     A,#0x0
+   \   000099   F0           MOVX    @DPTR,A
+   \   00009A   A3           INC     DPTR
+   \   00009B   7400         MOV     A,#0x0
+   \   00009D   F0           MOVX    @DPTR,A
+     89                      //cc2530_rf_driver.on();
+     90                      if(instructionSend(HELLOMSG))
+   \   00009E                ; Setup parameters for call to function instructionSend
+   \   00009E   7900         MOV     R1,#0x0
+   \   0000A0   12....       LCALL   ??instructionSend?relay
+   \   0000A3   8A..         MOV     ?V0 + 0,R2
+   \   0000A5   8B..         MOV     ?V0 + 1,R3
+   \   0000A7   E5..         MOV     A,?V0 + 0
+   \   0000A9   45..         ORL     A,?V0 + 1
+   \   0000AB   600A         JZ      ??process_thread_test_send_process_8
+     91                          putstring("hello data sent\r\n");
+   \   0000AD                ; Setup parameters for call to function putstring
+   \   0000AD   7A..         MOV     R2,#`?<Constant "hello data sent\\r\\n">` & 0xff
+   \   0000AF   7B..         MOV     R3,#(`?<Constant "hello data sent\\r\\n">` >> 8) & 0xff
+   \   0000B1   12....       LCALL   ??putstring?relay
+   \   0000B4   02....       LJMP    ??process_thread_test_send_process_9 & 0xFFFF
+     92                      else
+     93                          putstring("frame build failed!!!\r\n");
+   \                     ??process_thread_test_send_process_8:
+   \   0000B7                ; Setup parameters for call to function putstring
+   \   0000B7   7A..         MOV     R2,#`?<Constant "frame build failed!!!\\r\\n">` & 0xff
+   \   0000B9   7B..         MOV     R3,#(`?<Constant "frame build failed!!!\\r\\n">` >> 8) & 0xff
+   \   0000BB   12....       LCALL   ??putstring?relay
+   \   0000BE   02....       LJMP    ??process_thread_test_send_process_9 & 0xFFFF
+     94                      
+     95                  }
+     96                  else if(strncmp(serial_rxbuf,"sleep",5) == 0)
+                                         ^
+Warning[Pe167]: argument of type "unsigned char *" is incompatible with
+          parameter of type "char const *"
+   \                     ??process_thread_test_send_process_7:
+   \   0000C1                ; Setup parameters for call to function strncmp
+   \   0000C1   75..05       MOV     ?V0 + 0,#0x5
+   \   0000C4   75..00       MOV     ?V0 + 1,#0x0
+   \   0000C7   78..         MOV     R0,#?V0 + 0
+   \   0000C9   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000CC   7C..         MOV     R4,#`?<Constant "sleep">` & 0xff
+   \   0000CE   7D..         MOV     R5,#(`?<Constant "sleep">` >> 8) & 0xff
+   \   0000D0   7A..         MOV     R2,#serial_rxbuf & 0xff
+   \   0000D2   7B..         MOV     R3,#(serial_rxbuf >> 8) & 0xff
+   \   0000D4   12....       LCALL   ??strncmp?relay
+   \   0000D7   7402         MOV     A,#0x2
+   \   0000D9   12....       LCALL   ?DEALLOC_XSTACK8
+   \   0000DC   8A..         MOV     ?V0 + 0,R2
+   \   0000DE   8B..         MOV     ?V0 + 1,R3
+   \   0000E0   E5..         MOV     A,?V0 + 0
+   \   0000E2   45..         ORL     A,?V0 + 1
+   \   0000E4   7050         JNZ     ??process_thread_test_send_process_10
+     97                  {
+     98                      memset(serial_rxbuf,0,sizeof(serial_rxbuf));
+   \   0000E6                ; Setup parameters for call to function memset
+   \   0000E6   75..80       MOV     ?V0 + 0,#-0x80
+   \   0000E9   75..00       MOV     ?V0 + 1,#0x0
+   \   0000EC   78..         MOV     R0,#?V0 + 0
+   \   0000EE   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000F1   7C00         MOV     R4,#0x0
+   \   0000F3   7D00         MOV     R5,#0x0
+   \   0000F5   7A..         MOV     R2,#serial_rxbuf & 0xff
+   \   0000F7   7B..         MOV     R3,#(serial_rxbuf >> 8) & 0xff
+   \   0000F9   12....       LCALL   ??memset?relay
+   \   0000FC   7402         MOV     A,#0x2
+   \   0000FE   12....       LCALL   ?DEALLOC_XSTACK8
+     99                      buf_pos = 0;
+   \   000101   90....       MOV     DPTR,#buf_pos
+   \   000104   7400         MOV     A,#0x0
+   \   000106   F0           MOVX    @DPTR,A
+   \   000107   A3           INC     DPTR
+   \   000108   7400         MOV     A,#0x0
+   \   00010A   F0           MOVX    @DPTR,A
+    100                      buf_len = 0;
+   \   00010B   90....       MOV     DPTR,#buf_len
+   \   00010E   7400         MOV     A,#0x0
+   \   000110   F0           MOVX    @DPTR,A
+   \   000111   A3           INC     DPTR
+   \   000112   7400         MOV     A,#0x0
+   \   000114   F0           MOVX    @DPTR,A
+    101                      if(instructionSend(SLEEPMSG))
+   \   000115                ; Setup parameters for call to function instructionSend
+   \   000115   79FF         MOV     R1,#-0x1
+   \   000117   12....       LCALL   ??instructionSend?relay
+   \   00011A   8A..         MOV     ?V0 + 0,R2
+   \   00011C   8B..         MOV     ?V0 + 1,R3
+   \   00011E   E5..         MOV     A,?V0 + 0
+   \   000120   45..         ORL     A,?V0 + 1
+   \   000122   6009         JZ      ??process_thread_test_send_process_11
+    102                          putstring("sleep data sent\r\n");
+   \   000124                ; Setup parameters for call to function putstring
+   \   000124   7A..         MOV     R2,#`?<Constant "sleep data sent\\r\\n">` & 0xff
+   \   000126   7B..         MOV     R3,#(`?<Constant "sleep data sent\\r\\n">` >> 8) & 0xff
+   \   000128   12....       LCALL   ??putstring?relay
+   \   00012B   8028         SJMP    ??process_thread_test_send_process_9
+    103                      else
+    104                          putstring("data sent failed\r\n");
+   \                     ??process_thread_test_send_process_11:
+   \   00012D                ; Setup parameters for call to function putstring
+   \   00012D   7A..         MOV     R2,#`?<Constant "data sent failed\\r\\n">` & 0xff
+   \   00012F   7B..         MOV     R3,#(`?<Constant "data sent failed\\r\\n">` >> 8) & 0xff
+   \   000131   12....       LCALL   ??putstring?relay
+   \   000134   801F         SJMP    ??process_thread_test_send_process_9
+    105                  }
+    106                  else
+    107                  {
+    108                      strcpy(serial_rxbuf,"");
+                                    ^
+Warning[Pe167]: argument of type "unsigned char *" is incompatible with
+          parameter of type "char *"
+   \                     ??process_thread_test_send_process_10:
+   \   000136                ; Setup parameters for call to function strcpy
+   \   000136   7C..         MOV     R4,#`?<Constant "">` & 0xff
+   \   000138   7D..         MOV     R5,#(`?<Constant "">` >> 8) & 0xff
+   \   00013A   7A..         MOV     R2,#serial_rxbuf & 0xff
+   \   00013C   7B..         MOV     R3,#(serial_rxbuf >> 8) & 0xff
+   \   00013E   12....       LCALL   ??strcpy?relay
+    109                      buf_pos = 0;
+   \   000141   90....       MOV     DPTR,#buf_pos
+   \   000144   7400         MOV     A,#0x0
+   \   000146   F0           MOVX    @DPTR,A
+   \   000147   A3           INC     DPTR
+   \   000148   7400         MOV     A,#0x0
+   \   00014A   F0           MOVX    @DPTR,A
+    110                      buf_len = 0;
+   \   00014B   90....       MOV     DPTR,#buf_len
+   \   00014E   7400         MOV     A,#0x0
+   \   000150   F0           MOVX    @DPTR,A
+   \   000151   A3           INC     DPTR
+   \   000152   7400         MOV     A,#0x0
+   \   000154   F0           MOVX    @DPTR,A
+    111                  }
+    112                  if(getInformationListLength()!= 0)
+   \                     ??process_thread_test_send_process_9:
+   \   000155                ; Setup parameters for call to function getInformationListLength
+   \   000155   12....       LCALL   ??getInformationListLength?relay
+   \   000158   8A..         MOV     ?V0 + 0,R2
+   \   00015A   8B..         MOV     ?V0 + 1,R3
+   \   00015C   E5..         MOV     A,?V0 + 0
+   \   00015E   45..         ORL     A,?V0 + 1
+   \   000160   6003         JZ      ??process_thread_test_send_process_12
+    113                  {
+    114                      sink_printItemOfList();
+   \   000162                ; Setup parameters for call to function sink_printItemOfList
+   \   000162   12....       LCALL   ??sink_printItemOfList?relay
+    115                  }
+    116                  
+    117                  etimer_reset(&et);
+   \                     ??process_thread_test_send_process_12:
+   \   000165                ; Setup parameters for call to function etimer_reset
+   \   000165   7A..         MOV     R2,#??et & 0xff
+   \   000167   7B..         MOV     R3,#(??et >> 8) & 0xff
+   \   000169   12....       LCALL   ??etimer_reset?relay
+   \   00016C   02....       LJMP    ??process_thread_test_send_process_3 & 0xFFFF
+    118              }
+    119              PROCESS_END();
+   \                     ??process_thread_test_send_process_2:
+   \   00016F   7A00         MOV     R2,#0x0
+   \   000171   8E82         MOV     DPL,R6
+   \   000173   8F83         MOV     DPH,R7
+   \   000175   7400         MOV     A,#0x0
+   \   000177   F0           MOVX    @DPTR,A
+   \   000178   A3           INC     DPTR
+   \   000179   7400         MOV     A,#0x0
+   \   00017B   F0           MOVX    @DPTR,A
+   \   00017C   7903         MOV     R1,#0x3
+   \                     ??process_thread_test_send_process_6:
+   \   00017E   7F02         MOV     R7,#0x2
+   \   000180   02....       LJMP    ?BANKED_LEAVE_XDATA
+    120          }
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \                     ??et:
+   \   000000                DS 8
+   \   000008                REQUIRE __INIT_XDATA_Z
+    121          
+    122          //serial communication process
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    123          PROCESS_THREAD(test_receive_process, ev, data)
+   \                     process_thread_test_receive_process:
+    124          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    125          
+    126              PROCESS_BEGIN();
+   \   000009   7A01         MOV     R2,#0x1
+   \   00000B   8E82         MOV     DPL,R6
+   \   00000D   8F83         MOV     DPH,R7
+   \   00000F   E0           MOVX    A,@DPTR
+   \   000010   F5..         MOV     ?V0 + 0,A
+   \   000012   A3           INC     DPTR
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   F5..         MOV     ?V0 + 1,A
+   \   000016   78..         MOV     R0,#?V0 + 0
+   \   000018   12....       LCALL   ?US_SWITCH_SPARSE
+   \                     `?<Jumptable for process_thread_test_receive_pr_0`:
+   \   00001B   0000         DW        0
+   \   00001D   0200         DW        2
+   \   00001F   0000         DW        0
+   \   000021   ....         DW        ??process_thread_test_receive_process_0
+   \   000023   8400         DW        132
+   \   000025   ....         DW        ??process_thread_test_receive_process_1
+   \   000027   ....         DW        ??process_thread_test_receive_process_2
+    127          
+    128              uart0_set_input(uart_rx_callback);
+   \                     ??process_thread_test_receive_process_0:
+   \   000029                ; Setup parameters for call to function uart0_set_input
+   \   000029   7A..         MOV     R2,#??uart_rx_callback?relay & 0xff
+   \   00002B   7B..         MOV     R3,#(??uart_rx_callback?relay >> 8) & 0xff
+   \   00002D   12....       LCALL   ??uart0_set_input?relay
+    129          
+    130              while(1) 
+    131              {
+    132                  PROCESS_YIELD(); 
+   \                     ??process_thread_test_receive_process_3:
+   \   000030   7A00         MOV     R2,#0x0
+   \   000032   8E82         MOV     DPL,R6
+   \   000034   8F83         MOV     DPH,R7
+   \   000036   7484         MOV     A,#-0x7c
+   \   000038   F0           MOVX    @DPTR,A
+   \   000039   A3           INC     DPTR
+   \   00003A   7400         MOV     A,#0x0
+   \   00003C   F0           MOVX    @DPTR,A
+   \                     ??process_thread_test_receive_process_1:
+   \   00003D   EA           MOV     A,R2
+   \   00003E   70F0         JNZ     ??process_thread_test_receive_process_3
+   \   000040   7901         MOV     R1,#0x1
+   \   000042   800F         SJMP    ??process_thread_test_receive_process_4
+    133              }
+    134          
+    135              PROCESS_END();
+   \                     ??process_thread_test_receive_process_2:
+   \   000044   7A00         MOV     R2,#0x0
+   \   000046   8E82         MOV     DPL,R6
+   \   000048   8F83         MOV     DPH,R7
+   \   00004A   7400         MOV     A,#0x0
+   \   00004C   F0           MOVX    @DPTR,A
+   \   00004D   A3           INC     DPTR
+   \   00004E   7400         MOV     A,#0x0
+   \   000050   F0           MOVX    @DPTR,A
+   \   000051   7903         MOV     R1,#0x3
+   \                     ??process_thread_test_receive_process_4:
+   \   000053   7F02         MOV     R7,#0x2
+   \   000055   02....       LJMP    ?BANKED_LEAVE_XDATA
+    136          }
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "hl">>`:
+   \   000000   686C00       DB "hl"
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "hello data sent\\r`:
+   \   000000   68656C6C     DB "hello data sent\015\012"
+   \            6F206461
+   \            74612073
+   \            656E740D
+   \            0A00    
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "frame build faile`:
+   \   000000   6672616D     DB "frame build failed!!!\015\012"
+   \            65206275
+   \            696C6420
+   \            6661696C
+   \            65642121
+   \            210D0A00
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "sleep">>`:
+   \   000000   736C6565     DB "sleep"
+   \            7000    
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "sleep data sent\\r`:
+   \   000000   736C6565     DB "sleep data sent\015\012"
+   \            70206461
+   \            74612073
+   \            656E740D
+   \            0A00    
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "data sent failed\\`:
+   \   000000   64617461     DB "data sent failed\015\012"
+   \            2073656E
+   \            74206661
+   \            696C6564
+   \            0D0A00  
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for test_receive_process>`:
+   \   000000   0000         DW 0H
+   \   000002   ....         DW ??process_thread_test_receive_process?relay
+   \   000004   00000000     DB 0, 0, 0, 0
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for test_send_process>`:
+   \   000000   0000         DW 0H
+   \   000002   ....         DW ??process_thread_test_send_process?relay
+   \   000004   00000000     DB 0, 0, 0, 0
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for autostart_processes>`:
+   \   000000   ....         DW test_send_process
+   \   000002   ....         DW test_receive_process
+   \   000004   0000         DW 0H
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uart_rx_callback?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uart_rx_callback
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_thread_test_send_process?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_thread_test_send_process
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_thread_test_receive_process?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_thread_test_receive_process
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \                     `?<Constant "">`:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "hl">`:
+   \   000000                DS 3
+   \   000003                REQUIRE `?<Initializer for <Constant "hl">>`
+   \   000003                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "hello data sent\\r\\n">`:
+   \   000000                DS 18
+   \   000012                REQUIRE `?<Initializer for <Constant "hello data sent\\r`
+   \   000012                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "frame build failed!!!\\r\\n">`:
+   \   000000                DS 24
+   \   000018                REQUIRE `?<Initializer for <Constant "frame build faile`
+   \   000018                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "sleep">`:
+   \   000000                DS 6
+   \   000006                REQUIRE `?<Initializer for <Constant "sleep">>`
+   \   000006                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "sleep data sent\\r\\n">`:
+   \   000000                DS 18
+   \   000012                REQUIRE `?<Initializer for <Constant "sleep data sent\\r`
+   \   000012                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "data sent failed\\r\\n">`:
+   \   000000                DS 19
+   \   000013                REQUIRE `?<Initializer for <Constant "data sent failed\\`
+   \   000013                REQUIRE __INIT_XDATA_I
+    137          
+    138          
+    139          
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     10  process_thread_test_receive_process
+                          0 0 10 -> uart0_set_input
+       0      0     12  process_thread_test_send_process
+                          0 0 10 -> etimer_expired
+                          0 0 10 -> etimer_reset
+                          0 0 10 -> etimer_set
+                          0 0 10 -> getInformationListLength
+                          0 0 10 -> instructionSend
+                          0 0 12 -> memset
+                          0 0 10 -> putstring
+                          0 0 10 -> sink_printItemOfList
+                          0 0 10 -> strcmp
+                          0 0 10 -> strcpy
+                          0 0 12 -> strncmp
+       3      0      0  uart_rx_callback
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       1  ?<Constant "">
+      19  ?<Constant "data sent failed\r\n">
+      24  ?<Constant "frame build failed!!!\r\n">
+      18  ?<Constant "hello data sent\r\n">
+       3  ?<Constant "hl">
+      18  ?<Constant "sleep data sent\r\n">
+       6  ?<Constant "sleep">
+      19  ?<Initializer for <Constant "data sent failed\
+      24  ?<Initializer for <Constant "frame build faile
+      18  ?<Initializer for <Constant "hello data sent\r
+       3  ?<Initializer for <Constant "hl">>
+      18  ?<Initializer for <Constant "sleep data sent\r
+       6  ?<Initializer for <Constant "sleep">>
+       6  ?<Initializer for autostart_processes>
+       8  ?<Initializer for test_receive_process>
+       8  ?<Initializer for test_send_process>
+       6  ??process_thread_test_receive_process?relay
+       6  ??process_thread_test_send_process?relay
+       6  ??uart_rx_callback?relay
+       6  autostart_processes
+       2  buf_len
+       2  buf_pos
+       8  et
+      88  process_thread_test_receive_process
+     387  process_thread_test_send_process
+     128  serial_rxbuf
+       8  test_receive_process
+       8  test_send_process
+      61  uart_rx_callback
+
+ 
+ 536 bytes in segment BANKED_CODE
+  18 bytes in segment BANK_RELAYS
+ 110 bytes in segment XDATA_I
+ 110 bytes in segment XDATA_ID
+ 141 bytes in segment XDATA_Z
+ 
+ 664 bytes of CODE  memory
+ 251 bytes of XDATA memory
+
+Errors: none
+Warnings: 3

@@ -1,0 +1,2182 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:49 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\mai /
+//                          n-coord.c                                         /
+//    Command line       =  D:\myWork\myWork\examples\wsn2530dk\myProject\mai /
+//                          n-coord.c -D AUTOSTART_ENABLE -D PROJECT_CONF_H   /
+//                          -lC D:\myWork\myWork\examples\wsn2530dk\myProject /
+//                          \coord\List\ -lA D:\myWork\myWork\examples\wsn253 /
+//                          0dk\myProject\coord\List\ --diag_suppress         /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\main-coord.s51                            /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME `main-coord`
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?ALLOC_XSTACK8
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?CALL_IND
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?V0
+        EXTERN ?XSP
+        EXTERN ?XSTACK_DISP0_8
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??fade?relay,0203H
+        PUBLIC ??main?relay
+        FUNCTION ??main?relay,0203H
+        FUNCTION ??set_rime_addr?relay,0203H
+        PUBWEAK T1CNTH
+        PUBWEAK T1CNTL
+        FUNCTION fade,021203H
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 16, STACK
+        PUBLIC main
+        FUNCTION main,021a03H
+        ARGFRAME XSTACK, 0, STACK
+        FUNCTION set_rime_addr,021203H
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 9, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+autostart_start     SYMBOL "autostart_start"
+??autostart_start?relay SYMBOL "?relay", autostart_start
+cc2530_rf_set_addr  SYMBOL "cc2530_rf_set_addr"
+??cc2530_rf_set_addr?relay SYMBOL "?relay", cc2530_rf_set_addr
+clock_init          SYMBOL "clock_init"
+??clock_init?relay  SYMBOL "?relay", clock_init
+clock_time          SYMBOL "clock_time"
+??clock_time?relay  SYMBOL "?relay", clock_time
+ctimer_init         SYMBOL "ctimer_init"
+??ctimer_init?relay SYMBOL "?relay", ctimer_init
+energest_init       SYMBOL "energest_init"
+??energest_init?relay SYMBOL "?relay", energest_init
+etimer_next_expiration_time SYMBOL "etimer_next_expiration_time"
+??etimer_next_expiration_time?relay SYMBOL "?relay", etimer_next_expiration_time
+etimer_pending      SYMBOL "etimer_pending"
+??etimer_pending?relay SYMBOL "?relay", etimer_pending
+etimer_request_poll SYMBOL "etimer_request_poll"
+??etimer_request_poll?relay SYMBOL "?relay", etimer_request_poll
+leds_init           SYMBOL "leds_init"
+??leds_init?relay   SYMBOL "?relay", leds_init
+leds_off            SYMBOL "leds_off"
+??leds_off?relay    SYMBOL "?relay", leds_off
+leds_on             SYMBOL "leds_on"
+??leds_on?relay     SYMBOL "?relay", leds_on
+list_init           SYMBOL "list_init"
+??list_init?relay   SYMBOL "?relay", list_init
+process_init        SYMBOL "process_init"
+??process_init?relay SYMBOL "?relay", process_init
+process_run         SYMBOL "process_run"
+??process_run?relay SYMBOL "?relay", process_run
+process_start       SYMBOL "process_start"
+??process_start?relay SYMBOL "?relay", process_start
+puthex              SYMBOL "puthex"
+??puthex?relay      SYMBOL "?relay", puthex
+putstring           SYMBOL "putstring"
+??putstring?relay   SYMBOL "?relay", putstring
+random_init         SYMBOL "random_init"
+??random_init?relay SYMBOL "?relay", random_init
+rtimer_init         SYMBOL "rtimer_init"
+??rtimer_init?relay SYMBOL "?relay", rtimer_init
+serial_line_init    SYMBOL "serial_line_init"
+??serial_line_init?relay SYMBOL "?relay", serial_line_init
+`?<Name serial_line_input_by 42>` SYMBOL "serial_line_input_byte"
+??serial_line_input_byte?relay SYMBOL "?relay", `?<Name serial_line_input_by 42>`
+sink_incomingPacketProcessing SYMBOL "sink_incomingPacketProcessing"
+??sink_incomingPacketProcessing?relay SYMBOL "?relay", sink_incomingPacketProcessing
+soc_init            SYMBOL "soc_init"
+??soc_init?relay    SYMBOL "?relay", soc_init
+uart0_init          SYMBOL "uart0_init"
+??uart0_init?relay  SYMBOL "?relay", uart0_init
+uart0_set_input     SYMBOL "uart0_set_input"
+??uart0_set_input?relay SYMBOL "?relay", uart0_set_input
+watchdog_init       SYMBOL "watchdog_init"
+??watchdog_init?relay SYMBOL "?relay", watchdog_init
+watchdog_periodic   SYMBOL "watchdog_periodic"
+??watchdog_periodic?relay SYMBOL "?relay", watchdog_periodic
+watchdog_start      SYMBOL "watchdog_start"
+??watchdog_start?relay SYMBOL "?relay", watchdog_start
+main                SYMBOL "main"
+??main?relay        SYMBOL "?relay", main
+
+        EXTERN ??autostart_start?relay
+        FUNCTION ??autostart_start?relay,00H
+        EXTERN ??cc2530_rf_set_addr?relay
+        FUNCTION ??cc2530_rf_set_addr?relay,00H
+        EXTERN ??clock_init?relay
+        FUNCTION ??clock_init?relay,00H
+        EXTERN ??clock_time?relay
+        FUNCTION ??clock_time?relay,00H
+        EXTERN ??ctimer_init?relay
+        FUNCTION ??ctimer_init?relay,00H
+        EXTERN ??energest_init?relay
+        FUNCTION ??energest_init?relay,00H
+        EXTERN ??etimer_next_expiration_time?relay
+        FUNCTION ??etimer_next_expiration_time?relay,00H
+        EXTERN ??etimer_pending?relay
+        FUNCTION ??etimer_pending?relay,00H
+        EXTERN ??etimer_request_poll?relay
+        FUNCTION ??etimer_request_poll?relay,00H
+        EXTERN ??leds_init?relay
+        FUNCTION ??leds_init?relay,00H
+        EXTERN ??leds_off?relay
+        FUNCTION ??leds_off?relay,00H
+        EXTERN ??leds_on?relay
+        FUNCTION ??leds_on?relay,00H
+        EXTERN ??list_init?relay
+        FUNCTION ??list_init?relay,00H
+        EXTERN ??process_init?relay
+        FUNCTION ??process_init?relay,00H
+        EXTERN ??process_run?relay
+        FUNCTION ??process_run?relay,00H
+        EXTERN ??process_start?relay
+        FUNCTION ??process_start?relay,00H
+        EXTERN ??puthex?relay
+        FUNCTION ??puthex?relay,00H
+        EXTERN ??putstring?relay
+        FUNCTION ??putstring?relay,00H
+        EXTERN ??random_init?relay
+        FUNCTION ??random_init?relay,00H
+        EXTERN ??rtimer_init?relay
+        FUNCTION ??rtimer_init?relay,00H
+        EXTERN ??serial_line_init?relay
+        FUNCTION ??serial_line_init?relay,00H
+        EXTERN ??serial_line_input_byte?relay
+        FUNCTION ??serial_line_input_byte?relay,00H
+        EXTERN ??sink_incomingPacketProcessing?relay
+        FUNCTION ??sink_incomingPacketProcessing?relay,00H
+        EXTERN ??soc_init?relay
+        FUNCTION ??soc_init?relay,00H
+        EXTERN ??uart0_init?relay
+        FUNCTION ??uart0_init?relay,00H
+        EXTERN ??uart0_set_input?relay
+        FUNCTION ??uart0_set_input?relay,00H
+        EXTERN ??watchdog_init?relay
+        FUNCTION ??watchdog_init?relay,00H
+        EXTERN ??watchdog_periodic?relay
+        FUNCTION ??watchdog_periodic?relay,00H
+        EXTERN ??watchdog_start?relay
+        FUNCTION ??watchdog_start?relay,00H
+        EXTERN adc_sensor
+        EXTERN autostart_processes
+        EXTERN autostart_start
+        FUNCTION autostart_start,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN cc2530_rf_driver
+        EXTERN cc2530_rf_set_addr
+        FUNCTION cc2530_rf_set_addr,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN clock_init
+        FUNCTION clock_init,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN clock_time
+        FUNCTION clock_time,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN ctimer_init
+        FUNCTION ctimer_init,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN energest_current_mode
+        EXTERN energest_current_time
+        EXTERN energest_init
+        FUNCTION energest_init,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN etimer_next_expiration_time
+        FUNCTION etimer_next_expiration_time,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN etimer_pending
+        FUNCTION etimer_pending,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN etimer_process
+        EXTERN etimer_request_poll
+        FUNCTION etimer_request_poll,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN leds_init
+        FUNCTION leds_init,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN leds_off
+        FUNCTION leds_off,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN leds_on
+        FUNCTION leds_on,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN list_init
+        FUNCTION list_init,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN process_init
+        FUNCTION process_init,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN process_run
+        FUNCTION process_run,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN process_start
+        FUNCTION process_start,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN puthex
+        FUNCTION puthex,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN putstring
+        FUNCTION putstring,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN random_init
+        FUNCTION random_init,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN rimeaddr_node_addr
+        EXTERN rtimer_init
+        FUNCTION rtimer_init,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN sensors_process
+        EXTERN serial_line_init
+        FUNCTION serial_line_init,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN sink_incomingPacketProcessing
+        FUNCTION sink_incomingPacketProcessing,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN sleep_flag
+        EXTERN soc_init
+        FUNCTION soc_init,0200H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uart0_init
+        FUNCTION uart0_init,0200H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uart0_set_input
+        FUNCTION uart0_set_input,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN watchdog_init
+        FUNCTION watchdog_init,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN watchdog_periodic
+        FUNCTION watchdog_periodic,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN watchdog_start
+        FUNCTION watchdog_start,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+
+        ASEGN SFR_AN:DATA:NOROOT,0e2H
+// unsigned char volatile __sfr T1CNTL
+T1CNTL:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0e3H
+// unsigned char volatile __sfr T1CNTH
+T1CNTH:
+        DATA8
+        DS 1
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "Rime is 0x">`:
+        DS 11
+        REQUIRE `?<Initializer for <Constant "Rime is 0x">>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant " bytes long\\r\\n">`:
+        DS 14
+        REQUIRE `?<Initializer for <Constant " bytes long\\r\\n">`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "Reading MAC from Info...">`:
+        DS 29
+        REQUIRE `?<Initializer for <Constant "Reading MAC from `
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "configured with address ">`:
+        DS 25
+        REQUIRE `?<Initializer for <Constant "configured with a`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "\\r\\n">`:
+        DS 3
+        REQUIRE `?<Initializer for <Constant "\\r\\n">>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "*********************...">`:
+        DS 37
+        REQUIRE `?<Initializer for <Constant "*****************`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "Contiki 2.6\\r\\n">`:
+        DS 14
+        REQUIRE `?<Initializer for <Constant "Contiki 2.6\\r\\n">`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "WSN2530 for Contiki/6...">`:
+        DS 31
+        REQUIRE `?<Initializer for <Constant "WSN2530 for Conti`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "cc2530">`:
+        DS 7
+        REQUIRE `?<Initializer for <Constant "cc2530">>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "cc2531">`:
+        DS 7
+        REQUIRE `?<Initializer for <Constant "cc2531">>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "cc2533">`:
+        DS 7
+        REQUIRE `?<Initializer for <Constant "cc2533">>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "cc2540">`:
+        DS 7
+        REQUIRE `?<Initializer for <Constant "cc2540">>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "-F256, ">`:
+        DS 8
+        REQUIRE `?<Initializer for <Constant "-F256, ">>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "KB SRAM\\r\\n">`:
+        DS 10
+        REQUIRE `?<Initializer for <Constant "KB SRAM\\r\\n">>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "***********    cumt  ...">`:
+        DS 36
+        REQUIRE `?<Initializer for <Constant "***********    cu`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "***********Dongbo Hua...">`:
+        DS 36
+        REQUIRE `?<Initializer for <Constant "***********Dongbo`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "*********************...">_1`:
+        DS 36
+        REQUIRE `?<Initializer for <Constant "*****************_1`
+        REQUIRE __INIT_XDATA_I
+// D:\myWork\myWork\examples\wsn2530dk\myProject\main-coord.c
+//    1 #include "contiki.h"
+//    2 #include "soc.h"
+//    3 #include "stack.h"
+//    4 #include "sys/clock.h"
+//    5 #include "sys/autostart.h"
+//    6 #include "dev/serial-line.h"
+//    7 #include "dev/slip.h"
+//    8 #include "dev/leds.h"
+//    9 #include "dev/io-arch.h"
+//   10 #include "dev/dma.h"
+//   11 #include "dev/cc2530-rf.h"
+//   12 #include "dev/watchdog.h"
+//   13 #include "dev/clock-isr.h"
+//   14 #include "dev/port2.h"
+//   15 #include "dev/lpm.h"
+//   16 #include "dev/button-sensor.h"
+//   17 #include "dev/adc-sensor.h"
+//   18 #include "dev/leds-arch.h"
+//   19 #include "net/rime.h"
+//   20 #include "net/netstack.h"
+//   21 #include "net/mac/frame802154.h"
+//   22 #include "debug.h"
+//   23 #include "cc253x.h"
+//   24 #include "sfr-bits.h"
+//   25 #include "contiki-lib.h"
+//   26 #include "contiki-net.h"
+//   27 #include "dataformat/dataformat.h"
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+// static list_t packetbuf_list
+packetbuf_list:
+        DATA16
+        DS 2
+        REQUIRE `?<Initializer for packetbuf_list>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+// static void *__xdata packetbuf_list_list
+packetbuf_list_list:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//   28 
+//   29 
+//   30 /*---------------------------------------------------------------------------*/
+//   31 #if VIZTOOL_CONF_ON
+//   32 PROCESS_NAME(viztool_process);
+//   33 #endif
+//   34 /*---------------------------------------------------------------------------*/
+//   35 #if STARTUP_CONF_VERBOSE
+//   36 #define PUTSTRING(...) putstring(__VA_ARGS__)
+//   37 #define PUTHEX(...) puthex(__VA_ARGS__)
+//   38 #define PUTBIN(...) putbin(__VA_ARGS__)
+//   39 #define PUTCHAR(...) putchar(__VA_ARGS__)
+//   40 #else
+//   41 #define PUTSTRING(...)
+//   42 #define PUTHEX(...)
+//   43 #define PUTBIN(...)
+//   44 #define PUTCHAR(...)
+//   45 #endif
+//   46 /*---------------------------------------------------------------------------*/
+//   47 #if CLOCK_CONF_STACK_FRIENDLY
+//   48 extern volatile uint8_t sleep_flag;
+//   49 #endif
+//   50 /*---------------------------------------------------------------------------*/
+//   51 extern rimeaddr_t rimeaddr_node_addr;
+//   52 //static CC_AT_DATA uint16_t len;
+//   53 /*---------------------------------------------------------------------------*/
+//   54 #if ENERGEST_CONF_ON
+//   55 static unsigned long irq_energest = 0;
+//   56 #define ENERGEST_IRQ_SAVE(a) do { \ 
+//   57     a = energest_type_time(ENERGEST_TYPE_IRQ); } while(0)
+//   58 #define ENERGEST_IRQ_RESTORE(a) do { \ 
+//   59     energest_type_set(ENERGEST_TYPE_IRQ, a); } while(0)
+//   60 #else
+//   61 #define ENERGEST_IRQ_SAVE(a) do {} while(0)
+//   62 #define ENERGEST_IRQ_RESTORE(a) do {} while(0)
+//   63 #endif
+//   64 /*---------------------------------------------------------------------------*/
+//   65 
+//   66 
+//   67 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   68     static void
+//   69 fade(int l)
+fade:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function fade
+        CODE
+//   70 {
+        FUNCALL fade, leds_on
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL fade, leds_off
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 4
+        MOV     A,#-0x4
+        LCALL   ?ALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//   71     volatile int i, a;
+//   72     int k, j;
+//   73     for(k = 0; k < 400; ++k) {
+        MOV     ?V0 + 0,#0x0
+        MOV     ?V0 + 1,#0x0
+        SJMP    ??fade_0
+//   74         j = k > 200 ? 400 - k : k;
+//   75 
+//   76         leds_on(l);
+//   77         for(i = 0; i < j; ++i) {
+//   78             a = i;
+//   79         }
+//   80         leds_off(l);
+//   81         for(i = 0; i < 200 - j; ++i) {
+//   82             a = i;
+??fade_1:
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//   83         }
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOVX    @DPTR,A
+??fade_2:
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOV     A,#-0x38
+        CLR     C
+        SUBB    A,?V0 + 2
+        MOV     R0,A
+        MOV     A,#0x0
+        SUBB    A,?V0 + 3
+        MOV     R1,A
+        CLR     C
+        MOVX    A,@DPTR
+        SUBB    A,R0
+        INC     DPTR
+        MOVX    A,@DPTR
+        SUBB    A,R1
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JC      ??fade_1
+        MOV     A,?V0 + 0
+        ADD     A,#0x1
+        MOV     ?V0 + 0,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     ?V0 + 1,A
+??fade_0:
+        CLR     C
+        MOV     A,?V0 + 0
+        SUBB    A,#-0x70
+        MOV     A,?V0 + 1
+        SUBB    A,#0x1
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JC      $+5
+        LJMP    ??fade_3 & 0xFFFF
+        CLR     C
+        MOV     A,?V0 + 0
+        SUBB    A,#-0x37
+        MOV     A,?V0 + 1
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JC      ??fade_4
+        MOV     A,#-0x70
+        CLR     C
+        SUBB    A,?V0 + 0
+        MOV     ?V0 + 2,A
+        MOV     A,#0x1
+        SUBB    A,?V0 + 1
+        MOV     ?V0 + 3,A
+        SJMP    ??fade_5
+??fade_4:
+        MOV     ?V0 + 2,?V0 + 0
+        MOV     ?V0 + 3,?V0 + 1
+??fade_5:
+        ; Setup parameters for call to function leds_on
+        MOV     A,R6
+        MOV     R1,A
+        LCALL   ??leds_on?relay
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        SJMP    ??fade_6
+??fade_7:
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOVX    @DPTR,A
+??fade_6:
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        CLR     C
+        MOVX    A,@DPTR
+        SUBB    A,?V0 + 2
+        INC     DPTR
+        MOVX    A,@DPTR
+        SUBB    A,?V0 + 3
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JC      ??fade_7
+        ; Setup parameters for call to function leds_off
+        MOV     A,R6
+        MOV     R1,A
+        LCALL   ??leds_off?relay
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        LJMP    ??fade_2 & 0xFFFF
+//   84     }
+//   85 }
+??fade_3:
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock0
+//   86 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   87     static void
+//   88 set_rime_addr(void)
+set_rime_addr:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function set_rime_addr
+        CODE
+//   89 {
+        FUNCALL set_rime_addr, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL set_rime_addr, puthex
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL set_rime_addr, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL set_rime_addr, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL set_rime_addr, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL set_rime_addr, puthex
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL set_rime_addr, puthex
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL set_rime_addr, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL set_rime_addr, cc2530_rf_set_addr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+//   90     signed char i;
+//   91 
+//   92 #if CC2530_CONF_MAC_FROM_PRIMARY
+//   93     unsigned char __xdata *macp = &X_IEEE_ADDR;
+        MOV     R6,#0xc
+        MOV     R7,#0x78
+//   94 #else
+//   95     unsigned char __code *macp = (__code unsigned char *)0xFFE8;
+//   96 #endif
+//   97 
+//   98     PUTSTRING("Rime is 0x");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "Rime is 0x">` & 0xff
+        MOV     R3,#(`?<Constant "Rime is 0x">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//   99     PUTHEX(sizeof(rimeaddr_t));
+        ; Setup parameters for call to function puthex
+        MOV     R1,#0x2
+        LCALL   ??puthex?relay
+//  100     PUTSTRING(" bytes long\r\n");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant " bytes long\\r\\n">` & 0xff
+        MOV     R3,#(`?<Constant " bytes long\\r\\n">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  101 
+//  102 #if CC2530_CONF_MAC_FROM_PRIMARY
+//  103     PUTSTRING("Reading MAC from Info Page\r\n");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "Reading MAC from Info...">` & 0xff
+        MOV     R3,#(`?<Constant "Reading MAC from Info...">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  104 #else
+//  105     PUTSTRING("Reading MAC from flash\r\n");
+//  106 
+//  107     /*
+//  108      * The MAC is always stored in 0xFFE8 of the highest BANK of our flash. This
+//  109      * maps to address 0xFFF8 of our CODE segment, when this BANK is selected.
+//  110      * Load the bank, read 8 bytes starting at 0xFFE8 and restore last BANK.
+//  111      * Since we are called from main(), this MUST be BANK1 or something is very
+//  112      * wrong. This code can be used even without a bankable firmware.
+//  113      */
+//  114 
+//  115     /* Don't interrupt us to make sure no BANK switching happens while working */
+//  116     DISABLE_INTERRUPTS();
+//  117 
+//  118     /* Switch to the BANKn,
+//  119      * map CODE: 0x8000 - 0xFFFF to FLASH: 0xn8000 - 0xnFFFF */
+//  120     FMAP = CC2530_LAST_FLASH_BANK;
+//  121 #endif
+//  122 
+//  123     for(i = (RIMEADDR_SIZE - 1); i >= 0; --i) {
+        MOV     ?V0 + 0,#0x1
+        SJMP    ??set_rime_addr_0
+//  124         rimeaddr_node_addr.u8[i] = *macp;
+??set_rime_addr_1:
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,?V0 + 0
+        MOV     R0,A
+        RLC     A
+        SUBB    A,0xE0 /* A   */
+        MOV     R1,A
+        MOV     A,#rimeaddr_node_addr & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#(rimeaddr_node_addr >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  125         macp++;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        MOV     R6,DPL
+        MOV     R7,DPH
+//  126     }
+        MOV     A,#-0x1
+        ADD     A,?V0 + 0
+        MOV     ?V0 + 0,A
+??set_rime_addr_0:
+        MOV     A,?V0 + 0
+        CLR     C
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     ??set_rime_addr_1
+//  127 #if !CC2530_CONF_MAC_FROM_PRIMARY
+//  128 
+//  129     FMAP = 1;
+//  130     ENABLE_INTERRUPTS();
+//  131 #endif
+//  132 
+//  133 
+//  134 #if STARTUP_CONF_VERBOSE
+//  135     putstring("configured with address ");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "configured with address ">` & 0xff
+        MOV     R3,#(`?<Constant "configured with address ">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  136     for(i = 0; i < RIMEADDR_SIZE - 1; i++) {
+        MOV     ?V0 + 0,#0x0
+        SJMP    ??set_rime_addr_2
+//  137         puthex(rimeaddr_node_addr.u8[i]);
+??set_rime_addr_3:
+        ; Setup parameters for call to function puthex
+        MOV     A,?V0 + 0
+        MOV     R0,A
+        RLC     A
+        SUBB    A,0xE0 /* A   */
+        MOV     R1,A
+        MOV     A,#rimeaddr_node_addr & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#(rimeaddr_node_addr >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R1,A
+        LCALL   ??puthex?relay
+//  138     }
+        INC     ?V0 + 0
+??set_rime_addr_2:
+        MOV     A,?V0 + 0
+        CLR     C
+        SUBB    A,#0x1
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JC      ??set_rime_addr_3
+//  139     puthex(rimeaddr_node_addr.u8[i]);
+        ; Setup parameters for call to function puthex
+        MOV     A,?V0 + 0
+        MOV     R0,A
+        RLC     A
+        SUBB    A,0xE0 /* A   */
+        MOV     R1,A
+        MOV     A,#rimeaddr_node_addr & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#(rimeaddr_node_addr >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R1,A
+        LCALL   ??puthex?relay
+//  140     putstring("\r\n");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "\\r\\n">` & 0xff
+        MOV     R3,#(`?<Constant "\\r\\n">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  141 #endif
+//  142     cc2530_rf_set_addr(IEEE802154_PANID);
+        ; Setup parameters for call to function cc2530_rf_set_addr
+        MOV     R2,#0x49
+        MOV     R3,#0x54
+        LCALL   ??cc2530_rf_set_addr?relay
+//  143 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//  144 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  145     int
+//  146 main(void)
+main:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function main
+        CODE
+//  147 {
+        FUNCALL main, clock_init
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, soc_init
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, rtimer_init
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, leds_init
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, leds_off
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, fade
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, process_init
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, uart0_init
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, uart0_set_input
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, serial_line_init
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, fade
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, puthex
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, watchdog_init
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, random_init
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, process_start
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, ctimer_init
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, set_rime_addr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, process_start
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, energest_init
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, list_init
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, autostart_start
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, watchdog_start
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, sink_incomingPacketProcessing
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, watchdog_periodic
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, etimer_pending
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, etimer_next_expiration_time
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, clock_time
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, etimer_request_poll
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL main, process_run
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        ; Auto size: 0
+//  148     /* Hardware initialization */
+//  149     clock_init();
+        ; Setup parameters for call to function clock_init
+        LCALL   ??clock_init?relay
+//  150     soc_init();
+        ; Setup parameters for call to function soc_init
+        LCALL   ??soc_init?relay
+//  151     rtimer_init();
+        ; Setup parameters for call to function rtimer_init
+        LCALL   ??rtimer_init?relay
+//  152     stack_poison();
+//  153     /* Init LEDs here */
+//  154     leds_init();
+        ; Setup parameters for call to function leds_init
+        LCALL   ??leds_init?relay
+//  155     //------------------edited by dongbo huang---------------//
+//  156     leds_off(LEDS_ALL);
+        ; Setup parameters for call to function leds_off
+        MOV     R1,#0x3
+        LCALL   ??leds_off?relay
+//  157     /*leds_on(LEDS_GREEN);*/
+//  158     fade(LEDS_GREEN);
+        ; Setup parameters for call to function fade
+        MOV     R2,#0x2
+        MOV     R3,#0x0
+        LCALL   ??fade?relay
+//  159     //-----------------end-------------------------------//
+//  160 
+//  161     /* initialize process manager. */
+//  162     process_init();
+        ; Setup parameters for call to function process_init
+        LCALL   ??process_init?relay
+//  163 
+//  164 #if DMA_ON
+//  165     dma_init();
+//  166 #endif
+//  167 
+//  168     io_arch_init();
+        ; Setup parameters for call to function uart0_init
+        LCALL   ??uart0_init?relay
+//  169 
+//  170 #if SLIP_ARCH_CONF_ENABLE
+//  171     slip_arch_init(0);
+//  172 #else
+//  173     io_arch_set_input(serial_line_input_byte);
+        ; Setup parameters for call to function uart0_set_input
+        MOV     R2,#??serial_line_input_byte?relay & 0xff
+        MOV     R3,#(??serial_line_input_byte?relay >> 8) & 0xff
+        LCALL   ??uart0_set_input?relay
+//  174     serial_line_init();
+        ; Setup parameters for call to function serial_line_init
+        LCALL   ??serial_line_init?relay
+//  175 #endif
+//  176     fade(LEDS_RED);
+        ; Setup parameters for call to function fade
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+        LCALL   ??fade?relay
+//  177 
+//  178 #if STARTUP_CONF_VERBOSE
+//  179     PUTSTRING("**********************************\r\n");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "*********************...">` & 0xff
+        MOV     R3,#(`?<Constant "*********************...">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  180     putstring(CONTIKI_VERSION_STRING "\r\n");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "Contiki 2.6\\r\\n">` & 0xff
+        MOV     R3,#(`?<Constant "Contiki 2.6\\r\\n">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  181     putstring(MODEL_STRING "\r\n");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "WSN2530 for Contiki/6...">` & 0xff
+        MOV     R3,#(`?<Constant "WSN2530 for Contiki/6...">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  182     switch(CHIPID) {
+        MOV     DPTR,#0x624a
+        MOVX    A,@DPTR
+        ADD     A,#0x73
+        JZ      ??main_0
+        ADD     A,#-0x8
+        JZ      ??main_1
+        ADD     A,#-0x10
+        JZ      ??main_2
+        ADD     A,#-0x10
+        JZ      ??main_3
+        SJMP    ??main_4
+//  183         case 0xA5:
+//  184             putstring("cc2530");
+??main_2:
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "cc2530">` & 0xff
+        MOV     R3,#(`?<Constant "cc2530">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  185             break;
+        SJMP    ??main_4
+//  186         case 0xB5:
+//  187             putstring("cc2531");
+??main_3:
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "cc2531">` & 0xff
+        MOV     R3,#(`?<Constant "cc2531">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  188             break;
+        SJMP    ??main_4
+//  189         case 0x95:
+//  190             putstring("cc2533");
+??main_1:
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "cc2533">` & 0xff
+        MOV     R3,#(`?<Constant "cc2533">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  191             break;
+        SJMP    ??main_4
+//  192         case 0x8D:
+//  193             putstring("cc2540");
+??main_0:
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "cc2540">` & 0xff
+        MOV     R3,#(`?<Constant "cc2540">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  194             break;
+//  195     }
+//  196 
+//  197     putstring("-" CC2530_FLAVOR_STRING ", ");
+??main_4:
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "-F256, ">` & 0xff
+        MOV     R3,#(`?<Constant "-F256, ">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  198     puthex(CHIPINFO1 + 1);
+        ; Setup parameters for call to function puthex
+        MOV     DPTR,#0x6277
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOV     R1,A
+        LCALL   ??puthex?relay
+//  199     putstring("KB SRAM\r\n");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "KB SRAM\\r\\n">` & 0xff
+        MOV     R3,#(`?<Constant "KB SRAM\\r\\n">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  200 
+//  201 
+//  202     PUTSTRING("***********    cumt    **********\r\n");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "***********    cumt  ...">` & 0xff
+        MOV     R3,#(`?<Constant "***********    cumt  ...">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  203     PUTSTRING("***********Dongbo Huang**********\r\n");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "***********Dongbo Hua...">` & 0xff
+        MOV     R3,#(`?<Constant "***********Dongbo Hua...">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  204     PUTSTRING("*********************************\r\n");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "*********************...">_1` & 0xff
+        MOV     R3,#(`?<Constant "*********************...">_1` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//  205 #endif
+//  206 
+//  207     watchdog_init();
+        ; Setup parameters for call to function watchdog_init
+        LCALL   ??watchdog_init?relay
+//  208 
+//  209     /* Initialise the H/W RNG engine. */
+//  210     random_init(0);
+        ; Setup parameters for call to function random_init
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LCALL   ??random_init?relay
+//  211 
+//  212     /* start services */
+//  213     process_start(&etimer_process, NULL);
+        ; Setup parameters for call to function process_start
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R2,#etimer_process & 0xff
+        MOV     R3,#(etimer_process >> 8) & 0xff
+        LCALL   ??process_start?relay
+//  214     ctimer_init();
+        ; Setup parameters for call to function ctimer_init
+        LCALL   ??ctimer_init?relay
+//  215 
+//  216     /* initialize the netstack */
+//  217     //netstack_init();                       //edited by dongbo huang
+//  218 
+//  219     NETSTACK_RADIO.init();       //added by dongbo huang
+        ; Setup parameters for indirect call
+        MOV     DPTR,#cc2530_rf_driver
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        LCALL   ?CALL_IND
+//  220     set_rime_addr();  //edited by dongbo huang
+        ; Setup parameters for call to function set_rime_addr
+        LCALL   ??set_rime_addr?relay
+//  221 #if BUTTON_SENSOR_ON || ADC_SENSOR_ON
+//  222     process_start(&sensors_process, NULL);
+        ; Setup parameters for call to function process_start
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R2,#sensors_process & 0xff
+        MOV     R3,#(sensors_process >> 8) & 0xff
+        LCALL   ??process_start?relay
+//  223     //BUTTON_SENSOR_ACTIVATE();
+//  224     ADC_SENSOR_ACTIVATE();
+        ; Setup parameters for indirect call
+        MOV     R4,#0x1
+        MOV     R5,#0x0
+        MOV     R2,#-0x7f
+        MOV     R3,#0x0
+        MOV     DPTR,#adc_sensor + 4
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        LCALL   ?CALL_IND
+//  225 #endif
+//  226 
+//  227 #if UIP_CONF_IPV6
+//  228 
+//  229     //edited by dongbo huang
+//  230     //  memcpy(&uip_lladdr.addr, &rimeaddr_node_addr, sizeof(uip_lladdr.addr));
+//  231     //queuebuf_init();
+//  232     //process_start(&tcpip_process, NULL);
+//  233 #endif /* UIP_CONF_IPV6 */
+//  234 
+//  235 #if VIZTOOL_CONF_ON
+//  236     //process_start(&viztool_process, NULL);
+//  237 #endif
+//  238 
+//  239     energest_init();
+        ; Setup parameters for call to function energest_init
+        LCALL   ??energest_init?relay
+//  240     ENERGEST_ON(ENERGEST_TYPE_CPU);
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     DPTR,#energest_current_time
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        MOV     DPTR,#energest_current_mode
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  241 	//----------for list initializing------
+//  242 	list_init(packetbuf_list);
+        ; Setup parameters for call to function list_init
+        MOV     DPTR,#packetbuf_list
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??list_init?relay
+//  243 	//
+//  244 
+//  245     autostart_start(autostart_processes);  
+        ; Setup parameters for call to function autostart_start
+        MOV     R2,#autostart_processes & 0xff
+        MOV     R3,#(autostart_processes >> 8) & 0xff
+        LCALL   ??autostart_start?relay
+//  246 
+//  247     watchdog_start();
+        ; Setup parameters for call to function watchdog_start
+        LCALL   ??watchdog_start?relay
+//  248 
+//  249     while(1) 
+//  250     {
+//  251         //---------------edited by dongbo huang------------------
+//  252         sink_incomingPacketProcessing();
+??main_5:
+        ; Setup parameters for call to function sink_incomingPacketProcessing
+        LCALL   ??sink_incomingPacketProcessing?relay
+//  253         //---------------------------------------------------------
+//  254         uint8_t r;
+//  255         do 
+//  256         {
+//  257             /* Reset watchdog and handle polls and events */
+//  258             watchdog_periodic();
+??main_6:
+        ; Setup parameters for call to function watchdog_periodic
+        LCALL   ??watchdog_periodic?relay
+//  259 
+//  260 #if CLOCK_CONF_STACK_FRIENDLY
+//  261             if(sleep_flag) {
+        MOV     DPTR,#sleep_flag
+        MOVX    A,@DPTR
+        JZ      ??main_7
+//  262                 if(etimer_pending() &&
+//  263                         (etimer_next_expiration_time() - clock_time() - 1) > MAX_TICKS) {
+        ; Setup parameters for call to function etimer_pending
+        LCALL   ??etimer_pending?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??main_8
+        ; Setup parameters for call to function etimer_next_expiration_time
+        LCALL   ??etimer_next_expiration_time?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R6,?V0 + 0
+        MOV     R7,?V0 + 1
+        ; Setup parameters for call to function clock_time
+        LCALL   ??clock_time?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,R6
+        CLR     C
+        SUBB    A,?V0 + 0
+        MOV     R0,A
+        MOV     A,R7
+        SUBB    A,?V0 + 1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#-0x1
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,#-0x1
+        MOV     R1,A
+        CLR     C
+        MOV     A,R0
+        SUBB    A,#0x0
+        MOV     A,R1
+        SUBB    A,#-0x80
+        JC      ??main_8
+//  264                     etimer_request_poll();
+        ; Setup parameters for call to function etimer_request_poll
+        LCALL   ??etimer_request_poll?relay
+//  265                 }
+//  266                 sleep_flag = 0;
+??main_8:
+        MOV     DPTR,#sleep_flag
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  267             }
+//  268 #endif
+//  269             r = process_run();
+??main_7:
+        ; Setup parameters for call to function process_run
+        LCALL   ??process_run?relay
+        MOV     A,R2
+//  270         } while(r > 0);
+        CLR     C
+        SUBB    A,#0x1
+        JNC     ??main_6
+        SJMP    ??main_5
+          CFI EndBlock cfiBlock2
+        REQUIRE T1CNTL
+        REQUIRE T1CNTH
+//  271     }
+//  272 }
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "Rime is 0x">>`:
+        DB "Rime is 0x"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant " bytes long\\r\\n">`:
+        DB " bytes long\015\012"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "Reading MAC from `:
+        DB "Reading MAC from Info Page\015\012"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "configured with a`:
+        DB "configured with address "
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "\\r\\n">>`:
+        DB "\015\012"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "*****************`:
+        DB "**********************************\015\012"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "Contiki 2.6\\r\\n">`:
+        DB "Contiki 2.6\015\012"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "WSN2530 for Conti`:
+        DB "WSN2530 for Contiki/6Lowpan\012\015\012"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "cc2530">>`:
+        DB "cc2530"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "cc2531">>`:
+        DB "cc2531"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "cc2533">>`:
+        DB "cc2533"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "cc2540">>`:
+        DB "cc2540"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "-F256, ">>`:
+        DB "-F256, "
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "KB SRAM\\r\\n">>`:
+        DB "KB SRAM\015\012"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "***********    cu`:
+        DB "***********    cumt    **********\015\012"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "***********Dongbo`:
+        DB "***********Dongbo Huang**********\015\012"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "*****************_1`:
+        DB "*********************************\015\012"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for packetbuf_list>`:
+        DATA16
+        DW packetbuf_list_list
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??fade?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    fade
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??set_rime_addr?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    set_rime_addr
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??main?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    main
+
+        END
+//  273 
+//  274 
+// 
+// 836 bytes in segment BANKED_CODE
+//  18 bytes in segment BANK_RELAYS
+//   2 bytes in segment SFR_AN
+// 320 bytes in segment XDATA_I
+// 320 bytes in segment XDATA_ID
+//   2 bytes in segment XDATA_Z
+// 
+// 1 174 bytes of CODE  memory
+//     0 bytes of DATA  memory (+ 2 bytes shared)
+//   322 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: 2

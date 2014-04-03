@@ -1,0 +1,493 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:40 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\lib\ringbuf.c                #
+#    Command line       =  D:\myWork\myWork\core\lib\ringbuf.c -D             #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ringbuf.lst                                 #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ringbuf.r51                                  #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\lib\ringbuf.c
+      1          /*
+      2           * Copyright (c) 2008, Swedish Institute of Computer Science.
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           */
+     32          
+     33          /**
+     34           * \file
+     35           *         Ring buffer library implementation
+     36           * \author
+     37           *         Adam Dunkels <adam@sics.se>
+     38           */
+     39          
+     40          #include "lib/ringbuf.h"
+     41          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     42          void
+     43          ringbuf_init(struct ringbuf *r, uint8_t *dataptr, uint8_t size)
+   \                     ringbuf_init:
+     44          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     45            r->data = dataptr;
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   EC           MOV     A,R4
+   \   000009   F0           MOVX    @DPTR,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   ED           MOV     A,R5
+   \   00000C   F0           MOVX    @DPTR,A
+     46            r->mask = size - 1;
+   \   00000D   74FF         MOV     A,#-0x1
+   \   00000F   29           ADD     A,R1
+   \   000010   8A82         MOV     DPL,R2
+   \   000012   8B83         MOV     DPH,R3
+   \   000014   A3           INC     DPTR
+   \   000015   A3           INC     DPTR
+   \   000016   F0           MOVX    @DPTR,A
+     47            r->put_ptr = 0;
+   \   000017   8A82         MOV     DPL,R2
+   \   000019   8B83         MOV     DPH,R3
+   \   00001B   A3           INC     DPTR
+   \   00001C   A3           INC     DPTR
+   \   00001D   A3           INC     DPTR
+   \   00001E   7400         MOV     A,#0x0
+   \   000020   F0           MOVX    @DPTR,A
+     48            r->get_ptr = 0;
+   \   000021   8A82         MOV     DPL,R2
+   \   000023   8B83         MOV     DPH,R3
+   \   000025   A3           INC     DPTR
+   \   000026   A3           INC     DPTR
+   \   000027   A3           INC     DPTR
+   \   000028   A3           INC     DPTR
+   \   000029   7400         MOV     A,#0x0
+   \   00002B   F0           MOVX    @DPTR,A
+     49          }
+   \   00002C   D083         POP     DPH
+   \   00002E   D082         POP     DPL
+   \   000030   02....       LJMP    ?BRET
+     50          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     51          int
+     52          ringbuf_put(struct ringbuf *r, uint8_t c)
+   \                     ringbuf_put:
+     53          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     54            /* Check if buffer is full. If it is full, return 0 to indicate that
+     55               the element was not inserted into the buffer.
+     56          
+     57               XXX: there is a potential risk for a race condition here, because
+     58               the ->get_ptr field may be written concurrently by the
+     59               ringbuf_get() function. To avoid this, access to ->get_ptr must
+     60               be atomic. We use an uint8_t type, which makes access atomic on
+     61               most platforms, but C does not guarantee this.
+     62            */
+     63            if(((r->put_ptr - r->get_ptr) & r->mask) == r->mask) {
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   A3           INC     DPTR
+   \   000009   A3           INC     DPTR
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   FC           MOV     R4,A
+   \   00000C   8A82         MOV     DPL,R2
+   \   00000E   8B83         MOV     DPH,R3
+   \   000010   A3           INC     DPTR
+   \   000011   A3           INC     DPTR
+   \   000012   A3           INC     DPTR
+   \   000013   A3           INC     DPTR
+   \   000014   E0           MOVX    A,@DPTR
+   \   000015   F8           MOV     R0,A
+   \   000016   8A82         MOV     DPL,R2
+   \   000018   8B83         MOV     DPH,R3
+   \   00001A   A3           INC     DPTR
+   \   00001B   A3           INC     DPTR
+   \   00001C   A3           INC     DPTR
+   \   00001D   E0           MOVX    A,@DPTR
+   \   00001E   C3           CLR     C
+   \   00001F   98           SUBB    A,R0
+   \   000020   5C           ANL     A,R4
+   \   000021   F8           MOV     R0,A
+   \   000022   8A82         MOV     DPL,R2
+   \   000024   8B83         MOV     DPH,R3
+   \   000026   A3           INC     DPTR
+   \   000027   A3           INC     DPTR
+   \   000028   E0           MOVX    A,@DPTR
+   \   000029   68           XRL     A,R0
+   \   00002A   7006         JNZ     ??ringbuf_put_0
+     64              return 0;
+   \   00002C   7A00         MOV     R2,#0x0
+   \   00002E   7B00         MOV     R3,#0x0
+   \   000030   803E         SJMP    ??ringbuf_put_1
+     65            }
+     66            r->data[r->put_ptr] = c;
+   \                     ??ringbuf_put_0:
+   \   000032   E9           MOV     A,R1
+   \   000033   C0E0         PUSH    A
+   \   000035   8A82         MOV     DPL,R2
+   \   000037   8B83         MOV     DPH,R3
+   \   000039   A3           INC     DPTR
+   \   00003A   A3           INC     DPTR
+   \   00003B   A3           INC     DPTR
+   \   00003C   E0           MOVX    A,@DPTR
+   \   00003D   FC           MOV     R4,A
+   \   00003E   7D00         MOV     R5,#0x0
+   \   000040   8A82         MOV     DPL,R2
+   \   000042   8B83         MOV     DPH,R3
+   \   000044   E0           MOVX    A,@DPTR
+   \   000045   2C           ADD     A,R4
+   \   000046   F8           MOV     R0,A
+   \   000047   A3           INC     DPTR
+   \   000048   E0           MOVX    A,@DPTR
+   \   000049   3D           ADDC    A,R5
+   \   00004A   8882         MOV     DPL,R0
+   \   00004C   F583         MOV     DPH,A
+   \   00004E   D0E0         POP     A
+   \   000050   F0           MOVX    @DPTR,A
+     67            r->put_ptr = (r->put_ptr + 1) & r->mask;
+   \   000051   8A82         MOV     DPL,R2
+   \   000053   8B83         MOV     DPH,R3
+   \   000055   A3           INC     DPTR
+   \   000056   A3           INC     DPTR
+   \   000057   E0           MOVX    A,@DPTR
+   \   000058   F8           MOV     R0,A
+   \   000059   8A82         MOV     DPL,R2
+   \   00005B   8B83         MOV     DPH,R3
+   \   00005D   A3           INC     DPTR
+   \   00005E   A3           INC     DPTR
+   \   00005F   A3           INC     DPTR
+   \   000060   E0           MOVX    A,@DPTR
+   \   000061   2401         ADD     A,#0x1
+   \   000063   58           ANL     A,R0
+   \   000064   8A82         MOV     DPL,R2
+   \   000066   8B83         MOV     DPH,R3
+   \   000068   A3           INC     DPTR
+   \   000069   A3           INC     DPTR
+   \   00006A   A3           INC     DPTR
+   \   00006B   F0           MOVX    @DPTR,A
+     68            return 1;
+   \   00006C   7A01         MOV     R2,#0x1
+   \   00006E   7B00         MOV     R3,#0x0
+   \                     ??ringbuf_put_1:
+   \   000070   D083         POP     DPH
+   \   000072   D082         POP     DPL
+   \   000074   02....       LJMP    ?BRET
+     69          }
+     70          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     71          int
+     72          ringbuf_get(struct ringbuf *r)
+   \                     ringbuf_get:
+     73          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     74            uint8_t c;
+     75            
+     76            /* Check if there are bytes in the buffer. If so, we return the
+     77               first one and increase the pointer. If there are no bytes left, we
+     78               return -1.
+     79          
+     80               XXX: there is a potential risk for a race condition here, because
+     81               the ->put_ptr field may be written concurrently by the
+     82               ringbuf_put() function. To avoid this, access to ->get_ptr must
+     83               be atomic. We use an uint8_t type, which makes access atomic on
+     84               most platforms, but C does not guarantee this.
+     85            */
+     86            if(((r->put_ptr - r->get_ptr) & r->mask) > 0) {
+   \   000005   8A82         MOV     DPL,R2
+   \   000007   8B83         MOV     DPH,R3
+   \   000009   A3           INC     DPTR
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   F9           MOV     R1,A
+   \   00000D   8A82         MOV     DPL,R2
+   \   00000F   8B83         MOV     DPH,R3
+   \   000011   A3           INC     DPTR
+   \   000012   A3           INC     DPTR
+   \   000013   A3           INC     DPTR
+   \   000014   A3           INC     DPTR
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   F8           MOV     R0,A
+   \   000017   8A82         MOV     DPL,R2
+   \   000019   8B83         MOV     DPH,R3
+   \   00001B   A3           INC     DPTR
+   \   00001C   A3           INC     DPTR
+   \   00001D   A3           INC     DPTR
+   \   00001E   E0           MOVX    A,@DPTR
+   \   00001F   C3           CLR     C
+   \   000020   98           SUBB    A,R0
+   \   000021   59           ANL     A,R1
+   \   000022   C3           CLR     C
+   \   000023   9401         SUBB    A,#0x1
+   \   000025   4043         JC      ??ringbuf_get_0
+     87              c = r->data[r->get_ptr];
+   \   000027   8A82         MOV     DPL,R2
+   \   000029   8B83         MOV     DPH,R3
+   \   00002B   A3           INC     DPTR
+   \   00002C   A3           INC     DPTR
+   \   00002D   A3           INC     DPTR
+   \   00002E   A3           INC     DPTR
+   \   00002F   E0           MOVX    A,@DPTR
+   \   000030   F8           MOV     R0,A
+   \   000031   7900         MOV     R1,#0x0
+   \   000033   8A82         MOV     DPL,R2
+   \   000035   8B83         MOV     DPH,R3
+   \   000037   E0           MOVX    A,@DPTR
+   \   000038   28           ADD     A,R0
+   \   000039   FC           MOV     R4,A
+   \   00003A   A3           INC     DPTR
+   \   00003B   E0           MOVX    A,@DPTR
+   \   00003C   39           ADDC    A,R1
+   \   00003D   8C82         MOV     DPL,R4
+   \   00003F   F583         MOV     DPH,A
+   \   000041   E0           MOVX    A,@DPTR
+   \   000042   F5..         MOV     ?V0 + 0,A
+     88              r->get_ptr = (r->get_ptr + 1) & r->mask;
+   \   000044   8A82         MOV     DPL,R2
+   \   000046   8B83         MOV     DPH,R3
+   \   000048   A3           INC     DPTR
+   \   000049   A3           INC     DPTR
+   \   00004A   E0           MOVX    A,@DPTR
+   \   00004B   F8           MOV     R0,A
+   \   00004C   8A82         MOV     DPL,R2
+   \   00004E   8B83         MOV     DPH,R3
+   \   000050   A3           INC     DPTR
+   \   000051   A3           INC     DPTR
+   \   000052   A3           INC     DPTR
+   \   000053   A3           INC     DPTR
+   \   000054   E0           MOVX    A,@DPTR
+   \   000055   2401         ADD     A,#0x1
+   \   000057   58           ANL     A,R0
+   \   000058   8A82         MOV     DPL,R2
+   \   00005A   8B83         MOV     DPH,R3
+   \   00005C   A3           INC     DPTR
+   \   00005D   A3           INC     DPTR
+   \   00005E   A3           INC     DPTR
+   \   00005F   A3           INC     DPTR
+   \   000060   F0           MOVX    @DPTR,A
+     89              return c;
+   \   000061   75..00       MOV     ?V0 + 1,#0x0
+   \   000064   AA..         MOV     R2,?V0 + 0
+   \   000066   AB..         MOV     R3,?V0 + 1
+   \   000068   8004         SJMP    ??ringbuf_get_1
+     90            } else {
+     91              return -1;
+   \                     ??ringbuf_get_0:
+   \   00006A   7AFF         MOV     R2,#-0x1
+   \   00006C   7BFF         MOV     R3,#-0x1
+   \                     ??ringbuf_get_1:
+   \   00006E   7F02         MOV     R7,#0x2
+   \   000070   02....       LJMP    ?BANKED_LEAVE_XDATA
+     92            }
+     93          }
+     94          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     95          int
+     96          ringbuf_size(struct ringbuf *r)
+   \                     ringbuf_size:
+     97          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     98            return r->mask + 1;
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   A3           INC     DPTR
+   \   000009   A3           INC     DPTR
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F8           MOV     R0,A
+   \   00000C   7900         MOV     R1,#0x0
+   \   00000E   2401         ADD     A,#0x1
+   \   000010   FA           MOV     R2,A
+   \   000011   E9           MOV     A,R1
+   \   000012   3400         ADDC    A,#0x0
+   \   000014   FB           MOV     R3,A
+   \   000015   D083         POP     DPH
+   \   000017   D082         POP     DPL
+   \   000019   02....       LJMP    ?BRET
+     99          }
+    100          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    101          int
+    102          ringbuf_elements(struct ringbuf *r)
+   \                     ringbuf_elements:
+    103          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    104            return (r->put_ptr - r->get_ptr) & r->mask;
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   A3           INC     DPTR
+   \   000009   A3           INC     DPTR
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   F8           MOV     R0,A
+   \   00000D   7900         MOV     R1,#0x0
+   \   00000F   8A82         MOV     DPL,R2
+   \   000011   8B83         MOV     DPH,R3
+   \   000013   A3           INC     DPTR
+   \   000014   A3           INC     DPTR
+   \   000015   A3           INC     DPTR
+   \   000016   A3           INC     DPTR
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   FC           MOV     R4,A
+   \   000019   7D00         MOV     R5,#0x0
+   \   00001B   E8           MOV     A,R0
+   \   00001C   C3           CLR     C
+   \   00001D   9C           SUBB    A,R4
+   \   00001E   F8           MOV     R0,A
+   \   00001F   E9           MOV     A,R1
+   \   000020   9D           SUBB    A,R5
+   \   000021   F9           MOV     R1,A
+   \   000022   8A82         MOV     DPL,R2
+   \   000024   8B83         MOV     DPH,R3
+   \   000026   A3           INC     DPTR
+   \   000027   A3           INC     DPTR
+   \   000028   E0           MOVX    A,@DPTR
+   \   000029   FA           MOV     R2,A
+   \   00002A   7B00         MOV     R3,#0x0
+   \   00002C   E8           MOV     A,R0
+   \   00002D   5A           ANL     A,R2
+   \   00002E   FA           MOV     R2,A
+   \   00002F   E9           MOV     A,R1
+   \   000030   5B           ANL     A,R3
+   \   000031   FB           MOV     R3,A
+   \   000032   D083         POP     DPH
+   \   000034   D082         POP     DPL
+   \   000036   02....       LJMP    ?BRET
+    105          }
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??ringbuf_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    ringbuf_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??ringbuf_put?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    ringbuf_put
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??ringbuf_get?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    ringbuf_get
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??ringbuf_size?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    ringbuf_size
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??ringbuf_elements?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    ringbuf_elements
+    106          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       2      0      0  ringbuf_elements
+       1      0     10  ringbuf_get
+       3      0      0  ringbuf_init
+       3      0      0  ringbuf_put
+       2      0      0  ringbuf_size
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??ringbuf_elements?relay
+       6  ??ringbuf_get?relay
+       6  ??ringbuf_init?relay
+       6  ??ringbuf_put?relay
+       6  ??ringbuf_size?relay
+      57  ringbuf_elements
+     115  ringbuf_get
+      51  ringbuf_init
+     119  ringbuf_put
+      28  ringbuf_size
+
+ 
+ 370 bytes in segment BANKED_CODE
+  30 bytes in segment BANK_RELAYS
+ 
+ 400 bytes of CODE memory
+
+Errors: none
+Warnings: none

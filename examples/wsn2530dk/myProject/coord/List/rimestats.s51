@@ -1,0 +1,124 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:38 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\net\rime\rimestats.c        /
+//    Command line       =  D:\myWork\myWork\core\net\rime\rimestats.c -D     /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\rimestats.s51                             /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME rimestats
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN __INIT_XDATA_Z
+
+        PUBLIC rimestats
+// D:\myWork\myWork\core\net\rime\rimestats.c
+//    1 /*
+//    2  * Copyright (c) 2007, Swedish Institute of Computer Science.
+//    3  * All rights reserved.
+//    4  *
+//    5  * Redistribution and use in source and binary forms, with or without
+//    6  * modification, are permitted provided that the following conditions
+//    7  * are met:
+//    8  * 1. Redistributions of source code must retain the above copyright
+//    9  *    notice, this list of conditions and the following disclaimer.
+//   10  * 2. Redistributions in binary form must reproduce the above copyright
+//   11  *    notice, this list of conditions and the following disclaimer in the
+//   12  *    documentation and/or other materials provided with the distribution.
+//   13  * 3. Neither the name of the Institute nor the names of its contributors
+//   14  *    may be used to endorse or promote products derived from this software
+//   15  *    without specific prior written permission.
+//   16  *
+//   17  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   18  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   19  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   20  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   21  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   22  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   23  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   24  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   25  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   26  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   27  * SUCH DAMAGE.
+//   28  *
+//   29  * This file is part of the Contiki operating system.
+//   30  *
+//   31  */
+//   32 
+//   33 /**
+//   34  * \file
+//   35  *         A brief description of what this file is.
+//   36  * \author
+//   37  *         Adam Dunkels <adam@sics.se>
+//   38  */
+//   39 
+//   40 #include "net/rime/rimestats.h"
+//   41 /*---------------------------------------------------------------------------*/
+//   42 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   43 struct rimestats rimestats;
+rimestats:
+        DS 72
+        REQUIRE __INIT_XDATA_Z
+
+        END
+//   44 
+//   45 /*---------------------------------------------------------------------------*/
+// 
+// 72 bytes in segment XDATA_Z
+// 
+// 72 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

@@ -1,0 +1,825 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:55 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\net\uiplib.c                /
+//    Command line       =  D:\myWork\myWork\core\net\uiplib.c -D             /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\uiplib.s51                                /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME uiplib
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?S_SHL
+        EXTERN ?V0
+
+        PUBLIC ??uiplib_ip4addrconv?relay
+        FUNCTION ??uiplib_ip4addrconv?relay,0203H
+        PUBLIC ??uiplib_ip6addrconv?relay
+        FUNCTION ??uiplib_ip6addrconv?relay,0203H
+        PUBLIC uiplib_ip4addrconv
+        FUNCTION uiplib_ip4addrconv,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 12, STACK
+        PUBLIC uiplib_ip6addrconv
+        FUNCTION uiplib_ip6addrconv,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 19, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+memmove             SYMBOL "memmove"
+??memmove?relay     SYMBOL "?relay", memmove
+memset              SYMBOL "memset"
+??memset?relay      SYMBOL "?relay", memset
+uiplib_ip4addrconv  SYMBOL "uiplib_ip4addrconv"
+??uiplib_ip4addrconv?relay SYMBOL "?relay", uiplib_ip4addrconv
+uiplib_ip6addrconv  SYMBOL "uiplib_ip6addrconv"
+??uiplib_ip6addrconv?relay SYMBOL "?relay", uiplib_ip6addrconv
+
+        EXTERN ??memmove?relay
+        FUNCTION ??memmove?relay,00H
+        EXTERN ??memset?relay
+        FUNCTION ??memset?relay,00H
+        EXTERN memmove
+        FUNCTION memmove,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 19, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memset
+        FUNCTION memset,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 19, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+// D:\myWork\myWork\core\net\uiplib.c
+//    1 /*
+//    2  * Copyright (c) 2004, Adam Dunkels and the Swedish Institute of
+//    3  * Computer Science.
+//    4  * All rights reserved.
+//    5  *
+//    6  * Redistribution and use in source and binary forms, with or without 
+//    7  * modification, are permitted provided that the following conditions 
+//    8  * are met: 
+//    9  * 1. Redistributions of source code must retain the above copyright 
+//   10  *    notice, this list of conditions and the following disclaimer. 
+//   11  * 2. Redistributions in binary form must reproduce the above copyright 
+//   12  *    notice, this list of conditions and the following disclaimer in the 
+//   13  *    documentation and/or other materials provided with the distribution. 
+//   14  * 3. The name of the author may not be used to endorse or promote
+//   15  *    products derived from this software without specific prior
+//   16  *    written permission.  
+//   17  *
+//   18  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+//   19  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+//   20  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   21  * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+//   22  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   23  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+//   24  * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+//   25  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+//   26  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+//   27  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+//   28  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+//   29  *
+//   30  * This file is part of the uIP TCP/IP stack and the Contiki operating system.
+//   31  *
+//   32  *
+//   33  */
+//   34 
+//   35 
+//   36 #include "net/uip.h"
+//   37 #include "net/uiplib.h"
+//   38 #include <string.h>
+//   39 
+//   40 #define DEBUG DEBUG_NONE
+//   41 #include "net/uip-debug.h"
+//   42 
+//   43 /*-----------------------------------------------------------------------------------*/
+//   44 #if UIP_CONF_IPV6
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   45 int
+//   46 uiplib_ip6addrconv(const char *addrstr, uip_ip6addr_t *ipaddr)
+uiplib_ip6addrconv:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function uiplib_ip6addrconv
+        CODE
+//   47 {
+        FUNCALL uiplib_ip6addrconv, memmove
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 19, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 19, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uiplib_ip6addrconv, memset
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 19, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 19, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x11
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V8 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V7 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-16)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-17)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 17)
+        ; Saved register size: 17
+        ; Auto size: 0
+        MOV     A,R4
+        MOV     R6,A
+        MOV     A,R5
+        MOV     R7,A
+//   48   uint16_t value;
+//   49   int tmp, zero;
+//   50   unsigned int len;
+//   51   char c = 0;  //gcc warning if not initialized
+        MOV     ?V0 + 8,#0x0
+//   52 
+//   53   value = 0;
+        MOV     ?V0 + 4,#0x0
+        MOV     ?V0 + 5,#0x0
+//   54   zero = -1;
+        MOV     ?V0 + 2,#-0x1
+        MOV     ?V0 + 3,#-0x1
+//   55   if(*addrstr == '[') addrstr++;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        XRL     A,#0x5b
+        JNZ     ??uiplib_ip6addrconv_0
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        MOV     R2,DPL
+        MOV     R3,DPH
+//   56 
+//   57   for(len = 0; len < sizeof(uip_ip6addr_t) - 1; addrstr++) {
+??uiplib_ip6addrconv_0:
+        MOV     ?V0 + 0,#0x0
+        MOV     ?V0 + 1,#0x0
+        SJMP    ??uiplib_ip6addrconv_1
+//   58     c = *addrstr;
+//   59     if(c == ':' || c == '\0' || c == ']' || c == '/') {
+//   60       ipaddr->u8[len] = (value >> 8) & 0xff;
+//   61       ipaddr->u8[len + 1] = value & 0xff;
+//   62       len += 2;
+//   63       value = 0;
+//   64 
+//   65       if(c == '\0' || c == ']' || c == '/') {
+//   66         break;
+//   67       }
+//   68 
+//   69       if(*(addrstr + 1) == ':') {
+??uiplib_ip6addrconv_2:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        MOVX    A,@DPTR
+        XRL     A,#0x3a
+        JNZ     ??uiplib_ip6addrconv_3
+//   70         /* Zero compression */
+//   71         if(zero < 0) {
+        CLR     C
+        MOV     A,?V0 + 2
+        SUBB    A,#0x0
+        MOV     A,?V0 + 3
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     ??uiplib_ip6addrconv_4
+//   72           zero = len;
+        MOV     ?V0 + 2,?V0 + 0
+        MOV     ?V0 + 3,?V0 + 1
+//   73         }
+//   74         addrstr++;
+??uiplib_ip6addrconv_4:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        MOV     R2,DPL
+        MOV     R3,DPH
+        SJMP    ??uiplib_ip6addrconv_3
+//   75       }
+//   76     } else {
+//   77       if(c >= '0' && c <= '9') {
+??uiplib_ip6addrconv_5:
+        MOV     A,?V0 + 8
+        CLR     C
+        SUBB    A,#0x30
+        CLR     C
+        SUBB    A,#0xa
+        JC      $+5
+        LJMP    ??uiplib_ip6addrconv_6 & 0xFFFF
+//   78         tmp = c - '0';
+        MOV     ?V0 + 6,?V0 + 8
+        MOV     ?V0 + 7,#0x0
+        MOV     A,?V0 + 6
+        ADD     A,#-0x30
+        MOV     R4,A
+        MOV     A,?V0 + 7
+        ADDC    A,#-0x1
+        MOV     R5,A
+//   79       } else if(c >= 'a' && c <= 'f') {
+//   80         tmp = c - 'a' + 10;
+//   81       } else if(c >= 'A' && c <= 'F') {
+//   82         tmp = c - 'A' + 10;
+//   83       } else {
+//   84         PRINTF("uiplib: illegal char: '%c'\n", c);
+//   85         return 0;
+//   86       }
+//   87       value = (value << 4) + (tmp & 0xf);
+??uiplib_ip6addrconv_7:
+        MOV     A,#0x4
+        MOV     R0,#?V0 + 4
+        LCALL   ?S_SHL
+        MOV     A,R4
+        ANL     A,#0xf
+        MOV     R0,A
+        MOV     A,R5
+        ANL     A,#0x0
+        MOV     R1,A
+        MOV     A,?V0 + 4
+        ADD     A,R0
+        MOV     ?V0 + 4,A
+        MOV     A,?V0 + 5
+        ADDC    A,R1
+        MOV     ?V0 + 5,A
+??uiplib_ip6addrconv_3:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        MOV     R2,DPL
+        MOV     R3,DPH
+??uiplib_ip6addrconv_1:
+        CLR     C
+        MOV     A,?V0 + 0
+        SUBB    A,#0xf
+        MOV     A,?V0 + 1
+        SUBB    A,#0x0
+        JNC     ??uiplib_ip6addrconv_8
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     ?V0 + 8,A
+        MOV     A,#0x3a
+        XRL     A,?V0 + 8
+        JZ      ??uiplib_ip6addrconv_9
+        MOV     A,?V0 + 8
+        JZ      ??uiplib_ip6addrconv_9
+        MOV     A,#0x5d
+        XRL     A,?V0 + 8
+        JZ      ??uiplib_ip6addrconv_9
+        MOV     A,#0x2f
+        XRL     A,?V0 + 8
+        JNZ     ??uiplib_ip6addrconv_5
+??uiplib_ip6addrconv_9:
+        MOV     R0,?V0 + 4
+        MOV     R1,?V0 + 5
+        CLR     A
+        MOV     A,?V0 + 5
+        MOV     R0,?V0 + 5
+        MOV     A,?V0 + 5
+        MOV     A,R6
+        ADD     A,?V0 + 0
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,?V0 + 1
+        MOV     DPH,A
+        MOV     A,?V0 + 5
+        MOVX    @DPTR,A
+        MOV     A,?V0 + 4
+        MOV     A,R6
+        ADD     A,?V0 + 0
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,?V0 + 1
+        MOV     DPH,A
+        INC     DPTR
+        MOV     A,?V0 + 4
+        MOVX    @DPTR,A
+        MOV     A,?V0 + 0
+        ADD     A,#0x2
+        MOV     ?V0 + 0,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     ?V0 + 1,A
+        MOV     ?V0 + 4,#0x0
+        MOV     ?V0 + 5,#0x0
+        MOV     A,?V0 + 8
+        JZ      ??uiplib_ip6addrconv_8
+        MOV     A,#0x5d
+        XRL     A,?V0 + 8
+        JZ      ??uiplib_ip6addrconv_8
+        MOV     A,#0x2f
+        XRL     A,?V0 + 8
+        JZ      $+5
+        LJMP    ??uiplib_ip6addrconv_2 & 0xFFFF
+//   88     }
+//   89   }
+//   90   if(c != '\0' && c != ']' && c != '/') {
+??uiplib_ip6addrconv_8:
+        MOV     A,?V0 + 8
+        JZ      ??uiplib_ip6addrconv_10
+        MOV     A,#0x5d
+        XRL     A,?V0 + 8
+        JZ      ??uiplib_ip6addrconv_10
+        MOV     A,#0x2f
+        XRL     A,?V0 + 8
+        JZ      ??uiplib_ip6addrconv_10
+//   91     PRINTF("uiplib: too large address\n");
+//   92     return 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LJMP    ??uiplib_ip6addrconv_11 & 0xFFFF
+//   93   }
+??uiplib_ip6addrconv_6:
+        MOV     A,?V0 + 8
+        CLR     C
+        SUBB    A,#0x61
+        CLR     C
+        SUBB    A,#0x6
+        JNC     ??uiplib_ip6addrconv_12
+        MOV     ?V0 + 6,?V0 + 8
+        MOV     ?V0 + 7,#0x0
+        MOV     A,?V0 + 6
+        ADD     A,#-0x57
+        MOV     R4,A
+        MOV     A,?V0 + 7
+        ADDC    A,#-0x1
+        MOV     R5,A
+        LJMP    ??uiplib_ip6addrconv_7 & 0xFFFF
+??uiplib_ip6addrconv_12:
+        MOV     A,?V0 + 8
+        CLR     C
+        SUBB    A,#0x41
+        CLR     C
+        SUBB    A,#0x6
+        JNC     ??uiplib_ip6addrconv_13
+        MOV     ?V0 + 6,?V0 + 8
+        MOV     ?V0 + 7,#0x0
+        MOV     A,?V0 + 6
+        ADD     A,#-0x37
+        MOV     R4,A
+        MOV     A,?V0 + 7
+        ADDC    A,#-0x1
+        MOV     R5,A
+        LJMP    ??uiplib_ip6addrconv_7 & 0xFFFF
+??uiplib_ip6addrconv_13:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LJMP    ??uiplib_ip6addrconv_11 & 0xFFFF
+//   94   if(len < sizeof(uip_ip6addr_t)) {
+??uiplib_ip6addrconv_10:
+        CLR     C
+        MOV     A,?V0 + 0
+        SUBB    A,#0x10
+        MOV     A,?V0 + 1
+        SUBB    A,#0x0
+        JNC     ??uiplib_ip6addrconv_14
+//   95     if(zero < 0) {
+        CLR     C
+        MOV     A,?V0 + 2
+        SUBB    A,#0x0
+        MOV     A,?V0 + 3
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     ??uiplib_ip6addrconv_15
+//   96       PRINTF("uiplib: too short address\n");
+//   97       return 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??uiplib_ip6addrconv_11
+//   98     }
+//   99     memmove(&ipaddr->u8[zero + sizeof(uip_ip6addr_t) - len],
+//  100             &ipaddr->u8[zero], len - zero);
+??uiplib_ip6addrconv_15:
+        ; Setup parameters for call to function memmove
+        MOV     A,?V0 + 0
+        CLR     C
+        SUBB    A,?V0 + 2
+        MOV     ?V0 + 4,A
+        MOV     A,?V0 + 1
+        SUBB    A,?V0 + 3
+        MOV     ?V0 + 5,A
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 19)
+        MOV     A,R6
+        ADD     A,?V0 + 2
+        MOV     R4,A
+        MOV     A,R7
+        ADDC    A,?V0 + 3
+        MOV     R5,A
+        MOV     A,?V0 + 2
+        ADD     A,#0x10
+        MOV     R0,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     R1,A
+        MOV     A,R0
+        CLR     C
+        SUBB    A,?V0 + 0
+        MOV     R0,A
+        MOV     A,R1
+        SUBB    A,?V0 + 1
+        MOV     R1,A
+        MOV     A,R6
+        ADD     A,R0
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,R1
+        MOV     R3,A
+        LCALL   ??memmove?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 17)
+//  101     memset(&ipaddr->u8[zero], 0, sizeof(uip_ip6addr_t) - len);
+        ; Setup parameters for call to function memset
+        MOV     A,#0x10
+        CLR     C
+        SUBB    A,?V0 + 0
+        MOV     ?V0 + 0,A
+        MOV     A,#0x0
+        SUBB    A,?V0 + 1
+        MOV     ?V0 + 1,A
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 19)
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     A,R6
+        ADD     A,?V0 + 2
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,?V0 + 3
+        MOV     R3,A
+        LCALL   ??memset?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 17)
+//  102   }
+//  103 
+//  104   return 1;
+??uiplib_ip6addrconv_14:
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+??uiplib_ip6addrconv_11:
+        MOV     R7,#0x9
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock0
+//  105 }
+//  106 #endif /* UIP_CONF_IPV6 */
+//  107 /*-----------------------------------------------------------------------------------*/
+//  108 /* Parse a IPv4-address from a string. Returns the number of characters read 
+//  109  * for the address. */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  110 int
+//  111 uiplib_ip4addrconv(const char *addrstr, uip_ip4addr_t *ipaddr)
+uiplib_ip4addrconv:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function uiplib_ip4addrconv
+        CODE
+//  112 {
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+//  113   unsigned char tmp;
+//  114   char c;
+//  115   unsigned char i, j;
+//  116   uint8_t charsread = 0;
+        MOV     ?V0 + 2,#0x0
+//  117 
+//  118   tmp = 0;
+        MOV     R6,#0x0
+//  119 
+//  120   for(i = 0; i < 4; ++i) {
+        MOV     R1,#0x0
+        SJMP    ??uiplib_ip4addrconv_0
+//  121     j = 0;
+//  122     do {
+//  123       c = *addrstr;
+//  124       ++j;
+//  125       if(j > 4) {
+//  126         return 0;
+//  127       }
+//  128       if(c == '.' || c == 0 || c == ' ') {
+??uiplib_ip4addrconv_1:
+        MOV     A,#0x2e
+        XRL     A,R7
+        JZ      ??uiplib_ip4addrconv_2
+        MOV     A,R7
+        JZ      ??uiplib_ip4addrconv_2
+        MOV     A,#0x20
+        XRL     A,R7
+        JNZ     ??uiplib_ip4addrconv_3
+//  129         ipaddr->u8[i] = tmp;
+??uiplib_ip4addrconv_2:
+        MOV     A,R6
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     ?V0 + 0,R1
+        MOV     ?V0 + 1,#0x0
+        MOV     A,R4
+        ADD     A,?V0 + 0
+        MOV     DPL,A
+        MOV     A,R5
+        ADDC    A,?V0 + 1
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  130         tmp = 0;
+        MOV     R6,#0x0
+//  131       } else if(c >= '0' && c <= '9') {
+//  132       	tmp = (tmp * 10) + (c - '0');
+//  133       } else {
+//  134         return 0;
+//  135       }
+//  136       ++addrstr;
+??uiplib_ip4addrconv_4:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        MOV     R2,DPL
+        MOV     R3,DPH
+//  137       ++charsread;
+        INC     ?V0 + 2
+//  138     } while(c != '.' && c != 0 && c != ' ');
+        MOV     A,#0x2e
+        XRL     A,R7
+        JZ      ??uiplib_ip4addrconv_5
+        MOV     A,R7
+        JZ      ??uiplib_ip4addrconv_5
+        MOV     A,#0x20
+        XRL     A,R7
+        JNZ     ??uiplib_ip4addrconv_6
+??uiplib_ip4addrconv_5:
+        INC     R1
+??uiplib_ip4addrconv_0:
+        MOV     A,R1
+        CLR     C
+        SUBB    A,#0x4
+        JNC     ??uiplib_ip4addrconv_7
+        MOV     R0,#0x0
+??uiplib_ip4addrconv_6:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R7,A
+        INC     R0
+        MOV     A,R0
+        CLR     C
+        SUBB    A,#0x5
+        JC      ??uiplib_ip4addrconv_1
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??uiplib_ip4addrconv_8
+??uiplib_ip4addrconv_3:
+        MOV     A,R7
+        CLR     C
+        SUBB    A,#0x30
+        CLR     C
+        SUBB    A,#0xa
+        JNC     ??uiplib_ip4addrconv_9
+        MOV     B,#0xa
+        MOV     A,R6
+        MUL     AB
+        ADD     A,R7
+        ADD     A,#-0x30
+        MOV     R6,A
+        SJMP    ??uiplib_ip4addrconv_4
+??uiplib_ip4addrconv_9:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??uiplib_ip4addrconv_8
+//  139 
+//  140   }
+//  141   return charsread-1;
+??uiplib_ip4addrconv_7:
+        MOV     ?V0 + 3,#0x0
+        MOV     A,?V0 + 2
+        ADD     A,#-0x1
+        MOV     R2,A
+        MOV     A,?V0 + 3
+        ADDC    A,#-0x1
+        MOV     R3,A
+??uiplib_ip4addrconv_8:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//  142 }
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uiplib_ip6addrconv?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uiplib_ip6addrconv
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uiplib_ip4addrconv?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uiplib_ip4addrconv
+
+        END
+//  143 /*-----------------------------------------------------------------------------------*/
+// 
+// 646 bytes in segment BANKED_CODE
+//  12 bytes in segment BANK_RELAYS
+// 
+// 658 bytes of CODE memory
+//
+//Errors: none
+//Warnings: none

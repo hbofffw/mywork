@@ -1,0 +1,1182 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:42 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\net\rpl\rpl-mrhof.c         /
+//    Command line       =  D:\myWork\myWork\core\net\rpl\rpl-mrhof.c -D      /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\rpl-mrhof.s51                             /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME `rpl-mrhof`
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?US_DIV_MOD
+        EXTERN ?V0
+        EXTERN ?XSTACK_DISP0_8
+        EXTERN __INIT_XDATA_I
+
+        FUNCTION ??best_dag?relay,0203H
+        FUNCTION ??best_parent?relay,0203H
+        FUNCTION ??calculate_path_metric?relay,0203H
+        FUNCTION ??calculate_rank?relay,0203H
+        FUNCTION ??neighbor_link_callback?relay,0203H
+        FUNCTION ??reset?relay,0203H
+        FUNCTION ??update_metric_container?relay,0203H
+        FUNCTION best_dag,0603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 4, STACK
+        FUNCTION best_parent,021603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        FUNCTION calculate_path_metric,0203H
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 12, STACK
+        FUNCTION calculate_rank,0603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        FUNCTION neighbor_link_callback,0603H
+        ARGFRAME XSTACK, 2, STACK
+        LOCFRAME XSTACK, 10, STACK
+        FUNCTION reset,0603H
+        ARGFRAME XSTACK, 0, STACK
+        PUBLIC rpl_mrhof
+        FUNCTION update_metric_container,0603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+// D:\myWork\myWork\core\net\rpl\rpl-mrhof.c
+//    1 /**
+//    2  * \addtogroup uip6
+//    3  * @{
+//    4  */
+//    5 /*
+//    6  * Copyright (c) 2010, Swedish Institute of Computer Science.
+//    7  * All rights reserved.
+//    8  *
+//    9  * Redistribution and use in source and binary forms, with or without
+//   10  * modification, are permitted provided that the following conditions
+//   11  * are met:
+//   12  * 1. Redistributions of source code must retain the above copyright
+//   13  *    notice, this list of conditions and the following disclaimer.
+//   14  * 2. Redistributions in binary form must reproduce the above copyright
+//   15  *    notice, this list of conditions and the following disclaimer in the
+//   16  *    documentation and/or other materials provided with the distribution.
+//   17  * 3. Neither the name of the Institute nor the names of its contributors
+//   18  *    may be used to endorse or promote products derived from this software
+//   19  *    without specific prior written permission.
+//   20  *
+//   21  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   22  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   23  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   24  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   25  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   26  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   27  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   28  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   29  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   30  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   31  * SUCH DAMAGE.
+//   32  *
+//   33  * This file is part of the Contiki operating system.
+//   34  *
+//   35  */
+//   36 /**
+//   37  * \file
+//   38  *         The Minimum Rank with Hysteresis Objective Function (MRHOF)
+//   39  *
+//   40  *         This implementation uses the estimated number of 
+//   41  *         transmissions (ETX) as the additive routing metric,
+//   42  *         and also provides stubs for the energy metric.
+//   43  *
+//   44  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
+//   45  */
+//   46 
+//   47 #include "net/rpl/rpl-private.h"
+//   48 #include "net/nbr-table.h"
+//   49 
+//   50 #define DEBUG DEBUG_NONE
+//   51 #include "net/uip-debug.h"
+//   52 
+//   53 static void reset(rpl_dag_t *);
+//   54 static void neighbor_link_callback(rpl_parent_t *, int, int);
+//   55 static rpl_parent_t *best_parent(rpl_parent_t *, rpl_parent_t *);
+//   56 static rpl_dag_t *best_dag(rpl_dag_t *, rpl_dag_t *);
+//   57 static rpl_rank_t calculate_rank(rpl_parent_t *, rpl_rank_t);
+//   58 static void update_metric_container(rpl_instance_t *);
+//   59 
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+//   60 rpl_of_t rpl_mrhof = {
+rpl_mrhof:
+        DATA8
+        DS 14
+        REQUIRE `?<Initializer for rpl_mrhof>`
+        REQUIRE __INIT_XDATA_I
+//   61   reset,
+//   62   neighbor_link_callback,
+//   63   best_parent,
+//   64   best_dag,
+//   65   calculate_rank,
+//   66   update_metric_container,
+//   67   1
+//   68 };
+//   69 
+//   70 /* Constants for the ETX moving average */
+//   71 #define ETX_SCALE   100
+//   72 #define ETX_ALPHA   90
+//   73 
+//   74 /* Reject parents that have a higher link metric than the following. */
+//   75 #define MAX_LINK_METRIC			10
+//   76 
+//   77 /* Reject parents that have a higher path cost than the following. */
+//   78 #define MAX_PATH_COST			100
+//   79 
+//   80 /*
+//   81  * The rank must differ more than 1/PARENT_SWITCH_THRESHOLD_DIV in order
+//   82  * to switch preferred parent.
+//   83  */
+//   84 #define PARENT_SWITCH_THRESHOLD_DIV	2
+//   85 
+//   86 typedef uint16_t rpl_path_metric_t;
+//   87 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   88 static rpl_path_metric_t
+//   89 calculate_path_metric(rpl_parent_t *p)
+calculate_path_metric:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function calculate_path_metric
+        CODE
+//   90 {
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+//   91   if(p == NULL) {
+        MOV     A,R2
+        ORL     A,R3
+        JNZ     ??calculate_path_metric_0
+//   92     return MAX_PATH_COST * RPL_DAG_MC_ETX_DIVISOR;
+        MOV     R2,#0x0
+        MOV     R3,#0x32
+        SJMP    ??calculate_path_metric_1
+//   93   } else {
+//   94     long link_metric = p->link_metric;
+??calculate_path_metric_0:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 1,A
+        CLR     A
+        MOV     ?V0 + 2,A
+        MOV     ?V0 + 3,A
+//   95 #if RPL_DAG_MC == RPL_DAG_MC_NONE
+//   96     return p->rank + (uint16_t)link_metric;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADD     A,?V0 + 0
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,?V0 + 1
+        MOV     R3,A
+??calculate_path_metric_1:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock0
+//   97 #elif RPL_DAG_MC == RPL_DAG_MC_ETX
+//   98     return p->mc.obj.etx + (uint16_t)link_metric;
+//   99 #elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
+//  100     return p->mc.obj.energy.energy_test + (uint16_t)link_metric;
+//  101 #endif /* RPL_DAG_MC */
+//  102   }
+//  103 }
+//  104 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  105 static void
+//  106 reset(rpl_dag_t *sag)
+reset:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function reset
+        CODE
+//  107 {
+        ; Saved register size: 0
+        ; Auto size: 0
+//  108 }
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock1
+//  109 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  110 static void
+//  111 neighbor_link_callback(rpl_parent_t *p, int status, int numtx)
+neighbor_link_callback:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function neighbor_link_callback
+        CODE
+//  112 {
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     A,#0xa
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+//  113   /* Do not penalize the ETX when collisions or transmission errors occur. */
+//  114   if(status == MAC_TX_OK || status == MAC_TX_NOACK) {
+        MOV     A,R4
+        ORL     A,R5
+        JZ      ??neighbor_link_callback_0
+        MOV     A,#0x2
+        XRL     A,R4
+        JNZ     ??neighbor_link_callback_1
+        MOV     A,#0x0
+        XRL     A,R5
+??neighbor_link_callback_1:
+        JZ      $+5
+        LJMP    ??neighbor_link_callback_2 & 0xFFFF
+//  115     int recorded_etx = p->link_metric;
+??neighbor_link_callback_0:
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+//  116     int packet_etx = numtx * RPL_DAG_MC_ETX_DIVISOR;
+        MOV     A,R0
+        MOV     B,#-0x80
+        MUL     AB
+        XCH     A,R0
+        MOV     ?V0 + 0,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,?V0 + 0
+        MOV     ?V0 + 0,A
+        MOV     B,#-0x80
+        MOV     A,R1
+        MUL     AB
+        ADD     A,?V0 + 0
+        MOV     R1,A
+//  117     int new_etx;
+//  118 
+//  119     if(status == MAC_TX_NOACK) {
+        MOV     A,#0x2
+        XRL     A,R4
+        JNZ     ??neighbor_link_callback_3
+        MOV     A,#0x0
+        XRL     A,R5
+??neighbor_link_callback_3:
+        JNZ     ??neighbor_link_callback_4
+//  120       packet_etx = MAX_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
+        MOV     R0,#0x0
+        MOV     R1,#0x5
+//  121     }
+//  122 
+//  123     new_etx = ((uint16_t)recorded_etx * ETX_ALPHA +
+//  124         (uint16_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
+??neighbor_link_callback_4:
+        MOV     A,R2
+        MOV     B,#0x5a
+        MUL     AB
+        XCH     A,R2
+        MOV     R4,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R4
+        MOV     R4,A
+        MOV     B,#0x5a
+        MOV     A,R3
+        MUL     AB
+        ADD     A,R4
+        MOV     R3,A
+        MOV     A,R0
+        MOV     B,#0xa
+        MUL     AB
+        XCH     A,R0
+        MOV     R4,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R4
+        MOV     R4,A
+        MOV     B,#0xa
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R4
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     R2,#0x64
+        MOV     R3,#0x0
+        LCALL   ?US_DIV_MOD
+        MOV     ?V0 + 0,R0
+        MOV     ?V0 + 1,R1
+        MOV     R0,?V0 + 0
+        MOV     R1,?V0 + 1
+//  125 
+//  126     PRINTF("RPL: ETX changed from %d to %d (packet ETX = %d) %d\n",
+//  127         recorded_etx / p->dag->instance->min_hoprankinc,
+//  128         new_etx  / p->dag->instance->min_hoprankinc,
+//  129         packet_etx / p->dag->instance->min_hoprankinc,
+//  130         dest->u8[7]);
+//  131     p->link_metric = new_etx;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,?V0 + 0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,?V0 + 1
+        MOVX    @DPTR,A
+//  132 
+//  133   }
+//  134 }
+??neighbor_link_callback_2:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//  135 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  136 static rpl_rank_t
+//  137 calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
+calculate_rank:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function calculate_rank
+        CODE
+//  138 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  139   rpl_rank_t new_rank;
+//  140   rpl_rank_t rank_increase;
+//  141 
+//  142   if(p == NULL) {
+        MOV     A,R2
+        ORL     A,R3
+        JNZ     ??calculate_rank_0
+//  143     if(base_rank == 0) {
+        MOV     A,R4
+        ORL     A,R5
+        JNZ     ??calculate_rank_1
+//  144       return INFINITE_RANK;
+        MOV     R2,#-0x1
+        MOV     R3,#-0x1
+        SJMP    ??calculate_rank_2
+//  145     }
+//  146     rank_increase = RPL_INIT_LINK_METRIC;
+??calculate_rank_1:
+        MOV     R0,#0x0
+        MOV     R1,#0x5
+        SJMP    ??calculate_rank_3
+//  147   } else {
+//  148     /* multiply first, then scale down to avoid truncation effects */
+//  149     rank_increase = p->link_metric;
+??calculate_rank_0:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+//  150     if(base_rank == 0) {
+        MOV     A,R4
+        ORL     A,R5
+        JNZ     ??calculate_rank_3
+//  151       base_rank = p->rank;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+//  152     }
+//  153   }
+//  154 
+//  155   if(INFINITE_RANK - base_rank < rank_increase) {
+??calculate_rank_3:
+        MOV     A,#-0x1
+        CLR     C
+        SUBB    A,R4
+        MOV     R2,A
+        MOV     A,#-0x1
+        SUBB    A,R5
+        MOV     R3,A
+        CLR     C
+        MOV     A,R2
+        SUBB    A,R0
+        MOV     A,R3
+        SUBB    A,R1
+        JNC     ??calculate_rank_4
+//  156     /* Reached the maximum rank. */
+//  157     new_rank = INFINITE_RANK;
+        MOV     R2,#-0x1
+        MOV     R3,#-0x1
+        SJMP    ??calculate_rank_2
+//  158   } else {
+//  159    /* Calculate the rank based on the new rank information from DIO or
+//  160       stored otherwise. */
+//  161     new_rank = base_rank + rank_increase;
+??calculate_rank_4:
+        MOV     A,R4
+        ADD     A,R0
+        MOV     R2,A
+        MOV     A,R5
+        ADDC    A,R1
+        MOV     R3,A
+//  162   }
+//  163 
+//  164   return new_rank;
+??calculate_rank_2:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock3
+//  165 }
+//  166 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  167 static rpl_dag_t *
+//  168 best_dag(rpl_dag_t *d1, rpl_dag_t *d2)
+best_dag:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function best_dag
+        CODE
+//  169 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  170   if(d1->grounded != d2->grounded) {
+        MOV     A,R2
+        ADD     A,#0x13
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     A,R4
+        ADD     A,#0x13
+        MOV     DPL,A
+        MOV     A,R5
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        XRL     A,R0
+        JZ      ??best_dag_0
+//  171     return d1->grounded ? d1 : d2;
+        MOV     A,R2
+        ADD     A,#0x13
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        JNZ     ??best_dag_1
+        MOV     A,R4
+        MOV     R2,A
+        MOV     A,R5
+        MOV     R3,A
+        SJMP    ??best_dag_1
+//  172   }
+//  173 
+//  174   if(d1->preference != d2->preference) {
+??best_dag_0:
+        MOV     A,R2
+        ADD     A,#0x14
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     A,R4
+        ADD     A,#0x14
+        MOV     DPL,A
+        MOV     A,R5
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        XRL     A,R0
+        JZ      ??best_dag_2
+//  175     return d1->preference > d2->preference ? d1 : d2;
+        MOV     A,R2
+        ADD     A,#0x14
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     A,R4
+        ADD     A,#0x14
+        MOV     DPL,A
+        MOV     A,R5
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        CLR     C
+        SUBB    A,R0
+        JC      ??best_dag_1
+        MOV     A,R4
+        MOV     R2,A
+        MOV     A,R5
+        MOV     R3,A
+        SJMP    ??best_dag_1
+//  176   }
+//  177 
+//  178   return d1->rank < d2->rank ? d1 : d2;
+??best_dag_2:
+        MOV     A,R2
+        ADD     A,#0x19
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        PUSH    DPL
+          CFI CFA_SP SP+-6
+        PUSH    DPH
+          CFI CFA_SP SP+-7
+        MOV     A,R4
+        ADD     A,#0x19
+        MOV     DPL,A
+        MOV     A,R5
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        POP     DPH
+          CFI CFA_SP SP+-6
+        POP     DPL
+          CFI CFA_SP SP+-5
+        CLR     C
+        MOVX    A,@DPTR
+        SUBB    A,R0
+        INC     DPTR
+        MOVX    A,@DPTR
+        SUBB    A,R1
+        JC      ??best_dag_1
+        MOV     A,R4
+        MOV     R2,A
+        MOV     A,R5
+        MOV     R3,A
+??best_dag_1:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock4
+//  179 }
+//  180 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  181 static rpl_parent_t *
+//  182 best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
+best_parent:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function best_parent
+        CODE
+//  183 {
+        FUNCALL best_parent, calculate_path_metric
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL best_parent, calculate_path_metric
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x12
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V9 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V8 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V7 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-16)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-17)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-18)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 18)
+        ; Saved register size: 18
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     ?V0 + 0,R4
+        MOV     ?V0 + 1,R5
+//  184   rpl_dag_t *dag;
+//  185   rpl_path_metric_t min_diff;
+//  186   rpl_path_metric_t p1_metric;
+//  187   rpl_path_metric_t p2_metric;
+//  188 
+//  189   dag = p1->dag; /* Both parents must be in the same DAG. */
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 3,A
+//  190 
+//  191   min_diff = RPL_DAG_MC_ETX_DIVISOR /
+//  192              PARENT_SWITCH_THRESHOLD_DIV;
+        MOV     ?V0 + 6,#0x40
+        MOV     ?V0 + 7,#0x0
+//  193 
+//  194   p1_metric = calculate_path_metric(p1);
+        ; Setup parameters for call to function calculate_path_metric
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??calculate_path_metric?relay
+        MOV     ?V0 + 8,R2
+        MOV     ?V0 + 9,R3
+        MOV     ?V0 + 4,?V0 + 8
+        MOV     ?V0 + 5,?V0 + 9
+//  195   p2_metric = calculate_path_metric(p2);
+        ; Setup parameters for call to function calculate_path_metric
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        LCALL   ??calculate_path_metric?relay
+        MOV     ?V0 + 8,R2
+        MOV     ?V0 + 9,R3
+        MOV     R0,?V0 + 8
+        MOV     R1,?V0 + 9
+//  196 
+//  197   /* Maintain stability of the preferred parent in case of similar ranks. */
+//  198   if(p1 == dag->preferred_parent || p2 == dag->preferred_parent) {
+        MOV     A,?V0 + 2
+        ADD     A,#0x17
+        MOV     DPL,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        MOV     A,R6
+        XRL     A,R2
+        JNZ     ??best_parent_0
+        MOV     A,R7
+        XRL     A,R3
+??best_parent_0:
+        JZ      ??best_parent_1
+        MOV     A,?V0 + 2
+        ADD     A,#0x17
+        MOV     DPL,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        MOV     A,?V0 + 0
+        XRL     A,R2
+        JNZ     ??best_parent_2
+        MOV     A,?V0 + 1
+        XRL     A,R3
+??best_parent_2:
+        JNZ     ??best_parent_3
+//  199     if(p1_metric < p2_metric + min_diff &&
+//  200        p1_metric > p2_metric - min_diff) {
+??best_parent_1:
+        MOV     A,R0
+        ADD     A,?V0 + 6
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,?V0 + 7
+        MOV     R3,A
+        CLR     C
+        MOV     A,?V0 + 4
+        SUBB    A,R2
+        MOV     A,?V0 + 5
+        SUBB    A,R3
+        JNC     ??best_parent_3
+        MOV     A,R0
+        CLR     C
+        SUBB    A,?V0 + 6
+        MOV     R2,A
+        MOV     A,R1
+        SUBB    A,?V0 + 7
+        MOV     R3,A
+        CLR     C
+        MOV     A,R2
+        SUBB    A,?V0 + 4
+        MOV     A,R3
+        SUBB    A,?V0 + 5
+        JNC     ??best_parent_3
+//  201       PRINTF("RPL: MRHOF hysteresis: %u <= %u <= %u\n",
+//  202              p2_metric - min_diff,
+//  203              p1_metric,
+//  204              p2_metric + min_diff);
+//  205       return dag->preferred_parent;
+        MOV     A,?V0 + 2
+        ADD     A,#0x17
+        MOV     DPL,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        SJMP    ??best_parent_4
+//  206     }
+//  207   }
+//  208 
+//  209   return p1_metric < p2_metric ? p1 : p2;
+??best_parent_3:
+        CLR     C
+        MOV     A,?V0 + 4
+        SUBB    A,R0
+        MOV     A,?V0 + 5
+        SUBB    A,R1
+        JNC     ??best_parent_5
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        SJMP    ??best_parent_4
+??best_parent_5:
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+??best_parent_4:
+        MOV     R7,#0xa
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock5
+//  210 }
+//  211 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  212 static void
+//  213 update_metric_container(rpl_instance_t *instance)
+update_metric_container:
+          CFI Block cfiBlock6 Using cfiCommon0
+          CFI Function update_metric_container
+        CODE
+//  214 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  215   instance->mc.type = RPL_DAG_MC;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  216 
+//  217 #if RPL_DAG_MC != RPL_DAG_MC_NONE
+//  218 
+//  219   rpl_path_metric_t path_metric;
+//  220   rpl_dag_t *dag;
+//  221 #if RPL_DAG_MC == RPL_DAG_MC_ENERGY
+//  222   uint8_t type;
+//  223 #endif
+//  224 
+//  225   instance->mc.type = RPL_DAG_MC;
+//  226   instance->mc.flags = RPL_DAG_MC_FLAG_P;
+//  227   instance->mc.aggr = RPL_DAG_MC_AGGR_ADDITIVE;
+//  228   instance->mc.prec = 0;
+//  229 
+//  230   dag = instance->current_dag;
+//  231 
+//  232   if (!dag->joined) {
+//  233     /* We should probably do something here */
+//  234     return;
+//  235   }
+//  236 
+//  237   if(dag->rank == ROOT_RANK(instance)) {
+//  238     path_metric = 0;
+//  239   } else {
+//  240     path_metric = calculate_path_metric(dag->preferred_parent);
+//  241   }
+//  242 
+//  243 #endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
+//  244 
+//  245 #if RPL_DAG_MC == RPL_DAG_MC_NONE
+//  246   /* Do nothing more */
+//  247 #elif RPL_DAG_MC == RPL_DAG_MC_ETX
+//  248 
+//  249   instance->mc.length = sizeof(instance->mc.obj.etx);
+//  250   instance->mc.obj.etx = path_metric;
+//  251 
+//  252   PRINTF("RPL: My path ETX to the root is %u.%u\n",
+//  253 	instance->mc.obj.etx / RPL_DAG_MC_ETX_DIVISOR,
+//  254 	(instance->mc.obj.etx % RPL_DAG_MC_ETX_DIVISOR * 100) / RPL_DAG_MC_ETX_DIVISOR);
+//  255 
+//  256 #elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
+//  257 
+//  258   instance->mc.length = sizeof(instance->mc.obj.energy);
+//  259 
+//  260   if(dag->rank == ROOT_RANK(instance)) {
+//  261     type = RPL_DAG_MC_ENERGY_TYPE_MAINS;
+//  262   } else {
+//  263     type = RPL_DAG_MC_ENERGY_TYPE_BATTERY;
+//  264   }
+//  265 
+//  266   instance->mc.obj.energy.flags = type << RPL_DAG_MC_ENERGY_TYPE;
+//  267   instance->mc.obj.energy.energy_est = path_metric;
+//  268 
+//  269 #else
+//  270 
+//  271 #pragma error "Unsupported RPL_DAG_MC configured. See rpl.h."
+//  272 
+//  273 #endif /* RPL_DAG_MC */
+//  274 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock6
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for rpl_mrhof>`:
+        DATA16
+        DW ??reset?relay
+        DW ??neighbor_link_callback?relay
+        DW ??best_parent?relay
+        DW ??best_dag?relay
+        DW ??calculate_rank?relay
+        DW ??update_metric_container?relay
+        DW 1
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??calculate_path_metric?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    calculate_path_metric
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??reset?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    reset
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??neighbor_link_callback?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    neighbor_link_callback
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??calculate_rank?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    calculate_rank
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??best_dag?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    best_dag
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??best_parent?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    best_parent
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??update_metric_container?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    update_metric_container
+
+        END
+// 
+// 700 bytes in segment BANKED_CODE
+//  42 bytes in segment BANK_RELAYS
+//  14 bytes in segment XDATA_I
+//  14 bytes in segment XDATA_ID
+// 
+// 756 bytes of CODE  memory
+//  14 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

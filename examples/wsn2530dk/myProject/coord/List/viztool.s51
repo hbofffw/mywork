@@ -1,0 +1,2456 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:55 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\platform\wsn2530dk\viztool.c     /
+//    Command line       =  D:\myWork\myWork\platform\wsn2530dk\viztool.c -D  /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\viztool.s51                               /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME viztool
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?ALLOC_XSTACK8
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?FUNC_ENTER_XDATA
+        EXTERN ?FUNC_LEAVE_XDATA
+        EXTERN ?PUSH_XSTACK8_X_TWO
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?US_SWITCH_SPARSE
+        EXTERN ?V0
+        EXTERN ?XLOAD_R2345
+        EXTERN ?XSP
+        EXTERN ?XSTACK_DISP0_8
+        EXTERN ?XSTORE_R2345
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??process_thread_viztool_process?relay,0203H
+        FUNCTION process_request,021201H
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 22, STACK
+        FUNCTION process_thread_viztool_process,0a1603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        FUNCTION tcpip_handler,021203H
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 11, STACK
+        PUBLIC viztool_process
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-2
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT SameValue
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+        
+          CFI Common cfiCommon1 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon1
+        
+memcpy              SYMBOL "memcpy"
+??memcpy?relay      SYMBOL "?relay", memcpy
+memset              SYMBOL "memset"
+??memset?relay      SYMBOL "?relay", memset
+nbr_table_head      SYMBOL "nbr_table_head"
+??nbr_table_head?relay SYMBOL "?relay", nbr_table_head
+nbr_table_next      SYMBOL "nbr_table_next"
+??nbr_table_next?relay SYMBOL "?relay", nbr_table_next
+udp_new             SYMBOL "udp_new"
+??udp_new?relay     SYMBOL "?relay", udp_new
+uip_ds6_defrt_choose SYMBOL "uip_ds6_defrt_choose"
+??uip_ds6_defrt_choose?relay SYMBOL "?relay", uip_ds6_defrt_choose
+uip_ds6_defrt_lookup SYMBOL "uip_ds6_defrt_lookup"
+??uip_ds6_defrt_lookup?relay SYMBOL "?relay", uip_ds6_defrt_lookup
+uip_ds6_nbr_get_ipaddr SYMBOL "uip_ds6_nbr_get_ipaddr"
+??uip_ds6_nbr_get_ipaddr?relay SYMBOL "?relay", uip_ds6_nbr_get_ipaddr
+uip_ds6_nbr_get_ll  SYMBOL "uip_ds6_nbr_get_ll"
+??uip_ds6_nbr_get_ll?relay SYMBOL "?relay", uip_ds6_nbr_get_ll
+uip_ds6_route_head  SYMBOL "uip_ds6_route_head"
+??uip_ds6_route_head?relay SYMBOL "?relay", uip_ds6_route_head
+uip_ds6_route_next  SYMBOL "uip_ds6_route_next"
+??uip_ds6_route_next?relay SYMBOL "?relay", uip_ds6_route_next
+uip_ds6_route_num_routes SYMBOL "uip_ds6_route_num_routes"
+??uip_ds6_route_num_routes?relay SYMBOL "?relay", uip_ds6_route_num_routes
+uip_htonl           SYMBOL "uip_htonl"
+??uip_htonl?relay   SYMBOL "?relay", uip_htonl
+uip_udp_packet_send SYMBOL "uip_udp_packet_send"
+??uip_udp_packet_send?relay SYMBOL "?relay", uip_udp_packet_send
+
+        EXTERN ??memcpy?relay
+        FUNCTION ??memcpy?relay,00H
+        EXTERN ??memset?relay
+        FUNCTION ??memset?relay,00H
+        EXTERN ??nbr_table_head?relay
+        FUNCTION ??nbr_table_head?relay,00H
+        EXTERN ??nbr_table_next?relay
+        FUNCTION ??nbr_table_next?relay,00H
+        EXTERN ??udp_new?relay
+        FUNCTION ??udp_new?relay,00H
+        EXTERN ??uip_ds6_defrt_choose?relay
+        FUNCTION ??uip_ds6_defrt_choose?relay,00H
+        EXTERN ??uip_ds6_defrt_lookup?relay
+        FUNCTION ??uip_ds6_defrt_lookup?relay,00H
+        EXTERN ??uip_ds6_nbr_get_ipaddr?relay
+        FUNCTION ??uip_ds6_nbr_get_ipaddr?relay,00H
+        EXTERN ??uip_ds6_nbr_get_ll?relay
+        FUNCTION ??uip_ds6_nbr_get_ll?relay,00H
+        EXTERN ??uip_ds6_route_head?relay
+        FUNCTION ??uip_ds6_route_head?relay,00H
+        EXTERN ??uip_ds6_route_next?relay
+        FUNCTION ??uip_ds6_route_next?relay,00H
+        EXTERN ??uip_ds6_route_num_routes?relay
+        FUNCTION ??uip_ds6_route_num_routes?relay,00H
+        EXTERN ??uip_htonl?relay
+        FUNCTION ??uip_htonl?relay,00H
+        EXTERN ??uip_udp_packet_send?relay
+        FUNCTION ??uip_udp_packet_send?relay,00H
+        EXTERN ds6_neighbors
+        EXTERN memcpy
+        FUNCTION memcpy,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memset
+        FUNCTION memset,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN nbr_table_head
+        FUNCTION nbr_table_head,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN nbr_table_next
+        FUNCTION nbr_table_next,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN tcpip_event
+        EXTERN udp_new
+        FUNCTION udp_new,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_aligned_buf
+        EXTERN uip_appdata
+        EXTERN uip_ds6_defrt_choose
+        FUNCTION uip_ds6_defrt_choose,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_defrt_lookup
+        FUNCTION uip_ds6_defrt_lookup,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_if
+        EXTERN uip_ds6_nbr_get_ipaddr
+        FUNCTION uip_ds6_nbr_get_ipaddr,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_nbr_get_ll
+        FUNCTION uip_ds6_nbr_get_ll,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_route_head
+        FUNCTION uip_ds6_route_head,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_route_next
+        FUNCTION uip_ds6_route_next,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_route_num_routes
+        FUNCTION uip_ds6_route_num_routes,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ext_len
+        EXTERN uip_flags
+        EXTERN uip_htonl
+        FUNCTION uip_htonl,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_len
+        EXTERN uip_udp_packet_send
+        FUNCTION uip_udp_packet_send,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 11, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+// D:\myWork\myWork\platform\wsn2530dk\viztool.c
+//    1 /*
+//    2  * Copyright (c) 2010, Loughborough University - Computer Science
+//    3  * All rights reserved.
+//    4  *
+//    5  * Redistribution and use in source and binary forms, with or without
+//    6  * modification, are permitted provided that the following conditions
+//    7  * are met:
+//    8  * 1. Redistributions of source code must retain the above copyright
+//    9  *    notice, this list of conditions and the following disclaimer.
+//   10  * 2. Redistributions in binary form must reproduce the above copyright
+//   11  *    notice, this list of conditions and the following disclaimer in the
+//   12  *    documentation and/or other materials provided with the distribution.
+//   13  * 3. Neither the name of the Institute nor the names of its contributors
+//   14  *    may be used to endorse or promote products derived from this software
+//   15  *    without specific prior written permission.
+//   16  *
+//   17  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   18  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   19  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   20  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   21  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   22  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   23  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   24  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   25  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   26  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   27  * SUCH DAMAGE.
+//   28  *
+//   29  * This file is part of the Contiki operating system.
+//   30  */
+//   31 
+//   32 /**
+//   33  * \file
+//   34  *         Small UDP app used to retrieve neighbor cache and routing table
+//   35  *         entries and send them to an external endpoint
+//   36  *
+//   37  * \author
+//   38  *         George Oikonomou - <oikonomou@users.sourceforge.net>
+//   39  */
+//   40 
+//   41 #include "contiki.h"
+//   42 #include "contiki-lib.h"
+//   43 #include "contiki-net.h"
+//   44 #include "net/uip-ds6-route.h"
+//   45 
+//   46 #include <string.h>
+//   47 
+//   48 #define DEBUG DEBUG_NONE
+//   49 #include "net/uip-debug.h"
+//   50 
+//   51 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+//   52 #define UIP_UDP_BUF  ((struct uip_udp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
+//   53 
+//   54 #ifndef VIZTOOL_MAX_PAYLOAD_LEN
+//   55 #define VIZTOOL_MAX_PAYLOAD_LEN 60
+//   56 #endif
+//   57 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   58 static struct uip_udp_conn *server_conn;
+server_conn:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   59 static unsigned char buf[VIZTOOL_MAX_PAYLOAD_LEN];
+buf:
+        DS 60
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   60 static int8_t len;
+len:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+//   61 
+//   62 #define VIZTOOL_UDP_PORT   60001
+//   63 
+//   64 /* Request Bits */
+//   65 #define REQUEST_TYPE_ND         1
+//   66 #define REQUEST_TYPE_RT         2
+//   67 #define REQUEST_TYPE_DRT        3
+//   68 #define REQUEST_TYPE_ADDR       4
+//   69 #define REQUEST_TYPE_TOTALS  0xFF
+//   70 
+//   71 extern uip_ds6_netif_t uip_ds6_if;
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   72 static uip_ds6_route_t *rt;
+rt:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   73 static uip_ds6_defrt_t *defrt;
+defrt:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   74 static uip_ipaddr_t *addr;
+addr:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//   75 /*---------------------------------------------------------------------------*/
+
+        RSEG NEAR_CODE:CODE:NOROOT(0)
+//   76 __near_func static uint8_t
+//   77 process_request()
+process_request:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function process_request
+        CODE
+//   78 {
+        FUNCALL process_request, nbr_table_head
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, nbr_table_next
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, uip_ds6_nbr_get_ipaddr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, uip_ds6_nbr_get_ll
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, uip_ds6_route_head
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, uip_ds6_route_num_routes
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, uip_htonl
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, uip_ds6_route_next
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, uip_ds6_defrt_choose
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, uip_ds6_defrt_lookup
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, memset
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, nbr_table_head
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, nbr_table_next
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_request, uip_ds6_route_num_routes
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xf
+        LCALL   ?FUNC_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI V7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V6 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 15)
+        ; Saved register size: 15
+        ; Auto size: 5
+        MOV     A,#-0x5
+        LCALL   ?ALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+//   79   uint8_t len;
+//   80   uint8_t count; /* How many did we pack? */
+//   81   uint8_t i;
+//   82   uint8_t left;
+//   83   uint8_t entry_size;
+//   84   uip_ds6_nbr_t *nbr;
+//   85 
+//   86   left = VIZTOOL_MAX_PAYLOAD_LEN - 1;
+        MOV     ?V0 + 3,#0x3b
+//   87   len = 2; /* start filling the buffer from position [2] */
+        MOV     R6,#0x2
+//   88   count = 0;
+        MOV     ?V0 + 2,#0x0
+//   89   if(buf[0] == REQUEST_TYPE_ND) {
+        MOV     DPTR,#buf
+        MOVX    A,@DPTR
+        XRL     A,#0x1
+        JZ      $+5
+        LJMP    ??process_request_0
+//   90     /* Neighbors */
+//   91     PRINTF("Neighbors\n");
+//   92     for(nbr = nbr_table_head(ds6_neighbors);
+        ; Setup parameters for call to function nbr_table_head
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_head?relay
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     ?V0 + 0,?V0 + 4
+        MOV     ?V0 + 1,?V0 + 5
+        SJMP    ??process_request_1
+//   93         nbr != NULL;
+//   94         nbr = nbr_table_next(ds6_neighbors, nbr)) {
+??process_request_2:
+        ; Setup parameters for call to function nbr_table_next
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_next?relay
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     ?V0 + 0,?V0 + 4
+        MOV     ?V0 + 1,?V0 + 5
+??process_request_1:
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     $+5
+        LJMP    ??process_request_3
+//   95       entry_size = sizeof(i) + sizeof(uip_ipaddr_t) + sizeof(uip_lladdr_t)
+//   96               + sizeof(nbr->state);
+        MOV     R7,#0x1a
+//   97       PRINTF("%02u: ", i);
+//   98       PRINT6ADDR(&nbr->ipaddr);
+//   99       PRINTF(" - ");
+//  100       PRINTLLADDR(&nbr->lladdr);
+//  101       PRINTF(" - %u\n", nbr->state);
+//  102 
+//  103       memcpy(buf + len, &i, sizeof(i));
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 4,#0x1
+        MOV     ?V0 + 5,#0x0
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOV     R4,DPL
+        MOV     R5,DPH
+        MOV     ?V0 + 4,R6
+        MOV     ?V0 + 5,#0x0
+        MOV     A,#buf & 0xff
+        ADD     A,?V0 + 4
+        MOV     R2,A
+        MOV     A,#(buf >> 8) & 0xff
+        ADDC    A,?V0 + 5
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+//  104       len += sizeof(i);
+        INC     R6
+//  105       memcpy(buf + len, uip_ds6_nbr_get_ipaddr(nbr), sizeof(uip_ipaddr_t));
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 4,#0x10
+        MOV     ?V0 + 5,#0x0
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        ; Setup parameters for call to function uip_ds6_nbr_get_ipaddr
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        LCALL   ??uip_ds6_nbr_get_ipaddr?relay
+        MOV     A,R2
+        MOV     R4,A
+        MOV     A,R3
+        MOV     R5,A
+        MOV     ?V0 + 4,R6
+        MOV     ?V0 + 5,#0x0
+        MOV     A,#buf & 0xff
+        ADD     A,?V0 + 4
+        MOV     R2,A
+        MOV     A,#(buf >> 8) & 0xff
+        ADDC    A,?V0 + 5
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+//  106       len += sizeof(uip_ipaddr_t);
+        MOV     A,#0x10
+        ADD     A,R6
+        MOV     R6,A
+//  107       memcpy(buf + len, uip_ds6_nbr_get_ll(nbr), sizeof(uip_lladdr_t));
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 4,#0x8
+        MOV     ?V0 + 5,#0x0
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        ; Setup parameters for call to function uip_ds6_nbr_get_ll
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        LCALL   ??uip_ds6_nbr_get_ll?relay
+        MOV     A,R2
+        MOV     R4,A
+        MOV     A,R3
+        MOV     R5,A
+        MOV     ?V0 + 4,R6
+        MOV     ?V0 + 5,#0x0
+        MOV     A,#buf & 0xff
+        ADD     A,?V0 + 4
+        MOV     R2,A
+        MOV     A,#(buf >> 8) & 0xff
+        ADDC    A,?V0 + 5
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+//  108       len += sizeof(uip_lladdr_t);
+        MOV     A,#0x8
+        ADD     A,R6
+        MOV     R6,A
+//  109       memcpy(buf + len, &nbr->state,
+//  110           sizeof(nbr->state));
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 4,#0x1
+        MOV     ?V0 + 5,#0x0
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     A,?V0 + 0
+        ADD     A,#0x22
+        MOV     R4,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     ?V0 + 4,R6
+        MOV     ?V0 + 5,#0x0
+        MOV     A,#buf & 0xff
+        ADD     A,?V0 + 4
+        MOV     R2,A
+        MOV     A,#(buf >> 8) & 0xff
+        ADDC    A,?V0 + 5
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+//  111       len += sizeof(nbr->state);
+        INC     R6
+//  112 
+//  113       count++;
+        INC     ?V0 + 2
+//  114       left -= entry_size;
+        MOV     A,R7
+        XCH     A,?V0 + 3
+        CLR     C
+        SUBB    A,?V0 + 3
+        MOV     ?V0 + 3,A
+//  115 
+//  116       if(left < entry_size) {
+        MOV     A,?V0 + 3
+        CLR     C
+        SUBB    A,R7
+        JC      $+5
+        LJMP    ??process_request_2
+//  117         break;
+//  118       }
+//  119     }
+//  120   } else if(buf[0] == REQUEST_TYPE_RT) {
+//  121     uint32_t flip = 0;
+//  122 
+//  123     PRINTF("Routing table\n");
+//  124     rt = uip_ds6_route_head();
+//  125 
+//  126     for(i = buf[1]; i < uip_ds6_route_num_routes(); i++) {
+//  127       if(rt != NULL) {
+//  128         entry_size = sizeof(i) + sizeof(rt->ipaddr)
+//  129           + sizeof(rt->length)
+//  130           + sizeof(rt->state.lifetime)
+//  131           + sizeof(rt->state.learned_from);
+//  132 
+//  133         memcpy(buf + len, &i, sizeof(i));
+//  134         len += sizeof(i);
+//  135         memcpy(buf + len, &rt->ipaddr, sizeof(rt->ipaddr));
+//  136         len += sizeof(rt->ipaddr);
+//  137         memcpy(buf + len, &rt->length, sizeof(rt->length));
+//  138         len += sizeof(rt->length);
+//  139 
+//  140         PRINT6ADDR(&rt->ipaddr);
+//  141         PRINTF(" - %02x", rt->length);
+//  142         PRINTF(" - ");
+//  143         PRINT6ADDR(uip_ds6_route_nexthop(rt));
+//  144 
+//  145         flip = uip_htonl(rt->state.lifetime);
+//  146         memcpy(buf + len, &flip, sizeof(flip));
+//  147         len += sizeof(flip);
+//  148         PRINTF(" - %08lx", rt->state.lifetime);
+//  149 
+//  150         memcpy(buf + len, &rt->state.learned_from,
+//  151                sizeof(rt->state.learned_from));
+//  152         len += sizeof(rt->state.learned_from);
+//  153 
+//  154         PRINTF(" - %02x [%u]\n", rt->state.learned_from, entry_size);
+//  155 
+//  156         count++;
+//  157         left -= entry_size;
+//  158 
+//  159         rt = uip_ds6_route_next(rt);
+//  160 
+//  161         if(left < entry_size) {
+//  162           break;
+//  163         }
+//  164       }
+//  165     }
+//  166   } else if(buf[0] == REQUEST_TYPE_DRT) {
+//  167     uint32_t flip = 0;
+//  168 
+//  169     PRINTF("Default Route\n");
+//  170     addr = uip_ds6_defrt_choose();
+//  171     if(addr != NULL) {
+//  172       defrt = uip_ds6_defrt_lookup(addr);
+//  173     }
+//  174 
+//  175     i = buf[1];
+//  176 
+//  177     if(defrt != NULL && i < 1) {
+//  178       entry_size = sizeof(i) + sizeof(defrt->ipaddr)
+//  179         + sizeof(defrt->isinfinite);
+//  180 
+//  181       memcpy(buf + len, &i, sizeof(i));
+//  182       len += sizeof(i);
+//  183       memcpy(buf + len, &defrt->ipaddr, sizeof(defrt->ipaddr));
+//  184       len += sizeof(defrt->ipaddr);
+//  185       memcpy(buf + len, &defrt->isinfinite, sizeof(defrt->isinfinite));
+//  186       len += sizeof(defrt->isinfinite);
+//  187 
+//  188       PRINT6ADDR(&defrt->ipaddr);
+//  189       PRINTF(" - %u\n", defrt->isinfinite);
+//  190       count++;
+//  191       left -= entry_size;
+//  192     }
+//  193   } else if(buf[0] == REQUEST_TYPE_ADDR) {
+//  194     PRINTF("Unicast Addresses\n");
+//  195     for(i = buf[1]; i < UIP_DS6_ADDR_NB; i++) {
+//  196       if(uip_ds6_if.addr_list[i].isused) {
+//  197         entry_size = sizeof(i) + sizeof(uip_ds6_if.addr_list[i].ipaddr);
+//  198 
+//  199         memcpy(buf + len, &i, sizeof(i));
+//  200         len += sizeof(i);
+//  201         memcpy(buf + len, &uip_ds6_if.addr_list[i].ipaddr,
+//  202                sizeof(uip_ds6_if.addr_list[i].ipaddr));
+//  203         len += sizeof(uip_ds6_if.addr_list[i].ipaddr);
+//  204 
+//  205         PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
+//  206         PRINTF("\n");
+//  207         count++;
+//  208         left -= entry_size;
+//  209 
+//  210         if(left < entry_size) {
+//  211           break;
+//  212         }
+//  213       }
+//  214     }
+//  215   } else if(buf[0] == REQUEST_TYPE_TOTALS) {
+//  216     memset(&buf[2], 0, 4);
+//  217     for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
+//  218       if(uip_ds6_if.addr_list[i].isused) {
+//  219         buf[2]++;
+//  220       }
+//  221     }
+//  222     for(nbr = nbr_table_head(ds6_neighbors);
+//  223         nbr != NULL;
+//  224         nbr = nbr_table_next(ds6_neighbors, nbr)) {
+//  225         buf[3]++;
+//  226     }
+//  227 
+//  228     buf[4] = uip_ds6_route_num_routes();
+//  229     buf[5] = 1;
+//  230 
+//  231     len += 4;
+//  232     count = 4;
+//  233   } else {
+//  234     return 0;
+//  235   }
+//  236   buf[1] = count;
+??process_request_3:
+        MOV     A,?V0 + 2
+        MOV     DPTR,#buf + 1
+        MOVX    @DPTR,A
+//  237   return len;
+        MOV     A,R6
+        MOV     R1,A
+??process_request_4:
+        MOV     A,#0x5
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 15)
+        MOV     R7,#0x8
+        LJMP    ?FUNC_LEAVE_XDATA
+          CFI CFA_XSP16 add(XSP16, 20)
+??process_request_0:
+        MOV     DPTR,#buf
+        MOVX    A,@DPTR
+        XRL     A,#0x2
+        JZ      $+5
+        LJMP    ??process_request_5
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     A,#0x1
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R4
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R5
+        MOVX    @DPTR,A
+        ; Setup parameters for call to function uip_ds6_route_head
+        LCALL   ??uip_ds6_route_head?relay
+        MOV     DPTR,#rt
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+        MOV     DPTR,#buf + 1
+        MOVX    A,@DPTR
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    @DPTR,A
+        SJMP    ??process_request_6
+??process_request_7:
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+??process_request_6:
+        ; Setup parameters for call to function uip_ds6_route_num_routes
+        LCALL   ??uip_ds6_route_num_routes?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R0,?V0 + 0
+        MOV     R1,?V0 + 1
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        CLR     C
+        SUBB    A,R0
+        MOV     A,R3
+        SUBB    A,R1
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     ??process_request_3
+        MOV     DPTR,#rt
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??process_request_7
+        MOV     R7,#0x17
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x1
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOV     R4,DPL
+        MOV     R5,DPH
+        MOV     ?V0 + 0,R6
+        MOV     ?V0 + 1,#0x0
+        MOV     A,#buf & 0xff
+        ADD     A,?V0 + 0
+        MOV     R2,A
+        MOV     A,#(buf >> 8) & 0xff
+        ADDC    A,?V0 + 1
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        INC     R6
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x10
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     DPTR,#rt
+        MOVX    A,@DPTR
+        ADD     A,#0x4
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     ?V0 + 0,R6
+        MOV     ?V0 + 1,#0x0
+        MOV     A,#buf & 0xff
+        ADD     A,?V0 + 0
+        MOV     R2,A
+        MOV     A,#(buf >> 8) & 0xff
+        ADDC    A,?V0 + 1
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     A,#0x10
+        ADD     A,R6
+        MOV     R6,A
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x1
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     DPTR,#rt
+        MOVX    A,@DPTR
+        ADD     A,#0x1c
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     ?V0 + 0,R6
+        MOV     ?V0 + 1,#0x0
+        MOV     A,#buf & 0xff
+        ADD     A,?V0 + 0
+        MOV     R2,A
+        MOV     A,#(buf >> 8) & 0xff
+        ADDC    A,?V0 + 1
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        INC     R6
+        ; Setup parameters for call to function uip_htonl
+        MOV     DPTR,#rt
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x14
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        LCALL   ?XLOAD_R2345
+        LCALL   ??uip_htonl?relay
+        MOV     A,#0x1
+        LCALL   ?XSTACK_DISP0_8
+        LCALL   ?XSTORE_R2345
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x4
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     A,#0x3
+        LCALL   ?XSTACK_DISP0_8
+        MOV     R4,DPL
+        MOV     R5,DPH
+        MOV     ?V0 + 0,R6
+        MOV     ?V0 + 1,#0x0
+        MOV     A,#buf & 0xff
+        ADD     A,?V0 + 0
+        MOV     R2,A
+        MOV     A,#(buf >> 8) & 0xff
+        ADDC    A,?V0 + 1
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     A,#0x4
+        ADD     A,R6
+        MOV     R6,A
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x1
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     DPTR,#rt
+        MOVX    A,@DPTR
+        ADD     A,#0x1a
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     ?V0 + 0,R6
+        MOV     ?V0 + 1,#0x0
+        MOV     A,#buf & 0xff
+        ADD     A,?V0 + 0
+        MOV     R2,A
+        MOV     A,#(buf >> 8) & 0xff
+        ADDC    A,?V0 + 1
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        INC     R6
+        INC     ?V0 + 2
+        MOV     A,R7
+        XCH     A,?V0 + 3
+        CLR     C
+        SUBB    A,?V0 + 3
+        MOV     ?V0 + 3,A
+        ; Setup parameters for call to function uip_ds6_route_next
+        MOV     DPTR,#rt
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??uip_ds6_route_next?relay
+        MOV     DPTR,#rt
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+        MOV     A,?V0 + 3
+        CLR     C
+        SUBB    A,R7
+        JC      $+5
+        LJMP    ??process_request_7
+        LJMP    ??process_request_3
+??process_request_5:
+        MOV     DPTR,#buf
+        MOVX    A,@DPTR
+        XRL     A,#0x3
+        JZ      $+5
+        LJMP    ??process_request_8
+        MOV     ?V0 + 4,#0x0
+        MOV     ?V0 + 5,#0x0
+        MOV     ?V0 + 6,#0x0
+        MOV     ?V0 + 7,#0x0
+        ; Setup parameters for call to function uip_ds6_defrt_choose
+        LCALL   ??uip_ds6_defrt_choose?relay
+        MOV     DPTR,#addr
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+        MOV     DPTR,#addr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??process_request_9
+        ; Setup parameters for call to function uip_ds6_defrt_lookup
+        MOV     DPTR,#addr
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??uip_ds6_defrt_lookup?relay
+        MOV     DPTR,#defrt
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+??process_request_9:
+        MOV     DPTR,#buf + 1
+        MOVX    A,@DPTR
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    @DPTR,A
+        MOV     DPTR,#defrt
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     $+5
+        LJMP    ??process_request_3
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        CLR     C
+        SUBB    A,#0x1
+        JC      $+5
+        LJMP    ??process_request_3
+        MOV     R7,#0x12
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x1
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOV     R4,DPL
+        MOV     R5,DPH
+        MOV     ?V0 + 0,R6
+        MOV     ?V0 + 1,#0x0
+        MOV     A,#buf & 0xff
+        ADD     A,?V0 + 0
+        MOV     R2,A
+        MOV     A,#(buf >> 8) & 0xff
+        ADDC    A,?V0 + 1
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        INC     R6
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x10
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     DPTR,#defrt
+        MOVX    A,@DPTR
+        ADD     A,#0x2
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     ?V0 + 0,R6
+        MOV     ?V0 + 1,#0x0
+        MOV     A,#buf & 0xff
+        ADD     A,?V0 + 0
+        MOV     R2,A
+        MOV     A,#(buf >> 8) & 0xff
+        ADDC    A,?V0 + 1
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     A,#0x10
+        ADD     A,R6
+        MOV     R6,A
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x1
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     DPTR,#defrt
+        MOVX    A,@DPTR
+        ADD     A,#0x1a
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     ?V0 + 0,R6
+        MOV     ?V0 + 1,#0x0
+        MOV     A,#buf & 0xff
+        ADD     A,?V0 + 0
+        MOV     R2,A
+        MOV     A,#(buf >> 8) & 0xff
+        ADDC    A,?V0 + 1
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        INC     R6
+        INC     ?V0 + 2
+        MOV     A,R7
+        MOV     ?V0 + 3,A
+        CLR     C
+        SUBB    A,?V0 + 3
+        MOV     ?V0 + 3,A
+        LJMP    ??process_request_3
+??process_request_8:
+        MOV     DPTR,#buf
+        MOVX    A,@DPTR
+        XRL     A,#0x4
+        JZ      $+5
+        LJMP    ??process_request_10
+        MOV     DPTR,#buf + 1
+        MOVX    A,@DPTR
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    @DPTR,A
+        SJMP    ??process_request_11
+??process_request_12:
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+??process_request_11:
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        CLR     C
+        SUBB    A,#0x3
+        JC      $+5
+        LJMP    ??process_request_3
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,R0
+        MOV     B,#0x1c
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x1c
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#(uip_ds6_if + 18) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((uip_ds6_if + 18) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        JZ      ??process_request_12
+        MOV     R7,#0x11
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x1
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOV     R4,DPL
+        MOV     R5,DPH
+        MOV     ?V0 + 0,R6
+        MOV     ?V0 + 1,#0x0
+        MOV     A,#buf & 0xff
+        ADD     A,?V0 + 0
+        MOV     R2,A
+        MOV     A,#(buf >> 8) & 0xff
+        ADDC    A,?V0 + 1
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        INC     R6
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x10
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,R0
+        MOV     B,#0x1c
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x1c
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#(uip_ds6_if + 19) & 0xff
+        ADD     A,R0
+        MOV     R4,A
+        MOV     A,#((uip_ds6_if + 19) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R5,A
+        MOV     ?V0 + 0,R6
+        MOV     ?V0 + 1,#0x0
+        MOV     A,#buf & 0xff
+        ADD     A,?V0 + 0
+        MOV     R2,A
+        MOV     A,#(buf >> 8) & 0xff
+        ADDC    A,?V0 + 1
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     A,#0x10
+        ADD     A,R6
+        MOV     R6,A
+        INC     ?V0 + 2
+        MOV     A,R7
+        XCH     A,?V0 + 3
+        CLR     C
+        SUBB    A,?V0 + 3
+        MOV     ?V0 + 3,A
+        MOV     A,?V0 + 3
+        CLR     C
+        SUBB    A,R7
+        JC      $+5
+        LJMP    ??process_request_12
+        LJMP    ??process_request_3
+??process_request_10:
+        MOV     DPTR,#buf
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+        JZ      $+5
+        LJMP    ??process_request_13
+        ; Setup parameters for call to function memset
+        MOV     ?V0 + 0,#0x4
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R2,#(buf + 2) & 0xff
+        MOV     R3,#((buf + 2) >> 8) & 0xff
+        LCALL   ??memset?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        SJMP    ??process_request_14
+??process_request_15:
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,R0
+        MOV     B,#0x1c
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x1c
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#(uip_ds6_if + 18) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((uip_ds6_if + 18) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        JZ      ??process_request_16
+        MOV     DPTR,#buf + 2
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+??process_request_16:
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+??process_request_14:
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        CLR     C
+        SUBB    A,#0x3
+        JC      ??process_request_15
+        ; Setup parameters for call to function nbr_table_head
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_head?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,?V0 + 3
+        SJMP    ??process_request_17
+??process_request_18:
+        MOV     DPTR,#buf + 3
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+        ; Setup parameters for call to function nbr_table_next
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_next?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,?V0 + 3
+??process_request_17:
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     ??process_request_18
+        ; Setup parameters for call to function uip_ds6_route_num_routes
+        LCALL   ??uip_ds6_route_num_routes?relay
+        MOV     A,R2
+        MOV     DPTR,#buf + 4
+        MOVX    @DPTR,A
+        MOV     DPTR,#buf + 5
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+        MOV     A,#0x4
+        ADD     A,R6
+        MOV     R6,A
+        MOV     ?V0 + 2,#0x4
+        LJMP    ??process_request_3
+??process_request_13:
+        MOV     R1,#0x0
+        LJMP    ??process_request_4
+          CFI EndBlock cfiBlock0
+//  238 }
+//  239 /*---------------------------------------------------------------------------*/
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+//  240 PROCESS(viztool_process, "Network Visualization Tool Process");
+viztool_process:
+        DATA8
+        DS 8
+        REQUIRE `?<Initializer for viztool_process>`
+        REQUIRE __INIT_XDATA_I
+//  241 /*---------------------------------------------------------------------------*/
+
+        RSEG NEAR_CODE:CODE:NOROOT(0)
+//  242 __near_func static void
+//  243 tcpip_handler(void)
+tcpip_handler:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function tcpip_handler
+        CODE
+//  244 {
+        FUNCALL tcpip_handler, memset
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 11, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 11, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_handler, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 11, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 11, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_handler, process_request
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_handler, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 11, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 11, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_handler, uip_udp_packet_send
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 11, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 11, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?FUNC_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+//  245   if(uip_newdata()) {
+        MOV     DPTR,#uip_flags
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.1
+        JC      $+5
+        LJMP    ??tcpip_handler_0
+//  246     memset(buf, 0, VIZTOOL_MAX_PAYLOAD_LEN);
+        ; Setup parameters for call to function memset
+        MOV     ?V0 + 0,#0x3c
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 11)
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R2,#buf & 0xff
+        MOV     R3,#(buf >> 8) & 0xff
+        LCALL   ??memset?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 9)
+//  247 
+//  248     PRINTF("%u bytes from [", uip_datalen());
+//  249     PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+//  250     PRINTF("]:%u\n", UIP_HTONS(UIP_UDP_BUF->srcport));
+//  251 
+//  252     memcpy(buf, uip_appdata, uip_datalen());
+        ; Setup parameters for call to function memcpy
+        MOV     DPTR,#uip_len
+        LCALL   ?PUSH_XSTACK8_X_TWO
+          CFI CFA_XSP16 add(XSP16, 11)
+        MOV     DPTR,#uip_appdata
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     R2,#buf & 0xff
+        MOV     R3,#(buf >> 8) & 0xff
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 9)
+//  253 
+//  254     len = process_request();
+        ; Setup parameters for call to function process_request
+        LCALL   process_request
+        MOV     A,R1
+        MOV     DPTR,#len
+        MOVX    @DPTR,A
+//  255     if(len) {
+        MOV     DPTR,#len
+        MOVX    A,@DPTR
+        JZ      ??tcpip_handler_1
+//  256       server_conn->rport = UIP_UDP_BUF->srcport;
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#(uip_aligned_buf + 40) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((uip_aligned_buf + 40) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#server_conn
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R2
+        ADD     A,#0x12
+        MOV     DPL,A
+        MOV     A,R2
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  257       uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x10
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 11)
+        MOV     R4,#(uip_aligned_buf + 8) & 0xff
+        MOV     R5,#((uip_aligned_buf + 8) >> 8) & 0xff
+        MOV     DPTR,#server_conn
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 9)
+//  258       uip_udp_packet_send(server_conn, buf, len);
+        ; Setup parameters for call to function uip_udp_packet_send
+        MOV     DPTR,#len
+        MOVX    A,@DPTR
+        MOV     ?V0 + 0,A
+        RLC     A
+        SUBB    A,0xE0 /* A   */
+        MOV     ?V0 + 1,A
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 11)
+        MOV     R4,#buf & 0xff
+        MOV     R5,#(buf >> 8) & 0xff
+        MOV     DPTR,#server_conn
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??uip_udp_packet_send?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 9)
+//  259       PRINTF("Sent %u bytes\n", len);
+//  260     }
+//  261 
+//  262     /* Restore server connection to allow data from any node */
+//  263     uip_create_unspecified(&server_conn->ripaddr);
+??tcpip_handler_1:
+        MOV     DPTR,#server_conn
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#server_conn
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#server_conn
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#server_conn
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x6
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#server_conn
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x8
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#server_conn
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0xa
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#server_conn
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0xc
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#server_conn
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0xe
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  264     server_conn->rport = 0;
+        MOV     DPTR,#server_conn
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x12
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  265   }
+//  266   return;
+??tcpip_handler_0:
+        MOV     R7,#0x2
+        LJMP    ?FUNC_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//  267 }
+//  268 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  269 PROCESS_THREAD(viztool_process, ev, data)
+process_thread_viztool_process:
+          CFI Block cfiBlock2 Using cfiCommon1
+          CFI Function process_thread_viztool_process
+        CODE
+//  270 {
+        FUNCALL process_thread_viztool_process, udp_new
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_viztool_process, tcpip_handler
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     ?V0 + 0,R1
+//  271 
+//  272   PROCESS_BEGIN();
+        MOV     R2,#0x1
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     ?V0 + 2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 3,A
+        MOV     R0,#?V0 + 2
+        LCALL   ?US_SWITCH_SPARSE
+`?<Jumptable for process_thread_viztool_process_0`:
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        2
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_viztool_process_0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        278
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_viztool_process_1
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_viztool_process_2
+        CODE
+//  273 
+//  274   server_conn = udp_new(NULL, UIP_HTONS(0), NULL);
+??process_thread_viztool_process_0:
+        ; Setup parameters for call to function udp_new
+        CLR     A
+        MOV     ?V0 + 2,A
+        MOV     ?V0 + 3,A
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LCALL   ??udp_new?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     DPTR,#server_conn
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  275   udp_bind(server_conn, UIP_HTONS(VIZTOOL_UDP_PORT));
+        MOV     DPTR,#server_conn
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x10
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#-0x16
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x61
+        MOVX    @DPTR,A
+//  276 
+//  277   while(1) {
+//  278     PROCESS_YIELD();
+??process_thread_viztool_process_3:
+        MOV     R2,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#0x16
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+??process_thread_viztool_process_1:
+        MOV     A,R2
+        JNZ     ??process_thread_viztool_process_4
+        MOV     R1,#0x1
+        SJMP    ??process_thread_viztool_process_5
+//  279     if(ev == tcpip_event) {
+??process_thread_viztool_process_4:
+        MOV     DPTR,#tcpip_event
+        MOVX    A,@DPTR
+        XRL     A,?V0 + 0
+        JNZ     ??process_thread_viztool_process_3
+//  280       tcpip_handler();
+        ; Setup parameters for call to function tcpip_handler
+        LCALL   tcpip_handler & 0xFFFF
+        SJMP    ??process_thread_viztool_process_3
+//  281     }
+//  282   }
+//  283 
+//  284   PROCESS_END();
+??process_thread_viztool_process_2:
+        MOV     R2,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     R1,#0x3
+??process_thread_viztool_process_5:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//  285 }
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for viztool_process>`:
+        DATA16
+        DW 0H
+        DW ??process_thread_viztool_process?relay
+        DB 0, 0, 0, 0
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_thread_viztool_process?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_thread_viztool_process
+
+        END
+//  286 /*---------------------------------------------------------------------------*/
+// 
+//   154 bytes in segment BANKED_CODE
+//     6 bytes in segment BANK_RELAYS
+// 1 848 bytes in segment NEAR_CODE
+//     8 bytes in segment XDATA_I
+//     8 bytes in segment XDATA_ID
+//    69 bytes in segment XDATA_Z
+// 
+// 2 016 bytes of CODE  memory
+//    77 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: 1

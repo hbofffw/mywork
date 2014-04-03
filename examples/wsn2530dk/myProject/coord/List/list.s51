@@ -1,0 +1,1473 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:49 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\lib\list.c                  /
+//    Command line       =  D:\myWork\myWork\core\lib\list.c -D               /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\list.s51                                  /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME list
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?V0
+        EXTERN ?XSTACK_DISP0_8
+
+        PUBLIC ??list_add?relay
+        FUNCTION ??list_add?relay,0203H
+        PUBLIC ??list_chop?relay
+        FUNCTION ??list_chop?relay,0203H
+        PUBLIC ??list_copy?relay
+        FUNCTION ??list_copy?relay,0203H
+        PUBLIC ??list_head?relay
+        FUNCTION ??list_head?relay,0203H
+        PUBLIC ??list_init?relay
+        FUNCTION ??list_init?relay,0203H
+        PUBLIC ??list_insert?relay
+        FUNCTION ??list_insert?relay,0203H
+        PUBLIC ??list_item_next?relay
+        FUNCTION ??list_item_next?relay,0203H
+        PUBLIC ??list_length?relay
+        FUNCTION ??list_length?relay,0203H
+        PUBLIC ??list_pop?relay
+        FUNCTION ??list_pop?relay,0203H
+        PUBLIC ??list_push?relay
+        FUNCTION ??list_push?relay,0203H
+        PUBLIC ??list_remove?relay
+        FUNCTION ??list_remove?relay,0203H
+        PUBLIC ??list_tail?relay
+        FUNCTION ??list_tail?relay,0203H
+        PUBLIC list_add
+        FUNCTION list_add,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        PUBLIC list_chop
+        FUNCTION list_chop,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC list_copy
+        FUNCTION list_copy,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC list_head
+        FUNCTION list_head,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC list_init
+        FUNCTION list_init,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC list_insert
+        FUNCTION list_insert,021203H
+        ARGFRAME XSTACK, 2, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC list_item_next
+        FUNCTION list_item_next,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC list_length
+        FUNCTION list_length,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC list_pop
+        FUNCTION list_pop,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC list_push
+        FUNCTION list_push,021203H
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC list_remove
+        FUNCTION list_remove,0203H
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC list_tail
+        FUNCTION list_tail,0203H
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+list_add            SYMBOL "list_add"
+??list_add?relay    SYMBOL "?relay", list_add
+list_chop           SYMBOL "list_chop"
+??list_chop?relay   SYMBOL "?relay", list_chop
+list_copy           SYMBOL "list_copy"
+??list_copy?relay   SYMBOL "?relay", list_copy
+list_head           SYMBOL "list_head"
+??list_head?relay   SYMBOL "?relay", list_head
+list_init           SYMBOL "list_init"
+??list_init?relay   SYMBOL "?relay", list_init
+list_insert         SYMBOL "list_insert"
+??list_insert?relay SYMBOL "?relay", list_insert
+list_item_next      SYMBOL "list_item_next"
+??list_item_next?relay SYMBOL "?relay", list_item_next
+list_length         SYMBOL "list_length"
+??list_length?relay SYMBOL "?relay", list_length
+list_pop            SYMBOL "list_pop"
+??list_pop?relay    SYMBOL "?relay", list_pop
+list_push           SYMBOL "list_push"
+??list_push?relay   SYMBOL "?relay", list_push
+list_remove         SYMBOL "list_remove"
+??list_remove?relay SYMBOL "?relay", list_remove
+list_tail           SYMBOL "list_tail"
+??list_tail?relay   SYMBOL "?relay", list_tail
+
+// D:\myWork\myWork\core\lib\list.c
+//    1 /**
+//    2  * \addtogroup list
+//    3  * @{
+//    4  */
+//    5 
+//    6 /**
+//    7  * \file
+//    8  * Linked list library implementation.
+//    9  *
+//   10  * \author Adam Dunkels <adam@sics.se>
+//   11  *
+//   12  */
+//   13 
+//   14 /*
+//   15  * Copyright (c) 2004, Swedish Institute of Computer Science.
+//   16  * All rights reserved.
+//   17  *
+//   18  * Redistribution and use in source and binary forms, with or without
+//   19  * modification, are permitted provided that the following conditions
+//   20  * are met:
+//   21  * 1. Redistributions of source code must retain the above copyright
+//   22  *    notice, this list of conditions and the following disclaimer.
+//   23  * 2. Redistributions in binary form must reproduce the above copyright
+//   24  *    notice, this list of conditions and the following disclaimer in the
+//   25  *    documentation and/or other materials provided with the distribution.
+//   26  * 3. Neither the name of the Institute nor the names of its contributors
+//   27  *    may be used to endorse or promote products derived from this software
+//   28  *    without specific prior written permission.
+//   29  *
+//   30  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   31  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   32  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   33  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   34  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   35  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   36  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   37  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   38  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   39  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   40  * SUCH DAMAGE.
+//   41  *
+//   42  * This file is part of the Contiki operating system.
+//   43  *
+//   44  * Author: Adam Dunkels <adam@sics.se>
+//   45  *
+//   46  */
+//   47 #include "lib/list.h"
+//   48 
+//   49 #define NULL 0
+//   50 
+//   51 struct list {
+//   52   struct list *next;
+//   53 };
+//   54 
+//   55 /*---------------------------------------------------------------------------*/
+//   56 /**
+//   57  * Initialize a list.
+//   58  *
+//   59  * This function initalizes a list. The list will be empty after this
+//   60  * function has been called.
+//   61  *
+//   62  * \param list The list to be initialized.
+//   63  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   64 void
+//   65 list_init(list_t list)
+list_init:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function list_init
+        CODE
+//   66 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   67   *list = NULL;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   68 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock0
+//   69 /*---------------------------------------------------------------------------*/
+//   70 /**
+//   71  * Get a pointer to the first element of a list.
+//   72  *
+//   73  * This function returns a pointer to the first element of the
+//   74  * list. The element will \b not be removed from the list.
+//   75  *
+//   76  * \param list The list.
+//   77  * \return A pointer to the first element on the list.
+//   78  *
+//   79  * \sa list_tail()
+//   80  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   81 void *
+//   82 list_head(list_t list)
+list_head:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function list_head
+        CODE
+//   83 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   84   return *list;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock1
+//   85 }
+//   86 /*---------------------------------------------------------------------------*/
+//   87 /**
+//   88  * Duplicate a list.
+//   89  *
+//   90  * This function duplicates a list by copying the list reference, but
+//   91  * not the elements.
+//   92  *
+//   93  * \note This function does \b not copy the elements of the list, but
+//   94  * merely duplicates the pointer to the first element of the list.
+//   95  *
+//   96  * \param dest The destination list.
+//   97  * \param src The source list.
+//   98  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   99 void
+//  100 list_copy(list_t dest, list_t src)
+list_copy:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function list_copy
+        CODE
+//  101 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  102   *dest = *src;
+        MOV     DPL,R4
+        MOV     DPH,R5
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  103 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock2
+//  104 /*---------------------------------------------------------------------------*/
+//  105 /**
+//  106  * Get the tail of a list.
+//  107  *
+//  108  * This function returns a pointer to the elements following the first
+//  109  * element of a list. No elements are removed by this function.
+//  110  *
+//  111  * \param list The list
+//  112  * \return A pointer to the element after the first element on the list.
+//  113  *
+//  114  * \sa list_head()
+//  115  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  116 void *
+//  117 list_tail(list_t list)
+list_tail:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function list_tail
+        CODE
+//  118 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  119   struct list *l;
+//  120   
+//  121   if(*list == NULL) {
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??list_tail_0
+//  122     return NULL;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??list_tail_1
+//  123   }
+//  124   
+//  125   for(l = *list; l->next != NULL; l = l->next);
+??list_tail_0:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        SJMP    ??list_tail_2
+??list_tail_3:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+??list_tail_2:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??list_tail_3
+//  126   
+//  127   return l;
+??list_tail_1:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock3
+//  128 }
+//  129 /*---------------------------------------------------------------------------*/
+//  130 /**
+//  131  * Add an item at the end of a list.
+//  132  *
+//  133  * This function adds an item to the end of the list.
+//  134  *
+//  135  * \param list The list.
+//  136  * \param item A pointer to the item to be added.
+//  137  *
+//  138  * \sa list_push()
+//  139  *
+//  140  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  141 void
+//  142 list_add(list_t list, void *item)
+list_add:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function list_add
+        CODE
+//  143 {
+        FUNCALL list_add, list_remove
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL list_add, list_tail
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     ?V0 + 0,R4
+        MOV     ?V0 + 1,R5
+//  144   struct list *l;
+//  145 
+//  146   /* Make sure not to add the same element twice */
+//  147   list_remove(list, item);
+        ; Setup parameters for call to function list_remove
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??list_remove?relay
+//  148 
+//  149   ((struct list *)item)->next = NULL;
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  150   
+//  151   l = list_tail(list);
+        ; Setup parameters for call to function list_tail
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??list_tail?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     DPL,?V0 + 2
+        MOV     DPH,?V0 + 3
+//  152 
+//  153   if(l == NULL) {
+        MOV     A,DPL
+        ORL     A,DPH
+        JNZ     ??list_add_0
+//  154     *list = item;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,?V0 + 0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,?V0 + 1
+        MOVX    @DPTR,A
+        SJMP    ??list_add_1
+//  155   } else {
+//  156     l->next = item;
+??list_add_0:
+        MOV     A,?V0 + 0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,?V0 + 1
+        MOVX    @DPTR,A
+//  157   }
+//  158 }
+??list_add_1:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock4
+//  159 /*---------------------------------------------------------------------------*/
+//  160 /**
+//  161  * Add an item to the start of the list.
+//  162  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  163 void
+//  164 list_push(list_t list, void *item)
+list_push:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function list_push
+        CODE
+//  165 {
+        FUNCALL list_push, list_remove
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     ?V0 + 0,R4
+        MOV     ?V0 + 1,R5
+//  166   /*  struct list *l;*/
+//  167 
+//  168   /* Make sure not to add the same element twice */
+//  169   list_remove(list, item);
+        ; Setup parameters for call to function list_remove
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??list_remove?relay
+//  170 
+//  171   ((struct list *)item)->next = *list;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  172   *list = item;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,?V0 + 0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,?V0 + 1
+        MOVX    @DPTR,A
+//  173 }
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock5
+//  174 /*---------------------------------------------------------------------------*/
+//  175 /**
+//  176  * Remove the last object on the list.
+//  177  *
+//  178  * This function removes the last object on the list and returns it.
+//  179  *
+//  180  * \param list The list
+//  181  * \return The removed object
+//  182  *
+//  183  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  184 void *
+//  185 list_chop(list_t list)
+list_chop:
+          CFI Block cfiBlock6 Using cfiCommon0
+          CFI Function list_chop
+        CODE
+//  186 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  187   struct list *l, *r;
+//  188   
+//  189   if(*list == NULL) {
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??list_chop_0
+//  190     return NULL;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??list_chop_1
+//  191   }
+//  192   if(((struct list *)*list)->next == NULL) {
+??list_chop_0:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??list_chop_2
+//  193     l = *list;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+//  194     *list = NULL;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  195     return l;
+        MOV     A,R0
+        MOV     R2,A
+        MOV     A,R1
+        MOV     R3,A
+        SJMP    ??list_chop_1
+//  196   }
+//  197   
+//  198   for(l = *list; l->next->next != NULL; l = l->next);
+??list_chop_2:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        SJMP    ??list_chop_3
+??list_chop_4:
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+??list_chop_3:
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R2
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        MOV     A,R2
+        ORL     A,R3
+        JNZ     ??list_chop_4
+//  199 
+//  200   r = l->next;
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+//  201   l->next = NULL;
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  202   
+//  203   return r;
+??list_chop_1:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock6
+//  204 }
+//  205 /*---------------------------------------------------------------------------*/
+//  206 /**
+//  207  * Remove the first object on a list.
+//  208  *
+//  209  * This function removes the first object on the list and returns a
+//  210  * pointer to it.
+//  211  *
+//  212  * \param list The list.
+//  213  * \return Pointer to the removed element of list.
+//  214  */
+//  215 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  216 void *
+//  217 list_pop(list_t list)
+list_pop:
+          CFI Block cfiBlock7 Using cfiCommon0
+          CFI Function list_pop
+        CODE
+//  218 {
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+//  219   struct list *l;
+//  220   l = *list;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+//  221   if(*list != NULL) {
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     A,R4
+        ORL     A,R5
+        JZ      ??list_pop_0
+//  222     *list = ((struct list *)*list)->next;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R4
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOV     A,R4
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R5
+        MOVX    @DPTR,A
+//  223   }
+//  224 
+//  225   return l;
+??list_pop_0:
+        MOV     A,R0
+        MOV     R2,A
+        MOV     A,R1
+        MOV     R3,A
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock7
+//  226 }
+//  227 /*---------------------------------------------------------------------------*/
+//  228 /**
+//  229  * Remove a specific element from a list.
+//  230  *
+//  231  * This function removes a specified element from the list.
+//  232  *
+//  233  * \param list The list.
+//  234  * \param item The item that is to be removed from the list.
+//  235  *
+//  236  */
+//  237 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  238 void
+//  239 list_remove(list_t list, void *item)
+list_remove:
+          CFI Block cfiBlock8 Using cfiCommon0
+          CFI Function list_remove
+        CODE
+//  240 {
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+//  241   struct list *l, *r;
+//  242   
+//  243   if(*list == NULL) {
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??list_remove_0
+//  244     return;
+//  245   }
+//  246   
+//  247   r = NULL;
+        MOV     R6,#0x0
+        MOV     R7,#0x0
+//  248   for(l = *list; l != NULL; l = l->next) {
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        SJMP    ??list_remove_1
+//  249     if(l == item) {
+//  250       if(r == NULL) {
+//  251 	/* First on list */
+//  252 	*list = l->next;
+//  253       } else {
+//  254 	/* Not first on list */
+//  255 	r->next = l->next;
+//  256       }
+//  257       l->next = NULL;
+//  258       return;
+//  259     }
+//  260     r = l;
+??list_remove_2:
+        MOV     A,R0
+        MOV     R6,A
+        MOV     A,R1
+        MOV     R7,A
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+??list_remove_1:
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??list_remove_0
+        MOV     A,R4
+        XRL     A,R0
+        JNZ     ??list_remove_3
+        MOV     A,R5
+        XRL     A,R1
+??list_remove_3:
+        JNZ     ??list_remove_2
+        MOV     A,R6
+        ORL     A,R7
+        JNZ     ??list_remove_4
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOV     A,R4
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R5
+        MOVX    @DPTR,A
+        SJMP    ??list_remove_5
+??list_remove_4:
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+??list_remove_5:
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  261   }
+//  262 }
+??list_remove_0:
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock8
+//  263 /*---------------------------------------------------------------------------*/
+//  264 /**
+//  265  * Get the length of a list.
+//  266  *
+//  267  * This function counts the number of elements on a specified list.
+//  268  *
+//  269  * \param list The list.
+//  270  * \return The length of the list.
+//  271  */
+//  272 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  273 int
+//  274 list_length(list_t list)
+list_length:
+          CFI Block cfiBlock9 Using cfiCommon0
+          CFI Function list_length
+        CODE
+//  275 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  276   struct list *l;
+//  277   int n = 0;
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+//  278 
+//  279   for(l = *list; l != NULL; l = l->next) {
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R0
+        MOV     DPH,R1
+        SJMP    ??list_length_0
+//  280     ++n;
+??list_length_1:
+        MOV     A,R4
+        ADD     A,#0x1
+        MOV     R4,A
+        MOV     A,R5
+        ADDC    A,#0x0
+        MOV     R5,A
+//  281   }
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R0
+        MOV     DPH,R1
+??list_length_0:
+        MOV     A,DPL
+        ORL     A,DPH
+        JNZ     ??list_length_1
+//  282 
+//  283   return n;
+        MOV     A,R4
+        MOV     R2,A
+        MOV     A,R5
+        MOV     R3,A
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock9
+//  284 }
+//  285 /*---------------------------------------------------------------------------*/
+//  286 /**
+//  287  * \brief      Insert an item after a specified item on the list
+//  288  * \param list The list
+//  289  * \param previtem The item after which the new item should be inserted
+//  290  * \param newitem  The new item that is to be inserted
+//  291  * \author     Adam Dunkels
+//  292  *
+//  293  *             This function inserts an item right after a specified
+//  294  *             item on the list. This function is useful when using
+//  295  *             the list module to ordered lists.
+//  296  *
+//  297  *             If previtem is NULL, the new item is placed at the
+//  298  *             start of the list.
+//  299  *
+//  300  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  301 void
+//  302 list_insert(list_t list, void *previtem, void *newitem)
+list_insert:
+          CFI Block cfiBlock10 Using cfiCommon0
+          CFI Function list_insert
+        CODE
+//  303 {
+        FUNCALL list_insert, list_push
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,#0x9
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+//  304   if(previtem == NULL) {
+        MOV     A,R4
+        ORL     A,R5
+        JNZ     ??list_insert_0
+//  305     list_push(list, newitem);
+        ; Setup parameters for call to function list_push
+        MOV     A,R0
+        MOV     R4,A
+        MOV     A,R1
+        MOV     R5,A
+        LCALL   ??list_push?relay
+        SJMP    ??list_insert_1
+//  306   } else {
+//  307   
+//  308     ((struct list *)newitem)->next = ((struct list *)previtem)->next;
+??list_insert_0:
+        MOV     DPL,R4
+        MOV     DPH,R5
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  309     ((struct list *)previtem)->next = newitem;
+        MOV     DPL,R4
+        MOV     DPH,R5
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  310   }
+//  311 }
+??list_insert_1:
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock10
+//  312 /*---------------------------------------------------------------------------*/
+//  313 /**
+//  314  * \brief      Get the next item following this item
+//  315  * \param item A list item
+//  316  * \returns    A next item on the list
+//  317  *
+//  318  *             This function takes a list item and returns the next
+//  319  *             item on the list, or NULL if there are no more items on
+//  320  *             the list. This function is used when iterating through
+//  321  *             lists.
+//  322  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  323 void *
+//  324 list_item_next(void *item)
+list_item_next:
+          CFI Block cfiBlock11 Using cfiCommon0
+          CFI Function list_item_next
+        CODE
+//  325 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  326   return item == NULL? NULL: ((struct list *)item)->next;
+        MOV     A,R2
+        ORL     A,R3
+        JNZ     ??list_item_next_0
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??list_item_next_1
+??list_item_next_0:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+??list_item_next_1:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock11
+//  327 }
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??list_init?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    list_init
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??list_head?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    list_head
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??list_copy?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    list_copy
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??list_tail?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    list_tail
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??list_add?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    list_add
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??list_push?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    list_push
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??list_chop?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    list_chop
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??list_pop?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    list_pop
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??list_remove?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    list_remove
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??list_length?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    list_length
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??list_insert?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    list_insert
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??list_item_next?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    list_item_next
+
+        END
+//  328 /*---------------------------------------------------------------------------*/
+//  329 /** @} */
+// 
+// 742 bytes in segment BANKED_CODE
+//  72 bytes in segment BANK_RELAYS
+// 
+// 814 bytes of CODE memory
+//
+//Errors: none
+//Warnings: none

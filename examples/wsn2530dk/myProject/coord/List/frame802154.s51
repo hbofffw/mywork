@@ -1,0 +1,2224 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:48 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\net\mac\frame802154.c       /
+//    Command line       =  D:\myWork\myWork\core\net\mac\frame802154.c -D    /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\frame802154.s51                           /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME frame802154
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?ALLOC_XSTACK8
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?V0
+        EXTERN ?XSP
+        EXTERN ?XSTACK_DISP0_8
+
+        FUNCTION ??addr_len?relay,0203H
+        FUNCTION ??field_len?relay,0203H
+        PUBLIC ??frame802154_create?relay
+        FUNCTION ??frame802154_create?relay,0203H
+        PUBLIC ??frame802154_hdrlen?relay
+        FUNCTION ??frame802154_hdrlen?relay,0203H
+        PUBLIC ??frame802154_parse?relay
+        FUNCTION ??frame802154_parse?relay,0203H
+        FUNCTION addr_len,0203H
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCTION field_len,021203H
+        ARGFRAME XSTACK, 17, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 14, STACK
+        PUBLIC frame802154_create
+        FUNCTION frame802154_create,021203H
+        ARGFRAME XSTACK, 2, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 17, STACK
+        PUBLIC frame802154_hdrlen
+        FUNCTION frame802154_hdrlen,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME XSTACK, 5, STACK
+        PUBLIC frame802154_parse
+        FUNCTION frame802154_parse,021203H
+        ARGFRAME XSTACK, 2, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 26, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+memcpy              SYMBOL "memcpy"
+??memcpy?relay      SYMBOL "?relay", memcpy
+memset              SYMBOL "memset"
+??memset?relay      SYMBOL "?relay", memset
+rimeaddr_copy       SYMBOL "rimeaddr_copy"
+??rimeaddr_copy?relay SYMBOL "?relay", rimeaddr_copy
+frame802154_create  SYMBOL "frame802154_create"
+??frame802154_create?relay SYMBOL "?relay", frame802154_create
+frame802154_hdrlen  SYMBOL "frame802154_hdrlen"
+??frame802154_hdrlen?relay SYMBOL "?relay", frame802154_hdrlen
+frame802154_parse   SYMBOL "frame802154_parse"
+??frame802154_parse?relay SYMBOL "?relay", frame802154_parse
+
+        EXTERN ??memcpy?relay
+        FUNCTION ??memcpy?relay,00H
+        EXTERN ??memset?relay
+        FUNCTION ??memset?relay,00H
+        EXTERN ??rimeaddr_copy?relay
+        FUNCTION ??rimeaddr_copy?relay,00H
+        EXTERN memcpy
+        FUNCTION memcpy,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 26, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memset
+        FUNCTION memset,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN rimeaddr_copy
+        FUNCTION rimeaddr_copy,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 24, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN rimeaddr_null
+
+// D:\myWork\myWork\core\net\mac\frame802154.c
+//    1 /*
+//    2  *
+//    3  *  Copyright (c) 2008, Swedish Institute of Computer Science
+//    4  *  All rights reserved.
+//    5  *
+//    6  *  Additional fixes for AVR contributed by:
+//    7  *
+//    8  *      Colin O'Flynn coflynn@newae.com
+//    9  *      Eric Gnoske egnoske@gmail.com
+//   10  *      Blake Leverett bleverett@gmail.com
+//   11  *      Mike Vidales mavida404@gmail.com
+//   12  *      Kevin Brown kbrown3@uccs.edu
+//   13  *      Nate Bohlmann nate@elfwerks.com
+//   14  *
+//   15  *  Additional fixes for MSP430 contributed by:
+//   16  *        Joakim Eriksson
+//   17  *        Niclas Finne
+//   18  *        Nicolas Tsiftes
+//   19  *
+//   20  *   All rights reserved.
+//   21  *
+//   22  *   Redistribution and use in source and binary forms, with or without
+//   23  *   modification, are permitted provided that the following conditions are met:
+//   24  *
+//   25  *   * Redistributions of source code must retain the above copyright
+//   26  *     notice, this list of conditions and the following disclaimer.
+//   27  *   * Redistributions in binary form must reproduce the above copyright
+//   28  *     notice, this list of conditions and the following disclaimer in
+//   29  *     the documentation and/or other materials provided with the
+//   30  *     distribution.
+//   31  *   * Neither the name of the copyright holders nor the names of
+//   32  *     contributors may be used to endorse or promote products derived
+//   33  *     from this software without specific prior written permission.
+//   34  *
+//   35  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+//   36  *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   37  *  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   38  *  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+//   39  *  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+//   40  *  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+//   41  *  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+//   42  *  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+//   43  *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+//   44  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+//   45  *  POSSIBILITY OF SUCH DAMAGE.
+//   46  *
+//   47 */
+//   48 /*
+//   49  *  \brief This file is where the main functions that relate to frame
+//   50  *  manipulation will reside.
+//   51 */
+//   52 /**
+//   53  *   \addtogroup frame802154
+//   54  *   @{
+//   55 */
+//   56 /**
+//   57  *  \file
+//   58  *  \brief 802.15.4 frame creation and parsing functions
+//   59  *
+//   60  *  This file converts to and from a structure to a packed 802.15.4
+//   61  *  frame.
+//   62  */
+//   63 
+//   64 #include "sys/cc.h"
+//   65 #include "net/mac/frame802154.h"
+//   66 #include <string.h>
+//   67 
+//   68 /**
+//   69  *  \brief Structure that contains the lengths of the various addressing and security fields
+//   70  *  in the 802.15.4 header.  This structure is used in \ref frame802154_create()
+//   71  */
+//   72 typedef struct {
+//   73   uint8_t dest_pid_len;    /**<  Length (in bytes) of destination PAN ID field */
+//   74   uint8_t dest_addr_len;   /**<  Length (in bytes) of destination address field */
+//   75   uint8_t src_pid_len;     /**<  Length (in bytes) of source PAN ID field */
+//   76   uint8_t src_addr_len;    /**<  Length (in bytes) of source address field */
+//   77   uint8_t aux_sec_len;     /**<  Length (in bytes) of aux security header field */
+//   78 } field_length_t;
+//   79 
+//   80 /*----------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   81 CC_INLINE static uint8_t
+//   82 addr_len(uint8_t mode)
+addr_len:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function addr_len
+        CODE
+//   83 {
+        ; Saved register size: 0
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R0,A
+//   84   switch(mode) {
+        ADD     A,#-0x2
+        JZ      ??addr_len_0
+        DEC     A
+        JZ      ??addr_len_1
+        SJMP    ??addr_len_2
+//   85   case FRAME802154_SHORTADDRMODE:  /* 16-bit address */
+//   86     return 2;
+??addr_len_0:
+        MOV     R1,#0x2
+        SJMP    ??addr_len_3
+//   87   case FRAME802154_LONGADDRMODE:   /* 64-bit address */
+//   88     return 8;
+??addr_len_1:
+        MOV     R1,#0x8
+        SJMP    ??addr_len_3
+//   89   default:
+//   90     return 0;
+??addr_len_2:
+        MOV     R1,#0x0
+??addr_len_3:
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock0
+//   91   }
+//   92 }
+//   93 /*----------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   94 static void
+//   95 field_len(frame802154_t *p, field_length_t *flen)
+field_len:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function field_len
+        CODE
+//   96 {
+        FUNCALL field_len, memset
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL field_len, addr_len
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL field_len, addr_len
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,R4
+        MOV     R6,A
+        MOV     A,R5
+        MOV     R7,A
+//   97   /* init flen to zeros */
+//   98   memset(flen, 0, sizeof(field_length_t));
+        ; Setup parameters for call to function memset
+        MOV     ?V0 + 2,#0x5
+        MOV     ?V0 + 3,#0x0
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??memset?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+//   99 
+//  100   /* Determine lengths of each field based on fcf and other args */
+//  101   if(p->fcf.dest_addr_mode & 3) {
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        ANL     A,#0x3
+        JZ      ??field_len_0
+//  102     flen->dest_pid_len = 2;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+//  103   }
+//  104   if(p->fcf.src_addr_mode & 3) {
+??field_len_0:
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        ANL     A,#0x3
+        JZ      ??field_len_1
+//  105     flen->src_pid_len = 2;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+//  106   }
+//  107 
+//  108   /* Set PAN ID compression bit if src pan id matches dest pan id. */
+//  109   if(p->fcf.dest_addr_mode & 3 && p->fcf.src_addr_mode & 3 &&
+//  110      p->src_pid == p->dest_pid) {
+??field_len_1:
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        ANL     A,#0x3
+        JZ      ??field_len_2
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        ANL     A,#0x3
+        JZ      ??field_len_2
+        MOV     A,?V0 + 0
+        ADD     A,#0x13
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        XRL     A,R0
+        JNZ     ??field_len_3
+        INC     DPTR
+        MOVX    A,@DPTR
+        XRL     A,R1
+??field_len_3:
+        JNZ     ??field_len_2
+//  111     p->fcf.panid_compression = 1;
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  112 
+//  113     /* compressed header, only do dest pid */
+//  114     flen->src_pid_len = 0;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        SJMP    ??field_len_4
+//  115   } else {
+//  116     p->fcf.panid_compression = 0;
+??field_len_2:
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  117   }
+//  118 
+//  119   /* determine address lengths */
+//  120   flen->dest_addr_len = addr_len(p->fcf.dest_addr_mode & 3);
+??field_len_4:
+        ; Setup parameters for call to function addr_len
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        ANL     A,#0x3
+        MOV     R1,A
+        LCALL   ??addr_len?relay
+        MOV     A,R1
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        MOVX    @DPTR,A
+//  121   flen->src_addr_len = addr_len(p->fcf.src_addr_mode & 3);
+        ; Setup parameters for call to function addr_len
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        ANL     A,#0x3
+        MOV     R1,A
+        LCALL   ??addr_len?relay
+        MOV     A,R1
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    @DPTR,A
+//  122 
+//  123   /* Aux security header */
+//  124   if(p->fcf.security_enabled & 1) {
+//  125     /* TODO Aux security header not yet implemented */
+//  126 #if 0
+//  127     switch(p->aux_hdr.security_control.key_id_mode) {
+//  128     case 0:
+//  129       flen->aux_sec_len = 5; /* minimum value */
+//  130       break;
+//  131     case 1:
+//  132       flen->aux_sec_len = 6;
+//  133       break;
+//  134     case 2:
+//  135       flen->aux_sec_len = 10;
+//  136       break;
+//  137     case 3:
+//  138       flen->aux_sec_len = 14;
+//  139       break;
+//  140     default:
+//  141       break;
+//  142     }
+//  143 #endif
+//  144   }
+//  145 }
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//  146 /*----------------------------------------------------------------------------*/
+//  147 /**
+//  148  *   \brief Calculates the length of the frame header.  This function is
+//  149  *   meant to be called by a higher level function, that interfaces to a MAC.
+//  150  *
+//  151  *   \param p Pointer to frame802154_t_t struct, which specifies the
+//  152  *   frame to send.
+//  153  *
+//  154  *   \return The length of the frame header.
+//  155 */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  156 int
+//  157 frame802154_hdrlen(frame802154_t *p)
+frame802154_hdrlen:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function frame802154_hdrlen
+        CODE
+//  158 {
+        FUNCALL frame802154_hdrlen, field_len
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 5, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 5, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 5
+        MOV     A,#-0x5
+        LCALL   ?ALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 5)
+//  159   field_length_t flen;
+//  160   field_len(p, &flen);
+        ; Setup parameters for call to function field_len
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOV     R4,DPL
+        MOV     R5,DPH
+        LCALL   ??field_len?relay
+//  161   return 3 + flen.dest_pid_len + flen.dest_addr_len +
+//  162     flen.src_pid_len + flen.src_addr_len + flen.aux_sec_len;
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#0x1
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,#0x3
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,#0x4
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x3
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R3,A
+        MOV     A,#0x5
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 XSP16+0
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock2
+//  163 }
+//  164 /*----------------------------------------------------------------------------*/
+//  165 /**
+//  166  *   \brief Creates a frame for transmission over the air.  This function is
+//  167  *   meant to be called by a higher level function, that interfaces to a MAC.
+//  168  *
+//  169  *   \param p Pointer to frame802154_t struct, which specifies the
+//  170  *   frame to send.
+//  171  *
+//  172  *   \param buf Pointer to the buffer to use for the frame.
+//  173  *
+//  174  *   \param buf_len The length of the buffer to use for the frame.
+//  175  *
+//  176  *   \return The length of the frame header or 0 if there was
+//  177  *   insufficient space in the buffer for the frame headers.
+//  178 */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  179 int
+//  180 frame802154_create(frame802154_t *p, uint8_t *buf, int buf_len)
+frame802154_create:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function frame802154_create
+        CODE
+//  181 {
+        FUNCALL frame802154_create, field_len
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 17, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 17, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 5
+        MOV     A,#-0x5
+        LCALL   ?ALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 17)
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     ?V0 + 0,R4
+        MOV     ?V0 + 1,R5
+        MOV     A,#0x11
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     ?V0 + 2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 3,A
+//  182   int c;
+//  183   field_length_t flen;
+//  184   uint8_t *tx_frame_buffer;
+//  185   uint8_t pos;
+//  186 
+//  187   field_len(p, &flen);
+        ; Setup parameters for call to function field_len
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOV     R4,DPL
+        MOV     R5,DPH
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??field_len?relay
+//  188 
+//  189   if(3 + flen.dest_pid_len + flen.dest_addr_len +
+//  190      flen.src_pid_len + flen.src_addr_len + flen.aux_sec_len > buf_len) {
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#0x1
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,#0x3
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,#0x4
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x3
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R1,A
+        CLR     C
+        MOV     A,?V0 + 2
+        SUBB    A,R0
+        MOV     A,?V0 + 3
+        SUBB    A,R1
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     ??frame802154_create_0
+//  191     /* Too little space for headers. */
+//  192     return 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LJMP    ??frame802154_create_1 & 0xFFFF
+//  193   }
+//  194 
+//  195   /* OK, now we have field lengths.  Time to actually construct */
+//  196   /* the outgoing frame, and store it in tx_frame_buffer */
+//  197   tx_frame_buffer = buf;
+??frame802154_create_0:
+        MOV     R0,?V0 + 0
+        MOV     R1,?V0 + 1
+//  198   tx_frame_buffer[0] = (p->fcf.frame_type & 7) |
+//  199     ((p->fcf.security_enabled & 1) << 3) |
+//  200     ((p->fcf.frame_pending & 1) << 4) |
+//  201     ((p->fcf.ack_required & 1) << 5) |
+//  202     ((p->fcf.panid_compression & 1) << 6);
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.0
+        CLR     A
+        RLC     A
+        SWAP    A
+        RLC     A
+        RLC     A
+        ANL     A,#0xc0
+        MOV     R5,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.0
+        CLR     A
+        RLC     A
+        SWAP    A
+        RLC     A
+        ANL     A,#0xe0
+        MOV     R4,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.0
+        CLR     A
+        RLC     A
+        SWAP    A
+        ANL     A,#0xf0
+        MOV     R3,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.0
+        CLR     A
+        RLC     A
+        RLC     A
+        RLC     A
+        RLC     A
+        ANL     A,#0xf8
+        MOV     R2,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        ANL     A,#0x7
+        ORL     A,R2
+        ORL     A,R3
+        ORL     A,R4
+        ORL     A,R5
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOVX    @DPTR,A
+//  203   tx_frame_buffer[1] = ((p->fcf.dest_addr_mode & 3) << 2) |
+//  204     ((p->fcf.frame_version & 3) << 4) |
+//  205     ((p->fcf.src_addr_mode & 3) << 6);
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        SWAP    A
+        RLC     A
+        RLC     A
+        ANL     A,#0xc0
+        MOV     R3,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        ANL     A,#0x3
+        SWAP    A
+        ANL     A,#0xf0
+        MOV     R2,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        ANL     A,#0x3
+        RLC     A
+        RLC     A
+        ANL     A,#0xfc
+        ORL     A,R2
+        ORL     A,R3
+        MOV     DPL,R0
+        MOV     DPH,R1
+        INC     DPTR
+        MOVX    @DPTR,A
+//  206 
+//  207   /* sequence number */
+//  208   tx_frame_buffer[2] = p->seq;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPL,R0
+        MOV     DPH,R1
+        INC     DPTR
+        INC     DPTR
+        MOVX    @DPTR,A
+//  209   pos = 3;
+        MOV     ?V0 + 2,#0x3
+//  210 
+//  211   /* Destination PAN ID */
+//  212   if(flen.dest_pid_len == 2) {
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    A,@DPTR
+        XRL     A,#0x2
+        JNZ     ??frame802154_create_2
+//  213     tx_frame_buffer[pos++] = p->dest_pid & 0xff;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        MOV     A,R2
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,#0x0
+        MOV     A,R0
+        ADD     A,?V0 + 0
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,?V0 + 1
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+        INC     ?V0 + 2
+//  214     tx_frame_buffer[pos++] = (p->dest_pid >> 8) & 0xff;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        CLR     A
+        MOV     A,R3
+        MOV     R2,A
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,#0x0
+        MOV     A,R0
+        ADD     A,?V0 + 0
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,?V0 + 1
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+        INC     ?V0 + 2
+//  215   }
+//  216 
+//  217   /* Destination address */
+//  218   for(c = flen.dest_addr_len; c > 0; c--) {
+??frame802154_create_2:
+        MOV     A,#0x1
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        SJMP    ??frame802154_create_3
+//  219     tx_frame_buffer[pos++] = p->dest_addr[c - 1];
+??frame802154_create_4:
+        MOV     A,R6
+        ADD     A,R2
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,R3
+        MOV     DPH,A
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,#0x0
+        MOV     A,R0
+        ADD     A,?V0 + 0
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,?V0 + 1
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+        INC     ?V0 + 2
+//  220   }
+        MOV     A,R2
+        ADD     A,#-0x1
+        MOV     R2,A
+        MOV     A,R3
+        ADDC    A,#-0x1
+        MOV     R3,A
+??frame802154_create_3:
+        CLR     C
+        MOV     A,R2
+        SUBB    A,#0x1
+        MOV     A,R3
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     ??frame802154_create_4
+//  221 
+//  222   /* Source PAN ID */
+//  223   if(flen.src_pid_len == 2) {
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        XRL     A,#0x2
+        JNZ     ??frame802154_create_5
+//  224     tx_frame_buffer[pos++] = p->src_pid & 0xff;
+        MOV     A,R6
+        ADD     A,#0x13
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        MOV     A,R2
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,#0x0
+        MOV     A,R0
+        ADD     A,?V0 + 0
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,?V0 + 1
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+        INC     ?V0 + 2
+//  225     tx_frame_buffer[pos++] = (p->src_pid >> 8) & 0xff;
+        MOV     A,R6
+        ADD     A,#0x13
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        CLR     A
+        MOV     A,R3
+        MOV     R2,A
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,#0x0
+        MOV     A,R0
+        ADD     A,?V0 + 0
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,?V0 + 1
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+        INC     ?V0 + 2
+//  226   }
+//  227 
+//  228   /* Source address */
+//  229   for(c = flen.src_addr_len; c > 0; c--) {
+??frame802154_create_5:
+        MOV     A,#0x3
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        SJMP    ??frame802154_create_6
+//  230     tx_frame_buffer[pos++] = p->src_addr[c - 1];
+??frame802154_create_7:
+        MOV     A,R6
+        ADD     A,R2
+        MOV     R4,A
+        MOV     A,R7
+        ADDC    A,R3
+        MOV     R5,A
+        MOV     A,R4
+        ADD     A,#0x14
+        MOV     DPL,A
+        MOV     A,R5
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,#0x0
+        MOV     A,R0
+        ADD     A,?V0 + 0
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,?V0 + 1
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+        INC     ?V0 + 2
+//  231   }
+        MOV     A,R2
+        ADD     A,#-0x1
+        MOV     R2,A
+        MOV     A,R3
+        ADDC    A,#-0x1
+        MOV     R3,A
+??frame802154_create_6:
+        CLR     C
+        MOV     A,R2
+        SUBB    A,#0x1
+        MOV     A,R3
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     ??frame802154_create_7
+//  232 
+//  233   /* Aux header */
+//  234   if(flen.aux_sec_len) {
+//  235     /* TODO Aux security header not yet implemented */
+//  236 /*     pos += flen.aux_sec_len; */
+//  237   }
+//  238 
+//  239   return (int)pos;
+        MOV     ?V0 + 3,#0x0
+        MOV     R2,?V0 + 2
+        MOV     R3,?V0 + 3
+??frame802154_create_1:
+        MOV     A,#0x5
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock3
+//  240 }
+//  241 /*----------------------------------------------------------------------------*/
+//  242 /**
+//  243  *   \brief Parses an input frame.  Scans the input frame to find each
+//  244  *   section, and stores the information of each section in a
+//  245  *   frame802154_t structure.
+//  246  *
+//  247  *   \param data The input data from the radio chip.
+//  248  *   \param len The size of the input data
+//  249  *   \param pf The frame802154_t struct to store the parsed frame information.
+//  250  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  251 int
+//  252 frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
+frame802154_parse:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function frame802154_parse
+        CODE
+//  253 {
+        FUNCALL frame802154_parse, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 26, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 26, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL frame802154_parse, rimeaddr_copy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 24, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 24, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL frame802154_parse, rimeaddr_copy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 24, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 24, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL frame802154_parse, rimeaddr_copy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 24, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 24, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL frame802154_parse, rimeaddr_copy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 24, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 24, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x10
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V7 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V6 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-16)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 16)
+        ; Saved register size: 16
+        ; Auto size: 8
+        MOV     A,#-0x8
+        LCALL   ?ALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 24)
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     ?V0 + 2,R4
+        MOV     ?V0 + 3,R5
+//  254   uint8_t *p;
+//  255   frame802154_fcf_t fcf;
+//  256   int c;
+//  257 
+//  258   if(len < 3) {
+        CLR     C
+        MOV     A,?V0 + 2
+        SUBB    A,#0x3
+        MOV     A,?V0 + 3
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     ??frame802154_parse_0
+//  259     return 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LJMP    ??frame802154_parse_1 & 0xFFFF
+//  260   }
+//  261 
+//  262   p = data;
+??frame802154_parse_0:
+        MOV     ?V0 + 0,?V0 + 4
+        MOV     ?V0 + 1,?V0 + 5
+//  263 
+//  264   /* decode the FCF */
+//  265   fcf.frame_type = p[0] & 7;
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        ANL     A,#0x7
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOVX    @DPTR,A
+//  266   fcf.security_enabled = (p[0] >> 3) & 1;
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.3
+        CLR     A
+        RLC     A
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,#0x1
+        LCALL   ?XSTACK_DISP0_8
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  267   fcf.frame_pending = (p[0] >> 4) & 1;
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.4
+        CLR     A
+        RLC     A
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  268   fcf.ack_required = (p[0] >> 5) & 1;
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.5
+        CLR     A
+        RLC     A
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,#0x3
+        LCALL   ?XSTACK_DISP0_8
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  269   fcf.panid_compression = (p[0] >> 6) & 1;
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.6
+        CLR     A
+        RLC     A
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,#0x4
+        LCALL   ?XSTACK_DISP0_8
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  270 
+//  271   fcf.dest_addr_mode = (p[1] >> 2) & 3;
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        MOVX    A,@DPTR
+        RRC     A
+        RRC     A
+        ANL     A,#0x3f
+        ANL     A,#0x3
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,#0x5
+        LCALL   ?XSTACK_DISP0_8
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  272   fcf.frame_version = (p[1] >> 4) & 3;
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        MOVX    A,@DPTR
+        SWAP    A
+        ANL     A,#0xf
+        ANL     A,#0x3
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,#0x6
+        LCALL   ?XSTACK_DISP0_8
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  273   fcf.src_addr_mode = (p[1] >> 6) & 3;
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        MOVX    A,@DPTR
+        SWAP    A
+        RRC     A
+        RRC     A
+        ANL     A,#0x3
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,#0x7
+        LCALL   ?XSTACK_DISP0_8
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+        MOV     A,#0x18
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+//  274 
+//  275   /* copy fcf and seqNum */
+//  276   memcpy(&pf->fcf, &fcf, sizeof(frame802154_fcf_t));
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 6,#0x8
+        MOV     ?V0 + 7,#0x0
+        MOV     R0,#?V0 + 6
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 26)
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOV     R4,DPL
+        MOV     R5,DPH
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 24)
+//  277   pf->seq = p[2];
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    @DPTR,A
+//  278   p += 3;                             /* Skip first three bytes */
+        MOV     A,?V0 + 0
+        ADD     A,#0x3
+        MOV     ?V0 + 0,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     ?V0 + 1,A
+//  279 
+//  280   /* Destination address, if any */
+//  281   if(fcf.dest_addr_mode) {
+        MOV     A,#0x5
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        JNZ     $+5
+        LJMP    ??frame802154_parse_2 & 0xFFFF
+//  282     /* Destination PAN */
+//  283     pf->dest_pid = p[0] + (p[1] << 8);
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  284     p += 2;
+        MOV     A,?V0 + 0
+        ADD     A,#0x2
+        MOV     ?V0 + 0,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     ?V0 + 1,A
+//  285 
+//  286     /* Destination address */
+//  287 /*     l = addr_len(fcf.dest_addr_mode); */
+//  288 /*     for(c = 0; c < l; c++) { */
+//  289 /*       pf->dest_addr.u8[c] = p[l - c - 1]; */
+//  290 /*     } */
+//  291 /*     p += l; */
+//  292     if(fcf.dest_addr_mode == FRAME802154_SHORTADDRMODE) {
+        MOV     A,#0x5
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        XRL     A,#0x2
+        JNZ     ??frame802154_parse_3
+//  293       rimeaddr_copy((rimeaddr_t *)&(pf->dest_addr), &rimeaddr_null);
+        ; Setup parameters for call to function rimeaddr_copy
+        MOV     R4,#rimeaddr_null & 0xff
+        MOV     R5,#(rimeaddr_null >> 8) & 0xff
+        MOV     A,R6
+        ADD     A,#0xb
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??rimeaddr_copy?relay
+//  294       pf->dest_addr[0] = p[1];
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        MOVX    A,@DPTR
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,R6
+        ADD     A,#0xb
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  295       pf->dest_addr[1] = p[0];
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,R6
+        ADD     A,#0xc
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  296       p += 2;
+        MOV     A,?V0 + 0
+        ADD     A,#0x2
+        MOV     ?V0 + 0,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     ?V0 + 1,A
+        LJMP    ??frame802154_parse_4 & 0xFFFF
+//  297     } else if(fcf.dest_addr_mode == FRAME802154_LONGADDRMODE) {
+??frame802154_parse_3:
+        MOV     A,#0x5
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        XRL     A,#0x3
+        JNZ     ??frame802154_parse_4
+//  298       for(c = 0; c < 8; c++) {
+        MOV     R0,#0x0
+        MOV     R1,#0x0
+        SJMP    ??frame802154_parse_5
+//  299         pf->dest_addr[c] = p[7 - c];
+??frame802154_parse_6:
+        CLR     C
+        CLR     A
+        SUBB    A,R0
+        MOV     R2,A
+        CLR     A
+        SUBB    A,R1
+        MOV     R3,A
+        MOV     A,?V0 + 0
+        ADD     A,R2
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,R3
+        MOV     DPH,A
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,R6
+        ADD     A,R0
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,R1
+        MOV     R3,A
+        MOV     A,R2
+        ADD     A,#0xb
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  300       }
+        MOV     A,R0
+        ADD     A,#0x1
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R1,A
+??frame802154_parse_5:
+        CLR     C
+        MOV     A,R0
+        SUBB    A,#0x8
+        MOV     A,R1
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JC      ??frame802154_parse_6
+//  301       p += 8;
+        MOV     A,?V0 + 0
+        ADD     A,#0x8
+        MOV     ?V0 + 0,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     ?V0 + 1,A
+        SJMP    ??frame802154_parse_4
+//  302     }
+//  303   } else {
+//  304     rimeaddr_copy((rimeaddr_t *)&(pf->dest_addr), &rimeaddr_null);
+??frame802154_parse_2:
+        ; Setup parameters for call to function rimeaddr_copy
+        MOV     R4,#rimeaddr_null & 0xff
+        MOV     R5,#(rimeaddr_null >> 8) & 0xff
+        MOV     A,R6
+        ADD     A,#0xb
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??rimeaddr_copy?relay
+//  305     pf->dest_pid = 0;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  306   }
+//  307 
+//  308   /* Source address, if any */
+//  309   if(fcf.src_addr_mode) {
+??frame802154_parse_4:
+        MOV     A,#0x7
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        JNZ     $+5
+        LJMP    ??frame802154_parse_7 & 0xFFFF
+//  310     /* Source PAN */
+//  311     if(!fcf.panid_compression) {
+        MOV     A,#0x4
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        JNZ     ??frame802154_parse_8
+//  312       pf->src_pid = p[0] + (p[1] << 8);
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R6
+        ADD     A,#0x13
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  313       p += 2;
+        MOV     A,?V0 + 0
+        ADD     A,#0x2
+        MOV     ?V0 + 0,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     ?V0 + 1,A
+        SJMP    ??frame802154_parse_9
+//  314     } else {
+//  315       pf->src_pid = pf->dest_pid;
+??frame802154_parse_8:
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R6
+        ADD     A,#0x13
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  316     }
+//  317 
+//  318     /* Source address */
+//  319 /*     l = addr_len(fcf.src_addr_mode); */
+//  320 /*     for(c = 0; c < l; c++) { */
+//  321 /*       pf->src_addr.u8[c] = p[l - c - 1]; */
+//  322 /*     } */
+//  323 /*     p += l; */
+//  324     if(fcf.src_addr_mode == FRAME802154_SHORTADDRMODE) {
+??frame802154_parse_9:
+        MOV     A,#0x7
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        XRL     A,#0x2
+        JNZ     ??frame802154_parse_10
+//  325       rimeaddr_copy((rimeaddr_t *)&(pf->src_addr), &rimeaddr_null);
+        ; Setup parameters for call to function rimeaddr_copy
+        MOV     R4,#rimeaddr_null & 0xff
+        MOV     R5,#(rimeaddr_null >> 8) & 0xff
+        MOV     A,R6
+        ADD     A,#0x15
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??rimeaddr_copy?relay
+//  326       pf->src_addr[0] = p[1];
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        MOVX    A,@DPTR
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,R6
+        ADD     A,#0x15
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  327       pf->src_addr[1] = p[0];
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,R6
+        ADD     A,#0x16
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  328       p += 2;
+        MOV     A,?V0 + 0
+        ADD     A,#0x2
+        MOV     ?V0 + 0,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     ?V0 + 1,A
+        LJMP    ??frame802154_parse_11 & 0xFFFF
+//  329     } else if(fcf.src_addr_mode == FRAME802154_LONGADDRMODE) {
+??frame802154_parse_10:
+        MOV     A,#0x7
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        XRL     A,#0x3
+        JNZ     ??frame802154_parse_11
+//  330       for(c = 0; c < 8; c++) {
+        MOV     R0,#0x0
+        MOV     R1,#0x0
+        SJMP    ??frame802154_parse_12
+//  331         pf->src_addr[c] = p[7 - c];
+??frame802154_parse_13:
+        CLR     C
+        CLR     A
+        SUBB    A,R0
+        MOV     R2,A
+        CLR     A
+        SUBB    A,R1
+        MOV     R3,A
+        MOV     A,?V0 + 0
+        ADD     A,R2
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,R3
+        MOV     DPH,A
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,R6
+        ADD     A,R0
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,R1
+        MOV     R3,A
+        MOV     A,R2
+        ADD     A,#0x15
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  332       }
+        MOV     A,R0
+        ADD     A,#0x1
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R1,A
+??frame802154_parse_12:
+        CLR     C
+        MOV     A,R0
+        SUBB    A,#0x8
+        MOV     A,R1
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JC      ??frame802154_parse_13
+//  333       p += 8;
+        MOV     A,?V0 + 0
+        ADD     A,#0x8
+        MOV     ?V0 + 0,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     ?V0 + 1,A
+        SJMP    ??frame802154_parse_11
+//  334     }
+//  335   } else {
+//  336     rimeaddr_copy((rimeaddr_t *)&(pf->src_addr), &rimeaddr_null);
+??frame802154_parse_7:
+        ; Setup parameters for call to function rimeaddr_copy
+        MOV     R4,#rimeaddr_null & 0xff
+        MOV     R5,#(rimeaddr_null >> 8) & 0xff
+        MOV     A,R6
+        ADD     A,#0x15
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??rimeaddr_copy?relay
+//  337     pf->src_pid = 0;
+        MOV     A,R6
+        ADD     A,#0x13
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  338   }
+//  339 
+//  340   if(fcf.security_enabled) {
+//  341     /* TODO aux security header, not yet implemented */
+//  342 /*     return 0; */
+//  343   }
+//  344 
+//  345   /* header length */
+//  346   c = p - data;
+??frame802154_parse_11:
+        MOV     A,?V0 + 0
+        CLR     C
+        SUBB    A,?V0 + 4
+        MOV     R0,A
+        MOV     A,?V0 + 1
+        SUBB    A,?V0 + 5
+        MOV     R1,A
+//  347   /* payload length */
+//  348   pf->payload_len = (uint8_t)(0xff & (len - c));
+        MOV     A,R0
+        MOV     R2,A
+        MOV     A,?V0 + 2
+        CLR     C
+        SUBB    A,R2
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,R6
+        ADD     A,#0x2f
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  349   /* payload */
+//  350   pf->payload = p;
+        MOV     A,R6
+        ADD     A,#0x2d
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,?V0 + 0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,?V0 + 1
+        MOVX    @DPTR,A
+//  351 
+//  352   /* return header length if successful */
+//  353   return c > len ? 0 : c;
+        CLR     C
+        MOV     A,?V0 + 2
+        SUBB    A,R0
+        MOV     A,?V0 + 3
+        SUBB    A,R1
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     ??frame802154_parse_14
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??frame802154_parse_1
+??frame802154_parse_14:
+        MOV     A,R0
+        MOV     R2,A
+        MOV     A,R1
+        MOV     R3,A
+??frame802154_parse_1:
+        MOV     A,#0x8
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     R7,#0x8
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock4
+//  354 }
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??addr_len?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    addr_len
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??field_len?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    field_len
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??frame802154_hdrlen?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    frame802154_hdrlen
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??frame802154_create?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    frame802154_create
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??frame802154_parse?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    frame802154_parse
+
+        END
+//  355 /** \}   */
+// 
+// 2 055 bytes in segment BANKED_CODE
+//    30 bytes in segment BANK_RELAYS
+// 
+// 2 085 bytes of CODE memory
+//
+//Errors: none
+//Warnings: none

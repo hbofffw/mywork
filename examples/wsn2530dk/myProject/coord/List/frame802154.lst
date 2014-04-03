@@ -1,0 +1,1818 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:48 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\mac\frame802154.c        #
+#    Command line       =  D:\myWork\myWork\core\net\mac\frame802154.c -D     #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\frame802154.lst                             #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\frame802154.r51                              #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\mac\frame802154.c
+      1          /*
+      2           *
+      3           *  Copyright (c) 2008, Swedish Institute of Computer Science
+      4           *  All rights reserved.
+      5           *
+      6           *  Additional fixes for AVR contributed by:
+      7           *
+      8           *      Colin O'Flynn coflynn@newae.com
+      9           *      Eric Gnoske egnoske@gmail.com
+     10           *      Blake Leverett bleverett@gmail.com
+     11           *      Mike Vidales mavida404@gmail.com
+     12           *      Kevin Brown kbrown3@uccs.edu
+     13           *      Nate Bohlmann nate@elfwerks.com
+     14           *
+     15           *  Additional fixes for MSP430 contributed by:
+     16           *        Joakim Eriksson
+     17           *        Niclas Finne
+     18           *        Nicolas Tsiftes
+     19           *
+     20           *   All rights reserved.
+     21           *
+     22           *   Redistribution and use in source and binary forms, with or without
+     23           *   modification, are permitted provided that the following conditions are met:
+     24           *
+     25           *   * Redistributions of source code must retain the above copyright
+     26           *     notice, this list of conditions and the following disclaimer.
+     27           *   * Redistributions in binary form must reproduce the above copyright
+     28           *     notice, this list of conditions and the following disclaimer in
+     29           *     the documentation and/or other materials provided with the
+     30           *     distribution.
+     31           *   * Neither the name of the copyright holders nor the names of
+     32           *     contributors may be used to endorse or promote products derived
+     33           *     from this software without specific prior written permission.
+     34           *
+     35           *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+     36           *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     37           *  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     38           *  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+     39           *  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+     40           *  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+     41           *  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+     42           *  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+     43           *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     44           *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+     45           *  POSSIBILITY OF SUCH DAMAGE.
+     46           *
+     47          */
+     48          /*
+     49           *  \brief This file is where the main functions that relate to frame
+     50           *  manipulation will reside.
+     51          */
+     52          /**
+     53           *   \addtogroup frame802154
+     54           *   @{
+     55          */
+     56          /**
+     57           *  \file
+     58           *  \brief 802.15.4 frame creation and parsing functions
+     59           *
+     60           *  This file converts to and from a structure to a packed 802.15.4
+     61           *  frame.
+     62           */
+     63          
+     64          #include "sys/cc.h"
+     65          #include "net/mac/frame802154.h"
+     66          #include <string.h>
+     67          
+     68          /**
+     69           *  \brief Structure that contains the lengths of the various addressing and security fields
+     70           *  in the 802.15.4 header.  This structure is used in \ref frame802154_create()
+     71           */
+     72          typedef struct {
+     73            uint8_t dest_pid_len;    /**<  Length (in bytes) of destination PAN ID field */
+     74            uint8_t dest_addr_len;   /**<  Length (in bytes) of destination address field */
+     75            uint8_t src_pid_len;     /**<  Length (in bytes) of source PAN ID field */
+     76            uint8_t src_addr_len;    /**<  Length (in bytes) of source address field */
+     77            uint8_t aux_sec_len;     /**<  Length (in bytes) of aux security header field */
+     78          } field_length_t;
+     79          
+     80          /*----------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     81          CC_INLINE static uint8_t
+     82          addr_len(uint8_t mode)
+   \                     addr_len:
+     83          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+   \   000000   E9           MOV     A,R1
+   \   000001   F8           MOV     R0,A
+     84            switch(mode) {
+   \   000002   24FE         ADD     A,#-0x2
+   \   000004   6005         JZ      ??addr_len_0
+   \   000006   14           DEC     A
+   \   000007   6006         JZ      ??addr_len_1
+   \   000009   8008         SJMP    ??addr_len_2
+     85            case FRAME802154_SHORTADDRMODE:  /* 16-bit address */
+     86              return 2;
+   \                     ??addr_len_0:
+   \   00000B   7902         MOV     R1,#0x2
+   \   00000D   8006         SJMP    ??addr_len_3
+     87            case FRAME802154_LONGADDRMODE:   /* 64-bit address */
+     88              return 8;
+   \                     ??addr_len_1:
+   \   00000F   7908         MOV     R1,#0x8
+   \   000011   8002         SJMP    ??addr_len_3
+     89            default:
+     90              return 0;
+   \                     ??addr_len_2:
+   \   000013   7900         MOV     R1,#0x0
+   \                     ??addr_len_3:
+   \   000015   02....       LJMP    ?BRET
+     91            }
+     92          }
+     93          /*----------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     94          static void
+     95          field_len(frame802154_t *p, field_length_t *flen)
+   \                     field_len:
+     96          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   EC           MOV     A,R4
+   \   00000A   FE           MOV     R6,A
+   \   00000B   ED           MOV     A,R5
+   \   00000C   FF           MOV     R7,A
+     97            /* init flen to zeros */
+     98            memset(flen, 0, sizeof(field_length_t));
+   \   00000D                ; Setup parameters for call to function memset
+   \   00000D   75..05       MOV     ?V0 + 2,#0x5
+   \   000010   75..00       MOV     ?V0 + 3,#0x0
+   \   000013   78..         MOV     R0,#?V0 + 2
+   \   000015   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000018   7C00         MOV     R4,#0x0
+   \   00001A   7D00         MOV     R5,#0x0
+   \   00001C   EE           MOV     A,R6
+   \   00001D   FA           MOV     R2,A
+   \   00001E   EF           MOV     A,R7
+   \   00001F   FB           MOV     R3,A
+   \   000020   12....       LCALL   ??memset?relay
+   \   000023   7402         MOV     A,#0x2
+   \   000025   12....       LCALL   ?DEALLOC_XSTACK8
+     99          
+    100            /* Determine lengths of each field based on fcf and other args */
+    101            if(p->fcf.dest_addr_mode & 3) {
+   \   000028   85..82       MOV     DPL,?V0 + 0
+   \   00002B   85..83       MOV     DPH,?V0 + 1
+   \   00002E   A3           INC     DPTR
+   \   00002F   A3           INC     DPTR
+   \   000030   A3           INC     DPTR
+   \   000031   A3           INC     DPTR
+   \   000032   A3           INC     DPTR
+   \   000033   E0           MOVX    A,@DPTR
+   \   000034   5403         ANL     A,#0x3
+   \   000036   6007         JZ      ??field_len_0
+    102              flen->dest_pid_len = 2;
+   \   000038   8E82         MOV     DPL,R6
+   \   00003A   8F83         MOV     DPH,R7
+   \   00003C   7402         MOV     A,#0x2
+   \   00003E   F0           MOVX    @DPTR,A
+    103            }
+    104            if(p->fcf.src_addr_mode & 3) {
+   \                     ??field_len_0:
+   \   00003F   85..82       MOV     DPL,?V0 + 0
+   \   000042   85..83       MOV     DPH,?V0 + 1
+   \   000045   A3           INC     DPTR
+   \   000046   A3           INC     DPTR
+   \   000047   A3           INC     DPTR
+   \   000048   A3           INC     DPTR
+   \   000049   A3           INC     DPTR
+   \   00004A   A3           INC     DPTR
+   \   00004B   A3           INC     DPTR
+   \   00004C   E0           MOVX    A,@DPTR
+   \   00004D   5403         ANL     A,#0x3
+   \   00004F   6009         JZ      ??field_len_1
+    105              flen->src_pid_len = 2;
+   \   000051   8E82         MOV     DPL,R6
+   \   000053   8F83         MOV     DPH,R7
+   \   000055   A3           INC     DPTR
+   \   000056   A3           INC     DPTR
+   \   000057   7402         MOV     A,#0x2
+   \   000059   F0           MOVX    @DPTR,A
+    106            }
+    107          
+    108            /* Set PAN ID compression bit if src pan id matches dest pan id. */
+    109            if(p->fcf.dest_addr_mode & 3 && p->fcf.src_addr_mode & 3 &&
+    110               p->src_pid == p->dest_pid) {
+   \                     ??field_len_1:
+   \   00005A   85..82       MOV     DPL,?V0 + 0
+   \   00005D   85..83       MOV     DPH,?V0 + 1
+   \   000060   A3           INC     DPTR
+   \   000061   A3           INC     DPTR
+   \   000062   A3           INC     DPTR
+   \   000063   A3           INC     DPTR
+   \   000064   A3           INC     DPTR
+   \   000065   E0           MOVX    A,@DPTR
+   \   000066   5403         ANL     A,#0x3
+   \   000068   6053         JZ      ??field_len_2
+   \   00006A   85..82       MOV     DPL,?V0 + 0
+   \   00006D   85..83       MOV     DPH,?V0 + 1
+   \   000070   A3           INC     DPTR
+   \   000071   A3           INC     DPTR
+   \   000072   A3           INC     DPTR
+   \   000073   A3           INC     DPTR
+   \   000074   A3           INC     DPTR
+   \   000075   A3           INC     DPTR
+   \   000076   A3           INC     DPTR
+   \   000077   E0           MOVX    A,@DPTR
+   \   000078   5403         ANL     A,#0x3
+   \   00007A   6041         JZ      ??field_len_2
+   \   00007C   E5..         MOV     A,?V0 + 0
+   \   00007E   2413         ADD     A,#0x13
+   \   000080   F582         MOV     DPL,A
+   \   000082   E5..         MOV     A,?V0 + 1
+   \   000084   3400         ADDC    A,#0x0
+   \   000086   F583         MOV     DPH,A
+   \   000088   E0           MOVX    A,@DPTR
+   \   000089   F8           MOV     R0,A
+   \   00008A   A3           INC     DPTR
+   \   00008B   E0           MOVX    A,@DPTR
+   \   00008C   F9           MOV     R1,A
+   \   00008D   85..82       MOV     DPL,?V0 + 0
+   \   000090   85..83       MOV     DPH,?V0 + 1
+   \   000093   A3           INC     DPTR
+   \   000094   A3           INC     DPTR
+   \   000095   A3           INC     DPTR
+   \   000096   A3           INC     DPTR
+   \   000097   A3           INC     DPTR
+   \   000098   A3           INC     DPTR
+   \   000099   A3           INC     DPTR
+   \   00009A   A3           INC     DPTR
+   \   00009B   A3           INC     DPTR
+   \   00009C   E0           MOVX    A,@DPTR
+   \   00009D   68           XRL     A,R0
+   \   00009E   7003         JNZ     ??field_len_3
+   \   0000A0   A3           INC     DPTR
+   \   0000A1   E0           MOVX    A,@DPTR
+   \   0000A2   69           XRL     A,R1
+   \                     ??field_len_3:
+   \   0000A3   7018         JNZ     ??field_len_2
+    111              p->fcf.panid_compression = 1;
+   \   0000A5   85..82       MOV     DPL,?V0 + 0
+   \   0000A8   85..83       MOV     DPH,?V0 + 1
+   \   0000AB   A3           INC     DPTR
+   \   0000AC   A3           INC     DPTR
+   \   0000AD   A3           INC     DPTR
+   \   0000AE   A3           INC     DPTR
+   \   0000AF   7401         MOV     A,#0x1
+   \   0000B1   F0           MOVX    @DPTR,A
+    112          
+    113              /* compressed header, only do dest pid */
+    114              flen->src_pid_len = 0;
+   \   0000B2   8E82         MOV     DPL,R6
+   \   0000B4   8F83         MOV     DPH,R7
+   \   0000B6   A3           INC     DPTR
+   \   0000B7   A3           INC     DPTR
+   \   0000B8   7400         MOV     A,#0x0
+   \   0000BA   F0           MOVX    @DPTR,A
+   \   0000BB   800D         SJMP    ??field_len_4
+    115            } else {
+    116              p->fcf.panid_compression = 0;
+   \                     ??field_len_2:
+   \   0000BD   85..82       MOV     DPL,?V0 + 0
+   \   0000C0   85..83       MOV     DPH,?V0 + 1
+   \   0000C3   A3           INC     DPTR
+   \   0000C4   A3           INC     DPTR
+   \   0000C5   A3           INC     DPTR
+   \   0000C6   A3           INC     DPTR
+   \   0000C7   7400         MOV     A,#0x0
+   \   0000C9   F0           MOVX    @DPTR,A
+    117            }
+    118          
+    119            /* determine address lengths */
+    120            flen->dest_addr_len = addr_len(p->fcf.dest_addr_mode & 3);
+   \                     ??field_len_4:
+   \   0000CA                ; Setup parameters for call to function addr_len
+   \   0000CA   85..82       MOV     DPL,?V0 + 0
+   \   0000CD   85..83       MOV     DPH,?V0 + 1
+   \   0000D0   A3           INC     DPTR
+   \   0000D1   A3           INC     DPTR
+   \   0000D2   A3           INC     DPTR
+   \   0000D3   A3           INC     DPTR
+   \   0000D4   A3           INC     DPTR
+   \   0000D5   E0           MOVX    A,@DPTR
+   \   0000D6   5403         ANL     A,#0x3
+   \   0000D8   F9           MOV     R1,A
+   \   0000D9   12....       LCALL   ??addr_len?relay
+   \   0000DC   E9           MOV     A,R1
+   \   0000DD   8E82         MOV     DPL,R6
+   \   0000DF   8F83         MOV     DPH,R7
+   \   0000E1   A3           INC     DPTR
+   \   0000E2   F0           MOVX    @DPTR,A
+    121            flen->src_addr_len = addr_len(p->fcf.src_addr_mode & 3);
+   \   0000E3                ; Setup parameters for call to function addr_len
+   \   0000E3   85..82       MOV     DPL,?V0 + 0
+   \   0000E6   85..83       MOV     DPH,?V0 + 1
+   \   0000E9   A3           INC     DPTR
+   \   0000EA   A3           INC     DPTR
+   \   0000EB   A3           INC     DPTR
+   \   0000EC   A3           INC     DPTR
+   \   0000ED   A3           INC     DPTR
+   \   0000EE   A3           INC     DPTR
+   \   0000EF   A3           INC     DPTR
+   \   0000F0   E0           MOVX    A,@DPTR
+   \   0000F1   5403         ANL     A,#0x3
+   \   0000F3   F9           MOV     R1,A
+   \   0000F4   12....       LCALL   ??addr_len?relay
+   \   0000F7   E9           MOV     A,R1
+   \   0000F8   8E82         MOV     DPL,R6
+   \   0000FA   8F83         MOV     DPH,R7
+   \   0000FC   A3           INC     DPTR
+   \   0000FD   A3           INC     DPTR
+   \   0000FE   A3           INC     DPTR
+   \   0000FF   F0           MOVX    @DPTR,A
+    122          
+    123            /* Aux security header */
+    124            if(p->fcf.security_enabled & 1) {
+    125              /* TODO Aux security header not yet implemented */
+    126          #if 0
+    127              switch(p->aux_hdr.security_control.key_id_mode) {
+    128              case 0:
+    129                flen->aux_sec_len = 5; /* minimum value */
+    130                break;
+    131              case 1:
+    132                flen->aux_sec_len = 6;
+    133                break;
+    134              case 2:
+    135                flen->aux_sec_len = 10;
+    136                break;
+    137              case 3:
+    138                flen->aux_sec_len = 14;
+    139                break;
+    140              default:
+    141                break;
+    142              }
+    143          #endif
+    144            }
+    145          }
+   \   000100   7F04         MOV     R7,#0x4
+   \   000102   02....       LJMP    ?BANKED_LEAVE_XDATA
+    146          /*----------------------------------------------------------------------------*/
+    147          /**
+    148           *   \brief Calculates the length of the frame header.  This function is
+    149           *   meant to be called by a higher level function, that interfaces to a MAC.
+    150           *
+    151           *   \param p Pointer to frame802154_t_t struct, which specifies the
+    152           *   frame to send.
+    153           *
+    154           *   \return The length of the frame header.
+    155          */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    156          int
+    157          frame802154_hdrlen(frame802154_t *p)
+   \                     frame802154_hdrlen:
+    158          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 5
+   \   000004   74FB         MOV     A,#-0x5
+   \   000006   12....       LCALL   ?ALLOC_XSTACK8
+    159            field_length_t flen;
+    160            field_len(p, &flen);
+   \   000009                ; Setup parameters for call to function field_len
+   \   000009   85..82       MOV     DPL,?XSP + 0
+   \   00000C   85..83       MOV     DPH,?XSP + 1
+   \   00000F   AC82         MOV     R4,DPL
+   \   000011   AD83         MOV     R5,DPH
+   \   000013   12....       LCALL   ??field_len?relay
+    161            return 3 + flen.dest_pid_len + flen.dest_addr_len +
+    162              flen.src_pid_len + flen.src_addr_len + flen.aux_sec_len;
+   \   000016   85..82       MOV     DPL,?XSP + 0
+   \   000019   85..83       MOV     DPH,?XSP + 1
+   \   00001C   E0           MOVX    A,@DPTR
+   \   00001D   F8           MOV     R0,A
+   \   00001E   7900         MOV     R1,#0x0
+   \   000020   7401         MOV     A,#0x1
+   \   000022   12....       LCALL   ?XSTACK_DISP0_8
+   \   000025   E0           MOVX    A,@DPTR
+   \   000026   FA           MOV     R2,A
+   \   000027   7B00         MOV     R3,#0x0
+   \   000029   E8           MOV     A,R0
+   \   00002A   2A           ADD     A,R2
+   \   00002B   F8           MOV     R0,A
+   \   00002C   E9           MOV     A,R1
+   \   00002D   3B           ADDC    A,R3
+   \   00002E   F9           MOV     R1,A
+   \   00002F   7402         MOV     A,#0x2
+   \   000031   12....       LCALL   ?XSTACK_DISP0_8
+   \   000034   E0           MOVX    A,@DPTR
+   \   000035   FA           MOV     R2,A
+   \   000036   7B00         MOV     R3,#0x0
+   \   000038   E8           MOV     A,R0
+   \   000039   2A           ADD     A,R2
+   \   00003A   F8           MOV     R0,A
+   \   00003B   E9           MOV     A,R1
+   \   00003C   3B           ADDC    A,R3
+   \   00003D   F9           MOV     R1,A
+   \   00003E   7403         MOV     A,#0x3
+   \   000040   12....       LCALL   ?XSTACK_DISP0_8
+   \   000043   E0           MOVX    A,@DPTR
+   \   000044   FA           MOV     R2,A
+   \   000045   7B00         MOV     R3,#0x0
+   \   000047   E8           MOV     A,R0
+   \   000048   2A           ADD     A,R2
+   \   000049   F8           MOV     R0,A
+   \   00004A   E9           MOV     A,R1
+   \   00004B   3B           ADDC    A,R3
+   \   00004C   F9           MOV     R1,A
+   \   00004D   7404         MOV     A,#0x4
+   \   00004F   12....       LCALL   ?XSTACK_DISP0_8
+   \   000052   E0           MOVX    A,@DPTR
+   \   000053   FA           MOV     R2,A
+   \   000054   7B00         MOV     R3,#0x0
+   \   000056   E8           MOV     A,R0
+   \   000057   2A           ADD     A,R2
+   \   000058   F8           MOV     R0,A
+   \   000059   E9           MOV     A,R1
+   \   00005A   3B           ADDC    A,R3
+   \   00005B   F9           MOV     R1,A
+   \   00005C   E8           MOV     A,R0
+   \   00005D   2403         ADD     A,#0x3
+   \   00005F   FA           MOV     R2,A
+   \   000060   E9           MOV     A,R1
+   \   000061   3400         ADDC    A,#0x0
+   \   000063   FB           MOV     R3,A
+   \   000064   7405         MOV     A,#0x5
+   \   000066   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000069   D083         POP     DPH
+   \   00006B   D082         POP     DPL
+   \   00006D   02....       LJMP    ?BRET
+    163          }
+    164          /*----------------------------------------------------------------------------*/
+    165          /**
+    166           *   \brief Creates a frame for transmission over the air.  This function is
+    167           *   meant to be called by a higher level function, that interfaces to a MAC.
+    168           *
+    169           *   \param p Pointer to frame802154_t struct, which specifies the
+    170           *   frame to send.
+    171           *
+    172           *   \param buf Pointer to the buffer to use for the frame.
+    173           *
+    174           *   \param buf_len The length of the buffer to use for the frame.
+    175           *
+    176           *   \return The length of the frame header or 0 if there was
+    177           *   insufficient space in the buffer for the frame headers.
+    178          */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    179          int
+    180          frame802154_create(frame802154_t *p, uint8_t *buf, int buf_len)
+   \                     frame802154_create:
+    181          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 5
+   \   000005   74FB         MOV     A,#-0x5
+   \   000007   12....       LCALL   ?ALLOC_XSTACK8
+   \   00000A   EA           MOV     A,R2
+   \   00000B   FE           MOV     R6,A
+   \   00000C   EB           MOV     A,R3
+   \   00000D   FF           MOV     R7,A
+   \   00000E   8C..         MOV     ?V0 + 0,R4
+   \   000010   8D..         MOV     ?V0 + 1,R5
+   \   000012   7411         MOV     A,#0x11
+   \   000014   12....       LCALL   ?XSTACK_DISP0_8
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   F5..         MOV     ?V0 + 2,A
+   \   00001A   A3           INC     DPTR
+   \   00001B   E0           MOVX    A,@DPTR
+   \   00001C   F5..         MOV     ?V0 + 3,A
+    182            int c;
+    183            field_length_t flen;
+    184            uint8_t *tx_frame_buffer;
+    185            uint8_t pos;
+    186          
+    187            field_len(p, &flen);
+   \   00001E                ; Setup parameters for call to function field_len
+   \   00001E   85..82       MOV     DPL,?XSP + 0
+   \   000021   85..83       MOV     DPH,?XSP + 1
+   \   000024   AC82         MOV     R4,DPL
+   \   000026   AD83         MOV     R5,DPH
+   \   000028   EE           MOV     A,R6
+   \   000029   FA           MOV     R2,A
+   \   00002A   EF           MOV     A,R7
+   \   00002B   FB           MOV     R3,A
+   \   00002C   12....       LCALL   ??field_len?relay
+    188          
+    189            if(3 + flen.dest_pid_len + flen.dest_addr_len +
+    190               flen.src_pid_len + flen.src_addr_len + flen.aux_sec_len > buf_len) {
+   \   00002F   85..82       MOV     DPL,?XSP + 0
+   \   000032   85..83       MOV     DPH,?XSP + 1
+   \   000035   E0           MOVX    A,@DPTR
+   \   000036   F8           MOV     R0,A
+   \   000037   7900         MOV     R1,#0x0
+   \   000039   7401         MOV     A,#0x1
+   \   00003B   12....       LCALL   ?XSTACK_DISP0_8
+   \   00003E   E0           MOVX    A,@DPTR
+   \   00003F   FA           MOV     R2,A
+   \   000040   7B00         MOV     R3,#0x0
+   \   000042   E8           MOV     A,R0
+   \   000043   2A           ADD     A,R2
+   \   000044   F8           MOV     R0,A
+   \   000045   E9           MOV     A,R1
+   \   000046   3B           ADDC    A,R3
+   \   000047   F9           MOV     R1,A
+   \   000048   7402         MOV     A,#0x2
+   \   00004A   12....       LCALL   ?XSTACK_DISP0_8
+   \   00004D   E0           MOVX    A,@DPTR
+   \   00004E   FA           MOV     R2,A
+   \   00004F   7B00         MOV     R3,#0x0
+   \   000051   E8           MOV     A,R0
+   \   000052   2A           ADD     A,R2
+   \   000053   F8           MOV     R0,A
+   \   000054   E9           MOV     A,R1
+   \   000055   3B           ADDC    A,R3
+   \   000056   F9           MOV     R1,A
+   \   000057   7403         MOV     A,#0x3
+   \   000059   12....       LCALL   ?XSTACK_DISP0_8
+   \   00005C   E0           MOVX    A,@DPTR
+   \   00005D   FA           MOV     R2,A
+   \   00005E   7B00         MOV     R3,#0x0
+   \   000060   E8           MOV     A,R0
+   \   000061   2A           ADD     A,R2
+   \   000062   F8           MOV     R0,A
+   \   000063   E9           MOV     A,R1
+   \   000064   3B           ADDC    A,R3
+   \   000065   F9           MOV     R1,A
+   \   000066   7404         MOV     A,#0x4
+   \   000068   12....       LCALL   ?XSTACK_DISP0_8
+   \   00006B   E0           MOVX    A,@DPTR
+   \   00006C   FA           MOV     R2,A
+   \   00006D   7B00         MOV     R3,#0x0
+   \   00006F   E8           MOV     A,R0
+   \   000070   2A           ADD     A,R2
+   \   000071   F8           MOV     R0,A
+   \   000072   E9           MOV     A,R1
+   \   000073   3B           ADDC    A,R3
+   \   000074   F9           MOV     R1,A
+   \   000075   E8           MOV     A,R0
+   \   000076   2403         ADD     A,#0x3
+   \   000078   F8           MOV     R0,A
+   \   000079   E9           MOV     A,R1
+   \   00007A   3400         ADDC    A,#0x0
+   \   00007C   F9           MOV     R1,A
+   \   00007D   C3           CLR     C
+   \   00007E   E5..         MOV     A,?V0 + 2
+   \   000080   98           SUBB    A,R0
+   \   000081   E5..         MOV     A,?V0 + 3
+   \   000083   99           SUBB    A,R1
+   \   000084   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000086   65D0         XRL     A,PSW
+   \   000088   33           RLC     A
+   \   000089   5007         JNC     ??frame802154_create_0
+    191              /* Too little space for headers. */
+    192              return 0;
+   \   00008B   7A00         MOV     R2,#0x0
+   \   00008D   7B00         MOV     R3,#0x0
+   \   00008F   02....       LJMP    ??frame802154_create_1 & 0xFFFF
+    193            }
+    194          
+    195            /* OK, now we have field lengths.  Time to actually construct */
+    196            /* the outgoing frame, and store it in tx_frame_buffer */
+    197            tx_frame_buffer = buf;
+   \                     ??frame802154_create_0:
+   \   000092   A8..         MOV     R0,?V0 + 0
+   \   000094   A9..         MOV     R1,?V0 + 1
+    198            tx_frame_buffer[0] = (p->fcf.frame_type & 7) |
+    199              ((p->fcf.security_enabled & 1) << 3) |
+    200              ((p->fcf.frame_pending & 1) << 4) |
+    201              ((p->fcf.ack_required & 1) << 5) |
+    202              ((p->fcf.panid_compression & 1) << 6);
+   \   000096   8E82         MOV     DPL,R6
+   \   000098   8F83         MOV     DPH,R7
+   \   00009A   A3           INC     DPTR
+   \   00009B   A3           INC     DPTR
+   \   00009C   A3           INC     DPTR
+   \   00009D   A3           INC     DPTR
+   \   00009E   E0           MOVX    A,@DPTR
+   \   00009F   A2E0         MOV     C,0xE0 /* A   */.0
+   \   0000A1   E4           CLR     A
+   \   0000A2   33           RLC     A
+   \   0000A3   C4           SWAP    A
+   \   0000A4   33           RLC     A
+   \   0000A5   33           RLC     A
+   \   0000A6   54C0         ANL     A,#0xc0
+   \   0000A8   FD           MOV     R5,A
+   \   0000A9   8E82         MOV     DPL,R6
+   \   0000AB   8F83         MOV     DPH,R7
+   \   0000AD   A3           INC     DPTR
+   \   0000AE   A3           INC     DPTR
+   \   0000AF   A3           INC     DPTR
+   \   0000B0   E0           MOVX    A,@DPTR
+   \   0000B1   A2E0         MOV     C,0xE0 /* A   */.0
+   \   0000B3   E4           CLR     A
+   \   0000B4   33           RLC     A
+   \   0000B5   C4           SWAP    A
+   \   0000B6   33           RLC     A
+   \   0000B7   54E0         ANL     A,#0xe0
+   \   0000B9   FC           MOV     R4,A
+   \   0000BA   8E82         MOV     DPL,R6
+   \   0000BC   8F83         MOV     DPH,R7
+   \   0000BE   A3           INC     DPTR
+   \   0000BF   A3           INC     DPTR
+   \   0000C0   E0           MOVX    A,@DPTR
+   \   0000C1   A2E0         MOV     C,0xE0 /* A   */.0
+   \   0000C3   E4           CLR     A
+   \   0000C4   33           RLC     A
+   \   0000C5   C4           SWAP    A
+   \   0000C6   54F0         ANL     A,#0xf0
+   \   0000C8   FB           MOV     R3,A
+   \   0000C9   8E82         MOV     DPL,R6
+   \   0000CB   8F83         MOV     DPH,R7
+   \   0000CD   A3           INC     DPTR
+   \   0000CE   E0           MOVX    A,@DPTR
+   \   0000CF   A2E0         MOV     C,0xE0 /* A   */.0
+   \   0000D1   E4           CLR     A
+   \   0000D2   33           RLC     A
+   \   0000D3   33           RLC     A
+   \   0000D4   33           RLC     A
+   \   0000D5   33           RLC     A
+   \   0000D6   54F8         ANL     A,#0xf8
+   \   0000D8   FA           MOV     R2,A
+   \   0000D9   8E82         MOV     DPL,R6
+   \   0000DB   8F83         MOV     DPH,R7
+   \   0000DD   E0           MOVX    A,@DPTR
+   \   0000DE   5407         ANL     A,#0x7
+   \   0000E0   4A           ORL     A,R2
+   \   0000E1   4B           ORL     A,R3
+   \   0000E2   4C           ORL     A,R4
+   \   0000E3   4D           ORL     A,R5
+   \   0000E4   8882         MOV     DPL,R0
+   \   0000E6   8983         MOV     DPH,R1
+   \   0000E8   F0           MOVX    @DPTR,A
+    203            tx_frame_buffer[1] = ((p->fcf.dest_addr_mode & 3) << 2) |
+    204              ((p->fcf.frame_version & 3) << 4) |
+    205              ((p->fcf.src_addr_mode & 3) << 6);
+   \   0000E9   8E82         MOV     DPL,R6
+   \   0000EB   8F83         MOV     DPH,R7
+   \   0000ED   A3           INC     DPTR
+   \   0000EE   A3           INC     DPTR
+   \   0000EF   A3           INC     DPTR
+   \   0000F0   A3           INC     DPTR
+   \   0000F1   A3           INC     DPTR
+   \   0000F2   A3           INC     DPTR
+   \   0000F3   A3           INC     DPTR
+   \   0000F4   E0           MOVX    A,@DPTR
+   \   0000F5   C4           SWAP    A
+   \   0000F6   33           RLC     A
+   \   0000F7   33           RLC     A
+   \   0000F8   54C0         ANL     A,#0xc0
+   \   0000FA   FB           MOV     R3,A
+   \   0000FB   8E82         MOV     DPL,R6
+   \   0000FD   8F83         MOV     DPH,R7
+   \   0000FF   A3           INC     DPTR
+   \   000100   A3           INC     DPTR
+   \   000101   A3           INC     DPTR
+   \   000102   A3           INC     DPTR
+   \   000103   A3           INC     DPTR
+   \   000104   A3           INC     DPTR
+   \   000105   E0           MOVX    A,@DPTR
+   \   000106   5403         ANL     A,#0x3
+   \   000108   C4           SWAP    A
+   \   000109   54F0         ANL     A,#0xf0
+   \   00010B   FA           MOV     R2,A
+   \   00010C   8E82         MOV     DPL,R6
+   \   00010E   8F83         MOV     DPH,R7
+   \   000110   A3           INC     DPTR
+   \   000111   A3           INC     DPTR
+   \   000112   A3           INC     DPTR
+   \   000113   A3           INC     DPTR
+   \   000114   A3           INC     DPTR
+   \   000115   E0           MOVX    A,@DPTR
+   \   000116   5403         ANL     A,#0x3
+   \   000118   33           RLC     A
+   \   000119   33           RLC     A
+   \   00011A   54FC         ANL     A,#0xfc
+   \   00011C   4A           ORL     A,R2
+   \   00011D   4B           ORL     A,R3
+   \   00011E   8882         MOV     DPL,R0
+   \   000120   8983         MOV     DPH,R1
+   \   000122   A3           INC     DPTR
+   \   000123   F0           MOVX    @DPTR,A
+    206          
+    207            /* sequence number */
+    208            tx_frame_buffer[2] = p->seq;
+   \   000124   8E82         MOV     DPL,R6
+   \   000126   8F83         MOV     DPH,R7
+   \   000128   A3           INC     DPTR
+   \   000129   A3           INC     DPTR
+   \   00012A   A3           INC     DPTR
+   \   00012B   A3           INC     DPTR
+   \   00012C   A3           INC     DPTR
+   \   00012D   A3           INC     DPTR
+   \   00012E   A3           INC     DPTR
+   \   00012F   A3           INC     DPTR
+   \   000130   E0           MOVX    A,@DPTR
+   \   000131   8882         MOV     DPL,R0
+   \   000133   8983         MOV     DPH,R1
+   \   000135   A3           INC     DPTR
+   \   000136   A3           INC     DPTR
+   \   000137   F0           MOVX    @DPTR,A
+    209            pos = 3;
+   \   000138   75..03       MOV     ?V0 + 2,#0x3
+    210          
+    211            /* Destination PAN ID */
+    212            if(flen.dest_pid_len == 2) {
+   \   00013B   85..82       MOV     DPL,?XSP + 0
+   \   00013E   85..83       MOV     DPH,?XSP + 1
+   \   000141   E0           MOVX    A,@DPTR
+   \   000142   6402         XRL     A,#0x2
+   \   000144   7056         JNZ     ??frame802154_create_2
+    213              tx_frame_buffer[pos++] = p->dest_pid & 0xff;
+   \   000146   8E82         MOV     DPL,R6
+   \   000148   8F83         MOV     DPH,R7
+   \   00014A   A3           INC     DPTR
+   \   00014B   A3           INC     DPTR
+   \   00014C   A3           INC     DPTR
+   \   00014D   A3           INC     DPTR
+   \   00014E   A3           INC     DPTR
+   \   00014F   A3           INC     DPTR
+   \   000150   A3           INC     DPTR
+   \   000151   A3           INC     DPTR
+   \   000152   A3           INC     DPTR
+   \   000153   E0           MOVX    A,@DPTR
+   \   000154   FA           MOV     R2,A
+   \   000155   A3           INC     DPTR
+   \   000156   E0           MOVX    A,@DPTR
+   \   000157   FB           MOV     R3,A
+   \   000158   EA           MOV     A,R2
+   \   000159   C0E0         PUSH    A
+   \   00015B   85....       MOV     ?V0 + 0,?V0 + 2
+   \   00015E   75..00       MOV     ?V0 + 1,#0x0
+   \   000161   E8           MOV     A,R0
+   \   000162   25..         ADD     A,?V0 + 0
+   \   000164   F582         MOV     DPL,A
+   \   000166   E9           MOV     A,R1
+   \   000167   35..         ADDC    A,?V0 + 1
+   \   000169   F583         MOV     DPH,A
+   \   00016B   D0E0         POP     A
+   \   00016D   F0           MOVX    @DPTR,A
+   \   00016E   05..         INC     ?V0 + 2
+    214              tx_frame_buffer[pos++] = (p->dest_pid >> 8) & 0xff;
+   \   000170   8E82         MOV     DPL,R6
+   \   000172   8F83         MOV     DPH,R7
+   \   000174   A3           INC     DPTR
+   \   000175   A3           INC     DPTR
+   \   000176   A3           INC     DPTR
+   \   000177   A3           INC     DPTR
+   \   000178   A3           INC     DPTR
+   \   000179   A3           INC     DPTR
+   \   00017A   A3           INC     DPTR
+   \   00017B   A3           INC     DPTR
+   \   00017C   A3           INC     DPTR
+   \   00017D   E0           MOVX    A,@DPTR
+   \   00017E   FA           MOV     R2,A
+   \   00017F   A3           INC     DPTR
+   \   000180   E0           MOVX    A,@DPTR
+   \   000181   FB           MOV     R3,A
+   \   000182   E4           CLR     A
+   \   000183   EB           MOV     A,R3
+   \   000184   FA           MOV     R2,A
+   \   000185   C0E0         PUSH    A
+   \   000187   85....       MOV     ?V0 + 0,?V0 + 2
+   \   00018A   75..00       MOV     ?V0 + 1,#0x0
+   \   00018D   E8           MOV     A,R0
+   \   00018E   25..         ADD     A,?V0 + 0
+   \   000190   F582         MOV     DPL,A
+   \   000192   E9           MOV     A,R1
+   \   000193   35..         ADDC    A,?V0 + 1
+   \   000195   F583         MOV     DPH,A
+   \   000197   D0E0         POP     A
+   \   000199   F0           MOVX    @DPTR,A
+   \   00019A   05..         INC     ?V0 + 2
+    215            }
+    216          
+    217            /* Destination address */
+    218            for(c = flen.dest_addr_len; c > 0; c--) {
+   \                     ??frame802154_create_2:
+   \   00019C   7401         MOV     A,#0x1
+   \   00019E   12....       LCALL   ?XSTACK_DISP0_8
+   \   0001A1   E0           MOVX    A,@DPTR
+   \   0001A2   FA           MOV     R2,A
+   \   0001A3   7B00         MOV     R3,#0x0
+   \   0001A5   8032         SJMP    ??frame802154_create_3
+    219              tx_frame_buffer[pos++] = p->dest_addr[c - 1];
+   \                     ??frame802154_create_4:
+   \   0001A7   EE           MOV     A,R6
+   \   0001A8   2A           ADD     A,R2
+   \   0001A9   F582         MOV     DPL,A
+   \   0001AB   EF           MOV     A,R7
+   \   0001AC   3B           ADDC    A,R3
+   \   0001AD   F583         MOV     DPH,A
+   \   0001AF   A3           INC     DPTR
+   \   0001B0   A3           INC     DPTR
+   \   0001B1   A3           INC     DPTR
+   \   0001B2   A3           INC     DPTR
+   \   0001B3   A3           INC     DPTR
+   \   0001B4   A3           INC     DPTR
+   \   0001B5   A3           INC     DPTR
+   \   0001B6   A3           INC     DPTR
+   \   0001B7   A3           INC     DPTR
+   \   0001B8   A3           INC     DPTR
+   \   0001B9   E0           MOVX    A,@DPTR
+   \   0001BA   C0E0         PUSH    A
+   \   0001BC   85....       MOV     ?V0 + 0,?V0 + 2
+   \   0001BF   75..00       MOV     ?V0 + 1,#0x0
+   \   0001C2   E8           MOV     A,R0
+   \   0001C3   25..         ADD     A,?V0 + 0
+   \   0001C5   F582         MOV     DPL,A
+   \   0001C7   E9           MOV     A,R1
+   \   0001C8   35..         ADDC    A,?V0 + 1
+   \   0001CA   F583         MOV     DPH,A
+   \   0001CC   D0E0         POP     A
+   \   0001CE   F0           MOVX    @DPTR,A
+   \   0001CF   05..         INC     ?V0 + 2
+    220            }
+   \   0001D1   EA           MOV     A,R2
+   \   0001D2   24FF         ADD     A,#-0x1
+   \   0001D4   FA           MOV     R2,A
+   \   0001D5   EB           MOV     A,R3
+   \   0001D6   34FF         ADDC    A,#-0x1
+   \   0001D8   FB           MOV     R3,A
+   \                     ??frame802154_create_3:
+   \   0001D9   C3           CLR     C
+   \   0001DA   EA           MOV     A,R2
+   \   0001DB   9401         SUBB    A,#0x1
+   \   0001DD   EB           MOV     A,R3
+   \   0001DE   9400         SUBB    A,#0x0
+   \   0001E0   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   0001E2   65D0         XRL     A,PSW
+   \   0001E4   33           RLC     A
+   \   0001E5   50C0         JNC     ??frame802154_create_4
+    221          
+    222            /* Source PAN ID */
+    223            if(flen.src_pid_len == 2) {
+   \   0001E7   7402         MOV     A,#0x2
+   \   0001E9   12....       LCALL   ?XSTACK_DISP0_8
+   \   0001EC   E0           MOVX    A,@DPTR
+   \   0001ED   6402         XRL     A,#0x2
+   \   0001EF   7050         JNZ     ??frame802154_create_5
+    224              tx_frame_buffer[pos++] = p->src_pid & 0xff;
+   \   0001F1   EE           MOV     A,R6
+   \   0001F2   2413         ADD     A,#0x13
+   \   0001F4   F582         MOV     DPL,A
+   \   0001F6   EF           MOV     A,R7
+   \   0001F7   3400         ADDC    A,#0x0
+   \   0001F9   F583         MOV     DPH,A
+   \   0001FB   E0           MOVX    A,@DPTR
+   \   0001FC   FA           MOV     R2,A
+   \   0001FD   A3           INC     DPTR
+   \   0001FE   E0           MOVX    A,@DPTR
+   \   0001FF   FB           MOV     R3,A
+   \   000200   EA           MOV     A,R2
+   \   000201   C0E0         PUSH    A
+   \   000203   85....       MOV     ?V0 + 0,?V0 + 2
+   \   000206   75..00       MOV     ?V0 + 1,#0x0
+   \   000209   E8           MOV     A,R0
+   \   00020A   25..         ADD     A,?V0 + 0
+   \   00020C   F582         MOV     DPL,A
+   \   00020E   E9           MOV     A,R1
+   \   00020F   35..         ADDC    A,?V0 + 1
+   \   000211   F583         MOV     DPH,A
+   \   000213   D0E0         POP     A
+   \   000215   F0           MOVX    @DPTR,A
+   \   000216   05..         INC     ?V0 + 2
+    225              tx_frame_buffer[pos++] = (p->src_pid >> 8) & 0xff;
+   \   000218   EE           MOV     A,R6
+   \   000219   2413         ADD     A,#0x13
+   \   00021B   F582         MOV     DPL,A
+   \   00021D   EF           MOV     A,R7
+   \   00021E   3400         ADDC    A,#0x0
+   \   000220   F583         MOV     DPH,A
+   \   000222   E0           MOVX    A,@DPTR
+   \   000223   FA           MOV     R2,A
+   \   000224   A3           INC     DPTR
+   \   000225   E0           MOVX    A,@DPTR
+   \   000226   FB           MOV     R3,A
+   \   000227   E4           CLR     A
+   \   000228   EB           MOV     A,R3
+   \   000229   FA           MOV     R2,A
+   \   00022A   C0E0         PUSH    A
+   \   00022C   85....       MOV     ?V0 + 0,?V0 + 2
+   \   00022F   75..00       MOV     ?V0 + 1,#0x0
+   \   000232   E8           MOV     A,R0
+   \   000233   25..         ADD     A,?V0 + 0
+   \   000235   F582         MOV     DPL,A
+   \   000237   E9           MOV     A,R1
+   \   000238   35..         ADDC    A,?V0 + 1
+   \   00023A   F583         MOV     DPH,A
+   \   00023C   D0E0         POP     A
+   \   00023E   F0           MOVX    @DPTR,A
+   \   00023F   05..         INC     ?V0 + 2
+    226            }
+    227          
+    228            /* Source address */
+    229            for(c = flen.src_addr_len; c > 0; c--) {
+   \                     ??frame802154_create_5:
+   \   000241   7403         MOV     A,#0x3
+   \   000243   12....       LCALL   ?XSTACK_DISP0_8
+   \   000246   E0           MOVX    A,@DPTR
+   \   000247   FA           MOV     R2,A
+   \   000248   7B00         MOV     R3,#0x0
+   \   00024A   8030         SJMP    ??frame802154_create_6
+    230              tx_frame_buffer[pos++] = p->src_addr[c - 1];
+   \                     ??frame802154_create_7:
+   \   00024C   EE           MOV     A,R6
+   \   00024D   2A           ADD     A,R2
+   \   00024E   FC           MOV     R4,A
+   \   00024F   EF           MOV     A,R7
+   \   000250   3B           ADDC    A,R3
+   \   000251   FD           MOV     R5,A
+   \   000252   EC           MOV     A,R4
+   \   000253   2414         ADD     A,#0x14
+   \   000255   F582         MOV     DPL,A
+   \   000257   ED           MOV     A,R5
+   \   000258   3400         ADDC    A,#0x0
+   \   00025A   F583         MOV     DPH,A
+   \   00025C   E0           MOVX    A,@DPTR
+   \   00025D   C0E0         PUSH    A
+   \   00025F   85....       MOV     ?V0 + 0,?V0 + 2
+   \   000262   75..00       MOV     ?V0 + 1,#0x0
+   \   000265   E8           MOV     A,R0
+   \   000266   25..         ADD     A,?V0 + 0
+   \   000268   F582         MOV     DPL,A
+   \   00026A   E9           MOV     A,R1
+   \   00026B   35..         ADDC    A,?V0 + 1
+   \   00026D   F583         MOV     DPH,A
+   \   00026F   D0E0         POP     A
+   \   000271   F0           MOVX    @DPTR,A
+   \   000272   05..         INC     ?V0 + 2
+    231            }
+   \   000274   EA           MOV     A,R2
+   \   000275   24FF         ADD     A,#-0x1
+   \   000277   FA           MOV     R2,A
+   \   000278   EB           MOV     A,R3
+   \   000279   34FF         ADDC    A,#-0x1
+   \   00027B   FB           MOV     R3,A
+   \                     ??frame802154_create_6:
+   \   00027C   C3           CLR     C
+   \   00027D   EA           MOV     A,R2
+   \   00027E   9401         SUBB    A,#0x1
+   \   000280   EB           MOV     A,R3
+   \   000281   9400         SUBB    A,#0x0
+   \   000283   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000285   65D0         XRL     A,PSW
+   \   000287   33           RLC     A
+   \   000288   50C2         JNC     ??frame802154_create_7
+    232          
+    233            /* Aux header */
+    234            if(flen.aux_sec_len) {
+    235              /* TODO Aux security header not yet implemented */
+    236          /*     pos += flen.aux_sec_len; */
+    237            }
+    238          
+    239            return (int)pos;
+   \   00028A   75..00       MOV     ?V0 + 3,#0x0
+   \   00028D   AA..         MOV     R2,?V0 + 2
+   \   00028F   AB..         MOV     R3,?V0 + 3
+   \                     ??frame802154_create_1:
+   \   000291   7405         MOV     A,#0x5
+   \   000293   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000296   7F04         MOV     R7,#0x4
+   \   000298   02....       LJMP    ?BANKED_LEAVE_XDATA
+    240          }
+    241          /*----------------------------------------------------------------------------*/
+    242          /**
+    243           *   \brief Parses an input frame.  Scans the input frame to find each
+    244           *   section, and stores the information of each section in a
+    245           *   frame802154_t structure.
+    246           *
+    247           *   \param data The input data from the radio chip.
+    248           *   \param len The size of the input data
+    249           *   \param pf The frame802154_t struct to store the parsed frame information.
+    250           */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    251          int
+    252          frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
+   \                     frame802154_parse:
+    253          {
+   \   000000   74F0         MOV     A,#-0x10
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 16
+   \   000005                ; Auto size: 8
+   \   000005   74F8         MOV     A,#-0x8
+   \   000007   12....       LCALL   ?ALLOC_XSTACK8
+   \   00000A   8A..         MOV     ?V0 + 4,R2
+   \   00000C   8B..         MOV     ?V0 + 5,R3
+   \   00000E   8C..         MOV     ?V0 + 2,R4
+   \   000010   8D..         MOV     ?V0 + 3,R5
+    254            uint8_t *p;
+    255            frame802154_fcf_t fcf;
+    256            int c;
+    257          
+    258            if(len < 3) {
+   \   000012   C3           CLR     C
+   \   000013   E5..         MOV     A,?V0 + 2
+   \   000015   9403         SUBB    A,#0x3
+   \   000017   E5..         MOV     A,?V0 + 3
+   \   000019   9400         SUBB    A,#0x0
+   \   00001B   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   00001D   65D0         XRL     A,PSW
+   \   00001F   33           RLC     A
+   \   000020   5007         JNC     ??frame802154_parse_0
+    259              return 0;
+   \   000022   7A00         MOV     R2,#0x0
+   \   000024   7B00         MOV     R3,#0x0
+   \   000026   02....       LJMP    ??frame802154_parse_1 & 0xFFFF
+    260            }
+    261          
+    262            p = data;
+   \                     ??frame802154_parse_0:
+   \   000029   85....       MOV     ?V0 + 0,?V0 + 4
+   \   00002C   85....       MOV     ?V0 + 1,?V0 + 5
+    263          
+    264            /* decode the FCF */
+    265            fcf.frame_type = p[0] & 7;
+   \   00002F   85..82       MOV     DPL,?V0 + 0
+   \   000032   85..83       MOV     DPH,?V0 + 1
+   \   000035   E0           MOVX    A,@DPTR
+   \   000036   5407         ANL     A,#0x7
+   \   000038   85..82       MOV     DPL,?XSP + 0
+   \   00003B   85..83       MOV     DPH,?XSP + 1
+   \   00003E   F0           MOVX    @DPTR,A
+    266            fcf.security_enabled = (p[0] >> 3) & 1;
+   \   00003F   85..82       MOV     DPL,?V0 + 0
+   \   000042   85..83       MOV     DPH,?V0 + 1
+   \   000045   E0           MOVX    A,@DPTR
+   \   000046   A2E3         MOV     C,0xE0 /* A   */.3
+   \   000048   E4           CLR     A
+   \   000049   33           RLC     A
+   \   00004A   C0E0         PUSH    A
+   \   00004C   7401         MOV     A,#0x1
+   \   00004E   12....       LCALL   ?XSTACK_DISP0_8
+   \   000051   D0E0         POP     A
+   \   000053   F0           MOVX    @DPTR,A
+    267            fcf.frame_pending = (p[0] >> 4) & 1;
+   \   000054   85..82       MOV     DPL,?V0 + 0
+   \   000057   85..83       MOV     DPH,?V0 + 1
+   \   00005A   E0           MOVX    A,@DPTR
+   \   00005B   A2E4         MOV     C,0xE0 /* A   */.4
+   \   00005D   E4           CLR     A
+   \   00005E   33           RLC     A
+   \   00005F   C0E0         PUSH    A
+   \   000061   7402         MOV     A,#0x2
+   \   000063   12....       LCALL   ?XSTACK_DISP0_8
+   \   000066   D0E0         POP     A
+   \   000068   F0           MOVX    @DPTR,A
+    268            fcf.ack_required = (p[0] >> 5) & 1;
+   \   000069   85..82       MOV     DPL,?V0 + 0
+   \   00006C   85..83       MOV     DPH,?V0 + 1
+   \   00006F   E0           MOVX    A,@DPTR
+   \   000070   A2E5         MOV     C,0xE0 /* A   */.5
+   \   000072   E4           CLR     A
+   \   000073   33           RLC     A
+   \   000074   C0E0         PUSH    A
+   \   000076   7403         MOV     A,#0x3
+   \   000078   12....       LCALL   ?XSTACK_DISP0_8
+   \   00007B   D0E0         POP     A
+   \   00007D   F0           MOVX    @DPTR,A
+    269            fcf.panid_compression = (p[0] >> 6) & 1;
+   \   00007E   85..82       MOV     DPL,?V0 + 0
+   \   000081   85..83       MOV     DPH,?V0 + 1
+   \   000084   E0           MOVX    A,@DPTR
+   \   000085   A2E6         MOV     C,0xE0 /* A   */.6
+   \   000087   E4           CLR     A
+   \   000088   33           RLC     A
+   \   000089   C0E0         PUSH    A
+   \   00008B   7404         MOV     A,#0x4
+   \   00008D   12....       LCALL   ?XSTACK_DISP0_8
+   \   000090   D0E0         POP     A
+   \   000092   F0           MOVX    @DPTR,A
+    270          
+    271            fcf.dest_addr_mode = (p[1] >> 2) & 3;
+   \   000093   85..82       MOV     DPL,?V0 + 0
+   \   000096   85..83       MOV     DPH,?V0 + 1
+   \   000099   A3           INC     DPTR
+   \   00009A   E0           MOVX    A,@DPTR
+   \   00009B   13           RRC     A
+   \   00009C   13           RRC     A
+   \   00009D   543F         ANL     A,#0x3f
+   \   00009F   5403         ANL     A,#0x3
+   \   0000A1   C0E0         PUSH    A
+   \   0000A3   7405         MOV     A,#0x5
+   \   0000A5   12....       LCALL   ?XSTACK_DISP0_8
+   \   0000A8   D0E0         POP     A
+   \   0000AA   F0           MOVX    @DPTR,A
+    272            fcf.frame_version = (p[1] >> 4) & 3;
+   \   0000AB   85..82       MOV     DPL,?V0 + 0
+   \   0000AE   85..83       MOV     DPH,?V0 + 1
+   \   0000B1   A3           INC     DPTR
+   \   0000B2   E0           MOVX    A,@DPTR
+   \   0000B3   C4           SWAP    A
+   \   0000B4   540F         ANL     A,#0xf
+   \   0000B6   5403         ANL     A,#0x3
+   \   0000B8   C0E0         PUSH    A
+   \   0000BA   7406         MOV     A,#0x6
+   \   0000BC   12....       LCALL   ?XSTACK_DISP0_8
+   \   0000BF   D0E0         POP     A
+   \   0000C1   F0           MOVX    @DPTR,A
+    273            fcf.src_addr_mode = (p[1] >> 6) & 3;
+   \   0000C2   85..82       MOV     DPL,?V0 + 0
+   \   0000C5   85..83       MOV     DPH,?V0 + 1
+   \   0000C8   A3           INC     DPTR
+   \   0000C9   E0           MOVX    A,@DPTR
+   \   0000CA   C4           SWAP    A
+   \   0000CB   13           RRC     A
+   \   0000CC   13           RRC     A
+   \   0000CD   5403         ANL     A,#0x3
+   \   0000CF   C0E0         PUSH    A
+   \   0000D1   7407         MOV     A,#0x7
+   \   0000D3   12....       LCALL   ?XSTACK_DISP0_8
+   \   0000D6   D0E0         POP     A
+   \   0000D8   F0           MOVX    @DPTR,A
+   \   0000D9   7418         MOV     A,#0x18
+   \   0000DB   12....       LCALL   ?XSTACK_DISP0_8
+   \   0000DE   E0           MOVX    A,@DPTR
+   \   0000DF   FE           MOV     R6,A
+   \   0000E0   A3           INC     DPTR
+   \   0000E1   E0           MOVX    A,@DPTR
+   \   0000E2   FF           MOV     R7,A
+    274          
+    275            /* copy fcf and seqNum */
+    276            memcpy(&pf->fcf, &fcf, sizeof(frame802154_fcf_t));
+   \   0000E3                ; Setup parameters for call to function memcpy
+   \   0000E3   75..08       MOV     ?V0 + 6,#0x8
+   \   0000E6   75..00       MOV     ?V0 + 7,#0x0
+   \   0000E9   78..         MOV     R0,#?V0 + 6
+   \   0000EB   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000EE   7402         MOV     A,#0x2
+   \   0000F0   12....       LCALL   ?XSTACK_DISP0_8
+   \   0000F3   AC82         MOV     R4,DPL
+   \   0000F5   AD83         MOV     R5,DPH
+   \   0000F7   EE           MOV     A,R6
+   \   0000F8   FA           MOV     R2,A
+   \   0000F9   EF           MOV     A,R7
+   \   0000FA   FB           MOV     R3,A
+   \   0000FB   12....       LCALL   ??memcpy?relay
+   \   0000FE   7402         MOV     A,#0x2
+   \   000100   12....       LCALL   ?DEALLOC_XSTACK8
+    277            pf->seq = p[2];
+   \   000103   85..82       MOV     DPL,?V0 + 0
+   \   000106   85..83       MOV     DPH,?V0 + 1
+   \   000109   A3           INC     DPTR
+   \   00010A   A3           INC     DPTR
+   \   00010B   E0           MOVX    A,@DPTR
+   \   00010C   8E82         MOV     DPL,R6
+   \   00010E   8F83         MOV     DPH,R7
+   \   000110   A3           INC     DPTR
+   \   000111   A3           INC     DPTR
+   \   000112   A3           INC     DPTR
+   \   000113   A3           INC     DPTR
+   \   000114   A3           INC     DPTR
+   \   000115   A3           INC     DPTR
+   \   000116   A3           INC     DPTR
+   \   000117   A3           INC     DPTR
+   \   000118   F0           MOVX    @DPTR,A
+    278            p += 3;                             /* Skip first three bytes */
+   \   000119   E5..         MOV     A,?V0 + 0
+   \   00011B   2403         ADD     A,#0x3
+   \   00011D   F5..         MOV     ?V0 + 0,A
+   \   00011F   E5..         MOV     A,?V0 + 1
+   \   000121   3400         ADDC    A,#0x0
+   \   000123   F5..         MOV     ?V0 + 1,A
+    279          
+    280            /* Destination address, if any */
+    281            if(fcf.dest_addr_mode) {
+   \   000125   7405         MOV     A,#0x5
+   \   000127   12....       LCALL   ?XSTACK_DISP0_8
+   \   00012A   E0           MOVX    A,@DPTR
+   \   00012B   7003         JNZ     $+5
+   \   00012D   02....       LJMP    ??frame802154_parse_2 & 0xFFFF
+    282              /* Destination PAN */
+    283              pf->dest_pid = p[0] + (p[1] << 8);
+   \   000130   85..82       MOV     DPL,?V0 + 0
+   \   000133   85..83       MOV     DPH,?V0 + 1
+   \   000136   E0           MOVX    A,@DPTR
+   \   000137   FA           MOV     R2,A
+   \   000138   7B00         MOV     R3,#0x0
+   \   00013A   85..82       MOV     DPL,?V0 + 0
+   \   00013D   85..83       MOV     DPH,?V0 + 1
+   \   000140   A3           INC     DPTR
+   \   000141   E0           MOVX    A,@DPTR
+   \   000142   F8           MOV     R0,A
+   \   000143   7900         MOV     R1,#0x0
+   \   000145   E4           CLR     A
+   \   000146   C8           XCH     A,R0
+   \   000147   F9           MOV     R1,A
+   \   000148   EA           MOV     A,R2
+   \   000149   28           ADD     A,R0
+   \   00014A   F8           MOV     R0,A
+   \   00014B   EB           MOV     A,R3
+   \   00014C   39           ADDC    A,R1
+   \   00014D   F9           MOV     R1,A
+   \   00014E   8E82         MOV     DPL,R6
+   \   000150   8F83         MOV     DPH,R7
+   \   000152   A3           INC     DPTR
+   \   000153   A3           INC     DPTR
+   \   000154   A3           INC     DPTR
+   \   000155   A3           INC     DPTR
+   \   000156   A3           INC     DPTR
+   \   000157   A3           INC     DPTR
+   \   000158   A3           INC     DPTR
+   \   000159   A3           INC     DPTR
+   \   00015A   A3           INC     DPTR
+   \   00015B   E8           MOV     A,R0
+   \   00015C   F0           MOVX    @DPTR,A
+   \   00015D   A3           INC     DPTR
+   \   00015E   E9           MOV     A,R1
+   \   00015F   F0           MOVX    @DPTR,A
+    284              p += 2;
+   \   000160   E5..         MOV     A,?V0 + 0
+   \   000162   2402         ADD     A,#0x2
+   \   000164   F5..         MOV     ?V0 + 0,A
+   \   000166   E5..         MOV     A,?V0 + 1
+   \   000168   3400         ADDC    A,#0x0
+   \   00016A   F5..         MOV     ?V0 + 1,A
+    285          
+    286              /* Destination address */
+    287          /*     l = addr_len(fcf.dest_addr_mode); */
+    288          /*     for(c = 0; c < l; c++) { */
+    289          /*       pf->dest_addr.u8[c] = p[l - c - 1]; */
+    290          /*     } */
+    291          /*     p += l; */
+    292              if(fcf.dest_addr_mode == FRAME802154_SHORTADDRMODE) {
+   \   00016C   7405         MOV     A,#0x5
+   \   00016E   12....       LCALL   ?XSTACK_DISP0_8
+   \   000171   E0           MOVX    A,@DPTR
+   \   000172   6402         XRL     A,#0x2
+   \   000174   704B         JNZ     ??frame802154_parse_3
+    293                rimeaddr_copy((rimeaddr_t *)&(pf->dest_addr), &rimeaddr_null);
+   \   000176                ; Setup parameters for call to function rimeaddr_copy
+   \   000176   7C..         MOV     R4,#rimeaddr_null & 0xff
+   \   000178   7D..         MOV     R5,#(rimeaddr_null >> 8) & 0xff
+   \   00017A   EE           MOV     A,R6
+   \   00017B   240B         ADD     A,#0xb
+   \   00017D   FA           MOV     R2,A
+   \   00017E   EF           MOV     A,R7
+   \   00017F   3400         ADDC    A,#0x0
+   \   000181   FB           MOV     R3,A
+   \   000182   12....       LCALL   ??rimeaddr_copy?relay
+    294                pf->dest_addr[0] = p[1];
+   \   000185   85..82       MOV     DPL,?V0 + 0
+   \   000188   85..83       MOV     DPH,?V0 + 1
+   \   00018B   A3           INC     DPTR
+   \   00018C   E0           MOVX    A,@DPTR
+   \   00018D   C0E0         PUSH    A
+   \   00018F   EE           MOV     A,R6
+   \   000190   240B         ADD     A,#0xb
+   \   000192   F582         MOV     DPL,A
+   \   000194   EF           MOV     A,R7
+   \   000195   3400         ADDC    A,#0x0
+   \   000197   F583         MOV     DPH,A
+   \   000199   D0E0         POP     A
+   \   00019B   F0           MOVX    @DPTR,A
+    295                pf->dest_addr[1] = p[0];
+   \   00019C   85..82       MOV     DPL,?V0 + 0
+   \   00019F   85..83       MOV     DPH,?V0 + 1
+   \   0001A2   E0           MOVX    A,@DPTR
+   \   0001A3   C0E0         PUSH    A
+   \   0001A5   EE           MOV     A,R6
+   \   0001A6   240C         ADD     A,#0xc
+   \   0001A8   F582         MOV     DPL,A
+   \   0001AA   EF           MOV     A,R7
+   \   0001AB   3400         ADDC    A,#0x0
+   \   0001AD   F583         MOV     DPH,A
+   \   0001AF   D0E0         POP     A
+   \   0001B1   F0           MOVX    @DPTR,A
+    296                p += 2;
+   \   0001B2   E5..         MOV     A,?V0 + 0
+   \   0001B4   2402         ADD     A,#0x2
+   \   0001B6   F5..         MOV     ?V0 + 0,A
+   \   0001B8   E5..         MOV     A,?V0 + 1
+   \   0001BA   3400         ADDC    A,#0x0
+   \   0001BC   F5..         MOV     ?V0 + 1,A
+   \   0001BE   02....       LJMP    ??frame802154_parse_4 & 0xFFFF
+    297              } else if(fcf.dest_addr_mode == FRAME802154_LONGADDRMODE) {
+   \                     ??frame802154_parse_3:
+   \   0001C1   7405         MOV     A,#0x5
+   \   0001C3   12....       LCALL   ?XSTACK_DISP0_8
+   \   0001C6   E0           MOVX    A,@DPTR
+   \   0001C7   6403         XRL     A,#0x3
+   \   0001C9   707B         JNZ     ??frame802154_parse_4
+    298                for(c = 0; c < 8; c++) {
+   \   0001CB   7800         MOV     R0,#0x0
+   \   0001CD   7900         MOV     R1,#0x0
+   \   0001CF   8036         SJMP    ??frame802154_parse_5
+    299                  pf->dest_addr[c] = p[7 - c];
+   \                     ??frame802154_parse_6:
+   \   0001D1   C3           CLR     C
+   \   0001D2   E4           CLR     A
+   \   0001D3   98           SUBB    A,R0
+   \   0001D4   FA           MOV     R2,A
+   \   0001D5   E4           CLR     A
+   \   0001D6   99           SUBB    A,R1
+   \   0001D7   FB           MOV     R3,A
+   \   0001D8   E5..         MOV     A,?V0 + 0
+   \   0001DA   2A           ADD     A,R2
+   \   0001DB   F582         MOV     DPL,A
+   \   0001DD   E5..         MOV     A,?V0 + 1
+   \   0001DF   3B           ADDC    A,R3
+   \   0001E0   F583         MOV     DPH,A
+   \   0001E2   A3           INC     DPTR
+   \   0001E3   A3           INC     DPTR
+   \   0001E4   A3           INC     DPTR
+   \   0001E5   A3           INC     DPTR
+   \   0001E6   A3           INC     DPTR
+   \   0001E7   A3           INC     DPTR
+   \   0001E8   A3           INC     DPTR
+   \   0001E9   E0           MOVX    A,@DPTR
+   \   0001EA   C0E0         PUSH    A
+   \   0001EC   EE           MOV     A,R6
+   \   0001ED   28           ADD     A,R0
+   \   0001EE   FA           MOV     R2,A
+   \   0001EF   EF           MOV     A,R7
+   \   0001F0   39           ADDC    A,R1
+   \   0001F1   FB           MOV     R3,A
+   \   0001F2   EA           MOV     A,R2
+   \   0001F3   240B         ADD     A,#0xb
+   \   0001F5   F582         MOV     DPL,A
+   \   0001F7   EB           MOV     A,R3
+   \   0001F8   3400         ADDC    A,#0x0
+   \   0001FA   F583         MOV     DPH,A
+   \   0001FC   D0E0         POP     A
+   \   0001FE   F0           MOVX    @DPTR,A
+    300                }
+   \   0001FF   E8           MOV     A,R0
+   \   000200   2401         ADD     A,#0x1
+   \   000202   F8           MOV     R0,A
+   \   000203   E9           MOV     A,R1
+   \   000204   3400         ADDC    A,#0x0
+   \   000206   F9           MOV     R1,A
+   \                     ??frame802154_parse_5:
+   \   000207   C3           CLR     C
+   \   000208   E8           MOV     A,R0
+   \   000209   9408         SUBB    A,#0x8
+   \   00020B   E9           MOV     A,R1
+   \   00020C   9400         SUBB    A,#0x0
+   \   00020E   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000210   65D0         XRL     A,PSW
+   \   000212   33           RLC     A
+   \   000213   40BC         JC      ??frame802154_parse_6
+    301                p += 8;
+   \   000215   E5..         MOV     A,?V0 + 0
+   \   000217   2408         ADD     A,#0x8
+   \   000219   F5..         MOV     ?V0 + 0,A
+   \   00021B   E5..         MOV     A,?V0 + 1
+   \   00021D   3400         ADDC    A,#0x0
+   \   00021F   F5..         MOV     ?V0 + 1,A
+   \   000221   8023         SJMP    ??frame802154_parse_4
+    302              }
+    303            } else {
+    304              rimeaddr_copy((rimeaddr_t *)&(pf->dest_addr), &rimeaddr_null);
+   \                     ??frame802154_parse_2:
+   \   000223                ; Setup parameters for call to function rimeaddr_copy
+   \   000223   7C..         MOV     R4,#rimeaddr_null & 0xff
+   \   000225   7D..         MOV     R5,#(rimeaddr_null >> 8) & 0xff
+   \   000227   EE           MOV     A,R6
+   \   000228   240B         ADD     A,#0xb
+   \   00022A   FA           MOV     R2,A
+   \   00022B   EF           MOV     A,R7
+   \   00022C   3400         ADDC    A,#0x0
+   \   00022E   FB           MOV     R3,A
+   \   00022F   12....       LCALL   ??rimeaddr_copy?relay
+    305              pf->dest_pid = 0;
+   \   000232   8E82         MOV     DPL,R6
+   \   000234   8F83         MOV     DPH,R7
+   \   000236   A3           INC     DPTR
+   \   000237   A3           INC     DPTR
+   \   000238   A3           INC     DPTR
+   \   000239   A3           INC     DPTR
+   \   00023A   A3           INC     DPTR
+   \   00023B   A3           INC     DPTR
+   \   00023C   A3           INC     DPTR
+   \   00023D   A3           INC     DPTR
+   \   00023E   A3           INC     DPTR
+   \   00023F   7400         MOV     A,#0x0
+   \   000241   F0           MOVX    @DPTR,A
+   \   000242   A3           INC     DPTR
+   \   000243   7400         MOV     A,#0x0
+   \   000245   F0           MOVX    @DPTR,A
+    306            }
+    307          
+    308            /* Source address, if any */
+    309            if(fcf.src_addr_mode) {
+   \                     ??frame802154_parse_4:
+   \   000246   7407         MOV     A,#0x7
+   \   000248   12....       LCALL   ?XSTACK_DISP0_8
+   \   00024B   E0           MOVX    A,@DPTR
+   \   00024C   7003         JNZ     $+5
+   \   00024E   02....       LJMP    ??frame802154_parse_7 & 0xFFFF
+    310              /* Source PAN */
+    311              if(!fcf.panid_compression) {
+   \   000251   7404         MOV     A,#0x4
+   \   000253   12....       LCALL   ?XSTACK_DISP0_8
+   \   000256   E0           MOVX    A,@DPTR
+   \   000257   703B         JNZ     ??frame802154_parse_8
+    312                pf->src_pid = p[0] + (p[1] << 8);
+   \   000259   85..82       MOV     DPL,?V0 + 0
+   \   00025C   85..83       MOV     DPH,?V0 + 1
+   \   00025F   E0           MOVX    A,@DPTR
+   \   000260   FA           MOV     R2,A
+   \   000261   7B00         MOV     R3,#0x0
+   \   000263   85..82       MOV     DPL,?V0 + 0
+   \   000266   85..83       MOV     DPH,?V0 + 1
+   \   000269   A3           INC     DPTR
+   \   00026A   E0           MOVX    A,@DPTR
+   \   00026B   F8           MOV     R0,A
+   \   00026C   7900         MOV     R1,#0x0
+   \   00026E   E4           CLR     A
+   \   00026F   C8           XCH     A,R0
+   \   000270   F9           MOV     R1,A
+   \   000271   EA           MOV     A,R2
+   \   000272   28           ADD     A,R0
+   \   000273   F8           MOV     R0,A
+   \   000274   EB           MOV     A,R3
+   \   000275   39           ADDC    A,R1
+   \   000276   F9           MOV     R1,A
+   \   000277   EE           MOV     A,R6
+   \   000278   2413         ADD     A,#0x13
+   \   00027A   F582         MOV     DPL,A
+   \   00027C   EF           MOV     A,R7
+   \   00027D   3400         ADDC    A,#0x0
+   \   00027F   F583         MOV     DPH,A
+   \   000281   E8           MOV     A,R0
+   \   000282   F0           MOVX    @DPTR,A
+   \   000283   A3           INC     DPTR
+   \   000284   E9           MOV     A,R1
+   \   000285   F0           MOVX    @DPTR,A
+    313                p += 2;
+   \   000286   E5..         MOV     A,?V0 + 0
+   \   000288   2402         ADD     A,#0x2
+   \   00028A   F5..         MOV     ?V0 + 0,A
+   \   00028C   E5..         MOV     A,?V0 + 1
+   \   00028E   3400         ADDC    A,#0x0
+   \   000290   F5..         MOV     ?V0 + 1,A
+   \   000292   8021         SJMP    ??frame802154_parse_9
+    314              } else {
+    315                pf->src_pid = pf->dest_pid;
+   \                     ??frame802154_parse_8:
+   \   000294   8E82         MOV     DPL,R6
+   \   000296   8F83         MOV     DPH,R7
+   \   000298   A3           INC     DPTR
+   \   000299   A3           INC     DPTR
+   \   00029A   A3           INC     DPTR
+   \   00029B   A3           INC     DPTR
+   \   00029C   A3           INC     DPTR
+   \   00029D   A3           INC     DPTR
+   \   00029E   A3           INC     DPTR
+   \   00029F   A3           INC     DPTR
+   \   0002A0   A3           INC     DPTR
+   \   0002A1   E0           MOVX    A,@DPTR
+   \   0002A2   F8           MOV     R0,A
+   \   0002A3   A3           INC     DPTR
+   \   0002A4   E0           MOVX    A,@DPTR
+   \   0002A5   F9           MOV     R1,A
+   \   0002A6   EE           MOV     A,R6
+   \   0002A7   2413         ADD     A,#0x13
+   \   0002A9   F582         MOV     DPL,A
+   \   0002AB   EF           MOV     A,R7
+   \   0002AC   3400         ADDC    A,#0x0
+   \   0002AE   F583         MOV     DPH,A
+   \   0002B0   E8           MOV     A,R0
+   \   0002B1   F0           MOVX    @DPTR,A
+   \   0002B2   A3           INC     DPTR
+   \   0002B3   E9           MOV     A,R1
+   \   0002B4   F0           MOVX    @DPTR,A
+    316              }
+    317          
+    318              /* Source address */
+    319          /*     l = addr_len(fcf.src_addr_mode); */
+    320          /*     for(c = 0; c < l; c++) { */
+    321          /*       pf->src_addr.u8[c] = p[l - c - 1]; */
+    322          /*     } */
+    323          /*     p += l; */
+    324              if(fcf.src_addr_mode == FRAME802154_SHORTADDRMODE) {
+   \                     ??frame802154_parse_9:
+   \   0002B5   7407         MOV     A,#0x7
+   \   0002B7   12....       LCALL   ?XSTACK_DISP0_8
+   \   0002BA   E0           MOVX    A,@DPTR
+   \   0002BB   6402         XRL     A,#0x2
+   \   0002BD   704B         JNZ     ??frame802154_parse_10
+    325                rimeaddr_copy((rimeaddr_t *)&(pf->src_addr), &rimeaddr_null);
+   \   0002BF                ; Setup parameters for call to function rimeaddr_copy
+   \   0002BF   7C..         MOV     R4,#rimeaddr_null & 0xff
+   \   0002C1   7D..         MOV     R5,#(rimeaddr_null >> 8) & 0xff
+   \   0002C3   EE           MOV     A,R6
+   \   0002C4   2415         ADD     A,#0x15
+   \   0002C6   FA           MOV     R2,A
+   \   0002C7   EF           MOV     A,R7
+   \   0002C8   3400         ADDC    A,#0x0
+   \   0002CA   FB           MOV     R3,A
+   \   0002CB   12....       LCALL   ??rimeaddr_copy?relay
+    326                pf->src_addr[0] = p[1];
+   \   0002CE   85..82       MOV     DPL,?V0 + 0
+   \   0002D1   85..83       MOV     DPH,?V0 + 1
+   \   0002D4   A3           INC     DPTR
+   \   0002D5   E0           MOVX    A,@DPTR
+   \   0002D6   C0E0         PUSH    A
+   \   0002D8   EE           MOV     A,R6
+   \   0002D9   2415         ADD     A,#0x15
+   \   0002DB   F582         MOV     DPL,A
+   \   0002DD   EF           MOV     A,R7
+   \   0002DE   3400         ADDC    A,#0x0
+   \   0002E0   F583         MOV     DPH,A
+   \   0002E2   D0E0         POP     A
+   \   0002E4   F0           MOVX    @DPTR,A
+    327                pf->src_addr[1] = p[0];
+   \   0002E5   85..82       MOV     DPL,?V0 + 0
+   \   0002E8   85..83       MOV     DPH,?V0 + 1
+   \   0002EB   E0           MOVX    A,@DPTR
+   \   0002EC   C0E0         PUSH    A
+   \   0002EE   EE           MOV     A,R6
+   \   0002EF   2416         ADD     A,#0x16
+   \   0002F1   F582         MOV     DPL,A
+   \   0002F3   EF           MOV     A,R7
+   \   0002F4   3400         ADDC    A,#0x0
+   \   0002F6   F583         MOV     DPH,A
+   \   0002F8   D0E0         POP     A
+   \   0002FA   F0           MOVX    @DPTR,A
+    328                p += 2;
+   \   0002FB   E5..         MOV     A,?V0 + 0
+   \   0002FD   2402         ADD     A,#0x2
+   \   0002FF   F5..         MOV     ?V0 + 0,A
+   \   000301   E5..         MOV     A,?V0 + 1
+   \   000303   3400         ADDC    A,#0x0
+   \   000305   F5..         MOV     ?V0 + 1,A
+   \   000307   02....       LJMP    ??frame802154_parse_11 & 0xFFFF
+    329              } else if(fcf.src_addr_mode == FRAME802154_LONGADDRMODE) {
+   \                     ??frame802154_parse_10:
+   \   00030A   7407         MOV     A,#0x7
+   \   00030C   12....       LCALL   ?XSTACK_DISP0_8
+   \   00030F   E0           MOVX    A,@DPTR
+   \   000310   6403         XRL     A,#0x3
+   \   000312   7078         JNZ     ??frame802154_parse_11
+    330                for(c = 0; c < 8; c++) {
+   \   000314   7800         MOV     R0,#0x0
+   \   000316   7900         MOV     R1,#0x0
+   \   000318   8036         SJMP    ??frame802154_parse_12
+    331                  pf->src_addr[c] = p[7 - c];
+   \                     ??frame802154_parse_13:
+   \   00031A   C3           CLR     C
+   \   00031B   E4           CLR     A
+   \   00031C   98           SUBB    A,R0
+   \   00031D   FA           MOV     R2,A
+   \   00031E   E4           CLR     A
+   \   00031F   99           SUBB    A,R1
+   \   000320   FB           MOV     R3,A
+   \   000321   E5..         MOV     A,?V0 + 0
+   \   000323   2A           ADD     A,R2
+   \   000324   F582         MOV     DPL,A
+   \   000326   E5..         MOV     A,?V0 + 1
+   \   000328   3B           ADDC    A,R3
+   \   000329   F583         MOV     DPH,A
+   \   00032B   A3           INC     DPTR
+   \   00032C   A3           INC     DPTR
+   \   00032D   A3           INC     DPTR
+   \   00032E   A3           INC     DPTR
+   \   00032F   A3           INC     DPTR
+   \   000330   A3           INC     DPTR
+   \   000331   A3           INC     DPTR
+   \   000332   E0           MOVX    A,@DPTR
+   \   000333   C0E0         PUSH    A
+   \   000335   EE           MOV     A,R6
+   \   000336   28           ADD     A,R0
+   \   000337   FA           MOV     R2,A
+   \   000338   EF           MOV     A,R7
+   \   000339   39           ADDC    A,R1
+   \   00033A   FB           MOV     R3,A
+   \   00033B   EA           MOV     A,R2
+   \   00033C   2415         ADD     A,#0x15
+   \   00033E   F582         MOV     DPL,A
+   \   000340   EB           MOV     A,R3
+   \   000341   3400         ADDC    A,#0x0
+   \   000343   F583         MOV     DPH,A
+   \   000345   D0E0         POP     A
+   \   000347   F0           MOVX    @DPTR,A
+    332                }
+   \   000348   E8           MOV     A,R0
+   \   000349   2401         ADD     A,#0x1
+   \   00034B   F8           MOV     R0,A
+   \   00034C   E9           MOV     A,R1
+   \   00034D   3400         ADDC    A,#0x0
+   \   00034F   F9           MOV     R1,A
+   \                     ??frame802154_parse_12:
+   \   000350   C3           CLR     C
+   \   000351   E8           MOV     A,R0
+   \   000352   9408         SUBB    A,#0x8
+   \   000354   E9           MOV     A,R1
+   \   000355   9400         SUBB    A,#0x0
+   \   000357   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000359   65D0         XRL     A,PSW
+   \   00035B   33           RLC     A
+   \   00035C   40BC         JC      ??frame802154_parse_13
+    333                p += 8;
+   \   00035E   E5..         MOV     A,?V0 + 0
+   \   000360   2408         ADD     A,#0x8
+   \   000362   F5..         MOV     ?V0 + 0,A
+   \   000364   E5..         MOV     A,?V0 + 1
+   \   000366   3400         ADDC    A,#0x0
+   \   000368   F5..         MOV     ?V0 + 1,A
+   \   00036A   8020         SJMP    ??frame802154_parse_11
+    334              }
+    335            } else {
+    336              rimeaddr_copy((rimeaddr_t *)&(pf->src_addr), &rimeaddr_null);
+   \                     ??frame802154_parse_7:
+   \   00036C                ; Setup parameters for call to function rimeaddr_copy
+   \   00036C   7C..         MOV     R4,#rimeaddr_null & 0xff
+   \   00036E   7D..         MOV     R5,#(rimeaddr_null >> 8) & 0xff
+   \   000370   EE           MOV     A,R6
+   \   000371   2415         ADD     A,#0x15
+   \   000373   FA           MOV     R2,A
+   \   000374   EF           MOV     A,R7
+   \   000375   3400         ADDC    A,#0x0
+   \   000377   FB           MOV     R3,A
+   \   000378   12....       LCALL   ??rimeaddr_copy?relay
+    337              pf->src_pid = 0;
+   \   00037B   EE           MOV     A,R6
+   \   00037C   2413         ADD     A,#0x13
+   \   00037E   F582         MOV     DPL,A
+   \   000380   EF           MOV     A,R7
+   \   000381   3400         ADDC    A,#0x0
+   \   000383   F583         MOV     DPH,A
+   \   000385   7400         MOV     A,#0x0
+   \   000387   F0           MOVX    @DPTR,A
+   \   000388   A3           INC     DPTR
+   \   000389   7400         MOV     A,#0x0
+   \   00038B   F0           MOVX    @DPTR,A
+    338            }
+    339          
+    340            if(fcf.security_enabled) {
+    341              /* TODO aux security header, not yet implemented */
+    342          /*     return 0; */
+    343            }
+    344          
+    345            /* header length */
+    346            c = p - data;
+   \                     ??frame802154_parse_11:
+   \   00038C   E5..         MOV     A,?V0 + 0
+   \   00038E   C3           CLR     C
+   \   00038F   95..         SUBB    A,?V0 + 4
+   \   000391   F8           MOV     R0,A
+   \   000392   E5..         MOV     A,?V0 + 1
+   \   000394   95..         SUBB    A,?V0 + 5
+   \   000396   F9           MOV     R1,A
+    347            /* payload length */
+    348            pf->payload_len = (uint8_t)(0xff & (len - c));
+   \   000397   E8           MOV     A,R0
+   \   000398   FA           MOV     R2,A
+   \   000399   E5..         MOV     A,?V0 + 2
+   \   00039B   C3           CLR     C
+   \   00039C   9A           SUBB    A,R2
+   \   00039D   C0E0         PUSH    A
+   \   00039F   EE           MOV     A,R6
+   \   0003A0   242F         ADD     A,#0x2f
+   \   0003A2   F582         MOV     DPL,A
+   \   0003A4   EF           MOV     A,R7
+   \   0003A5   3400         ADDC    A,#0x0
+   \   0003A7   F583         MOV     DPH,A
+   \   0003A9   D0E0         POP     A
+   \   0003AB   F0           MOVX    @DPTR,A
+    349            /* payload */
+    350            pf->payload = p;
+   \   0003AC   EE           MOV     A,R6
+   \   0003AD   242D         ADD     A,#0x2d
+   \   0003AF   F582         MOV     DPL,A
+   \   0003B1   EF           MOV     A,R7
+   \   0003B2   3400         ADDC    A,#0x0
+   \   0003B4   F583         MOV     DPH,A
+   \   0003B6   E5..         MOV     A,?V0 + 0
+   \   0003B8   F0           MOVX    @DPTR,A
+   \   0003B9   A3           INC     DPTR
+   \   0003BA   E5..         MOV     A,?V0 + 1
+   \   0003BC   F0           MOVX    @DPTR,A
+    351          
+    352            /* return header length if successful */
+    353            return c > len ? 0 : c;
+   \   0003BD   C3           CLR     C
+   \   0003BE   E5..         MOV     A,?V0 + 2
+   \   0003C0   98           SUBB    A,R0
+   \   0003C1   E5..         MOV     A,?V0 + 3
+   \   0003C3   99           SUBB    A,R1
+   \   0003C4   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   0003C6   65D0         XRL     A,PSW
+   \   0003C8   33           RLC     A
+   \   0003C9   5006         JNC     ??frame802154_parse_14
+   \   0003CB   7A00         MOV     R2,#0x0
+   \   0003CD   7B00         MOV     R3,#0x0
+   \   0003CF   8004         SJMP    ??frame802154_parse_1
+   \                     ??frame802154_parse_14:
+   \   0003D1   E8           MOV     A,R0
+   \   0003D2   FA           MOV     R2,A
+   \   0003D3   E9           MOV     A,R1
+   \   0003D4   FB           MOV     R3,A
+   \                     ??frame802154_parse_1:
+   \   0003D5   7408         MOV     A,#0x8
+   \   0003D7   12....       LCALL   ?DEALLOC_XSTACK8
+   \   0003DA   7F08         MOV     R7,#0x8
+   \   0003DC   02....       LJMP    ?BANKED_LEAVE_XDATA
+    354          }
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??addr_len?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    addr_len
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??field_len?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    field_len
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??frame802154_hdrlen?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    frame802154_hdrlen
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??frame802154_create?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    frame802154_create
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??frame802154_parse?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    frame802154_parse
+    355          /** \}   */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     12  addr_len
+       1      0     31  field_len
+                          0 0 12 -> addr_len
+                          0 0 14 -> memset
+       1      0     19  frame802154_create
+                          0 0 17 -> field_len
+       2      0      5  frame802154_hdrlen
+                          2 0  5 -> field_len
+       1      0     28  frame802154_parse
+                          0 0 26 -> memcpy
+                          0 0 24 -> rimeaddr_copy
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??addr_len?relay
+       6  ??field_len?relay
+       6  ??frame802154_create?relay
+       6  ??frame802154_hdrlen?relay
+       6  ??frame802154_parse?relay
+      24  addr_len
+     261  field_len
+     667  frame802154_create
+     112  frame802154_hdrlen
+     991  frame802154_parse
+
+ 
+ 2 055 bytes in segment BANKED_CODE
+    30 bytes in segment BANK_RELAYS
+ 
+ 2 085 bytes of CODE memory
+
+Errors: none
+Warnings: none

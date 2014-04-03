@@ -1,0 +1,613 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:55 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\uiplib.c                 #
+#    Command line       =  D:\myWork\myWork\core\net\uiplib.c -D              #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\uiplib.lst                                  #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\uiplib.r51                                   #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\uiplib.c
+      1          /*
+      2           * Copyright (c) 2004, Adam Dunkels and the Swedish Institute of
+      3           * Computer Science.
+      4           * All rights reserved.
+      5           *
+      6           * Redistribution and use in source and binary forms, with or without 
+      7           * modification, are permitted provided that the following conditions 
+      8           * are met: 
+      9           * 1. Redistributions of source code must retain the above copyright 
+     10           *    notice, this list of conditions and the following disclaimer. 
+     11           * 2. Redistributions in binary form must reproduce the above copyright 
+     12           *    notice, this list of conditions and the following disclaimer in the 
+     13           *    documentation and/or other materials provided with the distribution. 
+     14           * 3. The name of the author may not be used to endorse or promote
+     15           *    products derived from this software without specific prior
+     16           *    written permission.  
+     17           *
+     18           * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+     19           * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+     20           * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     21           * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+     22           * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     23           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+     24           * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+     25           * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+     26           * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+     27           * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+     28           * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+     29           *
+     30           * This file is part of the uIP TCP/IP stack and the Contiki operating system.
+     31           *
+     32           *
+     33           */
+     34          
+     35          
+     36          #include "net/uip.h"
+     37          #include "net/uiplib.h"
+     38          #include <string.h>
+     39          
+     40          #define DEBUG DEBUG_NONE
+     41          #include "net/uip-debug.h"
+     42          
+     43          /*-----------------------------------------------------------------------------------*/
+     44          #if UIP_CONF_IPV6
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     45          int
+     46          uiplib_ip6addrconv(const char *addrstr, uip_ip6addr_t *ipaddr)
+   \                     uiplib_ip6addrconv:
+     47          {
+   \   000000   74EF         MOV     A,#-0x11
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 17
+   \   000005                ; Auto size: 0
+   \   000005   EC           MOV     A,R4
+   \   000006   FE           MOV     R6,A
+   \   000007   ED           MOV     A,R5
+   \   000008   FF           MOV     R7,A
+     48            uint16_t value;
+     49            int tmp, zero;
+     50            unsigned int len;
+     51            char c = 0;  //gcc warning if not initialized
+   \   000009   75..00       MOV     ?V0 + 8,#0x0
+     52          
+     53            value = 0;
+   \   00000C   75..00       MOV     ?V0 + 4,#0x0
+   \   00000F   75..00       MOV     ?V0 + 5,#0x0
+     54            zero = -1;
+   \   000012   75..FF       MOV     ?V0 + 2,#-0x1
+   \   000015   75..FF       MOV     ?V0 + 3,#-0x1
+     55            if(*addrstr == '[') addrstr++;
+   \   000018   8A82         MOV     DPL,R2
+   \   00001A   8B83         MOV     DPH,R3
+   \   00001C   E0           MOVX    A,@DPTR
+   \   00001D   645B         XRL     A,#0x5b
+   \   00001F   7009         JNZ     ??uiplib_ip6addrconv_0
+   \   000021   8A82         MOV     DPL,R2
+   \   000023   8B83         MOV     DPH,R3
+   \   000025   A3           INC     DPTR
+   \   000026   AA82         MOV     R2,DPL
+   \   000028   AB83         MOV     R3,DPH
+     56          
+     57            for(len = 0; len < sizeof(uip_ip6addr_t) - 1; addrstr++) {
+   \                     ??uiplib_ip6addrconv_0:
+   \   00002A   75..00       MOV     ?V0 + 0,#0x0
+   \   00002D   75..00       MOV     ?V0 + 1,#0x0
+   \   000030   806A         SJMP    ??uiplib_ip6addrconv_1
+     58              c = *addrstr;
+     59              if(c == ':' || c == '\0' || c == ']' || c == '/') {
+     60                ipaddr->u8[len] = (value >> 8) & 0xff;
+     61                ipaddr->u8[len + 1] = value & 0xff;
+     62                len += 2;
+     63                value = 0;
+     64          
+     65                if(c == '\0' || c == ']' || c == '/') {
+     66                  break;
+     67                }
+     68          
+     69                if(*(addrstr + 1) == ':') {
+   \                     ??uiplib_ip6addrconv_2:
+   \   000032   8A82         MOV     DPL,R2
+   \   000034   8B83         MOV     DPH,R3
+   \   000036   A3           INC     DPTR
+   \   000037   E0           MOVX    A,@DPTR
+   \   000038   643A         XRL     A,#0x3a
+   \   00003A   7057         JNZ     ??uiplib_ip6addrconv_3
+     70                  /* Zero compression */
+     71                  if(zero < 0) {
+   \   00003C   C3           CLR     C
+   \   00003D   E5..         MOV     A,?V0 + 2
+   \   00003F   9400         SUBB    A,#0x0
+   \   000041   E5..         MOV     A,?V0 + 3
+   \   000043   9400         SUBB    A,#0x0
+   \   000045   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000047   65D0         XRL     A,PSW
+   \   000049   33           RLC     A
+   \   00004A   5006         JNC     ??uiplib_ip6addrconv_4
+     72                    zero = len;
+   \   00004C   85....       MOV     ?V0 + 2,?V0 + 0
+   \   00004F   85....       MOV     ?V0 + 3,?V0 + 1
+     73                  }
+     74                  addrstr++;
+   \                     ??uiplib_ip6addrconv_4:
+   \   000052   8A82         MOV     DPL,R2
+   \   000054   8B83         MOV     DPH,R3
+   \   000056   A3           INC     DPTR
+   \   000057   AA82         MOV     R2,DPL
+   \   000059   AB83         MOV     R3,DPH
+   \   00005B   8036         SJMP    ??uiplib_ip6addrconv_3
+     75                }
+     76              } else {
+     77                if(c >= '0' && c <= '9') {
+   \                     ??uiplib_ip6addrconv_5:
+   \   00005D   E5..         MOV     A,?V0 + 8
+   \   00005F   C3           CLR     C
+   \   000060   9430         SUBB    A,#0x30
+   \   000062   C3           CLR     C
+   \   000063   940A         SUBB    A,#0xa
+   \   000065   4003         JC      $+5
+   \   000067   02....       LJMP    ??uiplib_ip6addrconv_6 & 0xFFFF
+     78                  tmp = c - '0';
+   \   00006A   85....       MOV     ?V0 + 6,?V0 + 8
+   \   00006D   75..00       MOV     ?V0 + 7,#0x0
+   \   000070   E5..         MOV     A,?V0 + 6
+   \   000072   24D0         ADD     A,#-0x30
+   \   000074   FC           MOV     R4,A
+   \   000075   E5..         MOV     A,?V0 + 7
+   \   000077   34FF         ADDC    A,#-0x1
+   \   000079   FD           MOV     R5,A
+     79                } else if(c >= 'a' && c <= 'f') {
+     80                  tmp = c - 'a' + 10;
+     81                } else if(c >= 'A' && c <= 'F') {
+     82                  tmp = c - 'A' + 10;
+     83                } else {
+     84                  PRINTF("uiplib: illegal char: '%c'\n", c);
+     85                  return 0;
+     86                }
+     87                value = (value << 4) + (tmp & 0xf);
+   \                     ??uiplib_ip6addrconv_7:
+   \   00007A   7404         MOV     A,#0x4
+   \   00007C   78..         MOV     R0,#?V0 + 4
+   \   00007E   12....       LCALL   ?S_SHL
+   \   000081   EC           MOV     A,R4
+   \   000082   540F         ANL     A,#0xf
+   \   000084   F8           MOV     R0,A
+   \   000085   ED           MOV     A,R5
+   \   000086   5400         ANL     A,#0x0
+   \   000088   F9           MOV     R1,A
+   \   000089   E5..         MOV     A,?V0 + 4
+   \   00008B   28           ADD     A,R0
+   \   00008C   F5..         MOV     ?V0 + 4,A
+   \   00008E   E5..         MOV     A,?V0 + 5
+   \   000090   39           ADDC    A,R1
+   \   000091   F5..         MOV     ?V0 + 5,A
+   \                     ??uiplib_ip6addrconv_3:
+   \   000093   8A82         MOV     DPL,R2
+   \   000095   8B83         MOV     DPH,R3
+   \   000097   A3           INC     DPTR
+   \   000098   AA82         MOV     R2,DPL
+   \   00009A   AB83         MOV     R3,DPH
+   \                     ??uiplib_ip6addrconv_1:
+   \   00009C   C3           CLR     C
+   \   00009D   E5..         MOV     A,?V0 + 0
+   \   00009F   940F         SUBB    A,#0xf
+   \   0000A1   E5..         MOV     A,?V0 + 1
+   \   0000A3   9400         SUBB    A,#0x0
+   \   0000A5   506A         JNC     ??uiplib_ip6addrconv_8
+   \   0000A7   8A82         MOV     DPL,R2
+   \   0000A9   8B83         MOV     DPH,R3
+   \   0000AB   E0           MOVX    A,@DPTR
+   \   0000AC   F5..         MOV     ?V0 + 8,A
+   \   0000AE   743A         MOV     A,#0x3a
+   \   0000B0   65..         XRL     A,?V0 + 8
+   \   0000B2   6010         JZ      ??uiplib_ip6addrconv_9
+   \   0000B4   E5..         MOV     A,?V0 + 8
+   \   0000B6   600C         JZ      ??uiplib_ip6addrconv_9
+   \   0000B8   745D         MOV     A,#0x5d
+   \   0000BA   65..         XRL     A,?V0 + 8
+   \   0000BC   6006         JZ      ??uiplib_ip6addrconv_9
+   \   0000BE   742F         MOV     A,#0x2f
+   \   0000C0   65..         XRL     A,?V0 + 8
+   \   0000C2   7099         JNZ     ??uiplib_ip6addrconv_5
+   \                     ??uiplib_ip6addrconv_9:
+   \   0000C4   A8..         MOV     R0,?V0 + 4
+   \   0000C6   A9..         MOV     R1,?V0 + 5
+   \   0000C8   E4           CLR     A
+   \   0000C9   E5..         MOV     A,?V0 + 5
+   \   0000CB   A8..         MOV     R0,?V0 + 5
+   \   0000CD   E5..         MOV     A,?V0 + 5
+   \   0000CF   EE           MOV     A,R6
+   \   0000D0   25..         ADD     A,?V0 + 0
+   \   0000D2   F582         MOV     DPL,A
+   \   0000D4   EF           MOV     A,R7
+   \   0000D5   35..         ADDC    A,?V0 + 1
+   \   0000D7   F583         MOV     DPH,A
+   \   0000D9   E5..         MOV     A,?V0 + 5
+   \   0000DB   F0           MOVX    @DPTR,A
+   \   0000DC   E5..         MOV     A,?V0 + 4
+   \   0000DE   EE           MOV     A,R6
+   \   0000DF   25..         ADD     A,?V0 + 0
+   \   0000E1   F582         MOV     DPL,A
+   \   0000E3   EF           MOV     A,R7
+   \   0000E4   35..         ADDC    A,?V0 + 1
+   \   0000E6   F583         MOV     DPH,A
+   \   0000E8   A3           INC     DPTR
+   \   0000E9   E5..         MOV     A,?V0 + 4
+   \   0000EB   F0           MOVX    @DPTR,A
+   \   0000EC   E5..         MOV     A,?V0 + 0
+   \   0000EE   2402         ADD     A,#0x2
+   \   0000F0   F5..         MOV     ?V0 + 0,A
+   \   0000F2   E5..         MOV     A,?V0 + 1
+   \   0000F4   3400         ADDC    A,#0x0
+   \   0000F6   F5..         MOV     ?V0 + 1,A
+   \   0000F8   75..00       MOV     ?V0 + 4,#0x0
+   \   0000FB   75..00       MOV     ?V0 + 5,#0x0
+   \   0000FE   E5..         MOV     A,?V0 + 8
+   \   000100   600F         JZ      ??uiplib_ip6addrconv_8
+   \   000102   745D         MOV     A,#0x5d
+   \   000104   65..         XRL     A,?V0 + 8
+   \   000106   6009         JZ      ??uiplib_ip6addrconv_8
+   \   000108   742F         MOV     A,#0x2f
+   \   00010A   65..         XRL     A,?V0 + 8
+   \   00010C   6003         JZ      $+5
+   \   00010E   02....       LJMP    ??uiplib_ip6addrconv_2 & 0xFFFF
+     88              }
+     89            }
+     90            if(c != '\0' && c != ']' && c != '/') {
+   \                     ??uiplib_ip6addrconv_8:
+   \   000111   E5..         MOV     A,?V0 + 8
+   \   000113   6054         JZ      ??uiplib_ip6addrconv_10
+   \   000115   745D         MOV     A,#0x5d
+   \   000117   65..         XRL     A,?V0 + 8
+   \   000119   604E         JZ      ??uiplib_ip6addrconv_10
+   \   00011B   742F         MOV     A,#0x2f
+   \   00011D   65..         XRL     A,?V0 + 8
+   \   00011F   6048         JZ      ??uiplib_ip6addrconv_10
+     91              PRINTF("uiplib: too large address\n");
+     92              return 0;
+   \   000121   7A00         MOV     R2,#0x0
+   \   000123   7B00         MOV     R3,#0x0
+   \   000125   02....       LJMP    ??uiplib_ip6addrconv_11 & 0xFFFF
+     93            }
+   \                     ??uiplib_ip6addrconv_6:
+   \   000128   E5..         MOV     A,?V0 + 8
+   \   00012A   C3           CLR     C
+   \   00012B   9461         SUBB    A,#0x61
+   \   00012D   C3           CLR     C
+   \   00012E   9406         SUBB    A,#0x6
+   \   000130   5013         JNC     ??uiplib_ip6addrconv_12
+   \   000132   85....       MOV     ?V0 + 6,?V0 + 8
+   \   000135   75..00       MOV     ?V0 + 7,#0x0
+   \   000138   E5..         MOV     A,?V0 + 6
+   \   00013A   24A9         ADD     A,#-0x57
+   \   00013C   FC           MOV     R4,A
+   \   00013D   E5..         MOV     A,?V0 + 7
+   \   00013F   34FF         ADDC    A,#-0x1
+   \   000141   FD           MOV     R5,A
+   \   000142   02....       LJMP    ??uiplib_ip6addrconv_7 & 0xFFFF
+   \                     ??uiplib_ip6addrconv_12:
+   \   000145   E5..         MOV     A,?V0 + 8
+   \   000147   C3           CLR     C
+   \   000148   9441         SUBB    A,#0x41
+   \   00014A   C3           CLR     C
+   \   00014B   9406         SUBB    A,#0x6
+   \   00014D   5013         JNC     ??uiplib_ip6addrconv_13
+   \   00014F   85....       MOV     ?V0 + 6,?V0 + 8
+   \   000152   75..00       MOV     ?V0 + 7,#0x0
+   \   000155   E5..         MOV     A,?V0 + 6
+   \   000157   24C9         ADD     A,#-0x37
+   \   000159   FC           MOV     R4,A
+   \   00015A   E5..         MOV     A,?V0 + 7
+   \   00015C   34FF         ADDC    A,#-0x1
+   \   00015E   FD           MOV     R5,A
+   \   00015F   02....       LJMP    ??uiplib_ip6addrconv_7 & 0xFFFF
+   \                     ??uiplib_ip6addrconv_13:
+   \   000162   7A00         MOV     R2,#0x0
+   \   000164   7B00         MOV     R3,#0x0
+   \   000166   02....       LJMP    ??uiplib_ip6addrconv_11 & 0xFFFF
+     94            if(len < sizeof(uip_ip6addr_t)) {
+   \                     ??uiplib_ip6addrconv_10:
+   \   000169   C3           CLR     C
+   \   00016A   E5..         MOV     A,?V0 + 0
+   \   00016C   9410         SUBB    A,#0x10
+   \   00016E   E5..         MOV     A,?V0 + 1
+   \   000170   9400         SUBB    A,#0x0
+   \   000172   5077         JNC     ??uiplib_ip6addrconv_14
+     95              if(zero < 0) {
+   \   000174   C3           CLR     C
+   \   000175   E5..         MOV     A,?V0 + 2
+   \   000177   9400         SUBB    A,#0x0
+   \   000179   E5..         MOV     A,?V0 + 3
+   \   00017B   9400         SUBB    A,#0x0
+   \   00017D   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   00017F   65D0         XRL     A,PSW
+   \   000181   33           RLC     A
+   \   000182   5006         JNC     ??uiplib_ip6addrconv_15
+     96                PRINTF("uiplib: too short address\n");
+     97                return 0;
+   \   000184   7A00         MOV     R2,#0x0
+   \   000186   7B00         MOV     R3,#0x0
+   \   000188   8065         SJMP    ??uiplib_ip6addrconv_11
+     98              }
+     99              memmove(&ipaddr->u8[zero + sizeof(uip_ip6addr_t) - len],
+    100                      &ipaddr->u8[zero], len - zero);
+   \                     ??uiplib_ip6addrconv_15:
+   \   00018A                ; Setup parameters for call to function memmove
+   \   00018A   E5..         MOV     A,?V0 + 0
+   \   00018C   C3           CLR     C
+   \   00018D   95..         SUBB    A,?V0 + 2
+   \   00018F   F5..         MOV     ?V0 + 4,A
+   \   000191   E5..         MOV     A,?V0 + 1
+   \   000193   95..         SUBB    A,?V0 + 3
+   \   000195   F5..         MOV     ?V0 + 5,A
+   \   000197   78..         MOV     R0,#?V0 + 4
+   \   000199   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00019C   EE           MOV     A,R6
+   \   00019D   25..         ADD     A,?V0 + 2
+   \   00019F   FC           MOV     R4,A
+   \   0001A0   EF           MOV     A,R7
+   \   0001A1   35..         ADDC    A,?V0 + 3
+   \   0001A3   FD           MOV     R5,A
+   \   0001A4   E5..         MOV     A,?V0 + 2
+   \   0001A6   2410         ADD     A,#0x10
+   \   0001A8   F8           MOV     R0,A
+   \   0001A9   E5..         MOV     A,?V0 + 3
+   \   0001AB   3400         ADDC    A,#0x0
+   \   0001AD   F9           MOV     R1,A
+   \   0001AE   E8           MOV     A,R0
+   \   0001AF   C3           CLR     C
+   \   0001B0   95..         SUBB    A,?V0 + 0
+   \   0001B2   F8           MOV     R0,A
+   \   0001B3   E9           MOV     A,R1
+   \   0001B4   95..         SUBB    A,?V0 + 1
+   \   0001B6   F9           MOV     R1,A
+   \   0001B7   EE           MOV     A,R6
+   \   0001B8   28           ADD     A,R0
+   \   0001B9   FA           MOV     R2,A
+   \   0001BA   EF           MOV     A,R7
+   \   0001BB   39           ADDC    A,R1
+   \   0001BC   FB           MOV     R3,A
+   \   0001BD   12....       LCALL   ??memmove?relay
+   \   0001C0   7402         MOV     A,#0x2
+   \   0001C2   12....       LCALL   ?DEALLOC_XSTACK8
+    101              memset(&ipaddr->u8[zero], 0, sizeof(uip_ip6addr_t) - len);
+   \   0001C5                ; Setup parameters for call to function memset
+   \   0001C5   7410         MOV     A,#0x10
+   \   0001C7   C3           CLR     C
+   \   0001C8   95..         SUBB    A,?V0 + 0
+   \   0001CA   F5..         MOV     ?V0 + 0,A
+   \   0001CC   7400         MOV     A,#0x0
+   \   0001CE   95..         SUBB    A,?V0 + 1
+   \   0001D0   F5..         MOV     ?V0 + 1,A
+   \   0001D2   78..         MOV     R0,#?V0 + 0
+   \   0001D4   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0001D7   7C00         MOV     R4,#0x0
+   \   0001D9   7D00         MOV     R5,#0x0
+   \   0001DB   EE           MOV     A,R6
+   \   0001DC   25..         ADD     A,?V0 + 2
+   \   0001DE   FA           MOV     R2,A
+   \   0001DF   EF           MOV     A,R7
+   \   0001E0   35..         ADDC    A,?V0 + 3
+   \   0001E2   FB           MOV     R3,A
+   \   0001E3   12....       LCALL   ??memset?relay
+   \   0001E6   7402         MOV     A,#0x2
+   \   0001E8   12....       LCALL   ?DEALLOC_XSTACK8
+    102            }
+    103          
+    104            return 1;
+   \                     ??uiplib_ip6addrconv_14:
+   \   0001EB   7A01         MOV     R2,#0x1
+   \   0001ED   7B00         MOV     R3,#0x0
+   \                     ??uiplib_ip6addrconv_11:
+   \   0001EF   7F09         MOV     R7,#0x9
+   \   0001F1   02....       LJMP    ?BANKED_LEAVE_XDATA
+    105          }
+    106          #endif /* UIP_CONF_IPV6 */
+    107          /*-----------------------------------------------------------------------------------*/
+    108          /* Parse a IPv4-address from a string. Returns the number of characters read 
+    109           * for the address. */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    110          int
+    111          uiplib_ip4addrconv(const char *addrstr, uip_ip4addr_t *ipaddr)
+   \                     uiplib_ip4addrconv:
+    112          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+    113            unsigned char tmp;
+    114            char c;
+    115            unsigned char i, j;
+    116            uint8_t charsread = 0;
+   \   000005   75..00       MOV     ?V0 + 2,#0x0
+    117          
+    118            tmp = 0;
+   \   000008   7E00         MOV     R6,#0x0
+    119          
+    120            for(i = 0; i < 4; ++i) {
+   \   00000A   7900         MOV     R1,#0x0
+   \   00000C   803D         SJMP    ??uiplib_ip4addrconv_0
+    121              j = 0;
+    122              do {
+    123                c = *addrstr;
+    124                ++j;
+    125                if(j > 4) {
+    126                  return 0;
+    127                }
+    128                if(c == '.' || c == 0 || c == ' ') {
+   \                     ??uiplib_ip4addrconv_1:
+   \   00000E   742E         MOV     A,#0x2e
+   \   000010   6F           XRL     A,R7
+   \   000011   6008         JZ      ??uiplib_ip4addrconv_2
+   \   000013   EF           MOV     A,R7
+   \   000014   6005         JZ      ??uiplib_ip4addrconv_2
+   \   000016   7420         MOV     A,#0x20
+   \   000018   6F           XRL     A,R7
+   \   000019   704B         JNZ     ??uiplib_ip4addrconv_3
+    129                  ipaddr->u8[i] = tmp;
+   \                     ??uiplib_ip4addrconv_2:
+   \   00001B   EE           MOV     A,R6
+   \   00001C   C0E0         PUSH    A
+   \   00001E   89..         MOV     ?V0 + 0,R1
+   \   000020   75..00       MOV     ?V0 + 1,#0x0
+   \   000023   EC           MOV     A,R4
+   \   000024   25..         ADD     A,?V0 + 0
+   \   000026   F582         MOV     DPL,A
+   \   000028   ED           MOV     A,R5
+   \   000029   35..         ADDC    A,?V0 + 1
+   \   00002B   F583         MOV     DPH,A
+   \   00002D   D0E0         POP     A
+   \   00002F   F0           MOVX    @DPTR,A
+    130                  tmp = 0;
+   \   000030   7E00         MOV     R6,#0x0
+    131                } else if(c >= '0' && c <= '9') {
+    132                	tmp = (tmp * 10) + (c - '0');
+    133                } else {
+    134                  return 0;
+    135                }
+    136                ++addrstr;
+   \                     ??uiplib_ip4addrconv_4:
+   \   000032   8A82         MOV     DPL,R2
+   \   000034   8B83         MOV     DPH,R3
+   \   000036   A3           INC     DPTR
+   \   000037   AA82         MOV     R2,DPL
+   \   000039   AB83         MOV     R3,DPH
+    137                ++charsread;
+   \   00003B   05..         INC     ?V0 + 2
+    138              } while(c != '.' && c != 0 && c != ' ');
+   \   00003D   742E         MOV     A,#0x2e
+   \   00003F   6F           XRL     A,R7
+   \   000040   6008         JZ      ??uiplib_ip4addrconv_5
+   \   000042   EF           MOV     A,R7
+   \   000043   6005         JZ      ??uiplib_ip4addrconv_5
+   \   000045   7420         MOV     A,#0x20
+   \   000047   6F           XRL     A,R7
+   \   000048   7009         JNZ     ??uiplib_ip4addrconv_6
+   \                     ??uiplib_ip4addrconv_5:
+   \   00004A   09           INC     R1
+   \                     ??uiplib_ip4addrconv_0:
+   \   00004B   E9           MOV     A,R1
+   \   00004C   C3           CLR     C
+   \   00004D   9404         SUBB    A,#0x4
+   \   00004F   502F         JNC     ??uiplib_ip4addrconv_7
+   \   000051   7800         MOV     R0,#0x0
+   \                     ??uiplib_ip4addrconv_6:
+   \   000053   8A82         MOV     DPL,R2
+   \   000055   8B83         MOV     DPH,R3
+   \   000057   E0           MOVX    A,@DPTR
+   \   000058   FF           MOV     R7,A
+   \   000059   08           INC     R0
+   \   00005A   E8           MOV     A,R0
+   \   00005B   C3           CLR     C
+   \   00005C   9405         SUBB    A,#0x5
+   \   00005E   40AE         JC      ??uiplib_ip4addrconv_1
+   \   000060   7A00         MOV     R2,#0x0
+   \   000062   7B00         MOV     R3,#0x0
+   \   000064   8027         SJMP    ??uiplib_ip4addrconv_8
+   \                     ??uiplib_ip4addrconv_3:
+   \   000066   EF           MOV     A,R7
+   \   000067   C3           CLR     C
+   \   000068   9430         SUBB    A,#0x30
+   \   00006A   C3           CLR     C
+   \   00006B   940A         SUBB    A,#0xa
+   \   00006D   500B         JNC     ??uiplib_ip4addrconv_9
+   \   00006F   75F00A       MOV     B,#0xa
+   \   000072   EE           MOV     A,R6
+   \   000073   A4           MUL     AB
+   \   000074   2F           ADD     A,R7
+   \   000075   24D0         ADD     A,#-0x30
+   \   000077   FE           MOV     R6,A
+   \   000078   80B8         SJMP    ??uiplib_ip4addrconv_4
+   \                     ??uiplib_ip4addrconv_9:
+   \   00007A   7A00         MOV     R2,#0x0
+   \   00007C   7B00         MOV     R3,#0x0
+   \   00007E   800D         SJMP    ??uiplib_ip4addrconv_8
+    139          
+    140            }
+    141            return charsread-1;
+   \                     ??uiplib_ip4addrconv_7:
+   \   000080   75..00       MOV     ?V0 + 3,#0x0
+   \   000083   E5..         MOV     A,?V0 + 2
+   \   000085   24FF         ADD     A,#-0x1
+   \   000087   FA           MOV     R2,A
+   \   000088   E5..         MOV     A,?V0 + 3
+   \   00008A   34FF         ADDC    A,#-0x1
+   \   00008C   FB           MOV     R3,A
+   \                     ??uiplib_ip4addrconv_8:
+   \   00008D   7F04         MOV     R7,#0x4
+   \   00008F   02....       LJMP    ?BANKED_LEAVE_XDATA
+    142          }
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uiplib_ip6addrconv?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uiplib_ip6addrconv
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uiplib_ip4addrconv?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uiplib_ip4addrconv
+    143          /*-----------------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       1      0     12  uiplib_ip4addrconv
+       1      0     19  uiplib_ip6addrconv
+                          0 0 19 -> memmove
+                          0 0 19 -> memset
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??uiplib_ip4addrconv?relay
+       6  ??uiplib_ip6addrconv?relay
+     146  uiplib_ip4addrconv
+     500  uiplib_ip6addrconv
+
+ 
+ 646 bytes in segment BANKED_CODE
+  12 bytes in segment BANK_RELAYS
+ 
+ 658 bytes of CODE memory
+
+Errors: none
+Warnings: none

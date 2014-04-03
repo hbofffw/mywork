@@ -1,0 +1,1579 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:43 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\net\simple-udp.c            /
+//    Command line       =  D:\myWork\myWork\core\net\simple-udp.c -D         /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\simple-udp.s51                            /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME `simple-udp`
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?CALL_IND
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?PUSH_XSTACK8_X_TWO
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?US_SWITCH_SPARSE
+        EXTERN ?V0
+        EXTERN ?XSTACK_DISP0_8
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??init_simple_udp?relay,0203H
+        FUNCTION ??process_thread_simple_udp_process?relay,0203H
+        PUBLIC ??simple_udp_register?relay
+        FUNCTION ??simple_udp_register?relay,0203H
+        PUBLIC ??simple_udp_send?relay
+        FUNCTION ??simple_udp_send?relay,0203H
+        PUBLIC ??simple_udp_sendto?relay
+        FUNCTION ??simple_udp_sendto?relay,0203H
+        PUBLIC ??simple_udp_sendto_port?relay
+        FUNCTION ??simple_udp_sendto_port?relay,0203H
+        FUNCTION init_simple_udp,021203H
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        FUNCTION process_thread_simple_udp_process,0a1603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 28, STACK
+        PUBLIC simple_udp_process
+        PUBLIC simple_udp_register
+        FUNCTION simple_udp_register,021203H
+        ARGFRAME XSTACK, 6, STACK
+        LOCFRAME XSTACK, 20, STACK
+        PUBLIC simple_udp_send
+        FUNCTION simple_udp_send,021203H
+        ARGFRAME XSTACK, 2, STACK
+        LOCFRAME XSTACK, 18, STACK
+        PUBLIC simple_udp_sendto
+        FUNCTION simple_udp_sendto,021203H
+        ARGFRAME XSTACK, 4, STACK
+        LOCFRAME XSTACK, 20, STACK
+        PUBLIC simple_udp_sendto_port
+        FUNCTION simple_udp_sendto_port,021203H
+        ARGFRAME XSTACK, 6, STACK
+        LOCFRAME XSTACK, 20, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+memcpy              SYMBOL "memcpy"
+??memcpy?relay      SYMBOL "?relay", memcpy
+process_start       SYMBOL "process_start"
+??process_start?relay SYMBOL "?relay", process_start
+udp_new             SYMBOL "udp_new"
+??udp_new?relay     SYMBOL "?relay", udp_new
+uip_udp_packet_sendto SYMBOL "uip_udp_packet_sendto"
+??uip_udp_packet_sendto?relay SYMBOL "?relay", uip_udp_packet_sendto
+simple_udp_register SYMBOL "simple_udp_register"
+??simple_udp_register?relay SYMBOL "?relay", simple_udp_register
+simple_udp_send     SYMBOL "simple_udp_send"
+??simple_udp_send?relay SYMBOL "?relay", simple_udp_send
+simple_udp_sendto   SYMBOL "simple_udp_sendto"
+??simple_udp_sendto?relay SYMBOL "?relay", simple_udp_sendto
+simple_udp_sendto_port SYMBOL "simple_udp_sendto_port"
+??simple_udp_sendto_port?relay SYMBOL "?relay", simple_udp_sendto_port
+
+        EXTERN ??memcpy?relay
+        FUNCTION ??memcpy?relay,00H
+        EXTERN ??process_start?relay
+        FUNCTION ??process_start?relay,00H
+        EXTERN ??udp_new?relay
+        FUNCTION ??udp_new?relay,00H
+        EXTERN ??uip_udp_packet_sendto?relay
+        FUNCTION ??uip_udp_packet_sendto?relay,00H
+        EXTERN memcpy
+        FUNCTION memcpy,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN process_current
+        EXTERN process_start
+        FUNCTION process_start,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN tcpip_event
+        EXTERN udp_new
+        FUNCTION udp_new,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_aligned_buf
+        EXTERN uip_appdata
+        EXTERN uip_flags
+        EXTERN uip_len
+        EXTERN uip_udp_packet_sendto
+        FUNCTION uip_udp_packet_sendto,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+// D:\myWork\myWork\core\net\simple-udp.c
+//    1 /**
+//    2  * \addtogroup simple-udp
+//    3  * @{
+//    4  */
+//    5 
+//    6 
+//    7 /*
+//    8  * Copyright (c) 2011, Swedish Institute of Computer Science.
+//    9  * All rights reserved.
+//   10  *
+//   11  * Redistribution and use in source and binary forms, with or without
+//   12  * modification, are permitted provided that the following conditions
+//   13  * are met:
+//   14  * 1. Redistributions of source code must retain the above copyright
+//   15  *    notice, this list of conditions and the following disclaimer.
+//   16  * 2. Redistributions in binary form must reproduce the above copyright
+//   17  *    notice, this list of conditions and the following disclaimer in the
+//   18  *    documentation and/or other materials provided with the distribution.
+//   19  * 3. Neither the name of the Institute nor the names of its contributors
+//   20  *    may be used to endorse or promote products derived from this software
+//   21  *    without specific prior written permission.
+//   22  *
+//   23  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   24  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   25  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   26  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   27  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   28  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   29  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   30  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   31  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   32  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   33  * SUCH DAMAGE.
+//   34  *
+//   35  * This file is part of the Contiki operating system.
+//   36  *
+//   37  * \file
+//   38  *         Header file for the simple-udp module.
+//   39  * \author
+//   40  *         Adam Dunkels <adam@sics.se>
+//   41  *
+//   42  */
+//   43 
+//   44 #include "contiki-net.h"
+//   45 #include "net/simple-udp.h"
+//   46 
+//   47 #include <string.h>
+//   48 
+//   49 
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+//   50 PROCESS(simple_udp_process, "Simple UDP process");
+simple_udp_process:
+        DATA8
+        DS 8
+        REQUIRE `?<Initializer for simple_udp_process>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   51 static uint8_t started = 0;
+started:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   52 static uint8_t databuffer[UIP_BUFSIZE];
+databuffer:
+        DS 240
+        REQUIRE __INIT_XDATA_Z
+//   53 
+//   54 #define UIP_IP_BUF   ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
+//   55 
+//   56 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   57 static void
+//   58 init_simple_udp(void)
+init_simple_udp:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function init_simple_udp
+        CODE
+//   59 {
+        FUNCALL init_simple_udp, process_start
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   60   if(started == 0) {
+        MOV     DPTR,#started
+        MOVX    A,@DPTR
+        JNZ     ??init_simple_udp_0
+//   61     process_start(&simple_udp_process, NULL);
+        ; Setup parameters for call to function process_start
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R2,#simple_udp_process & 0xff
+        MOV     R3,#(simple_udp_process >> 8) & 0xff
+        LCALL   ??process_start?relay
+//   62     started = 1;
+        MOV     DPTR,#started
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//   63   }
+//   64 }
+??init_simple_udp_0:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock0
+//   65 /*---------------------------------------------------------------------------*/
+//   66 /**
+//   67  * \brief      Send a UDP packet
+//   68  * \param c    A pointer to a struct simple_udp_connection
+//   69  * \param data A pointer to the data to be sent
+//   70  * \param datalen The length of the data
+//   71  *
+//   72  *             This function sends a UDP packet. The packet will be
+//   73  *             sent to the IP address and with the UDP ports that were
+//   74  *             specified when the connection wa registered with
+//   75  *             simple_udp_register().
+//   76  *
+//   77  * \sa simple_udp_sendto()
+//   78  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   79 int
+//   80 simple_udp_send(struct simple_udp_connection *c,
+simple_udp_send:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function simple_udp_send
+        CODE
+//   81                 const void *data, uint16_t datalen)
+//   82 {
+        FUNCALL simple_udp_send, uip_udp_packet_sendto
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     A,#0xc
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     ?V0 + 0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 1,A
+//   83   if(c->udp_conn != NULL) {
+        MOV     A,R2
+        ADD     A,#0x18
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??simple_udp_send_0
+//   84     uip_udp_packet_sendto(c->udp_conn, data, datalen,
+//   85                           &c->remote_addr, UIP_HTONS(c->remote_port));
+        ; Setup parameters for call to function uip_udp_packet_sendto
+        MOV     A,R2
+        ADD     A,#0x12
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+        CLR     A
+        XCH     A,R6
+        MOV     R7,A
+        MOV     A,R2
+        ADD     A,#0x12
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        CLR     A
+        XCH     A,R1
+        MOV     R0,A
+        MOV     A,R6
+        ORL     A,R0
+        MOV     ?V0 + 2,A
+        MOV     A,R7
+        ORL     A,R1
+        MOV     ?V0 + 3,A
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     A,R2
+        ADD     A,#0x2
+        MOV     ?V0 + 2,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     ?V0 + 3,A
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 18)
+        MOV     A,R2
+        ADD     A,#0x18
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??uip_udp_packet_sendto?relay
+        MOV     A,#0x6
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+//   86   }
+//   87   return 0;
+??simple_udp_send_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//   88 }
+//   89 /*---------------------------------------------------------------------------*/
+//   90 /**
+//   91  * \brief      Send a UDP packet to a specified IP address
+//   92  * \param c    A pointer to a struct simple_udp_connection
+//   93  * \param data A pointer to the data to be sent
+//   94  * \param datalen The length of the data
+//   95  * \param to   The IP address of the receiver
+//   96  *
+//   97  *             This function sends a UDP packet to a specified IP
+//   98  *             address. The packet will be sent with the UDP ports
+//   99  *             that were specified when the connection wa registered
+//  100  *             with simple_udp_register().
+//  101  *
+//  102  * \sa simple_udp_send()
+//  103  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  104 int
+//  105 simple_udp_sendto(struct simple_udp_connection *c,
+simple_udp_sendto:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function simple_udp_sendto
+        CODE
+//  106                   const void *data, uint16_t datalen,
+//  107                   const uip_ipaddr_t *to)
+//  108 {
+        FUNCALL simple_udp_sendto, uip_udp_packet_sendto
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xe
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 14)
+        ; Saved register size: 14
+        ; Auto size: 0
+        MOV     A,#0xe
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     ?V0 + 0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 1,A
+        MOV     A,#0x10
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     ?V0 + 2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 3,A
+//  109   if(c->udp_conn != NULL) {
+        MOV     A,R2
+        ADD     A,#0x18
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??simple_udp_sendto_0
+//  110     uip_udp_packet_sendto(c->udp_conn, data, datalen,
+//  111                           to, UIP_HTONS(c->remote_port));
+        ; Setup parameters for call to function uip_udp_packet_sendto
+        MOV     A,R2
+        ADD     A,#0x12
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+        CLR     A
+        XCH     A,R6
+        MOV     R7,A
+        MOV     A,R2
+        ADD     A,#0x12
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        CLR     A
+        XCH     A,R1
+        MOV     R0,A
+        MOV     A,R6
+        ORL     A,R0
+        MOV     ?V0 + 4,A
+        MOV     A,R7
+        ORL     A,R1
+        MOV     ?V0 + 5,A
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 18)
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     A,R2
+        ADD     A,#0x18
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??uip_udp_packet_sendto?relay
+        MOV     A,#0x6
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 14)
+//  112   }
+//  113   return 0;
+??simple_udp_sendto_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        MOV     R7,#0x6
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//  114 }
+//  115 /*---------------------------------------------------------------------------*/
+//  116 /**
+//  117  * \brief      Send a UDP packet to a specified IP address and UDP port
+//  118  * \param c    A pointer to a struct simple_udp_connection
+//  119  * \param data A pointer to the data to be sent
+//  120  * \param datalen The length of the data
+//  121  * \param to   The IP address of the receiver
+//  122  * \param port   The UDP port of the receiver, in host byte order
+//  123  *
+//  124  *             This function sends a UDP packet to a specified IP
+//  125  *             address and UDP port. The packet will be sent with the
+//  126  *             UDP ports that were specified when the connection wa
+//  127  *             registered with simple_udp_register().
+//  128  *
+//  129  * \sa simple_udp_sendto()
+//  130  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  131 int
+//  132 simple_udp_sendto_port(struct simple_udp_connection *c,
+simple_udp_sendto_port:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function simple_udp_sendto_port
+        CODE
+//  133 		       const void *data, uint16_t datalen,
+//  134 		       const uip_ipaddr_t *to,
+//  135 		       uint16_t port)
+//  136 {
+        FUNCALL simple_udp_sendto_port, uip_udp_packet_sendto
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xe
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 14)
+        ; Saved register size: 14
+        ; Auto size: 0
+        MOV     A,#0xe
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     ?V0 + 0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 1,A
+        MOV     A,#0x10
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     ?V0 + 2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 3,A
+//  137   if(c->udp_conn != NULL) {
+        MOV     A,R2
+        ADD     A,#0x18
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??simple_udp_sendto_port_0
+        MOV     A,#0x12
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+//  138     uip_udp_packet_sendto(c->udp_conn, data, datalen,
+//  139                           to, UIP_HTONS(port));
+        ; Setup parameters for call to function uip_udp_packet_sendto
+        MOV     A,R0
+        MOV     R6,A
+        MOV     A,R1
+        MOV     R7,A
+        CLR     A
+        XCH     A,R6
+        MOV     R7,A
+        CLR     A
+        XCH     A,R1
+        MOV     R0,A
+        MOV     A,R6
+        ORL     A,R0
+        MOV     ?V0 + 4,A
+        MOV     A,R7
+        ORL     A,R1
+        MOV     ?V0 + 5,A
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 18)
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     A,R2
+        ADD     A,#0x18
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??uip_udp_packet_sendto?relay
+        MOV     A,#0x6
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 14)
+//  140   }
+//  141   return 0;
+??simple_udp_sendto_port_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        MOV     R7,#0x6
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock3
+//  142 }
+//  143 /*---------------------------------------------------------------------------*/
+//  144 /**
+//  145  * \brief      Register a UDP connection
+//  146  * \param c    A pointer to a struct simple_udp_connection
+//  147  * \param local_port The local UDP port in host byte order
+//  148  * \param remote_addr The remote IP address
+//  149  * \param remote_port The remote UDP port in host byte order
+//  150  * \param receive_callback A pointer to a function to be called for incoming packets
+//  151  * \retval 0   If no UDP connection could be allocated
+//  152  * \retval 1   If the connection was successfully allocated
+//  153  *
+//  154  *             This function registers a UDP connection and attaches a
+//  155  *             callback function to it. The callback function will be
+//  156  *             called for incoming packets. The local UDP port can be
+//  157  *             set to 0 to indicate that an ephemeral UDP port should
+//  158  *             be allocated. The remote IP address can be NULL, to
+//  159  *             indicate that packets from any IP address should be
+//  160  *             accepted.
+//  161  *
+//  162  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  163 int
+//  164 simple_udp_register(struct simple_udp_connection *c,
+simple_udp_register:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function simple_udp_register
+        CODE
+//  165                     uint16_t local_port,
+//  166                     uip_ipaddr_t *remote_addr,
+//  167                     uint16_t remote_port,
+//  168                     simple_udp_callback receive_callback)
+//  169 {
+        FUNCALL simple_udp_register, init_simple_udp
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL simple_udp_register, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL simple_udp_register, udp_new
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x12
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V9 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V8 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V7 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-16)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-17)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-18)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 18)
+        ; Saved register size: 18
+        ; Auto size: 0
+        MOV     ?V0 + 6,R2
+        MOV     ?V0 + 7,R3
+        MOV     ?V0 + 0,R4
+        MOV     ?V0 + 1,R5
+        MOV     A,#0x16
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     ?V0 + 4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 5,A
+//  170 
+//  171   init_simple_udp();
+        ; Setup parameters for call to function init_simple_udp
+        LCALL   ??init_simple_udp?relay
+//  172 
+//  173   c->local_port = local_port;
+        MOV     A,?V0 + 6
+        ADD     A,#0x14
+        MOV     DPL,A
+        MOV     A,?V0 + 7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,?V0 + 0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,?V0 + 1
+        MOVX    @DPTR,A
+        MOV     A,#0x14
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     ?V0 + 2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 3,A
+//  174   c->remote_port = remote_port;
+        MOV     A,?V0 + 6
+        ADD     A,#0x12
+        MOV     DPL,A
+        MOV     A,?V0 + 7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,?V0 + 2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,?V0 + 3
+        MOVX    @DPTR,A
+        MOV     A,#0x12
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+//  175   if(remote_addr != NULL) {
+        MOV     A,R6
+        ORL     A,R7
+        JZ      ??simple_udp_register_0
+//  176     uip_ipaddr_copy(&c->remote_addr, remote_addr);
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 8,#0x10
+        MOV     ?V0 + 9,#0x0
+        MOV     R0,#?V0 + 8
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     A,?V0 + 6
+        ADD     A,#0x2
+        MOV     R2,A
+        MOV     A,?V0 + 7
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 18)
+//  177   }
+//  178   c->receive_callback = receive_callback;
+??simple_udp_register_0:
+        MOV     A,?V0 + 6
+        ADD     A,#0x16
+        MOV     DPL,A
+        MOV     A,?V0 + 7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,?V0 + 4
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,?V0 + 5
+        MOVX    @DPTR,A
+//  179 
+//  180   PROCESS_CONTEXT_BEGIN(&simple_udp_process);
+        MOV     DPTR,#process_current
+        MOVX    A,@DPTR
+        MOV     ?V0 + 4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 5,A
+        MOV     DPTR,#process_current
+        MOV     A,#simple_udp_process & 0xff
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#(simple_udp_process >> 8) & 0xff
+        MOVX    @DPTR,A
+//  181   c->udp_conn = udp_new(remote_addr, UIP_HTONS(remote_port), c);
+        ; Setup parameters for call to function udp_new
+        MOV     R0,#?V0 + 6
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     R0,?V0 + 2
+        MOV     R1,?V0 + 3
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        CLR     A
+        XCH     A,?V0 + 3
+        MOV     ?V0 + 2,A
+        MOV     A,R0
+        ORL     A,?V0 + 2
+        MOV     R4,A
+        MOV     A,R1
+        ORL     A,?V0 + 3
+        MOV     R5,A
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??udp_new?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 18)
+        MOV     A,?V0 + 6
+        ADD     A,#0x18
+        MOV     DPL,A
+        MOV     A,?V0 + 7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  182   if(c->udp_conn != NULL) {
+        MOV     A,?V0 + 6
+        ADD     A,#0x18
+        MOV     DPL,A
+        MOV     A,?V0 + 7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??simple_udp_register_1
+//  183     udp_bind(c->udp_conn, UIP_HTONS(local_port));
+        MOV     R0,?V0 + 0
+        MOV     R1,?V0 + 1
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        CLR     A
+        XCH     A,?V0 + 1
+        MOV     ?V0 + 0,A
+        MOV     A,R0
+        ORL     A,?V0 + 0
+        MOV     R0,A
+        MOV     A,R1
+        ORL     A,?V0 + 1
+        MOV     R1,A
+        MOV     A,?V0 + 6
+        ADD     A,#0x18
+        MOV     DPL,A
+        MOV     A,?V0 + 7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R2
+        ADD     A,#0x10
+        MOV     DPL,A
+        MOV     A,R2
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  184   }
+//  185   PROCESS_CONTEXT_END();
+??simple_udp_register_1:
+        MOV     DPTR,#process_current
+        MOV     A,?V0 + 4
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,?V0 + 5
+        MOVX    @DPTR,A
+//  186 
+//  187   if(c->udp_conn == NULL) {
+        MOV     A,?V0 + 6
+        ADD     A,#0x18
+        MOV     DPL,A
+        MOV     A,?V0 + 7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??simple_udp_register_2
+//  188     return 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??simple_udp_register_3
+//  189   }
+//  190   return 1;
+??simple_udp_register_2:
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+??simple_udp_register_3:
+        MOV     R7,#0xa
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock4
+//  191 }
+//  192 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  193 PROCESS_THREAD(simple_udp_process, ev, data)
+process_thread_simple_udp_process:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function process_thread_simple_udp_process
+        CODE
+//  194 {
+        FUNCALL process_thread_simple_udp_process, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x12
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V9 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V8 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V7 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-16)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-17)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-18)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 18)
+        ; Saved register size: 18
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     ?V0 + 4,R1
+        MOV     ?V0 + 6,R4
+        MOV     ?V0 + 7,R5
+//  195   struct simple_udp_connection *c;
+//  196   PROCESS_BEGIN();
+        MOV     R2,#0x1
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     ?V0 + 0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 1,A
+        MOV     R0,#?V0 + 0
+        LCALL   ?US_SWITCH_SPARSE
+`?<Jumptable for process_thread_simple_udp_proc_0`:
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        2
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_simple_udp_process_0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        199
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_simple_udp_process_1
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_simple_udp_process_2
+        CODE
+//  197   
+//  198   while(1) {
+//  199     PROCESS_WAIT_EVENT();
+??process_thread_simple_udp_process_0:
+        MOV     R2,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#-0x39
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+??process_thread_simple_udp_process_1:
+        MOV     A,R2
+        JNZ     ??process_thread_simple_udp_process_3
+        MOV     R1,#0x1
+        LJMP    ??process_thread_simple_udp_process_4 & 0xFFFF
+//  200     if(ev == tcpip_event) {
+??process_thread_simple_udp_process_3:
+        MOV     DPTR,#tcpip_event
+        MOVX    A,@DPTR
+        XRL     A,?V0 + 4
+        JNZ     ??process_thread_simple_udp_process_0
+//  201 
+//  202       /* An appstate pointer is passed to use from the IP stack
+//  203          through the 'data' pointer. We registered this appstate when
+//  204          we did the udp_new() call in simple_udp_register() as the
+//  205          struct simple_udp_connection pointer. So we extract this
+//  206          pointer and use it when calling the reception callback. */
+//  207       c = (struct simple_udp_connection *)data;
+        MOV     ?V0 + 2,?V0 + 6
+        MOV     ?V0 + 3,?V0 + 7
+//  208 
+//  209       /* Defensive coding: although the appstate *should* be non-null
+//  210          here, we make sure to avoid the program crashing on us. */
+//  211       if(c != NULL) {
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JZ      ??process_thread_simple_udp_process_0
+//  212 
+//  213         /* If we were called because of incoming data, we should call
+//  214            the reception callback. */
+//  215         if(uip_newdata()) {
+        MOV     DPTR,#uip_flags
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.1
+        JNC     ??process_thread_simple_udp_process_0
+//  216           /* Copy the data from the uIP data buffer into our own
+//  217              buffer to avoid the uIP buffer being messed with by the
+//  218              callee. */
+//  219           memcpy(databuffer, uip_appdata, uip_datalen());
+        ; Setup parameters for call to function memcpy
+        MOV     DPTR,#uip_len
+        LCALL   ?PUSH_XSTACK8_X_TWO
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     DPTR,#uip_appdata
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     R2,#databuffer & 0xff
+        MOV     R3,#(databuffer >> 8) & 0xff
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 18)
+//  220 
+//  221           /* Call the client process. We use the PROCESS_CONTEXT
+//  222              mechanism to temporarily switch process context to the
+//  223              client process. */
+//  224           if(c->receive_callback != NULL) {
+        MOV     A,?V0 + 2
+        ADD     A,#0x16
+        MOV     DPL,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??process_thread_simple_udp_process_0
+//  225             PROCESS_CONTEXT_BEGIN(c->client_process);
+        MOV     DPTR,#process_current
+        MOVX    A,@DPTR
+        MOV     ?V0 + 0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 1,A
+        MOV     A,?V0 + 2
+        ADD     A,#0x1a
+        MOV     DPL,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#process_current
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  226             c->receive_callback(c,
+//  227                                 &(UIP_IP_BUF->srcipaddr),
+//  228                                 UIP_HTONS(UIP_IP_BUF->srcport),
+//  229                                 &(UIP_IP_BUF->destipaddr),
+//  230                                 UIP_HTONS(UIP_IP_BUF->destport),
+//  231                                 databuffer, uip_datalen());
+        ; Setup parameters for indirect call
+        MOV     DPTR,#uip_len
+        LCALL   ?PUSH_XSTACK8_X_TWO
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     ?V0 + 8,#databuffer & 0xff
+        MOV     ?V0 + 9,#(databuffer >> 8) & 0xff
+        MOV     R0,#?V0 + 8
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     DPTR,#uip_aligned_buf + 42
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        CLR     A
+        XCH     A,R2
+        MOV     R3,A
+        MOV     DPTR,#uip_aligned_buf + 42
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        CLR     A
+        XCH     A,R1
+        MOV     R0,A
+        MOV     A,R2
+        ORL     A,R0
+        MOV     ?V0 + 8,A
+        MOV     A,R3
+        ORL     A,R1
+        MOV     ?V0 + 9,A
+        MOV     R0,#?V0 + 8
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 24)
+        MOV     ?V0 + 8,#(uip_aligned_buf + 24) & 0xff
+        MOV     ?V0 + 9,#((uip_aligned_buf + 24) >> 8) & 0xff
+        MOV     R0,#?V0 + 8
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 26)
+        MOV     DPTR,#uip_aligned_buf + 40
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        CLR     A
+        XCH     A,R2
+        MOV     R3,A
+        MOV     DPTR,#uip_aligned_buf + 40
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        CLR     A
+        XCH     A,R1
+        MOV     R0,A
+        MOV     A,R2
+        ORL     A,R0
+        MOV     ?V0 + 8,A
+        MOV     A,R3
+        ORL     A,R1
+        MOV     ?V0 + 9,A
+        MOV     R0,#?V0 + 8
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 28)
+        MOV     R4,#(uip_aligned_buf + 8) & 0xff
+        MOV     R5,#((uip_aligned_buf + 8) >> 8) & 0xff
+        MOV     R2,?V0 + 2
+        MOV     R3,?V0 + 3
+        MOV     A,?V0 + 2
+        ADD     A,#0x16
+        MOV     DPL,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        LCALL   ?CALL_IND
+        MOV     A,#0xa
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 18)
+//  232             PROCESS_CONTEXT_END();
+        MOV     DPTR,#process_current
+        MOV     A,?V0 + 0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,?V0 + 1
+        MOVX    @DPTR,A
+        LJMP    ??process_thread_simple_udp_process_0 & 0xFFFF
+//  233           }
+//  234         }
+//  235       }
+//  236     }
+//  237 
+//  238   }
+//  239 
+//  240   PROCESS_END();
+??process_thread_simple_udp_process_2:
+        MOV     R2,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     R1,#0x3
+??process_thread_simple_udp_process_4:
+        MOV     R7,#0xa
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock5
+//  241 }
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for simple_udp_process>`:
+        DATA16
+        DW 0H
+        DW ??process_thread_simple_udp_process?relay
+        DB 0, 0, 0, 0
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??init_simple_udp?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    init_simple_udp
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??simple_udp_send?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    simple_udp_send
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??simple_udp_sendto?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    simple_udp_sendto
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??simple_udp_sendto_port?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    simple_udp_sendto_port
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??simple_udp_register?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    simple_udp_register
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_thread_simple_udp_process?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_thread_simple_udp_process
+
+        END
+//  242 /*---------------------------------------------------------------------------*/
+//  243 /** @} */
+// 
+// 1 114 bytes in segment BANKED_CODE
+//    36 bytes in segment BANK_RELAYS
+//     8 bytes in segment XDATA_I
+//     8 bytes in segment XDATA_ID
+//   241 bytes in segment XDATA_Z
+// 
+// 1 158 bytes of CODE  memory
+//   249 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

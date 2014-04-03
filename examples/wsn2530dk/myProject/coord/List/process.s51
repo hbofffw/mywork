@@ -1,0 +1,2286 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:38 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\sys\process.c               /
+//    Command line       =  D:\myWork\myWork\core\sys\process.c -D            /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\process.s51                               /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME process
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?CALL_IND
+        EXTERN ?S_DIV_MOD
+        EXTERN ?V0
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??call_process?relay,0203H
+        FUNCTION ??do_event?relay,0203H
+        FUNCTION ??do_poll?relay,0203H
+        FUNCTION ??exit_process?relay,0203H
+        PUBLIC ??process_alloc_event?relay
+        FUNCTION ??process_alloc_event?relay,0203H
+        PUBLIC ??process_exit?relay
+        FUNCTION ??process_exit?relay,0203H
+        PUBLIC ??process_init?relay
+        FUNCTION ??process_init?relay,0203H
+        PUBLIC ??process_is_running?relay
+        FUNCTION ??process_is_running?relay,0203H
+        PUBLIC ??process_nevents?relay
+        FUNCTION ??process_nevents?relay,0203H
+        PUBLIC ??process_poll?relay
+        FUNCTION ??process_poll?relay,0203H
+        PUBLIC ??process_post?relay
+        FUNCTION ??process_post?relay,0203H
+        PUBLIC ??process_post_synch?relay
+        FUNCTION ??process_post_synch?relay,0203H
+        PUBLIC ??process_run?relay
+        FUNCTION ??process_run?relay,0203H
+        PUBLIC ??process_start?relay
+        FUNCTION ??process_start?relay,0203H
+        FUNCTION call_process,021203H
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 9, STACK
+        FUNCTION do_event,021203H
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        FUNCTION do_poll,021203H
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 9, STACK
+        FUNCTION exit_process,021203H
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 14, STACK
+        PUBLIC process_alloc_event
+        FUNCTION process_alloc_event,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC process_current
+        PUBLIC process_exit
+        FUNCTION process_exit,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC process_init
+        FUNCTION process_init,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC process_is_running
+        FUNCTION process_is_running,0203H
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC process_list
+        PUBLIC process_nevents
+        FUNCTION process_nevents,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC process_poll
+        FUNCTION process_poll,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC process_post
+        FUNCTION process_post,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC process_post_synch
+        FUNCTION process_post_synch,021203H
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC process_run
+        FUNCTION process_run,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC process_start
+        FUNCTION process_start,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+process_alloc_event SYMBOL "process_alloc_event"
+??process_alloc_event?relay SYMBOL "?relay", process_alloc_event
+process_exit        SYMBOL "process_exit"
+??process_exit?relay SYMBOL "?relay", process_exit
+process_init        SYMBOL "process_init"
+??process_init?relay SYMBOL "?relay", process_init
+process_is_running  SYMBOL "process_is_running"
+??process_is_running?relay SYMBOL "?relay", process_is_running
+process_nevents     SYMBOL "process_nevents"
+??process_nevents?relay SYMBOL "?relay", process_nevents
+process_poll        SYMBOL "process_poll"
+??process_poll?relay SYMBOL "?relay", process_poll
+process_post        SYMBOL "process_post"
+??process_post?relay SYMBOL "?relay", process_post
+process_post_synch  SYMBOL "process_post_synch"
+??process_post_synch?relay SYMBOL "?relay", process_post_synch
+process_run         SYMBOL "process_run"
+??process_run?relay SYMBOL "?relay", process_run
+process_start       SYMBOL "process_start"
+??process_start?relay SYMBOL "?relay", process_start
+
+// D:\myWork\myWork\core\sys\process.c
+//    1 /*
+//    2  * Copyright (c) 2005, Swedish Institute of Computer Science
+//    3  * All rights reserved.
+//    4  *
+//    5  * Redistribution and use in source and binary forms, with or without
+//    6  * modification, are permitted provided that the following conditions
+//    7  * are met:
+//    8  * 1. Redistributions of source code must retain the above copyright
+//    9  *    notice, this list of conditions and the following disclaimer.
+//   10  * 2. Redistributions in binary form must reproduce the above copyright
+//   11  *    notice, this list of conditions and the following disclaimer in the
+//   12  *    documentation and/or other materials provided with the distribution.
+//   13  * 3. Neither the name of the Institute nor the names of its contributors
+//   14  *    may be used to endorse or promote products derived from this software
+//   15  *    without specific prior written permission.
+//   16  *
+//   17  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   18  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   19  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   20  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   21  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   22  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   23  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   24  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   25  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   26  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   27  * SUCH DAMAGE.
+//   28  *
+//   29  * This file is part of the Contiki operating system.
+//   30  *
+//   31  */
+//   32 
+//   33 /**
+//   34  * \addtogroup process
+//   35  * @{
+//   36  */
+//   37 
+//   38 /**
+//   39  * \file
+//   40  *         Implementation of the Contiki process kernel.
+//   41  * \author
+//   42  *         Adam Dunkels <adam@sics.se>
+//   43  *
+//   44  */
+//   45 
+//   46 #include <stdio.h>
+//   47 
+//   48 #include "sys/process.h"
+//   49 #include "sys/arg.h"
+//   50 
+//   51 /*
+//   52  * Pointer to the currently running process structure.
+//   53  */
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   54 struct process *process_list = NULL;
+process_list:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   55 struct process *process_current = NULL;
+process_current:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//   56  
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   57 static process_event_t lastevent;
+lastevent:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+//   58 
+//   59 /*
+//   60  * Structure used for keeping the queue of active events.
+//   61  */
+//   62 struct event_data {
+//   63   process_event_t ev;
+//   64   process_data_t data;
+//   65   struct process *p;
+//   66 };
+//   67 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   68 static process_num_events_t nevents, fevent;
+nevents:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+fevent:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   69 static struct event_data events[PROCESS_CONF_NUMEVENTS];
+events:
+        DS 160
+        REQUIRE __INIT_XDATA_Z
+//   70 
+//   71 #if PROCESS_CONF_STATS
+//   72 process_num_events_t process_maxevents;
+//   73 #endif
+//   74 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   75 static volatile unsigned char poll_requested;
+poll_requested:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+//   76 
+//   77 #define PROCESS_STATE_NONE        0
+//   78 #define PROCESS_STATE_RUNNING     1
+//   79 #define PROCESS_STATE_CALLED      2
+//   80 
+//   81 static void call_process(struct process *p, process_event_t ev, process_data_t data);
+//   82 
+//   83 #define DEBUG 0
+//   84 #if DEBUG
+//   85 #include <stdio.h>
+//   86 #define PRINTF(...) printf(__VA_ARGS__)
+//   87 #else
+//   88 #define PRINTF(...)
+//   89 #endif
+//   90 
+//   91 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   92 process_event_t
+//   93 process_alloc_event(void)
+process_alloc_event:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function process_alloc_event
+        CODE
+//   94 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   95   return lastevent++;
+        MOV     DPTR,#lastevent
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,#0x1
+        ADD     A,R1
+        MOV     DPTR,#lastevent
+        MOVX    @DPTR,A
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock0
+//   96 }
+//   97 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   98 void
+//   99 process_start(struct process *p, const char *arg)
+process_start:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function process_start
+        CODE
+//  100 {
+        FUNCALL process_start, process_post_synch
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+//  101   struct process *q;
+//  102 
+//  103   /* First make sure that we don't try to start a process that is
+//  104      already running. */
+//  105   for(q = process_list; q != p && q != NULL; q = q->next);
+        MOV     DPTR,#process_list
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R0
+        MOV     DPH,R1
+        SJMP    ??process_start_0
+??process_start_1:
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R0
+        MOV     DPH,R1
+??process_start_0:
+        MOV     A,R2
+        XRL     A,DPL
+        JNZ     ??process_start_2
+        MOV     A,R3
+        XRL     A,DPH
+??process_start_2:
+        JZ      ??process_start_3
+        MOV     A,DPL
+        ORL     A,DPH
+        JNZ     ??process_start_1
+//  106 
+//  107   /* If we found the process on the process list, we bail out. */
+//  108   if(q == p) {
+??process_start_3:
+        MOV     A,R2
+        XRL     A,DPL
+        JNZ     ??process_start_4
+        MOV     A,R3
+        XRL     A,DPH
+??process_start_4:
+        JZ      ??process_start_5
+//  109     return;
+//  110   }
+//  111   /* Put on the procs list.*/
+//  112   p->next = process_list;
+        MOV     DPTR,#process_list
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  113   process_list = p;
+        MOV     DPTR,#process_list
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  114   p->state = PROCESS_STATE_RUNNING;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  115   PT_INIT(&p->pt);
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  116 
+//  117   PRINTF("process: starting '%s'\n", PROCESS_NAME_STRING(p));
+//  118 
+//  119   /* Post a synchronous initialization event to the process. */
+//  120   process_post_synch(p, PROCESS_EVENT_INIT, (process_data_t)arg);
+        ; Setup parameters for call to function process_post_synch
+        MOV     R1,#-0x7f
+        LCALL   ??process_post_synch?relay
+//  121 }
+??process_start_5:
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//  122 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  123 static void
+//  124 exit_process(struct process *p, struct process *fromprocess)
+exit_process:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function exit_process
+        CODE
+//  125 {
+        FUNCALL exit_process, process_is_running
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL exit_process, call_process
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xe
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 14)
+        ; Saved register size: 14
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     ?V0 + 2,R4
+        MOV     ?V0 + 3,R5
+//  126   register struct process *q;
+//  127   struct process *old_current = process_current;
+        MOV     DPTR,#process_current
+        MOVX    A,@DPTR
+        MOV     ?V0 + 0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 1,A
+//  128 
+//  129   PRINTF("process: exit_process '%s'\n", PROCESS_NAME_STRING(p));
+//  130 
+//  131   /* Make sure the process is in the process list before we try to
+//  132      exit it. */
+//  133   for(q = process_list; q != p && q != NULL; q = q->next);
+        MOV     DPTR,#process_list
+        MOVX    A,@DPTR
+        MOV     ?V0 + 4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 5,A
+        SJMP    ??exit_process_0
+??exit_process_1:
+        MOV     DPL,?V0 + 4
+        MOV     DPH,?V0 + 5
+        MOVX    A,@DPTR
+        MOV     ?V0 + 4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 5,A
+??exit_process_0:
+        MOV     A,R6
+        XRL     A,?V0 + 4
+        JNZ     ??exit_process_2
+        MOV     A,R7
+        XRL     A,?V0 + 5
+??exit_process_2:
+        JZ      ??exit_process_3
+        MOV     A,?V0 + 4
+        ORL     A,?V0 + 5
+        JNZ     ??exit_process_1
+//  134   if(q == NULL) {
+??exit_process_3:
+        MOV     A,?V0 + 4
+        ORL     A,?V0 + 5
+        JNZ     $+5
+        LJMP    ??exit_process_4 & 0xFFFF
+//  135     return;
+//  136   }
+//  137 
+//  138   if(process_is_running(p)) {
+        ; Setup parameters for call to function process_is_running
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??process_is_running?relay
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     A,?V0 + 4
+        ORL     A,?V0 + 5
+        JNZ     $+5
+        LJMP    ??exit_process_5 & 0xFFFF
+//  139     /* Process was running */
+//  140     p->state = PROCESS_STATE_NONE;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  141 
+//  142     /*
+//  143      * Post a synchronous event to all processes to inform them that
+//  144      * this process is about to exit. This will allow services to
+//  145      * deallocate state associated with this process.
+//  146      */
+//  147     for(q = process_list; q != NULL; q = q->next) {
+        MOV     DPTR,#process_list
+        MOVX    A,@DPTR
+        MOV     ?V0 + 4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 5,A
+        SJMP    ??exit_process_6
+//  148       if(p != q) {
+??exit_process_7:
+        MOV     A,?V0 + 4
+        XRL     A,R6
+        JNZ     ??exit_process_8
+        MOV     A,?V0 + 5
+        XRL     A,R7
+??exit_process_8:
+        JZ      ??exit_process_9
+//  149 	call_process(q, PROCESS_EVENT_EXITED, (process_data_t)p);
+        ; Setup parameters for call to function call_process
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R1,#-0x79
+        MOV     R2,?V0 + 4
+        MOV     R3,?V0 + 5
+        LCALL   ??call_process?relay
+//  150       }
+//  151     }
+??exit_process_9:
+        MOV     DPL,?V0 + 4
+        MOV     DPH,?V0 + 5
+        MOVX    A,@DPTR
+        MOV     ?V0 + 4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 5,A
+??exit_process_6:
+        MOV     A,?V0 + 4
+        ORL     A,?V0 + 5
+        JNZ     ??exit_process_7
+//  152 
+//  153     if(p->thread != NULL && p != fromprocess) {
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??exit_process_5
+        MOV     A,?V0 + 2
+        XRL     A,R6
+        JNZ     ??exit_process_10
+        MOV     A,?V0 + 3
+        XRL     A,R7
+??exit_process_10:
+        JZ      ??exit_process_5
+//  154       /* Post the exit event to the process that is about to exit. */
+//  155       process_current = p;
+        MOV     DPTR,#process_current
+        MOV     A,R6
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R7
+        MOVX    @DPTR,A
+//  156       p->thread(&p->pt, PROCESS_EVENT_EXIT, NULL);
+        ; Setup parameters for indirect call
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R1,#-0x7d
+        MOV     A,R6
+        ADD     A,#0x4
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        LCALL   ?CALL_IND
+        MOV     A,R1
+//  157     }
+//  158   }
+//  159 
+//  160   if(p == process_list) {
+??exit_process_5:
+        MOV     DPTR,#process_list
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R6
+        XRL     A,R0
+        JNZ     ??exit_process_11
+        MOV     A,R7
+        XRL     A,R1
+??exit_process_11:
+        JNZ     ??exit_process_12
+//  161     process_list = process_list->next;
+        MOV     DPTR,#process_list
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#process_list
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        SJMP    ??exit_process_13
+//  162   } else {
+//  163     for(q = process_list; q != NULL; q = q->next) {
+??exit_process_12:
+        MOV     DPTR,#process_list
+        MOVX    A,@DPTR
+        MOV     ?V0 + 4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 5,A
+        SJMP    ??exit_process_14
+??exit_process_15:
+        MOV     DPL,?V0 + 4
+        MOV     DPH,?V0 + 5
+        MOVX    A,@DPTR
+        MOV     ?V0 + 4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 5,A
+??exit_process_14:
+        MOV     A,?V0 + 4
+        ORL     A,?V0 + 5
+        JZ      ??exit_process_13
+//  164       if(q->next == p) {
+        MOV     DPL,?V0 + 4
+        MOV     DPH,?V0 + 5
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R6
+        XRL     A,R0
+        JNZ     ??exit_process_16
+        MOV     A,R7
+        XRL     A,R1
+??exit_process_16:
+        JNZ     ??exit_process_15
+//  165 	q->next = p->next;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,?V0 + 4
+        MOV     DPH,?V0 + 5
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  166 	break;
+//  167       }
+//  168     }
+//  169   }
+//  170 
+//  171   process_current = old_current;
+??exit_process_13:
+        MOV     DPTR,#process_current
+        MOV     A,?V0 + 0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,?V0 + 1
+        MOVX    @DPTR,A
+//  172 }
+??exit_process_4:
+        MOV     R7,#0x6
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//  173 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  174 static void
+//  175 call_process(struct process *p, process_event_t ev, process_data_t data)
+call_process:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function call_process
+        CODE
+//  176 {
+        FUNCALL call_process, exit_process
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     ?V0 + 0,R1
+//  177   int ret;
+//  178 
+//  179 #if DEBUG
+//  180   if(p->state == PROCESS_STATE_CALLED) {
+//  181     printf("process: process '%s' called again with event %d\n", PROCESS_NAME_STRING(p), ev);
+//  182   }
+//  183 #endif /* DEBUG */
+//  184   
+//  185   if((p->state & PROCESS_STATE_RUNNING) &&
+//  186      p->thread != NULL) {
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.0
+        JNC     ??call_process_0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??call_process_0
+//  187     PRINTF("process: calling process '%s' with event %d\n", PROCESS_NAME_STRING(p), ev);
+//  188     process_current = p;
+        MOV     DPTR,#process_current
+        MOV     A,R6
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R7
+        MOVX    @DPTR,A
+//  189     p->state = PROCESS_STATE_CALLED;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+//  190     ret = p->thread(&p->pt, ev, data);
+        ; Setup parameters for indirect call
+        MOV     R1,?V0 + 0
+        MOV     A,R6
+        ADD     A,#0x4
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        LCALL   ?CALL_IND
+        MOV     A,R1
+        MOV     R0,A
+        MOV     R1,#0x0
+//  191     if(ret == PT_EXITED ||
+//  192        ret == PT_ENDED ||
+//  193        ev == PROCESS_EVENT_EXIT) {
+        MOV     A,#0x2
+        XRL     A,R0
+        JNZ     ??call_process_1
+        MOV     A,#0x0
+        XRL     A,R1
+??call_process_1:
+        JZ      ??call_process_2
+        MOV     A,#0x3
+        XRL     A,R0
+        JNZ     ??call_process_3
+        MOV     A,#0x0
+        XRL     A,R1
+??call_process_3:
+        JZ      ??call_process_2
+        MOV     A,#-0x7d
+        XRL     A,?V0 + 0
+        JNZ     ??call_process_4
+//  194       exit_process(p, p);
+??call_process_2:
+        ; Setup parameters for call to function exit_process
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??exit_process?relay
+        SJMP    ??call_process_0
+//  195     } else {
+//  196       p->state = PROCESS_STATE_RUNNING;
+??call_process_4:
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  197     }
+//  198   }
+//  199 }
+??call_process_0:
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock3
+//  200 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  201 void
+//  202 process_exit(struct process *p)
+process_exit:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function process_exit
+        CODE
+//  203 {
+        FUNCALL process_exit, exit_process
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  204   exit_process(p, PROCESS_CURRENT());
+        ; Setup parameters for call to function exit_process
+        MOV     DPTR,#process_current
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        LCALL   ??exit_process?relay
+//  205 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock4
+//  206 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  207 void
+//  208 process_init(void)
+process_init:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function process_init
+        CODE
+//  209 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  210   lastevent = PROCESS_EVENT_MAX;
+        MOV     DPTR,#lastevent
+        MOV     A,#-0x76
+        MOVX    @DPTR,A
+//  211 
+//  212   nevents = fevent = 0;
+        MOV     A,#0x0
+        MOV     DPTR,#fevent
+        MOVX    @DPTR,A
+        MOV     DPTR,#nevents
+        MOVX    @DPTR,A
+//  213 #if PROCESS_CONF_STATS
+//  214   process_maxevents = 0;
+//  215 #endif /* PROCESS_CONF_STATS */
+//  216 
+//  217   process_current = process_list = NULL;
+        MOV     R0,#0x0
+        MOV     R1,#0x0
+        MOV     DPTR,#process_list
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        MOV     DPTR,#process_current
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  218 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock5
+//  219 /*---------------------------------------------------------------------------*/
+//  220 /*
+//  221  * Call each process' poll handler.
+//  222  */
+//  223 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  224 static void
+//  225 do_poll(void)
+do_poll:
+          CFI Block cfiBlock6 Using cfiCommon0
+          CFI Function do_poll
+        CODE
+//  226 {
+        FUNCALL do_poll, call_process
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+//  227   struct process *p;
+//  228 
+//  229   poll_requested = 0;
+        MOV     DPTR,#poll_requested
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  230   /* Call the processes that needs to be polled. */
+//  231   for(p = process_list; p != NULL; p = p->next) {
+        MOV     DPTR,#process_list
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+        SJMP    ??do_poll_0
+//  232     if(p->needspoll) {
+??do_poll_1:
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        JZ      ??do_poll_2
+//  233       p->state = PROCESS_STATE_RUNNING;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  234       p->needspoll = 0;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  235       call_process(p, PROCESS_EVENT_POLL, NULL);
+        ; Setup parameters for call to function call_process
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R1,#-0x7e
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??call_process?relay
+//  236     }
+//  237   }
+??do_poll_2:
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+??do_poll_0:
+        MOV     A,R6
+        ORL     A,R7
+        JNZ     ??do_poll_1
+//  238 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock6
+//  239 /*---------------------------------------------------------------------------*/
+//  240 /*
+//  241  * Process the next event in the event queue and deliver it to
+//  242  * listening processes.
+//  243  */
+//  244 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  245 static void
+//  246 do_event(void)
+do_event:
+          CFI Block cfiBlock7 Using cfiCommon0
+          CFI Function do_event
+        CODE
+//  247 {
+        FUNCALL do_event, do_poll
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL do_event, call_process
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL do_event, call_process
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  248   static process_event_t ev;
+//  249   static process_data_t data;
+//  250   static struct process *receiver;
+//  251   static struct process *p;
+//  252   
+//  253   /*
+//  254    * If there are any events in the queue, take the first one and walk
+//  255    * through the list of processes to see if the event should be
+//  256    * delivered to any of them. If so, we call the event handler
+//  257    * function for the process. We only process one event at a time and
+//  258    * call the poll handlers inbetween.
+//  259    */
+//  260 
+//  261   if(nevents > 0) {
+        MOV     DPTR,#nevents
+        MOVX    A,@DPTR
+        CLR     C
+        SUBB    A,#0x1
+        JNC     $+5
+        LJMP    ??do_event_0 & 0xFFFF
+//  262     
+//  263     /* There are events that we should deliver. */
+//  264     ev = events[fevent].ev;
+        MOV     DPTR,#fevent
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,R0
+        MOV     B,#0x5
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x5
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#events & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#(events >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     DPTR,#??ev
+        MOVX    @DPTR,A
+//  265     
+//  266     data = events[fevent].data;
+        MOV     DPTR,#fevent
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,R0
+        MOV     B,#0x5
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x5
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#(events + 1) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((events + 1) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#??data
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  267     receiver = events[fevent].p;
+        MOV     DPTR,#fevent
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,R0
+        MOV     B,#0x5
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x5
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#(events + 3) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((events + 3) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#??receiver
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  268 
+//  269     /* Since we have seen the new event, we move pointer upwards
+//  270        and decrese the number of events. */
+//  271     fevent = (fevent + 1) % PROCESS_CONF_NUMEVENTS;
+        MOV     DPTR,#fevent
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        ADD     A,#0x1
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R1,A
+        MOV     R2,#0x20
+        MOV     R3,#0x0
+        LCALL   ?S_DIV_MOD
+        MOV     A,R2
+        MOV     DPTR,#fevent
+        MOVX    @DPTR,A
+//  272     --nevents;
+        MOV     DPTR,#nevents
+        MOVX    A,@DPTR
+        ADD     A,#-0x1
+        MOVX    @DPTR,A
+//  273 
+//  274     /* If this is a broadcast event, we deliver it to all events, in
+//  275        order of their priority. */
+//  276     if(receiver == PROCESS_BROADCAST) {
+        MOV     DPTR,#??receiver
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??do_event_1
+//  277       for(p = process_list; p != NULL; p = p->next) {
+        MOV     DPTR,#process_list
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#??p
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+??do_event_2:
+        MOV     DPTR,#??p
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??do_event_0
+//  278 
+//  279 	/* If we have been requested to poll a process, we do this in
+//  280 	   between processing the broadcast event. */
+//  281 	if(poll_requested) {
+        MOV     DPTR,#poll_requested
+        MOVX    A,@DPTR
+        JZ      ??do_event_3
+//  282 	  do_poll();
+        ; Setup parameters for call to function do_poll
+        LCALL   ??do_poll?relay
+//  283 	}
+//  284 	call_process(p, ev, data);
+??do_event_3:
+        ; Setup parameters for call to function call_process
+        MOV     DPTR,#??data
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     DPTR,#??ev
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#??p
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??call_process?relay
+//  285       }
+        MOV     DPTR,#??p
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#??p
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        SJMP    ??do_event_2
+//  286     } else {
+//  287       /* This is not a broadcast event, so we deliver it to the
+//  288 	 specified process. */
+//  289       /* If the event was an INIT event, we should also update the
+//  290 	 state of the process. */
+//  291       if(ev == PROCESS_EVENT_INIT) {
+??do_event_1:
+        MOV     DPTR,#??ev
+        MOVX    A,@DPTR
+        XRL     A,#0x81
+        JNZ     ??do_event_4
+//  292 	receiver->state = PROCESS_STATE_RUNNING;
+        MOV     DPTR,#??receiver
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x6
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  293       }
+//  294 
+//  295       /* Make sure that the process actually is running. */
+//  296       call_process(receiver, ev, data);
+??do_event_4:
+        ; Setup parameters for call to function call_process
+        MOV     DPTR,#??data
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     DPTR,#??ev
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#??receiver
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??call_process?relay
+//  297     }
+//  298   }
+//  299 }
+??do_event_0:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock7
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+??ev:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+??data:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+??receiver:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+??p:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//  300 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  301 int
+//  302 process_run(void)
+process_run:
+          CFI Block cfiBlock8 Using cfiCommon0
+          CFI Function process_run
+        CODE
+//  303 {
+        FUNCALL process_run, do_poll
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_run, do_event
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  304   /* Process poll events. */
+//  305   if(poll_requested) {
+        MOV     DPTR,#poll_requested
+        MOVX    A,@DPTR
+        JZ      ??process_run_0
+//  306     do_poll();
+        ; Setup parameters for call to function do_poll
+        LCALL   ??do_poll?relay
+//  307   }
+//  308 
+//  309   /* Process one event from the queue */
+//  310   do_event();
+??process_run_0:
+        ; Setup parameters for call to function do_event
+        LCALL   ??do_event?relay
+//  311 
+//  312   return nevents + poll_requested;
+        MOV     DPTR,#nevents
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     DPTR,#poll_requested
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R3,A
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock8
+//  313 }
+//  314 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  315 int
+//  316 process_nevents(void)
+process_nevents:
+          CFI Block cfiBlock9 Using cfiCommon0
+          CFI Function process_nevents
+        CODE
+//  317 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  318   return nevents + poll_requested;
+        MOV     DPTR,#nevents
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     DPTR,#poll_requested
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R3,A
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock9
+//  319 }
+//  320 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  321 int
+//  322 process_post(struct process *p, process_event_t ev, process_data_t data)
+process_post:
+          CFI Block cfiBlock10 Using cfiCommon0
+          CFI Function process_post
+        CODE
+//  323 {
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+//  324   static process_num_events_t snum;
+//  325 
+//  326   if(PROCESS_CURRENT() == NULL) {
+//  327     PRINTF("process_post: NULL process posts event %d to process '%s', nevents %d\n",
+//  328 	   ev,PROCESS_NAME_STRING(p), nevents);
+//  329   } else {
+//  330     PRINTF("process_post: Process '%s' posts event %d to process '%s', nevents %d\n",
+//  331 	   PROCESS_NAME_STRING(PROCESS_CURRENT()), ev,
+//  332 	   p == PROCESS_BROADCAST? "<broadcast>": PROCESS_NAME_STRING(p), nevents);
+//  333   }
+//  334   
+//  335   if(nevents == PROCESS_CONF_NUMEVENTS) {
+        MOV     DPTR,#nevents
+        MOVX    A,@DPTR
+        XRL     A,#0x20
+        JNZ     ??process_post_0
+//  336 #if DEBUG
+//  337     if(p == PROCESS_BROADCAST) {
+//  338       printf("soft panic: event queue is full when broadcast event %d was posted from %s\n", ev, PROCESS_NAME_STRING(process_current));
+//  339     } else {
+//  340       printf("soft panic: event queue is full when event %d was posted to %s frpm %s\n", ev, PROCESS_NAME_STRING(p), PROCESS_NAME_STRING(process_current));
+//  341     }
+//  342 #endif /* DEBUG */
+//  343     return PROCESS_ERR_FULL;
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+        LJMP    ??process_post_1 & 0xFFFF
+//  344   }
+//  345   
+//  346   snum = (process_num_events_t)(fevent + nevents) % PROCESS_CONF_NUMEVENTS;
+??process_post_0:
+        MOV     DPTR,#nevents
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     DPTR,#fevent
+        MOVX    A,@DPTR
+        ADD     A,R0
+        MOV     B,#0x20
+        DIV     AB
+        MOV     A,B
+        MOV     DPTR,#??snum
+        MOVX    @DPTR,A
+//  347   events[snum].ev = ev;
+        MOV     A,R1
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     DPTR,#??snum
+        MOVX    A,@DPTR
+        MOV     R6,A
+        MOV     R7,#0x0
+        MOV     A,R6
+        MOV     B,#0x5
+        MUL     AB
+        XCH     A,R6
+        MOV     R0,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R0
+        MOV     R0,A
+        MOV     B,#0x5
+        MOV     A,R7
+        MUL     AB
+        ADD     A,R0
+        MOV     R7,A
+        MOV     A,#events & 0xff
+        ADD     A,R6
+        MOV     DPL,A
+        MOV     A,#(events >> 8) & 0xff
+        ADDC    A,R7
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  348   events[snum].data = data;
+        MOV     DPTR,#??snum
+        MOVX    A,@DPTR
+        MOV     R6,A
+        MOV     R7,#0x0
+        MOV     A,R6
+        MOV     B,#0x5
+        MUL     AB
+        XCH     A,R6
+        MOV     R0,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R0
+        MOV     R0,A
+        MOV     B,#0x5
+        MOV     A,R7
+        MUL     AB
+        ADD     A,R0
+        MOV     R7,A
+        MOV     A,#(events + 1) & 0xff
+        ADD     A,R6
+        MOV     DPL,A
+        MOV     A,#((events + 1) >> 8) & 0xff
+        ADDC    A,R7
+        MOV     DPH,A
+        MOV     A,R4
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R5
+        MOVX    @DPTR,A
+//  349   events[snum].p = p;
+        MOV     DPTR,#??snum
+        MOVX    A,@DPTR
+        MOV     R4,A
+        MOV     R5,#0x0
+        MOV     A,R4
+        MOV     B,#0x5
+        MUL     AB
+        XCH     A,R4
+        MOV     R0,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R0
+        MOV     R0,A
+        MOV     B,#0x5
+        MOV     A,R5
+        MUL     AB
+        ADD     A,R0
+        MOV     R5,A
+        MOV     A,#(events + 3) & 0xff
+        ADD     A,R4
+        MOV     DPL,A
+        MOV     A,#((events + 3) >> 8) & 0xff
+        ADDC    A,R5
+        MOV     DPH,A
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  350   ++nevents;
+        MOV     DPTR,#nevents
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+//  351 
+//  352 #if PROCESS_CONF_STATS
+//  353   if(nevents > process_maxevents) {
+//  354     process_maxevents = nevents;
+//  355   }
+//  356 #endif /* PROCESS_CONF_STATS */
+//  357   
+//  358   return PROCESS_ERR_OK;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??process_post_1:
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock10
+//  359 }
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+??snum:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+//  360 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  361 void
+//  362 process_post_synch(struct process *p, process_event_t ev, process_data_t data)
+process_post_synch:
+          CFI Block cfiBlock11 Using cfiCommon0
+          CFI Function process_post_synch
+        CODE
+//  363 {
+        FUNCALL process_post_synch, call_process
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     ?V0 + 0,R1
+//  364   struct process *caller = process_current;
+        MOV     DPTR,#process_current
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+//  365 
+//  366   call_process(p, ev, data);
+        ; Setup parameters for call to function call_process
+        MOV     R1,?V0 + 0
+        LCALL   ??call_process?relay
+//  367   process_current = caller;
+        MOV     A,R6
+        MOV     R0,A
+        MOV     A,R7
+        MOV     R1,A
+        MOV     DPTR,#process_current
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  368 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock11
+//  369 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  370 void
+//  371 process_poll(struct process *p)
+process_poll:
+          CFI Block cfiBlock12 Using cfiCommon0
+          CFI Function process_poll
+        CODE
+//  372 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  373   if(p != NULL) {
+        MOV     A,R2
+        ORL     A,R3
+        JZ      ??process_poll_0
+//  374     if(p->state == PROCESS_STATE_RUNNING ||
+//  375        p->state == PROCESS_STATE_CALLED) {
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        XRL     A,#0x1
+        JZ      ??process_poll_1
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        XRL     A,#0x2
+        JNZ     ??process_poll_0
+//  376       p->needspoll = 1;
+??process_poll_1:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  377       poll_requested = 1;
+        MOV     DPTR,#poll_requested
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  378     }
+//  379   }
+//  380 }
+??process_poll_0:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock12
+//  381 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  382 int
+//  383 process_is_running(struct process *p)
+process_is_running:
+          CFI Block cfiBlock13 Using cfiCommon0
+          CFI Function process_is_running
+        CODE
+//  384 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  385   return p->state != PROCESS_STATE_NONE;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        JZ      ??process_is_running_0
+        SETB    B.0
+        SJMP    ??process_is_running_1
+??process_is_running_0:
+        CLR     B.0
+??process_is_running_1:
+        MOV     C,B.0
+        CLR     A
+        RLC     A
+        MOV     R2,A
+        MOV     R3,#0x0
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock13
+//  386 }
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_alloc_event?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_alloc_event
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_start?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_start
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??exit_process?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    exit_process
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??call_process?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    call_process
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_exit?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_exit
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_init?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_init
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??do_poll?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    do_poll
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??do_event?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    do_event
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_run?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_run
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_nevents?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_nevents
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_post?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_post
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_post_synch?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_post_synch
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_poll?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_poll
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_is_running?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_is_running
+
+        END
+//  387 /*---------------------------------------------------------------------------*/
+//  388 /** @} */
+// 
+// 1 555 bytes in segment BANKED_CODE
+//    84 bytes in segment BANK_RELAYS
+//   176 bytes in segment XDATA_Z
+// 
+// 1 639 bytes of CODE  memory
+//   176 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

@@ -1,0 +1,889 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:54 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\net\uip-packetqueue.c       /
+//    Command line       =  D:\myWork\myWork\core\net\uip-packetqueue.c -D    /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\uip-packetqueue.s51                       /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME `uip-packetqueue`
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?V0
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??packet_timedout?relay,0203H
+        PUBLIC ??uip_packetqueue_alloc?relay
+        FUNCTION ??uip_packetqueue_alloc?relay,0203H
+        PUBLIC ??uip_packetqueue_buf?relay
+        FUNCTION ??uip_packetqueue_buf?relay,0203H
+        PUBLIC ??uip_packetqueue_buflen?relay
+        FUNCTION ??uip_packetqueue_buflen?relay,0203H
+        PUBLIC ??uip_packetqueue_free?relay
+        FUNCTION ??uip_packetqueue_free?relay,0203H
+        PUBLIC ??uip_packetqueue_new?relay
+        FUNCTION ??uip_packetqueue_new?relay,0203H
+        PUBLIC ??uip_packetqueue_set_buflen?relay
+        FUNCTION ??uip_packetqueue_set_buflen?relay,0203H
+        FUNCTION packet_timedout,021603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC uip_packetqueue_alloc
+        FUNCTION uip_packetqueue_alloc,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        PUBLIC uip_packetqueue_buf
+        FUNCTION uip_packetqueue_buf,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC uip_packetqueue_buflen
+        FUNCTION uip_packetqueue_buflen,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC uip_packetqueue_free
+        FUNCTION uip_packetqueue_free,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC uip_packetqueue_new
+        FUNCTION uip_packetqueue_new,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC uip_packetqueue_set_buflen
+        FUNCTION uip_packetqueue_set_buflen,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+ctimer_set          SYMBOL "ctimer_set"
+??ctimer_set?relay  SYMBOL "?relay", ctimer_set
+ctimer_stop         SYMBOL "ctimer_stop"
+??ctimer_stop?relay SYMBOL "?relay", ctimer_stop
+memb_alloc          SYMBOL "memb_alloc"
+??memb_alloc?relay  SYMBOL "?relay", memb_alloc
+memb_free           SYMBOL "memb_free"
+??memb_free?relay   SYMBOL "?relay", memb_free
+uip_packetqueue_alloc SYMBOL "uip_packetqueue_alloc"
+??uip_packetqueue_alloc?relay SYMBOL "?relay", uip_packetqueue_alloc
+uip_packetqueue_buf SYMBOL "uip_packetqueue_buf"
+??uip_packetqueue_buf?relay SYMBOL "?relay", uip_packetqueue_buf
+uip_packetqueue_buflen SYMBOL "uip_packetqueue_buflen"
+??uip_packetqueue_buflen?relay SYMBOL "?relay", uip_packetqueue_buflen
+uip_packetqueue_free SYMBOL "uip_packetqueue_free"
+??uip_packetqueue_free?relay SYMBOL "?relay", uip_packetqueue_free
+uip_packetqueue_new SYMBOL "uip_packetqueue_new"
+??uip_packetqueue_new?relay SYMBOL "?relay", uip_packetqueue_new
+uip_packetqueue_set_buflen SYMBOL "uip_packetqueue_set_buflen"
+??uip_packetqueue_set_buflen?relay SYMBOL "?relay", uip_packetqueue_set_buflen
+
+        EXTERN ??ctimer_set?relay
+        FUNCTION ??ctimer_set?relay,00H
+        EXTERN ??ctimer_stop?relay
+        FUNCTION ??ctimer_stop?relay,00H
+        EXTERN ??memb_alloc?relay
+        FUNCTION ??memb_alloc?relay,00H
+        EXTERN ??memb_free?relay
+        FUNCTION ??memb_free?relay,00H
+        EXTERN ctimer_set
+        FUNCTION ctimer_set,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN ctimer_stop
+        FUNCTION ctimer_stop,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memb_alloc
+        FUNCTION memb_alloc,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memb_free
+        FUNCTION memb_free,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+// D:\myWork\myWork\core\net\uip-packetqueue.c
+//    1 #include <stdio.h>
+//    2 
+//    3 #include "net/uip.h"
+//    4 
+//    5 #include "lib/memb.h"
+//    6 
+//    7 #include "net/uip-packetqueue.h"
+//    8 
+//    9 #define MAX_NUM_QUEUED_PACKETS 2
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+//   10 MEMB(packets_memb, struct uip_packetqueue_packet, MAX_NUM_QUEUED_PACKETS);
+packets_memb:
+        DATA8
+        DS 8
+        REQUIRE `?<Initializer for packets_memb>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+// static char packets_memb_memb_count[2]
+packets_memb_memb_count:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+// static struct uip_packetqueue_packet packets_memb_memb_mem[2]
+packets_memb_memb_mem:
+        DS 524
+        REQUIRE __INIT_XDATA_Z
+//   11 
+//   12 #define DEBUG 0
+//   13 #if DEBUG
+//   14 #include <stdio.h>
+//   15 #define PRINTF(...) printf(__VA_ARGS__)
+//   16 #else
+//   17 #define PRINTF(...)
+//   18 #endif
+//   19 
+//   20 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   21 static void
+//   22 packet_timedout(void *ptr)
+packet_timedout:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function packet_timedout
+        CODE
+//   23 {
+        FUNCALL packet_timedout, memb_free
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+//   24   struct uip_packetqueue_handle *h = ptr;
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//   25 
+//   26   PRINTF("uip_packetqueue_free timed out %p\n", h);
+//   27   memb_free(&packets_memb, h->packet);
+        ; Setup parameters for call to function memb_free
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     R2,#packets_memb & 0xff
+        MOV     R3,#(packets_memb >> 8) & 0xff
+        LCALL   ??memb_free?relay
+        MOV     A,R1
+//   28   h->packet = NULL;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   29 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock0
+//   30 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   31 void
+//   32 uip_packetqueue_new(struct uip_packetqueue_handle *handle)
+uip_packetqueue_new:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function uip_packetqueue_new
+        CODE
+//   33 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   34   PRINTF("uip_packetqueue_new %p\n", handle);
+//   35   handle->packet = NULL;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   36 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock1
+//   37 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   38 struct uip_packetqueue_packet *
+//   39 uip_packetqueue_alloc(struct uip_packetqueue_handle *handle, clock_time_t lifetime)
+uip_packetqueue_alloc:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function uip_packetqueue_alloc
+        CODE
+//   40 {
+        FUNCALL uip_packetqueue_alloc, memb_alloc
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_packetqueue_alloc, ctimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,R4
+        MOV     R6,A
+        MOV     A,R5
+        MOV     R7,A
+//   41   PRINTF("uip_packetqueue_alloc %p\n", handle);
+//   42   if(handle->packet != NULL) {
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??uip_packetqueue_alloc_0
+//   43     PRINTF("alloced\n");
+//   44     return NULL;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??uip_packetqueue_alloc_1
+//   45   }
+//   46   handle->packet = memb_alloc(&packets_memb);
+??uip_packetqueue_alloc_0:
+        ; Setup parameters for call to function memb_alloc
+        MOV     R2,#packets_memb & 0xff
+        MOV     R3,#(packets_memb >> 8) & 0xff
+        LCALL   ??memb_alloc?relay
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//   47   if(handle->packet != NULL) {
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??uip_packetqueue_alloc_2
+//   48     ctimer_set(&handle->packet->lifetimer, lifetime,
+//   49                packet_timedout, handle);
+        ; Setup parameters for call to function ctimer_set
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     ?V0 + 2,#??packet_timedout?relay & 0xff
+        MOV     ?V0 + 3,#(??packet_timedout?relay >> 8) & 0xff
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        ADD     A,#-0xc
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??ctimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+//   50   } else {
+//   51     PRINTF("uip_packetqueue_alloc failed\n");
+//   52   }
+//   53   return handle->packet;
+??uip_packetqueue_alloc_2:
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+??uip_packetqueue_alloc_1:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//   54 }
+//   55 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   56 void
+//   57 uip_packetqueue_free(struct uip_packetqueue_handle *handle)
+uip_packetqueue_free:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function uip_packetqueue_free
+        CODE
+//   58 {
+        FUNCALL uip_packetqueue_free, ctimer_stop
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_packetqueue_free, memb_free
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//   59   PRINTF("uip_packetqueue_free %p\n", handle);
+//   60   if(handle->packet != NULL) {
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??uip_packetqueue_free_0
+//   61     ctimer_stop(&handle->packet->lifetimer);
+        ; Setup parameters for call to function ctimer_stop
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        ADD     A,#-0xc
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??ctimer_stop?relay
+//   62     memb_free(&packets_memb, handle->packet);
+        ; Setup parameters for call to function memb_free
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     R2,#packets_memb & 0xff
+        MOV     R3,#(packets_memb >> 8) & 0xff
+        LCALL   ??memb_free?relay
+        MOV     A,R1
+//   63     handle->packet = NULL;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   64   }
+//   65 }
+??uip_packetqueue_free_0:
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock3
+//   66 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   67 uint8_t *
+//   68 uip_packetqueue_buf(struct uip_packetqueue_handle *h)
+uip_packetqueue_buf:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function uip_packetqueue_buf
+        CODE
+//   69 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   70   return h->packet != NULL? h->packet->queue_buf: NULL;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??uip_packetqueue_buf_0
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        ADD     A,#0x2
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R3,A
+        SJMP    ??uip_packetqueue_buf_1
+??uip_packetqueue_buf_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??uip_packetqueue_buf_1:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock4
+//   71 }
+//   72 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   73 uint16_t
+//   74 uip_packetqueue_buflen(struct uip_packetqueue_handle *h)
+uip_packetqueue_buflen:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function uip_packetqueue_buflen
+        CODE
+//   75 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   76   return h->packet != NULL? h->packet->queue_buf_len: 0;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??uip_packetqueue_buflen_0
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#-0xe
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        SJMP    ??uip_packetqueue_buflen_1
+??uip_packetqueue_buflen_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??uip_packetqueue_buflen_1:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock5
+//   77 }
+//   78 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   79 void
+//   80 uip_packetqueue_set_buflen(struct uip_packetqueue_handle *h, uint16_t len)
+uip_packetqueue_set_buflen:
+          CFI Block cfiBlock6 Using cfiCommon0
+          CFI Function uip_packetqueue_set_buflen
+        CODE
+//   81 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   82   if(h->packet != NULL) {
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??uip_packetqueue_set_buflen_0
+//   83     h->packet->queue_buf_len = len;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#-0xe
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,R4
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R5
+        MOVX    @DPTR,A
+//   84   }
+//   85 }
+??uip_packetqueue_set_buflen_0:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock6
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for packets_memb>`:
+        DATA16
+        DW 262
+        DW 2
+        DW packets_memb_memb_count
+        DW packets_memb_memb_mem
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??packet_timedout?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    packet_timedout
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_packetqueue_new?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_packetqueue_new
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_packetqueue_alloc?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_packetqueue_alloc
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_packetqueue_free?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_packetqueue_free
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_packetqueue_buf?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_packetqueue_buf
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_packetqueue_buflen?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_packetqueue_buflen
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_packetqueue_set_buflen?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_packetqueue_set_buflen
+
+        END
+//   86 /*---------------------------------------------------------------------------*/
+// 
+// 404 bytes in segment BANKED_CODE
+//  42 bytes in segment BANK_RELAYS
+//   8 bytes in segment XDATA_I
+//   8 bytes in segment XDATA_ID
+// 526 bytes in segment XDATA_Z
+// 
+// 454 bytes of CODE  memory
+// 534 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

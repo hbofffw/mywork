@@ -1,0 +1,3208 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:50 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\net\nbr-table.c             /
+//    Command line       =  D:\myWork\myWork\core\net\nbr-table.c -D          /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\nbr-table.s51                             /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME `nbr-table`
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?CALL_IND
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?PUSH_XSTACK8_X_TWO
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?SS_SHR
+        EXTERN ?S_DIV_MOD
+        EXTERN ?S_SHL
+        EXTERN ?US_SHR
+        EXTERN ?V0
+        EXTERN ?XSTACK_DISP0_8
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??index_from_item?relay,0203H
+        FUNCTION ??index_from_key?relay,0203H
+        FUNCTION ??index_from_lladdr?relay,0203H
+        FUNCTION ??item_from_index?relay,0203H
+        FUNCTION ??item_from_key?relay,0203H
+        FUNCTION ??key_from_index?relay,0203H
+        FUNCTION ??key_from_item?relay,0203H
+        FUNCTION ??nbr_get_bit?relay,0203H
+        FUNCTION ??nbr_set_bit?relay,0203H
+        PUBLIC ??nbr_table_add_lladdr?relay
+        FUNCTION ??nbr_table_add_lladdr?relay,0203H
+        FUNCTION ??nbr_table_allocate?relay,0203H
+        PUBLIC ??nbr_table_get_from_lladdr?relay
+        FUNCTION ??nbr_table_get_from_lladdr?relay,0203H
+        PUBLIC ??nbr_table_get_lladdr?relay
+        FUNCTION ??nbr_table_get_lladdr?relay,0203H
+        PUBLIC ??nbr_table_head?relay
+        FUNCTION ??nbr_table_head?relay,0203H
+        PUBLIC ??nbr_table_lock?relay
+        FUNCTION ??nbr_table_lock?relay,0203H
+        PUBLIC ??nbr_table_next?relay
+        FUNCTION ??nbr_table_next?relay,0203H
+        PUBLIC ??nbr_table_register?relay
+        FUNCTION ??nbr_table_register?relay,0203H
+        PUBLIC ??nbr_table_remove?relay
+        FUNCTION ??nbr_table_remove?relay,0203H
+        PUBLIC ??nbr_table_unlock?relay
+        FUNCTION ??nbr_table_unlock?relay,0203H
+        FUNCTION index_from_item,0203H
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 10, STACK
+        FUNCTION index_from_key,0203H
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 12, STACK
+        FUNCTION index_from_lladdr,021203H
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 12, STACK
+        FUNCTION item_from_index,0203H
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 10, STACK
+        FUNCTION item_from_key,021203H
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 9, STACK
+        FUNCTION key_from_index,0203H
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        FUNCTION key_from_item,021203H
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        FUNCTION nbr_get_bit,021203H
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 12, STACK
+        FUNCTION nbr_set_bit,021203H
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 14, STACK
+        PUBLIC nbr_table_add_lladdr
+        FUNCTION nbr_table_add_lladdr,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        FUNCTION nbr_table_allocate,021203H
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 16, STACK
+        PUBLIC nbr_table_get_from_lladdr
+        FUNCTION nbr_table_get_from_lladdr,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        PUBLIC nbr_table_get_lladdr
+        FUNCTION nbr_table_get_lladdr,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC nbr_table_head
+        FUNCTION nbr_table_head,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        PUBLIC nbr_table_lock
+        FUNCTION nbr_table_lock,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        PUBLIC nbr_table_next
+        FUNCTION nbr_table_next,021203H
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 14, STACK
+        PUBLIC nbr_table_register
+        FUNCTION nbr_table_register,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC nbr_table_remove
+        FUNCTION nbr_table_remove,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        PUBLIC nbr_table_unlock
+        FUNCTION nbr_table_unlock,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+list_add            SYMBOL "list_add"
+??list_add?relay    SYMBOL "?relay", list_add
+list_head           SYMBOL "list_head"
+??list_head?relay   SYMBOL "?relay", list_head
+list_item_next      SYMBOL "list_item_next"
+??list_item_next?relay SYMBOL "?relay", list_item_next
+list_remove         SYMBOL "list_remove"
+??list_remove?relay SYMBOL "?relay", list_remove
+memb_alloc          SYMBOL "memb_alloc"
+??memb_alloc?relay  SYMBOL "?relay", memb_alloc
+memset              SYMBOL "memset"
+??memset?relay      SYMBOL "?relay", memset
+rimeaddr_cmp        SYMBOL "rimeaddr_cmp"
+??rimeaddr_cmp?relay SYMBOL "?relay", rimeaddr_cmp
+rimeaddr_copy       SYMBOL "rimeaddr_copy"
+??rimeaddr_copy?relay SYMBOL "?relay", rimeaddr_copy
+nbr_table_add_lladdr SYMBOL "nbr_table_add_lladdr"
+??nbr_table_add_lladdr?relay SYMBOL "?relay", nbr_table_add_lladdr
+nbr_table_get_from_lladdr SYMBOL "nbr_table_get_from_lladdr"
+??nbr_table_get_from_lladdr?relay SYMBOL "?relay", nbr_table_get_from_lladdr
+nbr_table_get_lladdr SYMBOL "nbr_table_get_lladdr"
+??nbr_table_get_lladdr?relay SYMBOL "?relay", nbr_table_get_lladdr
+nbr_table_head      SYMBOL "nbr_table_head"
+??nbr_table_head?relay SYMBOL "?relay", nbr_table_head
+nbr_table_lock      SYMBOL "nbr_table_lock"
+??nbr_table_lock?relay SYMBOL "?relay", nbr_table_lock
+nbr_table_next      SYMBOL "nbr_table_next"
+??nbr_table_next?relay SYMBOL "?relay", nbr_table_next
+nbr_table_register  SYMBOL "nbr_table_register"
+??nbr_table_register?relay SYMBOL "?relay", nbr_table_register
+nbr_table_remove    SYMBOL "nbr_table_remove"
+??nbr_table_remove?relay SYMBOL "?relay", nbr_table_remove
+nbr_table_unlock    SYMBOL "nbr_table_unlock"
+??nbr_table_unlock?relay SYMBOL "?relay", nbr_table_unlock
+
+        EXTERN ??list_add?relay
+        FUNCTION ??list_add?relay,00H
+        EXTERN ??list_head?relay
+        FUNCTION ??list_head?relay,00H
+        EXTERN ??list_item_next?relay
+        FUNCTION ??list_item_next?relay,00H
+        EXTERN ??list_remove?relay
+        FUNCTION ??list_remove?relay,00H
+        EXTERN ??memb_alloc?relay
+        FUNCTION ??memb_alloc?relay,00H
+        EXTERN ??memset?relay
+        FUNCTION ??memset?relay,00H
+        EXTERN ??rimeaddr_cmp?relay
+        FUNCTION ??rimeaddr_cmp?relay,00H
+        EXTERN ??rimeaddr_copy?relay
+        FUNCTION ??rimeaddr_copy?relay,00H
+        EXTERN list_add
+        FUNCTION list_add,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN list_head
+        FUNCTION list_head,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN list_item_next
+        FUNCTION list_item_next,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN list_remove
+        FUNCTION list_remove,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memb_alloc
+        FUNCTION memb_alloc,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memset
+        FUNCTION memset,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN rimeaddr_cmp
+        FUNCTION rimeaddr_cmp,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN rimeaddr_copy
+        FUNCTION rimeaddr_copy,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN rimeaddr_null
+
+// D:\myWork\myWork\core\net\nbr-table.c
+//    1 /*
+//    2  * Copyright (c) 2013, Swedish Institute of Computer Science
+//    3  * Copyright (c) 2010, Vrije Universiteit Brussel
+//    4  * All rights reserved.
+//    5  *
+//    6  * Redistribution and use in source and binary forms, with or without
+//    7  * modification, are permitted provided that the following conditions
+//    8  * are met:
+//    9  * 1. Redistributions of source code must retain the above copyright
+//   10  *    notice, this list of conditions and the following disclaimer.
+//   11  * 2. Redistributions in binary form must reproduce the above copyright
+//   12  *    notice, this list of conditions and the following disclaimer in the
+//   13  *    documentation and/or other materials provided with the distribution.
+//   14  * 3. Neither the name of the Institute nor the names of its contributors
+//   15  *    may be used to endorse or promote products derived from this software
+//   16  *    without specific prior written permission.
+//   17  *
+//   18  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   19  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   20  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   21  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   22  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   23  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   24  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   25  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   26  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   27  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   28  * SUCH DAMAGE.
+//   29  *
+//   30  *
+//   31  * Authors: Simon Duquennoy <simonduq@sics.se>
+//   32  *          Joris Borms <joris.borms@vub.ac.be>
+//   33  */
+//   34 
+//   35 #include "contiki.h"
+//   36 
+//   37 #include <stddef.h>
+//   38 #include <string.h>
+//   39 #include "lib/memb.h"
+//   40 #include "lib/list.h"
+//   41 #include "net/nbr-table.h"
+//   42 
+//   43 /* List of link-layer addresses of the neighbors, used as key in the tables */
+//   44 typedef struct nbr_table_key {
+//   45   struct nbr_table_key *next;
+//   46   rimeaddr_t lladdr;
+//   47 } nbr_table_key_t;
+//   48 
+//   49 /* For each neighbor, a map of the tables that use the neighbor.
+//   50  * As we are using uint8_t, we have a maximum of 8 tables in the system */
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA32
+//   51 static uint8_t used_map[NBR_TABLE_MAX_NEIGHBORS];
+used_map:
+        DS 4
+        REQUIRE __INIT_XDATA_Z
+//   52 /* For each neighbor, a map of the tables that lock the neighbor */
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA32
+//   53 static uint8_t locked_map[NBR_TABLE_MAX_NEIGHBORS];
+locked_map:
+        DS 4
+        REQUIRE __INIT_XDATA_Z
+//   54 /* The maximum number of tables */
+//   55 #define MAX_NUM_TABLES 8
+//   56 /* A list of pointers to tables in use */
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   57 static struct nbr_table *all_tables[MAX_NUM_TABLES];
+all_tables:
+        DS 16
+        REQUIRE __INIT_XDATA_Z
+//   58 /* The current number of tables */
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   59 static unsigned num_tables;
+num_tables:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//   60 
+//   61 /* The neighbor address table */
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+//   62 MEMB(neighbor_addr_mem, nbr_table_key_t, NBR_TABLE_MAX_NEIGHBORS);
+neighbor_addr_mem:
+        DATA8
+        DS 8
+        REQUIRE `?<Initializer for neighbor_addr_mem>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA32
+// static char neighbor_addr_mem_memb_count[4]
+neighbor_addr_mem_memb_count:
+        DS 4
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+// static nbr_table_key_t neighbor_addr_mem_memb_mem[4]
+neighbor_addr_mem_memb_mem:
+        DS 16
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+//   63 LIST(nbr_table_keys);
+nbr_table_keys:
+        DATA16
+        DS 2
+        REQUIRE `?<Initializer for nbr_table_keys>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+// static void *__xdata nbr_table_keys_list
+nbr_table_keys_list:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//   64 
+//   65 /*---------------------------------------------------------------------------*/
+//   66 /* Get a key from a neighbor index */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   67 static nbr_table_key_t *
+//   68 key_from_index(int index)
+key_from_index:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function key_from_index
+        CODE
+//   69 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   70   return index != -1 ? &((nbr_table_key_t *)neighbor_addr_mem.mem)[index] : NULL;
+        MOV     A,#-0x1
+        XRL     A,R2
+        JNZ     ??key_from_index_0
+        MOV     A,#-0x1
+        XRL     A,R3
+??key_from_index_0:
+        JZ      ??key_from_index_1
+        MOV     A,R2
+        MOV     B,#0x4
+        MUL     AB
+        XCH     A,R2
+        MOV     R0,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R0
+        MOV     R0,A
+        MOV     B,#0x4
+        MOV     A,R3
+        MUL     AB
+        ADD     A,R0
+        MOV     R3,A
+        MOV     DPTR,#neighbor_addr_mem + 6
+        MOVX    A,@DPTR
+        ADD     A,R2
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,R3
+        MOV     R3,A
+        SJMP    ??key_from_index_2
+??key_from_index_1:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??key_from_index_2:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock0
+//   71 }
+//   72 /*---------------------------------------------------------------------------*/
+//   73 /* Get an item from its neighbor index */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   74 static nbr_table_item_t *
+//   75 item_from_index(nbr_table_t *table, int index)
+item_from_index:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function item_from_index
+        CODE
+//   76 {
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//   77   return table != NULL && index != -1 ? (char *)table->data + index * table->item_size : NULL;
+        MOV     A,R2
+        ORL     A,R3
+        JZ      ??item_from_index_0
+        MOV     A,#-0x1
+        XRL     A,R4
+        JNZ     ??item_from_index_1
+        MOV     A,#-0x1
+        XRL     A,R5
+??item_from_index_1:
+        JZ      ??item_from_index_0
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 1,A
+        MOV     A,R4
+        MOV     B,?V0 + 0
+        MUL     AB
+        XCH     A,R4
+        MOV     R0,B
+        MOV     B,?V0 + 1
+        MUL     AB
+        ADD     A,R0
+        MOV     R0,A
+        MOV     B,?V0 + 0
+        MOV     A,R5
+        MUL     AB
+        ADD     A,R0
+        MOV     R5,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADD     A,R4
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,R5
+        MOV     R3,A
+        SJMP    ??item_from_index_2
+??item_from_index_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??item_from_index_2:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//   78 }
+//   79 /*---------------------------------------------------------------------------*/
+//   80 /* Get the neighbor index of an item */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   81 static int
+//   82 index_from_key(nbr_table_key_t *key)
+index_from_key:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function index_from_key
+        CODE
+//   83 {
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+//   84   return key != NULL ? key - (nbr_table_key_t *)neighbor_addr_mem.mem : -1;
+        MOV     A,R2
+        ORL     A,R3
+        JZ      ??index_from_key_0
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,#0x2
+        MOV     R0,#?V0 + 0
+        LCALL   ?US_SHR
+        MOV     DPTR,#neighbor_addr_mem + 6
+        MOVX    A,@DPTR
+        MOV     ?V0 + 2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 3,A
+        MOV     A,#0x2
+        MOV     R0,#?V0 + 2
+        LCALL   ?US_SHR
+        MOV     A,?V0 + 0
+        CLR     C
+        SUBB    A,?V0 + 2
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        SUBB    A,?V0 + 3
+        MOV     R3,A
+        SJMP    ??index_from_key_1
+??index_from_key_0:
+        MOV     R2,#-0x1
+        MOV     R3,#-0x1
+??index_from_key_1:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//   85 }
+//   86 /*---------------------------------------------------------------------------*/
+//   87 /* Get the neighbor index of an item */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   88 static int
+//   89 index_from_item(nbr_table_t *table, nbr_table_item_t *item)
+index_from_item:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function index_from_item
+        CODE
+//   90 {
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//   91   return table != NULL && item != NULL ? ((int)((char *)item - (char *)table->data)) / table->item_size : -1;
+        MOV     A,R2
+        ORL     A,R3
+        JZ      ??index_from_item_0
+        MOV     A,R4
+        ORL     A,R5
+        JZ      ??index_from_item_0
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R4
+        CLR     C
+        SUBB    A,R0
+        MOV     R0,A
+        MOV     A,R5
+        SUBB    A,R1
+        MOV     R1,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ?S_DIV_MOD
+        MOV     ?V0 + 0,R0
+        MOV     ?V0 + 1,R1
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        SJMP    ??index_from_item_1
+??index_from_item_0:
+        MOV     R2,#-0x1
+        MOV     R3,#-0x1
+??index_from_item_1:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock3
+//   92 }
+//   93 /*---------------------------------------------------------------------------*/
+//   94 /* Get an item from its key */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   95 static nbr_table_item_t *
+//   96 item_from_key(nbr_table_t *table, nbr_table_key_t *key)
+item_from_key:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function item_from_key
+        CODE
+//   97 {
+        FUNCALL item_from_key, index_from_key
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL item_from_key, item_from_index
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     A,R4
+        MOV     R2,A
+        MOV     A,R5
+        MOV     R3,A
+//   98   return item_from_index(table, index_from_key(key));
+        ; Setup parameters for call to function item_from_index
+        ; Setup parameters for call to function index_from_key
+        LCALL   ??index_from_key?relay
+        MOV     A,R2
+        MOV     R4,A
+        MOV     A,R3
+        MOV     R5,A
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??item_from_index?relay
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock4
+//   99 }
+//  100 /*---------------------------------------------------------------------------*/
+//  101 /* Get the key af an item */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  102 static nbr_table_key_t *
+//  103 key_from_item(nbr_table_t *table, nbr_table_item_t *item)
+key_from_item:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function key_from_item
+        CODE
+//  104 {
+        FUNCALL key_from_item, index_from_item
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL key_from_item, key_from_index
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  105   return key_from_index(index_from_item(table, item));
+        ; Setup parameters for call to function key_from_index
+        ; Setup parameters for call to function index_from_item
+        LCALL   ??index_from_item?relay
+        LCALL   ??key_from_index?relay
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock5
+//  106 }
+//  107 /*---------------------------------------------------------------------------*/
+//  108 /* Get the index of a neighbor from its link-layer address */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  109 static int
+//  110 index_from_lladdr(const rimeaddr_t *lladdr)
+index_from_lladdr:
+          CFI Block cfiBlock6 Using cfiCommon0
+          CFI Function index_from_lladdr
+        CODE
+//  111 {
+        FUNCALL index_from_lladdr, list_head
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL index_from_lladdr, list_item_next
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL index_from_lladdr, rimeaddr_cmp
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL index_from_lladdr, index_from_key
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  112   nbr_table_key_t *key;
+//  113   /* Allow lladdr-free insertion, useful e.g. for IPv6 ND.
+//  114    * Only one such entry is possible at a time, indexed by rimeaddr_null. */
+//  115   if(lladdr == NULL) {
+        MOV     A,R6
+        ORL     A,R7
+        JNZ     ??index_from_lladdr_0
+//  116     lladdr = &rimeaddr_null;
+        MOV     R6,#rimeaddr_null & 0xff
+        MOV     R7,#(rimeaddr_null >> 8) & 0xff
+//  117   }
+//  118   key = list_head(nbr_table_keys);
+??index_from_lladdr_0:
+        ; Setup parameters for call to function list_head
+        MOV     DPTR,#nbr_table_keys
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??list_head?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,?V0 + 3
+        SJMP    ??index_from_lladdr_1
+//  119   while(key != NULL) {
+//  120     if(lladdr && rimeaddr_cmp(lladdr, &key->lladdr)) {
+//  121       return index_from_key(key);
+//  122     }
+//  123     key = list_item_next(key);
+??index_from_lladdr_2:
+        ; Setup parameters for call to function list_item_next
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        LCALL   ??list_item_next?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,?V0 + 3
+??index_from_lladdr_1:
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??index_from_lladdr_3
+        MOV     A,R6
+        ORL     A,R7
+        JZ      ??index_from_lladdr_2
+        ; Setup parameters for call to function rimeaddr_cmp
+        MOV     A,?V0 + 0
+        ADD     A,#0x2
+        MOV     R4,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??rimeaddr_cmp?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JZ      ??index_from_lladdr_2
+        ; Setup parameters for call to function index_from_key
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        LCALL   ??index_from_key?relay
+        SJMP    ??index_from_lladdr_4
+//  124   }
+//  125   return -1;
+??index_from_lladdr_3:
+        MOV     R2,#-0x1
+        MOV     R3,#-0x1
+??index_from_lladdr_4:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock6
+//  126 }
+//  127 /*---------------------------------------------------------------------------*/
+//  128 /* Get bit from "used" or "locked" bitmap */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  129 static int
+//  130 nbr_get_bit(uint8_t *bitmap, nbr_table_t *table, nbr_table_item_t *item)
+nbr_get_bit:
+          CFI Block cfiBlock7 Using cfiCommon0
+          CFI Function nbr_get_bit
+        CODE
+//  131 {
+        FUNCALL nbr_get_bit, index_from_item
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,R4
+        MOV     R6,A
+        MOV     A,R5
+        MOV     R7,A
+        MOV     A,#0xc
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+//  132   int item_index = index_from_item(table, item);
+        ; Setup parameters for call to function index_from_item
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??index_from_item?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     R2,?V0 + 2
+        MOV     R3,?V0 + 3
+//  133   if(table != NULL && item_index != -1) {
+        MOV     A,R6
+        ORL     A,R7
+        JZ      ??nbr_get_bit_0
+        MOV     A,#-0x1
+        XRL     A,R2
+        JNZ     ??nbr_get_bit_1
+        MOV     A,#-0x1
+        XRL     A,R3
+??nbr_get_bit_1:
+        JZ      ??nbr_get_bit_0
+//  134     return (bitmap[item_index] & (1 << table->index)) != 0;
+        MOV     ?V0 + 2,#0x1
+        MOV     ?V0 + 3,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        MOV     R0,#?V0 + 2
+        LCALL   ?S_SHL
+        MOV     A,?V0 + 0
+        ADD     A,R2
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,R3
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        ANL     A,?V0 + 2
+        JZ      ??nbr_get_bit_2
+        SETB    B.0
+        SJMP    ??nbr_get_bit_3
+??nbr_get_bit_2:
+        CLR     B.0
+??nbr_get_bit_3:
+        MOV     C,B.0
+        CLR     A
+        RLC     A
+        MOV     R2,A
+        MOV     R3,#0x0
+        SJMP    ??nbr_get_bit_4
+//  135   } else {
+//  136     return 0;
+??nbr_get_bit_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??nbr_get_bit_4:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock7
+//  137   }
+//  138   return 0;
+//  139 }
+//  140 /*---------------------------------------------------------------------------*/
+//  141 /* Set bit in "used" or "locked" bitmap */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  142 static int
+//  143 nbr_set_bit(uint8_t *bitmap, nbr_table_t *table, nbr_table_item_t *item, int value)
+nbr_set_bit:
+          CFI Block cfiBlock8 Using cfiCommon0
+          CFI Function nbr_set_bit
+        CODE
+//  144 {
+        FUNCALL nbr_set_bit, index_from_item
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xe
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 14)
+        ; Saved register size: 14
+        ; Auto size: 0
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,R4
+        MOV     R6,A
+        MOV     A,R5
+        MOV     R7,A
+        MOV     A,#0xe
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     A,#0x10
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     ?V0 + 2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 3,A
+//  145   int item_index = index_from_item(table, item);
+        ; Setup parameters for call to function index_from_item
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??index_from_item?relay
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     R2,?V0 + 4
+        MOV     R3,?V0 + 5
+//  146   if(table != NULL && item_index != -1) {
+        MOV     A,R6
+        ORL     A,R7
+        JZ      ??nbr_set_bit_0
+        MOV     A,#-0x1
+        XRL     A,R2
+        JNZ     ??nbr_set_bit_1
+        MOV     A,#-0x1
+        XRL     A,R3
+??nbr_set_bit_1:
+        JZ      ??nbr_set_bit_0
+//  147     if(value) {
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JZ      ??nbr_set_bit_2
+//  148       bitmap[item_index] |= 1 << table->index;
+        MOV     ?V0 + 2,#0x1
+        MOV     ?V0 + 3,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        MOV     R0,#?V0 + 2
+        LCALL   ?S_SHL
+        MOV     A,?V0 + 0
+        ADD     A,R2
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,R3
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        ORL     A,?V0 + 2
+        MOVX    @DPTR,A
+        SJMP    ??nbr_set_bit_3
+//  149     } else {
+//  150       bitmap[item_index] &= ~(1 << table->index);
+??nbr_set_bit_2:
+        MOV     ?V0 + 2,#0x1
+        MOV     ?V0 + 3,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        MOV     R0,#?V0 + 2
+        LCALL   ?S_SHL
+        MOV     A,?V0 + 2
+        CPL     A
+        MOV     R0,A
+        MOV     A,?V0 + 0
+        ADD     A,R2
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,R3
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        ANL     A,R0
+        MOVX    @DPTR,A
+//  151     }
+//  152     return 1;
+??nbr_set_bit_3:
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+        SJMP    ??nbr_set_bit_4
+//  153   } else {
+//  154     return 0;
+??nbr_set_bit_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??nbr_set_bit_4:
+        MOV     R7,#0x6
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock8
+//  155   }
+//  156   return 0;
+//  157 }
+//  158 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  159 static nbr_table_key_t *
+//  160 nbr_table_allocate(void)
+nbr_table_allocate:
+          CFI Block cfiBlock9 Using cfiCommon0
+          CFI Function nbr_table_allocate
+        CODE
+//  161 {
+        FUNCALL nbr_table_allocate, memb_alloc
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_allocate, list_head
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_allocate, list_item_next
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_allocate, index_from_key
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_allocate, item_from_key
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_allocate, nbr_get_bit
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_allocate, index_from_key
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_allocate, list_remove
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xe
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 14)
+        ; Saved register size: 14
+        ; Auto size: 0
+//  162   nbr_table_key_t *key;
+//  163   int least_used_count = 0;
+        MOV     ?V0 + 2,#0x0
+        MOV     ?V0 + 3,#0x0
+//  164   nbr_table_key_t *least_used_key = NULL;
+        MOV     ?V0 + 0,#0x0
+        MOV     ?V0 + 1,#0x0
+//  165 
+//  166   key = memb_alloc(&neighbor_addr_mem);
+        ; Setup parameters for call to function memb_alloc
+        MOV     R2,#neighbor_addr_mem & 0xff
+        MOV     R3,#(neighbor_addr_mem >> 8) & 0xff
+        LCALL   ??memb_alloc?relay
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     R6,?V0 + 4
+        MOV     R7,?V0 + 5
+//  167   if(key != NULL) {
+        MOV     A,R6
+        ORL     A,R7
+        JZ      ??nbr_table_allocate_0
+//  168     return key;
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LJMP    ??nbr_table_allocate_1 & 0xFFFF
+//  169   } else { /* No more space, try to free a neighbor.
+//  170             * The replacement policy is the following: remove neighbor that is:
+//  171             * (1) not locked
+//  172             * (2) used by fewest tables
+//  173             * (3) oldest (the list is ordered by insertion time)
+//  174             * */
+//  175     /* Get item from first key */
+//  176     key = list_head(nbr_table_keys);
+??nbr_table_allocate_0:
+        ; Setup parameters for call to function list_head
+        MOV     DPTR,#nbr_table_keys
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??list_head?relay
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     R6,?V0 + 4
+        MOV     R7,?V0 + 5
+        SJMP    ??nbr_table_allocate_2
+//  177     while(key != NULL) {
+//  178       int item_index = index_from_key(key);
+//  179       int locked = locked_map[item_index];
+//  180       /* Never delete a locked item */
+//  181       if(!locked) {
+//  182         int used = used_map[item_index];
+//  183         int used_count = 0;
+//  184         /* Count how many tables are using this item */
+//  185         while(used != 0) {
+//  186           if((used & 1) == 1) {
+//  187             used_count++;
+//  188           }
+//  189           used >>= 1;
+//  190         }
+//  191         /* Find least used item */
+//  192         if(least_used_key == NULL || used_count < least_used_count) {
+//  193           least_used_key = key;
+//  194           least_used_count = used_count;
+//  195           if(used_count == 0) { /* We won't find any least used item */
+//  196             break;
+//  197           }
+//  198         }
+//  199       }
+//  200       key = list_item_next(key);
+??nbr_table_allocate_3:
+        ; Setup parameters for call to function list_item_next
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??list_item_next?relay
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     R6,?V0 + 4
+        MOV     R7,?V0 + 5
+??nbr_table_allocate_2:
+        MOV     A,R6
+        ORL     A,R7
+        JZ      ??nbr_table_allocate_4
+        ; Setup parameters for call to function index_from_key
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??index_from_key?relay
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     R2,?V0 + 4
+        MOV     R3,?V0 + 5
+        MOV     A,#locked_map & 0xff
+        ADD     A,R2
+        MOV     DPL,A
+        MOV     A,#(locked_map >> 8) & 0xff
+        ADDC    A,R3
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        ORL     A,R1
+        JNZ     ??nbr_table_allocate_3
+        MOV     A,#used_map & 0xff
+        ADD     A,R2
+        MOV     DPL,A
+        MOV     A,#(used_map >> 8) & 0xff
+        ADDC    A,R3
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??nbr_table_allocate_5
+??nbr_table_allocate_6:
+        MOV     A,R0
+        MOV     C,0xE0 /* A   */.0
+        JNC     ??nbr_table_allocate_7
+        MOV     A,R2
+        ADD     A,#0x1
+        MOV     R2,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     R3,A
+??nbr_table_allocate_7:
+        MOV     ?V0 + 4,R0
+        MOV     ?V0 + 5,R1
+        MOV     A,#0x1
+        MOV     R0,#?V0 + 4
+        LCALL   ?SS_SHR
+        MOV     R0,?V0 + 4
+        MOV     R1,?V0 + 5
+??nbr_table_allocate_5:
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??nbr_table_allocate_6
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??nbr_table_allocate_8
+        CLR     C
+        MOV     A,R2
+        SUBB    A,?V0 + 2
+        MOV     A,R3
+        SUBB    A,?V0 + 3
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     ??nbr_table_allocate_3
+??nbr_table_allocate_8:
+        MOV     ?V0 + 0,R6
+        MOV     ?V0 + 1,R7
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,R2
+        ORL     A,R3
+        JZ      $+5
+        LJMP    ??nbr_table_allocate_3 & 0xFFFF
+//  201     }
+//  202     if(least_used_key == NULL) {
+??nbr_table_allocate_4:
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     ??nbr_table_allocate_9
+//  203       /* We haven't found any unlocked item, allocation fails */
+//  204       return NULL;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LJMP    ??nbr_table_allocate_1 & 0xFFFF
+//  205     } else {
+//  206       /* Reuse least used item */
+//  207       int i;
+//  208       for(i = 0; i<MAX_NUM_TABLES; i++) {
+??nbr_table_allocate_9:
+        MOV     R6,#0x0
+        MOV     R7,#0x0
+        LJMP    ??nbr_table_allocate_10 & 0xFFFF
+//  209         if(all_tables[i] != NULL && all_tables[i]->callback != NULL) {
+??nbr_table_allocate_11:
+        MOV     A,R6
+        MOV     R0,A
+        MOV     A,R7
+        MOV     R1,A
+        MOV     A,R0
+        MOV     B,#0x2
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x2
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#all_tables & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#(all_tables >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     $+5
+        LJMP    ??nbr_table_allocate_12 & 0xFFFF
+        MOV     A,R6
+        MOV     R0,A
+        MOV     A,R7
+        MOV     R1,A
+        MOV     A,R0
+        MOV     B,#0x2
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x2
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#all_tables & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#(all_tables >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     $+5
+        LJMP    ??nbr_table_allocate_12 & 0xFFFF
+//  210           /* Call table callback for each table that uses this item */
+//  211           nbr_table_item_t *removed_item = item_from_key(all_tables[i], least_used_key);
+        ; Setup parameters for call to function item_from_key
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     A,R6
+        MOV     R0,A
+        MOV     A,R7
+        MOV     R1,A
+        MOV     A,R0
+        MOV     B,#0x2
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x2
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#all_tables & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#(all_tables >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??item_from_key?relay
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     ?V0 + 2,?V0 + 4
+        MOV     ?V0 + 3,?V0 + 5
+//  212           if(nbr_get_bit(used_map, all_tables[i], removed_item) == 1) {
+        ; Setup parameters for call to function nbr_get_bit
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     A,R6
+        MOV     R0,A
+        MOV     A,R7
+        MOV     R1,A
+        MOV     A,R0
+        MOV     B,#0x2
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x2
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#all_tables & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#(all_tables >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     R2,#used_map & 0xff
+        MOV     R3,#(used_map >> 8) & 0xff
+        LCALL   ??nbr_get_bit?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     A,#0x1
+        XRL     A,?V0 + 4
+        JNZ     ??nbr_table_allocate_13
+        MOV     A,#0x0
+        XRL     A,?V0 + 5
+??nbr_table_allocate_13:
+        JNZ     ??nbr_table_allocate_12
+//  213             all_tables[i]->callback(removed_item);
+        ; Setup parameters for indirect call
+        MOV     R2,?V0 + 2
+        MOV     R3,?V0 + 3
+        MOV     A,R6
+        MOV     R0,A
+        MOV     A,R7
+        MOV     R1,A
+        MOV     A,R0
+        MOV     B,#0x2
+        MUL     AB
+        XCH     A,R0
+        MOV     R4,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R4
+        MOV     R4,A
+        MOV     B,#0x2
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R4
+        MOV     R1,A
+        MOV     A,#all_tables & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#(all_tables >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        LCALL   ?CALL_IND
+//  214           }
+//  215         }
+//  216       }
+??nbr_table_allocate_12:
+        MOV     A,R6
+        ADD     A,#0x1
+        MOV     R6,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R7,A
+??nbr_table_allocate_10:
+        CLR     C
+        MOV     A,R6
+        SUBB    A,#0x8
+        MOV     A,R7
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     $+5
+        LJMP    ??nbr_table_allocate_11 & 0xFFFF
+//  217       /* Empty used map */
+//  218       used_map[index_from_key(least_used_key)] = 0;
+        ; Setup parameters for call to function index_from_key
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        LCALL   ??index_from_key?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,#used_map & 0xff
+        ADD     A,?V0 + 2
+        MOV     DPL,A
+        MOV     A,#(used_map >> 8) & 0xff
+        ADDC    A,?V0 + 3
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  219       /* Remove neighbor from list */
+//  220       list_remove(nbr_table_keys, least_used_key);
+        ; Setup parameters for call to function list_remove
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     DPTR,#nbr_table_keys
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??list_remove?relay
+//  221       /* Return associated key */
+//  222       return least_used_key;
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+??nbr_table_allocate_1:
+        MOV     R7,#0x6
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock9
+//  223     }
+//  224   }
+//  225 }
+//  226 /*---------------------------------------------------------------------------*/
+//  227 /* Register a new neighbor table. To be used at initialization by modules
+//  228  * using a neighbor table */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  229 int
+//  230 nbr_table_register(nbr_table_t *table, nbr_table_callback *callback)
+nbr_table_register:
+          CFI Block cfiBlock10 Using cfiCommon0
+          CFI Function nbr_table_register
+        CODE
+//  231 {
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+//  232   if(num_tables < MAX_NUM_TABLES) {
+        MOV     DPTR,#num_tables
+        CLR     C
+        MOVX    A,@DPTR
+        SUBB    A,#0x8
+        INC     DPTR
+        MOVX    A,@DPTR
+        SUBB    A,#0x0
+        JNC     ??nbr_table_register_0
+//  233     table->index = num_tables++;
+        MOV     DPTR,#num_tables
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        MOV     DPTR,#num_tables
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOVX    @DPTR,A
+//  234     table->callback = callback;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,R4
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R5
+        MOVX    @DPTR,A
+//  235     all_tables[table->index] = table;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        MOV     B,#0x2
+        MUL     AB
+        XCH     A,R0
+        MOV     R4,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R4
+        MOV     R4,A
+        MOV     B,#0x2
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R4
+        MOV     R1,A
+        MOV     A,#all_tables & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#(all_tables >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  236     return 1;
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+        SJMP    ??nbr_table_register_1
+//  237   } else {
+//  238     /* Maximum number of tables exceeded */
+//  239     return 0;
+??nbr_table_register_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??nbr_table_register_1:
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock10
+//  240   }
+//  241 }
+//  242 /*---------------------------------------------------------------------------*/
+//  243 /* Returns the first item of the current table */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  244 nbr_table_item_t *
+//  245 nbr_table_head(nbr_table_t *table)
+nbr_table_head:
+          CFI Block cfiBlock11 Using cfiCommon0
+          CFI Function nbr_table_head
+        CODE
+//  246 {
+        FUNCALL nbr_table_head, list_head
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_head, item_from_key
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_head, nbr_get_bit
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_head, nbr_table_next
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  247   /* Get item from first key */
+//  248   nbr_table_item_t *item = item_from_key(table, list_head(nbr_table_keys));
+        ; Setup parameters for call to function item_from_key
+        ; Setup parameters for call to function list_head
+        MOV     DPTR,#nbr_table_keys
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??list_head?relay
+        MOV     A,R2
+        MOV     R4,A
+        MOV     A,R3
+        MOV     R5,A
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??item_from_key?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,?V0 + 3
+//  249   /* Item is the first neighbor, now check is it is in the current table */
+//  250   if(nbr_get_bit(used_map, table, item)) {
+        ; Setup parameters for call to function nbr_get_bit
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R2,#used_map & 0xff
+        MOV     R3,#(used_map >> 8) & 0xff
+        LCALL   ??nbr_get_bit?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JZ      ??nbr_table_head_0
+//  251     return item;
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        SJMP    ??nbr_table_head_1
+//  252   } else {
+//  253     return nbr_table_next(table, item);
+??nbr_table_head_0:
+        ; Setup parameters for call to function nbr_table_next
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??nbr_table_next?relay
+??nbr_table_head_1:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock11
+//  254   }
+//  255 }
+//  256 /*---------------------------------------------------------------------------*/
+//  257 /* Iterates over the current table */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  258 nbr_table_item_t *
+//  259 nbr_table_next(nbr_table_t *table, nbr_table_item_t *item)
+nbr_table_next:
+          CFI Block cfiBlock12 Using cfiCommon0
+          CFI Function nbr_table_next
+        CODE
+//  260 {
+        FUNCALL nbr_table_next, key_from_item
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_next, list_item_next
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_next, item_from_key
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_next, nbr_get_bit
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     ?V0 + 0,R4
+        MOV     ?V0 + 1,R5
+//  261   do {
+//  262     void *key = key_from_item(table, item);
+??nbr_table_next_0:
+        ; Setup parameters for call to function key_from_item
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??key_from_item?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+//  263     key = list_item_next(key);
+        ; Setup parameters for call to function list_item_next
+        LCALL   ??list_item_next?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+//  264     /* Loop until the next item is in the current table */
+//  265     item = item_from_key(table, key);
+        ; Setup parameters for call to function item_from_key
+        MOV     A,?V0 + 0
+        MOV     R4,?V0 + 0
+        MOV     A,?V0 + 1
+        MOV     R5,?V0 + 1
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??item_from_key?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,?V0 + 3
+//  266   } while(item && !nbr_get_bit(used_map, table, item));
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??nbr_table_next_1
+        ; Setup parameters for call to function nbr_get_bit
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R2,#used_map & 0xff
+        MOV     R3,#(used_map >> 8) & 0xff
+        LCALL   ??nbr_get_bit?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JZ      ??nbr_table_next_0
+//  267   return item;
+??nbr_table_next_1:
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock12
+//  268 }
+//  269 /*---------------------------------------------------------------------------*/
+//  270 /* Add a neighbor indexed with its link-layer address */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  271 nbr_table_item_t *
+//  272 nbr_table_add_lladdr(nbr_table_t *table, const rimeaddr_t *lladdr)
+nbr_table_add_lladdr:
+          CFI Block cfiBlock13 Using cfiCommon0
+          CFI Function nbr_table_add_lladdr
+        CODE
+//  273 {
+        FUNCALL nbr_table_add_lladdr, index_from_lladdr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_add_lladdr, nbr_table_allocate
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_add_lladdr, list_add
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_add_lladdr, index_from_key
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_add_lladdr, rimeaddr_copy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_add_lladdr, item_from_index
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_add_lladdr, memset
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_add_lladdr, nbr_set_bit
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x10
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V7 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V6 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-16)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 16)
+        ; Saved register size: 16
+        ; Auto size: 0
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,R4
+        MOV     R6,A
+        MOV     A,R5
+        MOV     R7,A
+//  274   int index;
+//  275   nbr_table_item_t *item;
+//  276   nbr_table_key_t *key;
+//  277 
+//  278   /* Allow lladdr-free insertion, useful e.g. for IPv6 ND.
+//  279    * Only one such entry is possible at a time, indexed by rimeaddr_null. */
+//  280   if(lladdr == NULL) {
+        MOV     A,R6
+        ORL     A,R7
+        JNZ     ??nbr_table_add_lladdr_0
+//  281     lladdr = &rimeaddr_null;
+        MOV     R6,#rimeaddr_null & 0xff
+        MOV     R7,#(rimeaddr_null >> 8) & 0xff
+//  282   }
+//  283 
+//  284   if((index = index_from_lladdr(lladdr)) == -1) {
+??nbr_table_add_lladdr_0:
+        ; Setup parameters for call to function index_from_lladdr
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??index_from_lladdr?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     R0,?V0 + 2
+        MOV     R1,?V0 + 3
+        MOV     ?V0 + 4,R0
+        MOV     ?V0 + 5,R1
+        MOV     A,#-0x1
+        XRL     A,R0
+        JNZ     ??nbr_table_add_lladdr_1
+        MOV     A,#-0x1
+        XRL     A,R1
+??nbr_table_add_lladdr_1:
+        JNZ     ??nbr_table_add_lladdr_2
+//  285      /* Neighbor not yet in table, let's try to allocate one */
+//  286     key = nbr_table_allocate();
+        ; Setup parameters for call to function nbr_table_allocate
+        LCALL   ??nbr_table_allocate?relay
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     ?V0 + 2,?V0 + 4
+        MOV     ?V0 + 3,?V0 + 5
+//  287 
+//  288     /* No space available for new entry */
+//  289     if(key == NULL) {
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JNZ     ??nbr_table_add_lladdr_3
+//  290       return NULL;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LJMP    ??nbr_table_add_lladdr_4 & 0xFFFF
+//  291     }
+//  292 
+//  293     /* Add neighbor to list */
+//  294     list_add(nbr_table_keys, key);
+??nbr_table_add_lladdr_3:
+        ; Setup parameters for call to function list_add
+        MOV     R4,?V0 + 2
+        MOV     R5,?V0 + 3
+        MOV     DPTR,#nbr_table_keys
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??list_add?relay
+//  295 
+//  296     /* Get index from newly allocated neighbor */
+//  297     index = index_from_key(key);
+        ; Setup parameters for call to function index_from_key
+        MOV     R2,?V0 + 2
+        MOV     R3,?V0 + 3
+        LCALL   ??index_from_key?relay
+        MOV     ?V0 + 6,R2
+        MOV     ?V0 + 7,R3
+        MOV     ?V0 + 4,?V0 + 6
+        MOV     ?V0 + 5,?V0 + 7
+//  298 
+//  299     /* Set link-layer address */
+//  300     rimeaddr_copy(&key->lladdr, lladdr);
+        ; Setup parameters for call to function rimeaddr_copy
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     A,?V0 + 2
+        ADD     A,#0x2
+        MOV     R2,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??rimeaddr_copy?relay
+//  301   }
+//  302 
+//  303   /* Get item in the current table */
+//  304   item = item_from_index(table, index);
+??nbr_table_add_lladdr_2:
+        ; Setup parameters for call to function item_from_index
+        MOV     R4,?V0 + 4
+        MOV     R5,?V0 + 5
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        LCALL   ??item_from_index?relay
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     ?V0 + 2,?V0 + 4
+        MOV     ?V0 + 3,?V0 + 5
+//  305 
+//  306   /* Initialize item data and set "used" bit */
+//  307   memset(item, 0, table->item_size);
+        ; Setup parameters for call to function memset
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        INC     DPTR
+        LCALL   ?PUSH_XSTACK8_X_TWO
+          CFI CFA_XSP16 add(XSP16, 18)
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R2,?V0 + 2
+        MOV     R3,?V0 + 3
+        LCALL   ??memset?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 16)
+//  308   nbr_set_bit(used_map, table, item, 1);
+        ; Setup parameters for call to function nbr_set_bit
+        MOV     ?V0 + 4,#0x1
+        MOV     ?V0 + 5,#0x0
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 18)
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     R2,#used_map & 0xff
+        MOV     R3,#(used_map >> 8) & 0xff
+        LCALL   ??nbr_set_bit?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 16)
+//  309 
+//  310   return item;
+        MOV     R2,?V0 + 2
+        MOV     R3,?V0 + 3
+??nbr_table_add_lladdr_4:
+        MOV     R7,#0x8
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock13
+//  311 }
+//  312 /*---------------------------------------------------------------------------*/
+//  313 /* Get an item from its link-layer address */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  314 void *
+//  315 nbr_table_get_from_lladdr(nbr_table_t *table, const rimeaddr_t *lladdr)
+nbr_table_get_from_lladdr:
+          CFI Block cfiBlock14 Using cfiCommon0
+          CFI Function nbr_table_get_from_lladdr
+        CODE
+//  316 {
+        FUNCALL nbr_table_get_from_lladdr, index_from_lladdr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_get_from_lladdr, item_from_index
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_get_from_lladdr, nbr_get_bit
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     A,R4
+        MOV     R2,A
+        MOV     A,R5
+        MOV     R3,A
+//  317   void *item = item_from_index(table, index_from_lladdr(lladdr));
+        ; Setup parameters for call to function item_from_index
+        ; Setup parameters for call to function index_from_lladdr
+        LCALL   ??index_from_lladdr?relay
+        MOV     A,R2
+        MOV     R4,A
+        MOV     A,R3
+        MOV     R5,A
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??item_from_index?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,?V0 + 3
+//  318   return nbr_get_bit(used_map, table, item) ? item : NULL;
+        ; Setup parameters for call to function nbr_get_bit
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R2,#used_map & 0xff
+        MOV     R3,#(used_map >> 8) & 0xff
+        LCALL   ??nbr_get_bit?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JNZ     ??nbr_table_get_from_lladdr_0
+        MOV     ?V0 + 0,#0x0
+        MOV     ?V0 + 1,#0x0
+??nbr_table_get_from_lladdr_0:
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock14
+//  319 }
+//  320 /*---------------------------------------------------------------------------*/
+//  321 /* Removes a neighbor from the current table (unset "used" bit) */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  322 int
+//  323 nbr_table_remove(nbr_table_t *table, void *item)
+nbr_table_remove:
+          CFI Block cfiBlock15 Using cfiCommon0
+          CFI Function nbr_table_remove
+        CODE
+//  324 {
+        FUNCALL nbr_table_remove, nbr_set_bit
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL nbr_table_remove, nbr_set_bit
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xe
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 14)
+        ; Saved register size: 14
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     ?V0 + 2,R4
+        MOV     ?V0 + 3,R5
+//  325   int ret = nbr_set_bit(used_map, table, item, 0);
+        ; Setup parameters for call to function nbr_set_bit
+        CLR     A
+        MOV     ?V0 + 0,A
+        MOV     ?V0 + 1,A
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 18)
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R2,#used_map & 0xff
+        MOV     R3,#(used_map >> 8) & 0xff
+        LCALL   ??nbr_set_bit?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     ?V0 + 0,?V0 + 4
+        MOV     ?V0 + 1,?V0 + 5
+//  326   nbr_set_bit(locked_map, table, item, 0);
+        ; Setup parameters for call to function nbr_set_bit
+        CLR     A
+        MOV     ?V0 + 4,A
+        MOV     ?V0 + 5,A
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 18)
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R2,#locked_map & 0xff
+        MOV     R3,#(locked_map >> 8) & 0xff
+        LCALL   ??nbr_set_bit?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 14)
+//  327   return ret;
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        MOV     R7,#0x6
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock15
+//  328 }
+//  329 /*---------------------------------------------------------------------------*/
+//  330 /* Lock a neighbor for the current table (set "locked" bit) */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  331 int
+//  332 nbr_table_lock(nbr_table_t *table, void *item)
+nbr_table_lock:
+          CFI Block cfiBlock16 Using cfiCommon0
+          CFI Function nbr_table_lock
+        CODE
+//  333 {
+        FUNCALL nbr_table_lock, nbr_set_bit
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  334   return nbr_set_bit(locked_map, table, item, 1);
+        ; Setup parameters for call to function nbr_set_bit
+        MOV     ?V0 + 0,#0x1
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     ?V0 + 0,R4
+        MOV     ?V0 + 1,R5
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     A,R2
+        MOV     R4,A
+        MOV     A,R3
+        MOV     R5,A
+        MOV     R2,#locked_map & 0xff
+        MOV     R3,#(locked_map >> 8) & 0xff
+        LCALL   ??nbr_set_bit?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock16
+//  335 }
+//  336 /*---------------------------------------------------------------------------*/
+//  337 /* Release the lock on a neighbor for the current table (unset "locked" bit) */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  338 int
+//  339 nbr_table_unlock(nbr_table_t *table, void *item)
+nbr_table_unlock:
+          CFI Block cfiBlock17 Using cfiCommon0
+          CFI Function nbr_table_unlock
+        CODE
+//  340 {
+        FUNCALL nbr_table_unlock, nbr_set_bit
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  341   return nbr_set_bit(locked_map, table, item, 0);
+        ; Setup parameters for call to function nbr_set_bit
+        CLR     A
+        MOV     ?V0 + 0,A
+        MOV     ?V0 + 1,A
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     ?V0 + 0,R4
+        MOV     ?V0 + 1,R5
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     A,R2
+        MOV     R4,A
+        MOV     A,R3
+        MOV     R5,A
+        MOV     R2,#locked_map & 0xff
+        MOV     R3,#(locked_map >> 8) & 0xff
+        LCALL   ??nbr_set_bit?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock17
+//  342 }
+//  343 /*---------------------------------------------------------------------------*/
+//  344 /* Get link-layer address of an item */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  345 rimeaddr_t *
+//  346 nbr_table_get_lladdr(nbr_table_t *table, void *item)
+nbr_table_get_lladdr:
+          CFI Block cfiBlock18 Using cfiCommon0
+          CFI Function nbr_table_get_lladdr
+        CODE
+//  347 {
+        FUNCALL nbr_table_get_lladdr, key_from_item
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  348   nbr_table_key_t *key = key_from_item(table, item);
+        ; Setup parameters for call to function key_from_item
+        LCALL   ??key_from_item?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R0,?V0 + 0
+        MOV     R1,?V0 + 1
+//  349   return key != NULL ? &key->lladdr : NULL;
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??nbr_table_get_lladdr_0
+        MOV     A,R0
+        ADD     A,#0x2
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R3,A
+        SJMP    ??nbr_table_get_lladdr_1
+??nbr_table_get_lladdr_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??nbr_table_get_lladdr_1:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock18
+//  350 }
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for neighbor_addr_mem>`:
+        DATA16
+        DW 4
+        DW 4
+        DW neighbor_addr_mem_memb_count
+        DW neighbor_addr_mem_memb_mem
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for nbr_table_keys>`:
+        DATA16
+        DW nbr_table_keys_list
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??key_from_index?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    key_from_index
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??item_from_index?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    item_from_index
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??index_from_key?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    index_from_key
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??index_from_item?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    index_from_item
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??item_from_key?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    item_from_key
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??key_from_item?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    key_from_item
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??index_from_lladdr?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    index_from_lladdr
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??nbr_get_bit?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    nbr_get_bit
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??nbr_set_bit?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    nbr_set_bit
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??nbr_table_allocate?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    nbr_table_allocate
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??nbr_table_register?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    nbr_table_register
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??nbr_table_head?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    nbr_table_head
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??nbr_table_next?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    nbr_table_next
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??nbr_table_add_lladdr?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    nbr_table_add_lladdr
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??nbr_table_get_from_lladdr?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    nbr_table_get_from_lladdr
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??nbr_table_remove?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    nbr_table_remove
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??nbr_table_lock?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    nbr_table_lock
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??nbr_table_unlock?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    nbr_table_unlock
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??nbr_table_get_lladdr?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    nbr_table_get_lladdr
+
+        END
+// 
+// 2 143 bytes in segment BANKED_CODE
+//   114 bytes in segment BANK_RELAYS
+//    10 bytes in segment XDATA_I
+//    10 bytes in segment XDATA_ID
+//    48 bytes in segment XDATA_Z
+// 
+// 2 267 bytes of CODE  memory
+//    58 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: 2

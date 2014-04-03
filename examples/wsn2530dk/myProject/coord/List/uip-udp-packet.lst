@@ -1,0 +1,382 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:54 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\uip-udp-packet.c         #
+#    Command line       =  D:\myWork\myWork\core\net\uip-udp-packet.c -D      #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\uip-udp-packet.lst                          #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\uip-udp-packet.r51                           #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\uip-udp-packet.c
+      1          /*
+      2           * Copyright (c) 2006, Swedish Institute of Computer Science.
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           */
+     32          
+     33          /**
+     34           * \file
+     35           *         Module for sending UDP packets through uIP.
+     36           * \author
+     37           *         Adam Dunkels <adam@sics.se>
+     38           */
+     39          
+     40          #include "contiki-conf.h"
+     41          
+     42          extern uint16_t uip_slen;
+     43          
+     44          #include "net/uip-udp-packet.h"
+     45          
+     46          #include <string.h>
+     47          
+     48          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     49          void
+     50          uip_udp_packet_send(struct uip_udp_conn *c, const void *data, int len)
+   \                     uip_udp_packet_send:
+     51          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     52          #if UIP_UDP
+     53            if(data != NULL) {
+   \   000005   EC           MOV     A,R4
+   \   000006   4D           ORL     A,R5
+   \   000007   604D         JZ      ??uip_udp_packet_send_0
+     54              uip_udp_conn = c;
+   \   000009   90....       MOV     DPTR,#uip_udp_conn
+   \   00000C   EA           MOV     A,R2
+   \   00000D   F0           MOVX    @DPTR,A
+   \   00000E   A3           INC     DPTR
+   \   00000F   EB           MOV     A,R3
+   \   000010   F0           MOVX    @DPTR,A
+   \   000011   740A         MOV     A,#0xa
+   \   000013   12....       LCALL   ?XSTACK_DISP0_8
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F8           MOV     R0,A
+   \   000018   A3           INC     DPTR
+   \   000019   E0           MOVX    A,@DPTR
+   \   00001A   F9           MOV     R1,A
+     55              uip_slen = len;
+   \   00001B   90....       MOV     DPTR,#uip_slen
+   \   00001E   E8           MOV     A,R0
+   \   00001F   F0           MOVX    @DPTR,A
+   \   000020   A3           INC     DPTR
+   \   000021   E9           MOV     A,R1
+   \   000022   F0           MOVX    @DPTR,A
+     56              memcpy(&uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN], data,
+     57                     len > UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPUDPH_LEN?
+     58                     UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPUDPH_LEN: len);
+   \   000023   C3           CLR     C
+   \   000024   E8           MOV     A,R0
+   \   000025   94C1         SUBB    A,#-0x3f
+   \   000027   E9           MOV     A,R1
+   \   000028   9400         SUBB    A,#0x0
+   \   00002A   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   00002C   65D0         XRL     A,PSW
+   \   00002E   33           RLC     A
+   \   00002F   4008         JC      ??uip_udp_packet_send_1
+   \   000031   75..C0       MOV     ?V0 + 0,#-0x40
+   \   000034   75..00       MOV     ?V0 + 1,#0x0
+   \   000037   8004         SJMP    ??uip_udp_packet_send_2
+   \                     ??uip_udp_packet_send_1:
+   \   000039   88..         MOV     ?V0 + 0,R0
+   \   00003B   89..         MOV     ?V0 + 1,R1
+   \                     ??uip_udp_packet_send_2:
+   \   00003D                ; Setup parameters for call to function memcpy
+   \   00003D   78..         MOV     R0,#?V0 + 0
+   \   00003F   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000042   7A..         MOV     R2,#(uip_aligned_buf + 48) & 0xff
+   \   000044   7B..         MOV     R3,#((uip_aligned_buf + 48) >> 8) & 0xff
+   \   000046   12....       LCALL   ??memcpy?relay
+   \   000049   7402         MOV     A,#0x2
+   \   00004B   12....       LCALL   ?DEALLOC_XSTACK8
+     59              uip_process(UIP_UDP_SEND_CONN);
+   \   00004E                ; Setup parameters for call to function uip_process
+   \   00004E   7904         MOV     R1,#0x4
+   \   000050   12....       LCALL   ??uip_process?relay
+     60          #if UIP_CONF_IPV6
+     61              tcpip_ipv6_output();
+   \   000053                ; Setup parameters for call to function tcpip_ipv6_output
+   \   000053   12....       LCALL   ??tcpip_ipv6_output?relay
+     62          #else
+     63              if(uip_len > 0) {
+     64                tcpip_output();
+     65              }
+     66          #endif
+     67            }
+     68            uip_slen = 0;
+   \                     ??uip_udp_packet_send_0:
+   \   000056   90....       MOV     DPTR,#uip_slen
+   \   000059   7400         MOV     A,#0x0
+   \   00005B   F0           MOVX    @DPTR,A
+   \   00005C   A3           INC     DPTR
+   \   00005D   7400         MOV     A,#0x0
+   \   00005F   F0           MOVX    @DPTR,A
+     69          #endif /* UIP_UDP */
+     70          }
+   \   000060   7F02         MOV     R7,#0x2
+   \   000062   02....       LJMP    ?BANKED_LEAVE_XDATA
+     71          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     72          void
+     73          uip_udp_packet_sendto(struct uip_udp_conn *c, const void *data, int len,
+   \                     uip_udp_packet_sendto:
+     74          		      const uip_ipaddr_t *toaddr, uint16_t toport)
+     75          {
+   \   000000   74EC         MOV     A,#-0x14
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 20
+   \   000005                ; Auto size: 16
+   \   000005   74F0         MOV     A,#-0x10
+   \   000007   12....       LCALL   ?ALLOC_XSTACK8
+   \   00000A   EA           MOV     A,R2
+   \   00000B   FE           MOV     R6,A
+   \   00000C   EB           MOV     A,R3
+   \   00000D   FF           MOV     R7,A
+   \   00000E   8C..         MOV     ?V0 + 6,R4
+   \   000010   8D..         MOV     ?V0 + 7,R5
+   \   000012   7424         MOV     A,#0x24
+   \   000014   12....       LCALL   ?XSTACK_DISP0_8
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   F5..         MOV     ?V0 + 8,A
+   \   00001A   A3           INC     DPTR
+   \   00001B   E0           MOVX    A,@DPTR
+   \   00001C   F5..         MOV     ?V0 + 9,A
+   \   00001E   7428         MOV     A,#0x28
+   \   000020   12....       LCALL   ?XSTACK_DISP0_8
+   \   000023   E0           MOVX    A,@DPTR
+   \   000024   F5..         MOV     ?V0 + 2,A
+   \   000026   A3           INC     DPTR
+   \   000027   E0           MOVX    A,@DPTR
+   \   000028   F5..         MOV     ?V0 + 3,A
+   \   00002A   7426         MOV     A,#0x26
+   \   00002C   12....       LCALL   ?XSTACK_DISP0_8
+   \   00002F   E0           MOVX    A,@DPTR
+   \   000030   F5..         MOV     ?V0 + 0,A
+   \   000032   A3           INC     DPTR
+   \   000033   E0           MOVX    A,@DPTR
+   \   000034   F5..         MOV     ?V0 + 1,A
+     76            uip_ipaddr_t curaddr;
+     77            uint16_t curport;
+     78          
+     79            if(toaddr != NULL) {
+   \   000036   E5..         MOV     A,?V0 + 0
+   \   000038   45..         ORL     A,?V0 + 1
+   \   00003A   7003         JNZ     $+5
+   \   00003C   02....       LJMP    ??uip_udp_packet_sendto_0 & 0xFFFF
+     80              /* Save current IP addr/port. */
+     81              uip_ipaddr_copy(&curaddr, &c->ripaddr);
+   \   00003F                ; Setup parameters for call to function memcpy
+   \   00003F   75..10       MOV     ?V0 + 4,#0x10
+   \   000042   75..00       MOV     ?V0 + 5,#0x0
+   \   000045   78..         MOV     R0,#?V0 + 4
+   \   000047   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00004A   EE           MOV     A,R6
+   \   00004B   FC           MOV     R4,A
+   \   00004C   EF           MOV     A,R7
+   \   00004D   FD           MOV     R5,A
+   \   00004E   7402         MOV     A,#0x2
+   \   000050   12....       LCALL   ?XSTACK_DISP0_8
+   \   000053   AA82         MOV     R2,DPL
+   \   000055   AB83         MOV     R3,DPH
+   \   000057   12....       LCALL   ??memcpy?relay
+   \   00005A   7402         MOV     A,#0x2
+   \   00005C   12....       LCALL   ?DEALLOC_XSTACK8
+     82              curport = c->rport;
+   \   00005F   EE           MOV     A,R6
+   \   000060   2412         ADD     A,#0x12
+   \   000062   F582         MOV     DPL,A
+   \   000064   EF           MOV     A,R7
+   \   000065   3400         ADDC    A,#0x0
+   \   000067   F583         MOV     DPH,A
+   \   000069   E0           MOVX    A,@DPTR
+   \   00006A   F5..         MOV     ?V0 + 4,A
+   \   00006C   A3           INC     DPTR
+   \   00006D   E0           MOVX    A,@DPTR
+   \   00006E   F5..         MOV     ?V0 + 5,A
+     83          
+     84              /* Load new IP addr/port */
+     85              uip_ipaddr_copy(&c->ripaddr, toaddr);
+   \   000070                ; Setup parameters for call to function memcpy
+   \   000070   75..10       MOV     ?V0 + 10,#0x10
+   \   000073   75..00       MOV     ?V0 + 11,#0x0
+   \   000076   78..         MOV     R0,#?V0 + 10
+   \   000078   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00007B   AC..         MOV     R4,?V0 + 0
+   \   00007D   AD..         MOV     R5,?V0 + 1
+   \   00007F   EE           MOV     A,R6
+   \   000080   FA           MOV     R2,A
+   \   000081   EF           MOV     A,R7
+   \   000082   FB           MOV     R3,A
+   \   000083   12....       LCALL   ??memcpy?relay
+   \   000086   7402         MOV     A,#0x2
+   \   000088   12....       LCALL   ?DEALLOC_XSTACK8
+     86              c->rport = toport;
+   \   00008B   EE           MOV     A,R6
+   \   00008C   2412         ADD     A,#0x12
+   \   00008E   F582         MOV     DPL,A
+   \   000090   EF           MOV     A,R7
+   \   000091   3400         ADDC    A,#0x0
+   \   000093   F583         MOV     DPH,A
+   \   000095   E5..         MOV     A,?V0 + 2
+   \   000097   F0           MOVX    @DPTR,A
+   \   000098   A3           INC     DPTR
+   \   000099   E5..         MOV     A,?V0 + 3
+   \   00009B   F0           MOVX    @DPTR,A
+     87          
+     88              uip_udp_packet_send(c, data, len);
+   \   00009C                ; Setup parameters for call to function uip_udp_packet_send
+   \   00009C   78..         MOV     R0,#?V0 + 8
+   \   00009E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000A1   AC..         MOV     R4,?V0 + 6
+   \   0000A3   AD..         MOV     R5,?V0 + 7
+   \   0000A5   EE           MOV     A,R6
+   \   0000A6   FA           MOV     R2,A
+   \   0000A7   EF           MOV     A,R7
+   \   0000A8   FB           MOV     R3,A
+   \   0000A9   12....       LCALL   ??uip_udp_packet_send?relay
+   \   0000AC   7402         MOV     A,#0x2
+   \   0000AE   12....       LCALL   ?DEALLOC_XSTACK8
+     89          
+     90              /* Restore old IP addr/port */
+     91              uip_ipaddr_copy(&c->ripaddr, &curaddr);
+   \   0000B1                ; Setup parameters for call to function memcpy
+   \   0000B1   75..10       MOV     ?V0 + 0,#0x10
+   \   0000B4   75..00       MOV     ?V0 + 1,#0x0
+   \   0000B7   78..         MOV     R0,#?V0 + 0
+   \   0000B9   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000BC   7402         MOV     A,#0x2
+   \   0000BE   12....       LCALL   ?XSTACK_DISP0_8
+   \   0000C1   AC82         MOV     R4,DPL
+   \   0000C3   AD83         MOV     R5,DPH
+   \   0000C5   EE           MOV     A,R6
+   \   0000C6   FA           MOV     R2,A
+   \   0000C7   EF           MOV     A,R7
+   \   0000C8   FB           MOV     R3,A
+   \   0000C9   12....       LCALL   ??memcpy?relay
+   \   0000CC   7402         MOV     A,#0x2
+   \   0000CE   12....       LCALL   ?DEALLOC_XSTACK8
+     92              c->rport = curport;
+   \   0000D1   EE           MOV     A,R6
+   \   0000D2   2412         ADD     A,#0x12
+   \   0000D4   F582         MOV     DPL,A
+   \   0000D6   EF           MOV     A,R7
+   \   0000D7   3400         ADDC    A,#0x0
+   \   0000D9   F583         MOV     DPH,A
+   \   0000DB   E5..         MOV     A,?V0 + 4
+   \   0000DD   F0           MOVX    @DPTR,A
+   \   0000DE   A3           INC     DPTR
+   \   0000DF   E5..         MOV     A,?V0 + 5
+   \   0000E1   F0           MOVX    @DPTR,A
+     93            }
+     94          }
+   \                     ??uip_udp_packet_sendto_0:
+   \   0000E2   7410         MOV     A,#0x10
+   \   0000E4   12....       LCALL   ?DEALLOC_XSTACK8
+   \   0000E7   7F0C         MOV     R7,#0xc
+   \   0000E9   02....       LJMP    ?BANKED_LEAVE_XDATA
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_udp_packet_send?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_udp_packet_send
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_udp_packet_sendto?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_udp_packet_sendto
+     95          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     50  uip_udp_packet_send
+                          0 0 12 -> memcpy
+                          0 0 10 -> tcpip_ipv6_output
+                          0 0 10 -> uip_process
+       0      0     44  uip_udp_packet_sendto
+                          0 0 38 -> memcpy
+                          0 0 38 -> uip_udp_packet_send
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??uip_udp_packet_send?relay
+       6  ??uip_udp_packet_sendto?relay
+     101  uip_udp_packet_send
+     236  uip_udp_packet_sendto
+
+ 
+ 337 bytes in segment BANKED_CODE
+  12 bytes in segment BANK_RELAYS
+ 
+ 349 bytes of CODE memory
+
+Errors: none
+Warnings: none

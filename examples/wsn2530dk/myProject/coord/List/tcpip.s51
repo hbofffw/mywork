@@ -1,0 +1,3123 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:51 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\net\tcpip.c                 /
+//    Command line       =  D:\myWork\myWork\core\net\tcpip.c -D              /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\tcpip.s51                                 /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME tcpip
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?ALLOC_XSTACK8
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?CALL_IND
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?L_MOV_X
+        EXTERN ?PUSH_XSTACK8_X_FOUR
+        EXTERN ?PUSH_XSTACK_I_FOUR
+        EXTERN ?PUSH_XSTACK_I_ONE
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?UL_DIV_MOD
+        EXTERN ?US_SWITCH_SPARSE
+        EXTERN ?V0
+        EXTERN ?XSP
+        EXTERN ?XSTACK_DISP0_8
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??check_for_tcp_syn?relay,0203H
+        FUNCTION ??eventhandler?relay,0203H
+        FUNCTION ??packet_input?relay,0203H
+        FUNCTION ??process_thread_tcpip_process?relay,0203H
+        PUBLIC ??tcpip_input?relay
+        FUNCTION ??tcpip_input?relay,0203H
+        PUBLIC ??tcpip_ipv6_output?relay
+        FUNCTION ??tcpip_ipv6_output?relay,0203H
+        PUBLIC ??tcpip_output?relay
+        FUNCTION ??tcpip_output?relay,0203H
+        PUBLIC ??tcpip_poll_udp?relay
+        FUNCTION ??tcpip_poll_udp?relay,0203H
+        PUBLIC ??tcpip_set_outputfunc?relay
+        FUNCTION ??tcpip_set_outputfunc?relay,0203H
+        PUBLIC ??tcpip_uipcall?relay
+        FUNCTION ??tcpip_uipcall?relay,0203H
+        PUBLIC ??udp_attach?relay
+        FUNCTION ??udp_attach?relay,0203H
+        PUBLIC ??udp_broadcast_new?relay
+        FUNCTION ??udp_broadcast_new?relay,0203H
+        PUBLIC ??udp_new?relay
+        FUNCTION ??udp_new?relay,0203H
+        PUBWEAK __Constant_3e8
+        PUBWEAK __Constant_5
+        FUNCTION check_for_tcp_syn,0203H
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCTION eventhandler,021203H
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 12, STACK
+        FUNCTION packet_input,021203H
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        FUNCTION process_thread_tcpip_process,0a1603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        PUBLIC tcpip_event
+        PUBLIC tcpip_input
+        FUNCTION tcpip_input,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC tcpip_ipv6_output
+        FUNCTION tcpip_ipv6_output,021203H
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 24, STACK
+        PUBLIC tcpip_output
+        FUNCTION tcpip_output,0203H
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC tcpip_poll_udp
+        FUNCTION tcpip_poll_udp,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC tcpip_process
+        PUBLIC tcpip_set_outputfunc
+        FUNCTION tcpip_set_outputfunc,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC tcpip_uipcall
+        FUNCTION tcpip_uipcall,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC udp_attach
+        FUNCTION udp_attach,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC udp_broadcast_new
+        FUNCTION udp_broadcast_new,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 28, STACK
+        PUBLIC udp_new
+        FUNCTION udp_new,021203H
+        ARGFRAME XSTACK, 28, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 10, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+etimer_expired      SYMBOL "etimer_expired"
+??etimer_expired?relay SYMBOL "?relay", etimer_expired
+etimer_set          SYMBOL "etimer_set"
+??etimer_set?relay  SYMBOL "?relay", etimer_set
+process_alloc_event SYMBOL "process_alloc_event"
+??process_alloc_event?relay SYMBOL "?relay", process_alloc_event
+process_post        SYMBOL "process_post"
+??process_post?relay SYMBOL "?relay", process_post
+process_post_synch  SYMBOL "process_post_synch"
+??process_post_synch?relay SYMBOL "?relay", process_post_synch
+stimer_set          SYMBOL "stimer_set"
+??stimer_set?relay  SYMBOL "?relay", stimer_set
+uip_ds6_addr_lookup SYMBOL "uip_ds6_addr_lookup"
+??uip_ds6_addr_lookup?relay SYMBOL "?relay", uip_ds6_addr_lookup
+uip_ds6_defrt_choose SYMBOL "uip_ds6_defrt_choose"
+??uip_ds6_defrt_choose?relay SYMBOL "?relay", uip_ds6_defrt_choose
+uip_ds6_is_addr_onlink SYMBOL "uip_ds6_is_addr_onlink"
+??uip_ds6_is_addr_onlink?relay SYMBOL "?relay", uip_ds6_is_addr_onlink
+uip_ds6_nbr_add     SYMBOL "uip_ds6_nbr_add"
+??uip_ds6_nbr_add?relay SYMBOL "?relay", uip_ds6_nbr_add
+uip_ds6_nbr_get_ll  SYMBOL "uip_ds6_nbr_get_ll"
+??uip_ds6_nbr_get_ll?relay SYMBOL "?relay", uip_ds6_nbr_get_ll
+uip_ds6_nbr_lookup  SYMBOL "uip_ds6_nbr_lookup"
+??uip_ds6_nbr_lookup?relay SYMBOL "?relay", uip_ds6_nbr_lookup
+uip_ds6_periodic    SYMBOL "uip_ds6_periodic"
+??uip_ds6_periodic?relay SYMBOL "?relay", uip_ds6_periodic
+uip_ds6_route_lookup SYMBOL "uip_ds6_route_lookup"
+??uip_ds6_route_lookup?relay SYMBOL "?relay", uip_ds6_route_lookup
+uip_ds6_route_nexthop SYMBOL "uip_ds6_route_nexthop"
+??uip_ds6_route_nexthop?relay SYMBOL "?relay", uip_ds6_route_nexthop
+uip_ds6_route_rm    SYMBOL "uip_ds6_route_rm"
+??uip_ds6_route_rm?relay SYMBOL "?relay", uip_ds6_route_rm
+uip_init            SYMBOL "uip_init"
+??uip_init?relay    SYMBOL "?relay", uip_init
+uip_nd6_ns_output   SYMBOL "uip_nd6_ns_output"
+??uip_nd6_ns_output?relay SYMBOL "?relay", uip_nd6_ns_output
+uip_process         SYMBOL "uip_process"
+??uip_process?relay SYMBOL "?relay", uip_process
+uip_udp_new         SYMBOL "uip_udp_new"
+??uip_udp_new?relay SYMBOL "?relay", uip_udp_new
+tcpip_input         SYMBOL "tcpip_input"
+??tcpip_input?relay SYMBOL "?relay", tcpip_input
+tcpip_ipv6_output   SYMBOL "tcpip_ipv6_output"
+??tcpip_ipv6_output?relay SYMBOL "?relay", tcpip_ipv6_output
+tcpip_output        SYMBOL "tcpip_output"
+??tcpip_output?relay SYMBOL "?relay", tcpip_output
+tcpip_poll_udp      SYMBOL "tcpip_poll_udp"
+??tcpip_poll_udp?relay SYMBOL "?relay", tcpip_poll_udp
+tcpip_set_outputfunc SYMBOL "tcpip_set_outputfunc"
+??tcpip_set_outputfunc?relay SYMBOL "?relay", tcpip_set_outputfunc
+tcpip_uipcall       SYMBOL "tcpip_uipcall"
+??tcpip_uipcall?relay SYMBOL "?relay", tcpip_uipcall
+udp_attach          SYMBOL "udp_attach"
+??udp_attach?relay  SYMBOL "?relay", udp_attach
+udp_broadcast_new   SYMBOL "udp_broadcast_new"
+??udp_broadcast_new?relay SYMBOL "?relay", udp_broadcast_new
+udp_new             SYMBOL "udp_new"
+??udp_new?relay     SYMBOL "?relay", udp_new
+
+        EXTERN ??etimer_expired?relay
+        FUNCTION ??etimer_expired?relay,00H
+        EXTERN ??etimer_set?relay
+        FUNCTION ??etimer_set?relay,00H
+        EXTERN ??process_alloc_event?relay
+        FUNCTION ??process_alloc_event?relay,00H
+        EXTERN ??process_post?relay
+        FUNCTION ??process_post?relay,00H
+        EXTERN ??process_post_synch?relay
+        FUNCTION ??process_post_synch?relay,00H
+        EXTERN ??stimer_set?relay
+        FUNCTION ??stimer_set?relay,00H
+        EXTERN ??uip_ds6_addr_lookup?relay
+        FUNCTION ??uip_ds6_addr_lookup?relay,00H
+        EXTERN ??uip_ds6_defrt_choose?relay
+        FUNCTION ??uip_ds6_defrt_choose?relay,00H
+        EXTERN ??uip_ds6_is_addr_onlink?relay
+        FUNCTION ??uip_ds6_is_addr_onlink?relay,00H
+        EXTERN ??uip_ds6_nbr_add?relay
+        FUNCTION ??uip_ds6_nbr_add?relay,00H
+        EXTERN ??uip_ds6_nbr_get_ll?relay
+        FUNCTION ??uip_ds6_nbr_get_ll?relay,00H
+        EXTERN ??uip_ds6_nbr_lookup?relay
+        FUNCTION ??uip_ds6_nbr_lookup?relay,00H
+        EXTERN ??uip_ds6_periodic?relay
+        FUNCTION ??uip_ds6_periodic?relay,00H
+        EXTERN ??uip_ds6_route_lookup?relay
+        FUNCTION ??uip_ds6_route_lookup?relay,00H
+        EXTERN ??uip_ds6_route_nexthop?relay
+        FUNCTION ??uip_ds6_route_nexthop?relay,00H
+        EXTERN ??uip_ds6_route_rm?relay
+        FUNCTION ??uip_ds6_route_rm?relay,00H
+        EXTERN ??uip_init?relay
+        FUNCTION ??uip_init?relay,00H
+        EXTERN ??uip_nd6_ns_output?relay
+        FUNCTION ??uip_nd6_ns_output?relay,00H
+        EXTERN ??uip_process?relay
+        FUNCTION ??uip_process?relay,00H
+        EXTERN ??uip_udp_new?relay
+        FUNCTION ??uip_udp_new?relay,00H
+        EXTERN etimer_expired
+        FUNCTION etimer_expired,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN etimer_set
+        FUNCTION etimer_set,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN process_alloc_event
+        FUNCTION process_alloc_event,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN process_current
+        EXTERN process_post
+        FUNCTION process_post,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN process_post_synch
+        FUNCTION process_post_synch,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN stimer_set
+        FUNCTION stimer_set,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 24, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_aligned_buf
+        EXTERN uip_conn
+        EXTERN uip_ds6_addr_lookup
+        FUNCTION uip_ds6_addr_lookup,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_defrt_choose
+        FUNCTION uip_ds6_defrt_choose,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_if
+        EXTERN uip_ds6_is_addr_onlink
+        FUNCTION uip_ds6_is_addr_onlink,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_nbr_add
+        FUNCTION uip_ds6_nbr_add,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 21, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_nbr_get_ll
+        FUNCTION uip_ds6_nbr_get_ll,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_nbr_lookup
+        FUNCTION uip_ds6_nbr_lookup,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_periodic
+        FUNCTION uip_ds6_periodic,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_route_lookup
+        FUNCTION uip_ds6_route_lookup,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_route_nexthop
+        FUNCTION uip_ds6_route_nexthop,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_route_rm
+        FUNCTION uip_ds6_route_rm,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_timer_periodic
+        EXTERN uip_ext_len
+        EXTERN uip_init
+        FUNCTION uip_init,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_len
+        EXTERN uip_nd6_ns_output
+        FUNCTION uip_nd6_ns_output,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_process
+        FUNCTION uip_process,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_udp_conn
+        EXTERN uip_udp_conns
+        EXTERN uip_udp_new
+        FUNCTION uip_udp_new,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+// D:\myWork\myWork\core\net\tcpip.c
+//    1 /*
+//    2  * Copyright (c) 2004, Swedish Institute of Computer Science.
+//    3  * All rights reserved.
+//    4  *
+//    5  * Redistribution and use in source and binary forms, with or without
+//    6  * modification, are permitted provided that the following conditions
+//    7  * are met:
+//    8  * 1. Redistributions of source code must retain the above copyright
+//    9  *    notice, this list of conditions and the following disclaimer.
+//   10  * 2. Redistributions in binary form must reproduce the above copyright
+//   11  *    notice, this list of conditions and the following disclaimer in the
+//   12  *    documentation and/or other materials provided with the distribution.
+//   13  * 3. Neither the name of the Institute nor the names of its contributors
+//   14  *    may be used to endorse or promote products derived from this software
+//   15  *    without specific prior written permission.
+//   16  *
+//   17  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   18  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   19  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   20  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   21  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   22  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   23  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   24  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   25  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   26  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   27  * SUCH DAMAGE.
+//   28  *
+//   29  * This file is part of the Contiki operating system.
+//   30  */
+//   31 
+//   32 /**
+//   33  * \file
+//   34  *         Code for tunnelling uIP packets over the Rime mesh routing module
+//   35  *
+//   36  * \author  Adam Dunkels <adam@sics.se>\author
+//   37  * \author  Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
+//   38  * \author  Julien Abeille <jabeille@cisco.com> (IPv6 related code)
+//   39  */
+//   40 
+//   41 #include "contiki-net.h"
+//   42 #include "net/uip-split.h"
+//   43 #include "net/uip-packetqueue.h"
+//   44 
+//   45 #if UIP_CONF_IPV6
+//   46 #include "net/uip-nd6.h"
+//   47 #include "net/uip-ds6.h"
+//   48 #endif
+//   49 
+//   50 #include <string.h>
+//   51 
+//   52 #define DEBUG DEBUG_NONE
+//   53 #include "net/uip-debug.h"
+//   54 
+//   55 #if UIP_LOGGING
+//   56 #include <stdio.h>
+//   57 void uip_log(char *msg);
+//   58 #define UIP_LOG(m) uip_log(m)
+//   59 #else
+//   60 #define UIP_LOG(m)
+//   61 #endif
+//   62 
+//   63 #define UIP_ICMP_BUF ((struct uip_icmp_hdr *)&uip_buf[UIP_LLIPH_LEN + uip_ext_len])
+//   64 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+//   65 #define UIP_TCP_BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+//   66 
+//   67 #ifdef UIP_FALLBACK_INTERFACE
+//   68 extern struct uip_fallback_interface UIP_FALLBACK_INTERFACE;
+//   69 #endif
+//   70 
+//   71 #if UIP_CONF_IPV6_RPL
+//   72 #include "rpl/rpl.h"
+//   73 #endif
+//   74 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   75 process_event_t tcpip_event;
+tcpip_event:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+//   76 #if UIP_CONF_ICMP6
+//   77 process_event_t tcpip_icmp6_event;
+//   78 #endif /* UIP_CONF_ICMP6 */
+//   79 
+//   80 /* Periodic check of active connections. */
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   81 static struct etimer periodic;
+periodic:
+        DS 8
+        REQUIRE __INIT_XDATA_Z
+//   82 
+//   83 #if UIP_CONF_IPV6 && UIP_CONF_IPV6_REASSEMBLY
+//   84 /* Timer for reassembly. */
+//   85 extern struct etimer uip_reass_timer;
+//   86 #endif
+//   87 
+//   88 #if UIP_TCP
+//   89 /**
+//   90  * \internal Structure for holding a TCP port and a process ID.
+//   91  */
+//   92 struct listenport {
+//   93   uint16_t port;
+//   94   struct process *p;
+//   95 };
+//   96 
+//   97 static struct internal_state {
+//   98   struct listenport listenports[UIP_LISTENPORTS];
+//   99   struct process *p;
+//  100 } s;
+//  101 #endif
+//  102 
+//  103 enum {
+//  104   TCP_POLL,
+//  105   UDP_POLL,
+//  106   PACKET_INPUT
+//  107 };
+//  108 
+//  109 /* Called on IP packet output. */
+//  110 #if UIP_CONF_IPV6
+//  111 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//  112 static uint8_t (* outputfunc)(uip_lladdr_t *a);
+outputfunc:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//  113 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  114 uint8_t
+//  115 tcpip_output(uip_lladdr_t *a)
+tcpip_output:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function tcpip_output
+        CODE
+//  116 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  117   int ret;
+//  118   if(outputfunc != NULL) {
+        MOV     DPTR,#outputfunc
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??tcpip_output_0
+//  119     ret = outputfunc(a);
+        ; Setup parameters for indirect call
+        MOV     DPTR,#outputfunc
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        LCALL   ?CALL_IND
+        MOV     A,R1
+        MOV     R0,A
+        MOV     R1,#0x0
+//  120     return ret;
+        MOV     R1,A
+        SJMP    ??tcpip_output_1
+//  121   }
+//  122   UIP_LOG("tcpip_output: Use tcpip_set_outputfunc() to set an output function");
+//  123   return 0;
+??tcpip_output_0:
+        MOV     R1,#0x0
+??tcpip_output_1:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock0
+//  124 }
+//  125 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  126 void
+//  127 tcpip_set_outputfunc(uint8_t (*f)(uip_lladdr_t *))
+tcpip_set_outputfunc:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function tcpip_set_outputfunc
+        CODE
+//  128 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  129   outputfunc = f;
+        MOV     DPTR,#outputfunc
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  130 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock1
+//  131 #else
+//  132 
+//  133 static uint8_t (* outputfunc)(void);
+//  134 uint8_t
+//  135 tcpip_output(void)
+//  136 {
+//  137   if(outputfunc != NULL) {
+//  138     return outputfunc();
+//  139   }
+//  140   UIP_LOG("tcpip_output: Use tcpip_set_outputfunc() to set an output function");
+//  141   return 0;
+//  142 }
+//  143 
+//  144 void
+//  145 tcpip_set_outputfunc(uint8_t (*f)(void))
+//  146 {
+//  147   outputfunc = f;
+//  148 }
+//  149 #endif
+//  150 
+//  151 #if UIP_CONF_IP_FORWARD
+//  152 unsigned char tcpip_is_forwarding; /* Forwarding right now? */
+//  153 #endif /* UIP_CONF_IP_FORWARD */
+//  154 
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+//  155 PROCESS(tcpip_process, "TCP/IP stack");
+tcpip_process:
+        DATA8
+        DS 8
+        REQUIRE `?<Initializer for tcpip_process>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA32
+__Constant_3e8:
+        DS 4
+        REQUIRE `?<Initializer for __Constant_3e8>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA32
+__Constant_5:
+        DS 4
+        REQUIRE `?<Initializer for __Constant_5>`
+        REQUIRE __INIT_XDATA_I
+//  156 
+//  157 /*---------------------------------------------------------------------------*/
+//  158 static void
+//  159 start_periodic_tcp_timer(void)
+//  160 {
+//  161   if(etimer_expired(&periodic)) {
+//  162     etimer_restart(&periodic);
+//  163   }
+//  164 }
+//  165 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  166 static void
+//  167 check_for_tcp_syn(void)
+check_for_tcp_syn:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function check_for_tcp_syn
+        CODE
+//  168 {
+        ; Saved register size: 0
+        ; Auto size: 0
+//  169 #if UIP_TCP || UIP_CONF_IP_FORWARD
+//  170   /* This is a hack that is needed to start the periodic TCP timer if
+//  171      an incoming packet contains a SYN: since uIP does not inform the
+//  172      application if a SYN arrives, we have no other way of starting
+//  173      this timer.  This function is called for every incoming IP packet
+//  174      to check for such SYNs. */
+//  175 #define TCP_SYN 0x02
+//  176   if(UIP_IP_BUF->proto == UIP_PROTO_TCP &&
+//  177      (UIP_TCP_BUF->flags & TCP_SYN) == TCP_SYN) {
+//  178     start_periodic_tcp_timer();
+//  179   }
+//  180 #endif /* UIP_TCP || UIP_CONF_IP_FORWARD */
+//  181 }
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock2
+//  182 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  183 static void
+//  184 packet_input(void)
+packet_input:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function packet_input
+        CODE
+//  185 {
+        FUNCALL packet_input, check_for_tcp_syn
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL packet_input, uip_process
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL packet_input, tcpip_ipv6_output
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  186 #if UIP_CONF_IP_FORWARD
+//  187   if(uip_len > 0) {
+//  188     tcpip_is_forwarding = 1;
+//  189     if(uip_fw_forward() == UIP_FW_LOCAL) {
+//  190       tcpip_is_forwarding = 0;
+//  191       check_for_tcp_syn();
+//  192       uip_input();
+//  193       if(uip_len > 0) {
+//  194 #if UIP_CONF_TCP_SPLIT
+//  195         uip_split_output();
+//  196 #else /* UIP_CONF_TCP_SPLIT */
+//  197 #if UIP_CONF_IPV6
+//  198         tcpip_ipv6_output();
+//  199 #else
+//  200 	PRINTF("tcpip packet_input forward output len %d\n", uip_len);
+//  201         tcpip_output();
+//  202 #endif
+//  203 #endif /* UIP_CONF_TCP_SPLIT */
+//  204       }
+//  205     }
+//  206     tcpip_is_forwarding = 0;
+//  207   }
+//  208 #else /* UIP_CONF_IP_FORWARD */
+//  209   if(uip_len > 0) {
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??packet_input_0
+//  210     check_for_tcp_syn();
+        ; Setup parameters for call to function check_for_tcp_syn
+        LCALL   ??check_for_tcp_syn?relay
+//  211     uip_input();
+        ; Setup parameters for call to function uip_process
+        MOV     R1,#0x1
+        LCALL   ??uip_process?relay
+//  212     if(uip_len > 0) {
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??packet_input_0
+//  213 #if UIP_CONF_TCP_SPLIT
+//  214       uip_split_output();
+//  215 #else /* UIP_CONF_TCP_SPLIT */
+//  216 #if UIP_CONF_IPV6
+//  217       tcpip_ipv6_output();
+        ; Setup parameters for call to function tcpip_ipv6_output
+        LCALL   ??tcpip_ipv6_output?relay
+//  218 #else
+//  219       PRINTF("tcpip packet_input output len %d\n", uip_len);
+//  220       tcpip_output();
+//  221 #endif
+//  222 #endif /* UIP_CONF_TCP_SPLIT */
+//  223     }
+//  224   }
+//  225 #endif /* UIP_CONF_IP_FORWARD */
+//  226 }
+??packet_input_0:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock3
+//  227 /*---------------------------------------------------------------------------*/
+//  228 #if UIP_TCP
+//  229 #if UIP_ACTIVE_OPEN
+//  230 struct uip_conn *
+//  231 tcp_connect(uip_ipaddr_t *ripaddr, uint16_t port, void *appstate)
+//  232 {
+//  233   struct uip_conn *c;
+//  234   
+//  235   c = uip_connect(ripaddr, port);
+//  236   if(c == NULL) {
+//  237     return NULL;
+//  238   }
+//  239 
+//  240   c->appstate.p = PROCESS_CURRENT();
+//  241   c->appstate.state = appstate;
+//  242   
+//  243   tcpip_poll_tcp(c);
+//  244   
+//  245   return c;
+//  246 }
+//  247 #endif /* UIP_ACTIVE_OPEN */
+//  248 /*---------------------------------------------------------------------------*/
+//  249 void
+//  250 tcp_unlisten(uint16_t port)
+//  251 {
+//  252   static unsigned char i;
+//  253   struct listenport *l;
+//  254 
+//  255   l = s.listenports;
+//  256   for(i = 0; i < UIP_LISTENPORTS; ++i) {
+//  257     if(l->port == port &&
+//  258        l->p == PROCESS_CURRENT()) {
+//  259       l->port = 0;
+//  260       uip_unlisten(port);
+//  261       break;
+//  262     }
+//  263     ++l;
+//  264   }
+//  265 }
+//  266 /*---------------------------------------------------------------------------*/
+//  267 void
+//  268 tcp_listen(uint16_t port)
+//  269 {
+//  270   static unsigned char i;
+//  271   struct listenport *l;
+//  272 
+//  273   l = s.listenports;
+//  274   for(i = 0; i < UIP_LISTENPORTS; ++i) {
+//  275     if(l->port == 0) {
+//  276       l->port = port;
+//  277       l->p = PROCESS_CURRENT();
+//  278       uip_listen(port);
+//  279       break;
+//  280     }
+//  281     ++l;
+//  282   }
+//  283 }
+//  284 /*---------------------------------------------------------------------------*/
+//  285 void
+//  286 tcp_attach(struct uip_conn *conn,
+//  287 	   void *appstate)
+//  288 {
+//  289   uip_tcp_appstate_t *s;
+//  290 
+//  291   s = &conn->appstate;
+//  292   s->p = PROCESS_CURRENT();
+//  293   s->state = appstate;
+//  294 }
+//  295 
+//  296 #endif /* UIP_TCP */
+//  297 /*---------------------------------------------------------------------------*/
+//  298 #if UIP_UDP
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  299 void
+//  300 udp_attach(struct uip_udp_conn *conn,
+udp_attach:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function udp_attach
+        CODE
+//  301 	   void *appstate)
+//  302 {
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+//  303   uip_udp_appstate_t *s;
+//  304 
+//  305   s = &conn->appstate;
+        MOV     A,R2
+        ADD     A,#0x15
+        MOV     R0,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     R1,A
+//  306   s->p = PROCESS_CURRENT();
+        MOV     DPTR,#process_current
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  307   s->state = appstate;
+        MOV     DPL,R0
+        MOV     DPH,R1
+        INC     DPTR
+        INC     DPTR
+        MOV     A,R4
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R5
+        MOVX    @DPTR,A
+//  308 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock4
+//  309 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  310 struct uip_udp_conn *
+//  311 udp_new(const uip_ipaddr_t *ripaddr, uint16_t port, void *appstate)
+udp_new:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function udp_new
+        CODE
+//  312 {
+        FUNCALL udp_new, uip_udp_new
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+        MOV     A,#0xa
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+//  313   struct uip_udp_conn *c;
+//  314   uip_udp_appstate_t *s;
+//  315   
+//  316   c = uip_udp_new(ripaddr, port);
+        ; Setup parameters for call to function uip_udp_new
+        LCALL   ??uip_udp_new?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+//  317   if(c == NULL) {
+        MOV     A,R2
+        ORL     A,R3
+        JNZ     ??udp_new_0
+//  318     return NULL;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??udp_new_1
+//  319   }
+//  320 
+//  321   s = &c->appstate;
+??udp_new_0:
+        MOV     A,R2
+        ADD     A,#0x15
+        MOV     R0,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     R1,A
+        MOV     A,R0
+        MOV     R4,A
+        MOV     A,R1
+        MOV     R5,A
+//  322   s->p = PROCESS_CURRENT();
+        MOV     DPTR,#process_current
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R4
+        MOV     DPH,R5
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  323   s->state = appstate;
+        MOV     A,R6
+        MOV     R0,A
+        MOV     A,R7
+        MOV     R1,A
+        MOV     DPL,R4
+        MOV     DPH,R5
+        INC     DPTR
+        INC     DPTR
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  324 
+//  325   return c;
+??udp_new_1:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock5
+//  326 }
+//  327 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  328 struct uip_udp_conn *
+//  329 udp_broadcast_new(uint16_t port, void *appstate)
+udp_broadcast_new:
+          CFI Block cfiBlock6 Using cfiCommon0
+          CFI Function udp_broadcast_new
+        CODE
+//  330 {
+        FUNCALL udp_broadcast_new, udp_new
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 28, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 28, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 16
+        MOV     A,#-0x10
+        LCALL   ?ALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 26)
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  331   uip_ipaddr_t addr;
+//  332   struct uip_udp_conn *conn;
+//  333 
+//  334 #if UIP_CONF_IPV6
+//  335   uip_create_linklocal_allnodes_mcast(&addr);
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOV     A,#-0x1
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     A,#0x4
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     A,#0x6
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     A,#0x8
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     A,#0xa
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     A,#0xc
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     A,#0xe
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  336 #else
+//  337   uip_ipaddr(&addr, 255,255,255,255);
+//  338 #endif /* UIP_CONF_IPV6 */
+//  339   conn = udp_new(&addr, port, appstate);
+        ; Setup parameters for call to function udp_new
+        MOV     ?V0 + 0,R4
+        MOV     ?V0 + 1,R5
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 28)
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOV     R2,DPL
+        MOV     R3,DPH
+        LCALL   ??udp_new?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 26)
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+//  340   if(conn != NULL) {
+        MOV     A,R2
+        ORL     A,R3
+        JZ      ??udp_broadcast_new_0
+//  341     udp_bind(conn, port);
+        MOV     A,R2
+        ADD     A,#0x10
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,R6
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R7
+        MOVX    @DPTR,A
+//  342   }
+//  343   return conn;
+??udp_broadcast_new_0:
+        MOV     A,#0x10
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock6
+//  344 }
+//  345 #endif /* UIP_UDP */
+//  346 /*---------------------------------------------------------------------------*/
+//  347 #if UIP_CONF_ICMP6
+//  348 uint8_t
+//  349 icmp6_new(void *appstate) {
+//  350   if(uip_icmp6_conns.appstate.p == PROCESS_NONE) {
+//  351     uip_icmp6_conns.appstate.p = PROCESS_CURRENT();
+//  352     uip_icmp6_conns.appstate.state = appstate;
+//  353     return 0;
+//  354   }
+//  355   return 1;
+//  356 }
+//  357 
+//  358 void
+//  359 tcpip_icmp6_call(uint8_t type)
+//  360 {
+//  361   if(uip_icmp6_conns.appstate.p != PROCESS_NONE) {
+//  362     /* XXX: This is a hack that needs to be updated. Passing a pointer (&type)
+//  363        like this only works with process_post_synch. */
+//  364     process_post_synch(uip_icmp6_conns.appstate.p, tcpip_icmp6_event, &type);
+//  365   }
+//  366   return;
+//  367 }
+//  368 #endif /* UIP_CONF_ICMP6 */
+//  369 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  370 static void
+//  371 eventhandler(process_event_t ev, process_data_t data)
+eventhandler:
+          CFI Block cfiBlock7 Using cfiCommon0
+          CFI Function eventhandler
+        CODE
+//  372 {
+        FUNCALL eventhandler, etimer_expired
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL eventhandler, etimer_expired
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL eventhandler, uip_ds6_periodic
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL eventhandler, tcpip_ipv6_output
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL eventhandler, uip_process
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL eventhandler, tcpip_ipv6_output
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL eventhandler, packet_input
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     ?V0 + 0,R1
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  373 #if UIP_TCP
+//  374   static unsigned char i;
+//  375   register struct listenport *l;
+//  376 #endif /*UIP_TCP*/
+//  377   struct process *p;
+//  378 
+//  379   switch(ev) {
+        MOV     A,?V0 + 0
+        DEC     A
+        JNZ     $+5
+        LJMP    ??eventhandler_0 & 0xFFFF
+        DEC     A
+        JNZ     $+5
+        LJMP    ??eventhandler_1 & 0xFFFF
+        ADD     A,#0x7b
+        JZ      ??eventhandler_2
+        DEC     A
+        JZ      ??eventhandler_3
+        LJMP    ??eventhandler_4 & 0xFFFF
+//  380     case PROCESS_EVENT_EXITED:
+//  381       /* This is the event we get if a process has exited. We go through
+//  382          the TCP/IP tables to see if this process had any open
+//  383          connections or listening TCP ports. If so, we'll close those
+//  384          connections. */
+//  385 
+//  386       p = (struct process *)data;
+//  387 #if UIP_TCP
+//  388       l = s.listenports;
+//  389       for(i = 0; i < UIP_LISTENPORTS; ++i) {
+//  390         if(l->p == p) {
+//  391           uip_unlisten(l->port);
+//  392           l->port = 0;
+//  393           l->p = PROCESS_NONE;
+//  394         }
+//  395         ++l;
+//  396       }
+//  397 	 
+//  398       {
+//  399         struct uip_conn *cptr;
+//  400 	    
+//  401         for(cptr = &uip_conns[0]; cptr < &uip_conns[UIP_CONNS]; ++cptr) {
+//  402           if(cptr->appstate.p == p) {
+//  403             cptr->appstate.p = PROCESS_NONE;
+//  404             cptr->tcpstateflags = UIP_CLOSED;
+//  405           }
+//  406         }
+//  407       }
+//  408 #endif /* UIP_TCP */
+//  409 #if UIP_UDP
+//  410       {
+//  411         struct uip_udp_conn *cptr;
+//  412 
+//  413         for(cptr = &uip_udp_conns[0];
+??eventhandler_2:
+        MOV     R0,#uip_udp_conns & 0xff
+        MOV     R1,#(uip_udp_conns >> 8) & 0xff
+        SJMP    ??eventhandler_5
+//  414             cptr < &uip_udp_conns[UIP_UDP_CONNS]; ++cptr) {
+//  415           if(cptr->appstate.p == p) {
+??eventhandler_6:
+        MOV     A,R0
+        ADD     A,#0x15
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        MOV     A,R6
+        XRL     A,R2
+        JNZ     ??eventhandler_7
+        MOV     A,R7
+        XRL     A,R3
+??eventhandler_7:
+        JNZ     ??eventhandler_8
+//  416             cptr->lport = 0;
+        MOV     A,R0
+        ADD     A,#0x10
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  417           }
+//  418         }
+??eventhandler_8:
+        MOV     A,R0
+        ADD     A,#0x19
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R1,A
+??eventhandler_5:
+        CLR     C
+        MOV     A,R0
+        SUBB    A,#(uip_udp_conns + 250) & 0xff
+        MOV     A,R1
+        SUBB    A,#((uip_udp_conns + 250) >> 8) & 0xff
+        JC      ??eventhandler_6
+//  419       }
+//  420 #endif /* UIP_UDP */
+//  421       break;
+        SJMP    ??eventhandler_4
+//  422 
+//  423     case PROCESS_EVENT_TIMER:
+//  424       /* We get this event if one of our timers have expired. */
+//  425       {
+//  426         /* Check the clock so see if we should call the periodic uIP
+//  427            processing. */
+//  428         if(data == &periodic &&
+//  429            etimer_expired(&periodic)) {
+??eventhandler_3:
+        MOV     A,R6
+        XRL     A,#periodic & 0xff
+        JNZ     ??eventhandler_9
+        MOV     A,R7
+        XRL     A,#(periodic >> 8) & 0xff
+??eventhandler_9:
+        JNZ     ??eventhandler_10
+        ; Setup parameters for call to function etimer_expired
+        MOV     R2,#periodic & 0xff
+        MOV     R3,#(periodic >> 8) & 0xff
+        LCALL   ??etimer_expired?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     R0,?V0 + 2
+        MOV     R1,?V0 + 3
+//  430 #if UIP_TCP
+//  431           for(i = 0; i < UIP_CONNS; ++i) {
+//  432             if(uip_conn_active(i)) {
+//  433               /* Only restart the timer if there are active
+//  434                  connections. */
+//  435               etimer_restart(&periodic);
+//  436               uip_periodic(i);
+//  437 #if UIP_CONF_IPV6
+//  438               tcpip_ipv6_output();
+//  439 #else
+//  440               if(uip_len > 0) {
+//  441 		PRINTF("tcpip_output from periodic len %d\n", uip_len);
+//  442                 tcpip_output();
+//  443 		PRINTF("tcpip_output after periodic len %d\n", uip_len);
+//  444               }
+//  445 #endif /* UIP_CONF_IPV6 */
+//  446             }
+//  447           }
+//  448 #endif /* UIP_TCP */
+//  449 #if UIP_CONF_IP_FORWARD
+//  450           uip_fw_periodic();
+//  451 #endif /* UIP_CONF_IP_FORWARD */
+//  452         }
+//  453         
+//  454 #if UIP_CONF_IPV6
+//  455 #if UIP_CONF_IPV6_REASSEMBLY
+//  456         /*
+//  457          * check the timer for reassembly
+//  458          */
+//  459         if(data == &uip_reass_timer &&
+//  460            etimer_expired(&uip_reass_timer)) {
+//  461           uip_reass_over();
+//  462           tcpip_ipv6_output();
+//  463         }
+//  464 #endif /* UIP_CONF_IPV6_REASSEMBLY */
+//  465         /*
+//  466          * check the different timers for neighbor discovery and
+//  467          * stateless autoconfiguration
+//  468          */
+//  469         /*if(data == &uip_ds6_timer_periodic &&
+//  470            etimer_expired(&uip_ds6_timer_periodic)) {
+//  471           uip_ds6_periodic();
+//  472           tcpip_ipv6_output();
+//  473         }*/
+//  474 #if !UIP_CONF_ROUTER
+//  475         if(data == &uip_ds6_timer_rs &&
+//  476            etimer_expired(&uip_ds6_timer_rs)) {
+//  477           uip_ds6_send_rs();
+//  478           tcpip_ipv6_output();
+//  479         }
+//  480 #endif /* !UIP_CONF_ROUTER */
+//  481         if(data == &uip_ds6_timer_periodic &&
+//  482            etimer_expired(&uip_ds6_timer_periodic)) {
+??eventhandler_10:
+        MOV     A,R6
+        XRL     A,#uip_ds6_timer_periodic & 0xff
+        JNZ     ??eventhandler_11
+        MOV     A,R7
+        XRL     A,#(uip_ds6_timer_periodic >> 8) & 0xff
+??eventhandler_11:
+        JNZ     ??eventhandler_4
+        ; Setup parameters for call to function etimer_expired
+        MOV     R2,#uip_ds6_timer_periodic & 0xff
+        MOV     R3,#(uip_ds6_timer_periodic >> 8) & 0xff
+        LCALL   ??etimer_expired?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JZ      ??eventhandler_4
+//  483           uip_ds6_periodic();
+        ; Setup parameters for call to function uip_ds6_periodic
+        LCALL   ??uip_ds6_periodic?relay
+//  484           tcpip_ipv6_output();
+        ; Setup parameters for call to function tcpip_ipv6_output
+        LCALL   ??tcpip_ipv6_output?relay
+//  485         }
+//  486 #endif /* UIP_CONF_IPV6 */
+//  487       }
+//  488       break;
+        SJMP    ??eventhandler_4
+//  489 	 
+//  490 #if UIP_TCP
+//  491     case TCP_POLL:
+//  492       if(data != NULL) {
+//  493         uip_poll_conn(data);
+//  494 #if UIP_CONF_IPV6
+//  495         tcpip_ipv6_output();
+//  496 #else /* UIP_CONF_IPV6 */
+//  497         if(uip_len > 0) {
+//  498 	  PRINTF("tcpip_output from tcp poll len %d\n", uip_len);
+//  499           tcpip_output();
+//  500         }
+//  501 #endif /* UIP_CONF_IPV6 */
+//  502         /* Start the periodic polling, if it isn't already active. */
+//  503         start_periodic_tcp_timer();
+//  504       }
+//  505       break;
+//  506 #endif /* UIP_TCP */
+//  507 #if UIP_UDP
+//  508     case UDP_POLL:
+//  509       if(data != NULL) {
+??eventhandler_0:
+        MOV     A,R6
+        ORL     A,R7
+        JZ      ??eventhandler_4
+//  510         uip_udp_periodic_conn(data);
+        MOV     DPTR,#uip_udp_conn
+        MOV     A,R6
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R7
+        MOVX    @DPTR,A
+        ; Setup parameters for call to function uip_process
+        MOV     R1,#0x5
+        LCALL   ??uip_process?relay
+//  511 #if UIP_CONF_IPV6
+//  512         tcpip_ipv6_output();
+        ; Setup parameters for call to function tcpip_ipv6_output
+        LCALL   ??tcpip_ipv6_output?relay
+//  513 #else
+//  514         if(uip_len > 0) {
+//  515           tcpip_output();
+//  516         }
+//  517 #endif /* UIP_UDP */
+//  518       }
+//  519       break;
+        SJMP    ??eventhandler_4
+//  520 #endif /* UIP_UDP */
+//  521 
+//  522     case PACKET_INPUT:
+//  523       packet_input();
+??eventhandler_1:
+        ; Setup parameters for call to function packet_input
+        LCALL   ??packet_input?relay
+//  524       break;
+//  525   };
+//  526 }
+??eventhandler_4:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock7
+//  527 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  528 void
+//  529 tcpip_input(void)
+tcpip_input:
+          CFI Block cfiBlock8 Using cfiCommon0
+          CFI Function tcpip_input
+        CODE
+//  530 {
+        FUNCALL tcpip_input, process_post_synch
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  531   process_post_synch(&tcpip_process, PACKET_INPUT, NULL);
+        ; Setup parameters for call to function process_post_synch
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R1,#0x2
+        MOV     R2,#tcpip_process & 0xff
+        MOV     R3,#(tcpip_process >> 8) & 0xff
+        LCALL   ??process_post_synch?relay
+//  532   uip_len = 0;
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  533 #if UIP_CONF_IPV6
+//  534   uip_ext_len = 0;
+        MOV     DPTR,#uip_ext_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  535 #endif /*UIP_CONF_IPV6*/
+//  536 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock8
+//  537 /*---------------------------------------------------------------------------*/
+//  538 #if UIP_CONF_IPV6
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  539 void
+//  540 tcpip_ipv6_output(void)
+tcpip_ipv6_output:
+          CFI Block cfiBlock9 Using cfiCommon0
+          CFI Function tcpip_ipv6_output
+        CODE
+//  541 {
+        FUNCALL tcpip_ipv6_output, uip_ds6_is_addr_onlink
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_ipv6_output, uip_ds6_nbr_lookup
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_ipv6_output, uip_ds6_nbr_add
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 21, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 21, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_ipv6_output, uip_ds6_route_lookup
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_ipv6_output, uip_ds6_defrt_choose
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_ipv6_output, uip_ds6_route_nexthop
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_ipv6_output, uip_ds6_route_rm
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_ipv6_output, uip_ds6_addr_lookup
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_ipv6_output, uip_nd6_ns_output
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_ipv6_output, uip_nd6_ns_output
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_ipv6_output, stimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 24, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 24, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_ipv6_output, stimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 24, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 24, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_ipv6_output, uip_ds6_nbr_get_ll
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_ipv6_output, tcpip_output
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL tcpip_ipv6_output, tcpip_output
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x14
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V11 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V10 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V9 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V8 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V7 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-16)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-17)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-18)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-19)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-20)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 20)
+        ; Saved register size: 20
+        ; Auto size: 0
+//  542   uip_ds6_nbr_t *nbr = NULL;
+        MOV     ?V0 + 2,#0x0
+        MOV     ?V0 + 3,#0x0
+//  543   uip_ipaddr_t *nexthop;
+//  544 
+//  545   if(uip_len == 0) {
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     $+5
+        LJMP    ??tcpip_ipv6_output_0 & 0xFFFF
+//  546     return;
+//  547   }
+//  548 
+//  549   if(uip_len > UIP_LINK_MTU) {
+        MOV     DPTR,#uip_len
+        CLR     C
+        MOVX    A,@DPTR
+        SUBB    A,#0x1
+        INC     DPTR
+        MOVX    A,@DPTR
+        SUBB    A,#0x5
+        JC      ??tcpip_ipv6_output_1
+//  550     UIP_LOG("tcpip_ipv6_output: Packet to big");
+//  551     uip_len = 0;
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  552     return;
+        LJMP    ??tcpip_ipv6_output_0 & 0xFFFF
+//  553   }
+//  554 
+//  555   if(uip_is_addr_unspecified(&UIP_IP_BUF->destipaddr)){
+??tcpip_ipv6_output_1:
+        MOV     DPTR,#uip_aligned_buf + 24
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??tcpip_ipv6_output_2
+        MOV     DPTR,#uip_aligned_buf + 26
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??tcpip_ipv6_output_2
+        MOV     DPTR,#uip_aligned_buf + 28
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??tcpip_ipv6_output_2
+        MOV     DPTR,#uip_aligned_buf + 30
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??tcpip_ipv6_output_2
+        MOV     DPTR,#uip_aligned_buf + 32
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??tcpip_ipv6_output_2
+        MOV     DPTR,#uip_aligned_buf + 34
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??tcpip_ipv6_output_2
+        MOV     DPTR,#uip_aligned_buf + 36
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??tcpip_ipv6_output_2
+        MOV     DPTR,#uip_aligned_buf + 38
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??tcpip_ipv6_output_2
+//  556     UIP_LOG("tcpip_ipv6_output: Destination address unspecified");
+//  557     uip_len = 0;
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  558     return;
+        LJMP    ??tcpip_ipv6_output_0 & 0xFFFF
+//  559   }
+//  560 
+//  561   if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
+??tcpip_ipv6_output_2:
+        MOV     DPTR,#uip_aligned_buf + 24
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+        JNZ     $+5
+        LJMP    ??tcpip_ipv6_output_3 & 0xFFFF
+//  562     /* Next hop determination */
+//  563     nbr = NULL;
+        MOV     ?V0 + 2,#0x0
+        MOV     ?V0 + 3,#0x0
+//  564 
+//  565     /* We first check if the destination address is on our immediate
+//  566        link. If so, we simply use the destination address as our
+//  567        nexthop address. */
+//  568     if(uip_ds6_is_addr_onlink(&UIP_IP_BUF->destipaddr)){
+        ; Setup parameters for call to function uip_ds6_is_addr_onlink
+        MOV     R2,#(uip_aligned_buf + 24) & 0xff
+        MOV     R3,#((uip_aligned_buf + 24) >> 8) & 0xff
+        LCALL   ??uip_ds6_is_addr_onlink?relay
+        MOV     A,R1
+        JZ      ??tcpip_ipv6_output_4
+//  569       nexthop = &UIP_IP_BUF->destipaddr;
+        MOV     R6,#(uip_aligned_buf + 24) & 0xff
+        MOV     R7,#((uip_aligned_buf + 24) >> 8) & 0xff
+//  570     } else {
+//  571       uip_ds6_route_t *route;
+//  572       /* Check if we have a route to the destination address. */
+//  573       route = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
+//  574 
+//  575       /* No route was found - we send to the default route instead. */
+//  576       if(route == NULL) {
+//  577         PRINTF("tcpip_ipv6_output: no route found, using default route\n");
+//  578         nexthop = uip_ds6_defrt_choose();
+//  579         if(nexthop == NULL) {
+//  580 #ifdef UIP_FALLBACK_INTERFACE
+//  581 	  PRINTF("FALLBACK: removing ext hdrs & setting proto %d %d\n", 
+//  582 		 uip_ext_len, *((uint8_t *)UIP_IP_BUF + 40));
+//  583 	  if(uip_ext_len > 0) {
+//  584 	    extern void remove_ext_hdr(void);
+//  585 	    uint8_t proto = *((uint8_t *)UIP_IP_BUF + 40);
+//  586 	    remove_ext_hdr();
+//  587 	    /* This should be copied from the ext header... */
+//  588 	    UIP_IP_BUF->proto = proto;
+//  589 	  }
+//  590 	  UIP_FALLBACK_INTERFACE.output();
+//  591 #else
+//  592           PRINTF("tcpip_ipv6_output: Destination off-link but no route\n");
+//  593 #endif /* !UIP_FALLBACK_INTERFACE */
+//  594           uip_len = 0;
+//  595           return;
+//  596         }
+//  597 
+//  598       } else {
+//  599         /* A route was found, so we look up the nexthop neighbor for
+//  600            the route. */
+//  601         nexthop = uip_ds6_route_nexthop(route);
+//  602 
+//  603         /* If the nexthop is dead, for example because the neighbor
+//  604            never responded to link-layer acks, we drop its route. */
+//  605         if(nexthop == NULL) {
+//  606 #if UIP_CONF_IPV6_RPL
+//  607           /* If we are running RPL, and if we are the root of the
+//  608              network, we'll trigger a global repair berfore we remove
+//  609              the route. */
+//  610           rpl_dag_t *dag;
+//  611           rpl_instance_t *instance;
+//  612 
+//  613           dag = (rpl_dag_t *)route->state.dag;
+//  614           if(dag != NULL) {
+//  615             instance = dag->instance;
+//  616 
+//  617             rpl_repair_root(instance->instance_id);
+//  618           }
+//  619 #endif /* UIP_CONF_RPL */
+//  620           uip_ds6_route_rm(route);
+//  621 
+//  622           /* We don't have a nexthop to send the packet to, so we drop
+//  623              it. */
+//  624           return;
+//  625         }
+//  626       }
+//  627 #if TCPIP_CONF_ANNOTATE_TRANSMISSIONS
+//  628       if(nexthop != NULL) {
+//  629         static uint8_t annotate_last;
+//  630         static uint8_t annotate_has_last = 0;
+//  631 
+//  632         if(annotate_has_last) {
+//  633           printf("#L %u 0; red\n", annotate_last);
+//  634         }
+//  635         printf("#L %u 1; red\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+//  636         annotate_last = nexthop->u8[sizeof(uip_ipaddr_t) - 1];
+//  637         annotate_has_last = 1;
+//  638       }
+//  639 #endif /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
+//  640     }
+//  641 
+//  642     /* End of next hop determination */
+//  643 
+//  644 #if UIP_CONF_IPV6_RPL
+//  645     if(rpl_update_header_final(nexthop)) {
+//  646       uip_len = 0;
+//  647       return;
+//  648     }
+//  649 #endif /* UIP_CONF_IPV6_RPL */
+//  650     nbr = uip_ds6_nbr_lookup(nexthop);
+??tcpip_ipv6_output_5:
+        ; Setup parameters for call to function uip_ds6_nbr_lookup
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??uip_ds6_nbr_lookup?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     ?V0 + 2,?V0 + 0
+        MOV     ?V0 + 3,?V0 + 1
+//  651     if(nbr == NULL) {
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JZ      $+5
+        LJMP    ??tcpip_ipv6_output_6 & 0xFFFF
+//  652 #if UIP_ND6_SEND_NA
+//  653       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE)) == NULL) {
+        ; Setup parameters for call to function uip_ds6_nbr_add
+        MOV     ?V0 + 0,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_ONE
+          CFI CFA_XSP16 add(XSP16, 21)
+        MOV     R1,#0x0
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??uip_ds6_nbr_add?relay
+        MOV     A,#0x1
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,?V0 + 3
+        MOV     ?V0 + 2,?V0 + 0
+        MOV     ?V0 + 3,?V0 + 1
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     ??tcpip_ipv6_output_7
+//  654         uip_len = 0;
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  655         return;
+        LJMP    ??tcpip_ipv6_output_0 & 0xFFFF
+//  656       } else {
+??tcpip_ipv6_output_4:
+        ; Setup parameters for call to function uip_ds6_route_lookup
+        MOV     R2,#(uip_aligned_buf + 24) & 0xff
+        MOV     R3,#((uip_aligned_buf + 24) >> 8) & 0xff
+        LCALL   ??uip_ds6_route_lookup?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,?V0 + 3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     ??tcpip_ipv6_output_8
+        ; Setup parameters for call to function uip_ds6_defrt_choose
+        LCALL   ??uip_ds6_defrt_choose?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R6,?V0 + 0
+        MOV     R7,?V0 + 1
+        MOV     A,R6
+        ORL     A,R7
+        JNZ     ??tcpip_ipv6_output_5
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        LJMP    ??tcpip_ipv6_output_0 & 0xFFFF
+??tcpip_ipv6_output_8:
+        ; Setup parameters for call to function uip_ds6_route_nexthop
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        LCALL   ??uip_ds6_route_nexthop?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     R6,?V0 + 2
+        MOV     R7,?V0 + 3
+        MOV     A,R6
+        ORL     A,R7
+        JZ      $+5
+        LJMP    ??tcpip_ipv6_output_5 & 0xFFFF
+        ; Setup parameters for call to function uip_ds6_route_rm
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        LCALL   ??uip_ds6_route_rm?relay
+        LJMP    ??tcpip_ipv6_output_0 & 0xFFFF
+//  657 #if UIP_CONF_IPV6_QUEUE_PKT
+//  658         /* Copy outgoing pkt in the queuing buffer for later transmit. */
+//  659         if(uip_packetqueue_alloc(&nbr->packethandle, UIP_DS6_NBR_PACKET_LIFETIME) != NULL) {
+//  660           memcpy(uip_packetqueue_buf(&nbr->packethandle), UIP_IP_BUF, uip_len);
+//  661           uip_packetqueue_set_buflen(&nbr->packethandle, uip_len);
+//  662         }
+//  663 #endif
+//  664       /* RFC4861, 7.2.2:
+//  665        * "If the source address of the packet prompting the solicitation is the
+//  666        * same as one of the addresses assigned to the outgoing interface, that
+//  667        * address SHOULD be placed in the IP Source Address of the outgoing
+//  668        * solicitation.  Otherwise, any one of the addresses assigned to the
+//  669        * interface should be used."*/
+//  670        if(uip_ds6_is_my_addr(&UIP_IP_BUF->srcipaddr)){
+??tcpip_ipv6_output_7:
+        ; Setup parameters for call to function uip_ds6_addr_lookup
+        MOV     R2,#(uip_aligned_buf + 8) & 0xff
+        MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+        LCALL   ??uip_ds6_addr_lookup?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??tcpip_ipv6_output_9
+//  671           uip_nd6_ns_output(&UIP_IP_BUF->srcipaddr, NULL, &nbr->ipaddr);
+        ; Setup parameters for call to function uip_nd6_ns_output
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R2,#(uip_aligned_buf + 8) & 0xff
+        MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+        LCALL   ??uip_nd6_ns_output?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        SJMP    ??tcpip_ipv6_output_10
+//  672         } else {
+//  673           uip_nd6_ns_output(NULL, NULL, &nbr->ipaddr);
+??tcpip_ipv6_output_9:
+        ; Setup parameters for call to function uip_nd6_ns_output
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LCALL   ??uip_nd6_ns_output?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+//  674         }
+//  675 
+//  676         stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+??tcpip_ipv6_output_10:
+        ; Setup parameters for call to function stimer_set
+        MOV     DPTR,#uip_ds6_if + 13
+        MOV     R0,#?V0 + 4
+        LCALL   ?L_MOV_X
+        MOV     DPTR,#__Constant_3e8
+        MOV     R0,#?V0 + 8
+        LCALL   ?L_MOV_X
+        MOV     R0,#?V0 + 4
+        MOV     R1,#?V0 + 8
+        LCALL   ?UL_DIV_MOD
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_FOUR
+          CFI CFA_XSP16 add(XSP16, 24)
+        MOV     A,?V0 + 2
+        ADD     A,#0x18
+        MOV     R2,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??stimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+//  677         nbr->nscount = 1;
+        MOV     A,?V0 + 2
+        ADD     A,#0x20
+        MOV     DPL,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  678       }
+//  679 #endif /* UIP_ND6_SEND_NA */
+//  680     } else {
+//  681 #if UIP_ND6_SEND_NA
+//  682       if(nbr->state == NBR_INCOMPLETE) {
+//  683         PRINTF("tcpip_ipv6_output: nbr cache entry incomplete\n");
+//  684 #if UIP_CONF_IPV6_QUEUE_PKT
+//  685         /* Copy outgoing pkt in the queuing buffer for later transmit and set
+//  686            the destination nbr to nbr. */
+//  687         if(uip_packetqueue_alloc(&nbr->packethandle, UIP_DS6_NBR_PACKET_LIFETIME) != NULL) {
+//  688           memcpy(uip_packetqueue_buf(&nbr->packethandle), UIP_IP_BUF, uip_len);
+//  689           uip_packetqueue_set_buflen(&nbr->packethandle, uip_len);
+//  690         }
+//  691 #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
+//  692         uip_len = 0;
+//  693         return;
+//  694       }
+//  695       /* Send in parallel if we are running NUD (nbc state is either STALE,
+//  696          DELAY, or PROBE). See RFC 4861, section 7.7.3 on node behavior. */
+//  697       if(nbr->state == NBR_STALE) {
+//  698         nbr->state = NBR_DELAY;
+//  699         stimer_set(&nbr->reachable, UIP_ND6_DELAY_FIRST_PROBE_TIME);
+//  700         nbr->nscount = 0;
+//  701         PRINTF("tcpip_ipv6_output: nbr cache entry stale moving to delay\n");
+//  702       }
+//  703 #endif /* UIP_ND6_SEND_NA */
+//  704 
+//  705       tcpip_output(uip_ds6_nbr_get_ll(nbr));
+//  706 
+//  707 #if UIP_CONF_IPV6_QUEUE_PKT
+//  708       /*
+//  709        * Send the queued packets from here, may not be 100% perfect though.
+//  710        * This happens in a few cases, for example when instead of receiving a
+//  711        * NA after sendiong a NS, you receive a NS with SLLAO: the entry moves
+//  712        * to STALE, and you must both send a NA and the queued packet.
+//  713        */
+//  714       if(uip_packetqueue_buflen(&nbr->packethandle) != 0) {
+//  715         uip_len = uip_packetqueue_buflen(&nbr->packethandle);
+//  716         memcpy(UIP_IP_BUF, uip_packetqueue_buf(&nbr->packethandle), uip_len);
+//  717         uip_packetqueue_free(&nbr->packethandle);
+//  718         tcpip_output(uip_ds6_nbr_get_ll(nbr));
+//  719       }
+//  720 #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
+//  721 
+//  722       uip_len = 0;
+//  723       return;
+//  724     }
+//  725     return;
+        LJMP    ??tcpip_ipv6_output_0 & 0xFFFF
+??tcpip_ipv6_output_6:
+        MOV     A,?V0 + 2
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        JNZ     ??tcpip_ipv6_output_11
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        SJMP    ??tcpip_ipv6_output_0
+??tcpip_ipv6_output_11:
+        MOV     A,?V0 + 2
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        XRL     A,#0x2
+        JNZ     ??tcpip_ipv6_output_12
+        MOV     A,?V0 + 2
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x3
+        MOVX    @DPTR,A
+        ; Setup parameters for call to function stimer_set
+        MOV     DPTR,#__Constant_5
+        LCALL   ?PUSH_XSTACK8_X_FOUR
+          CFI CFA_XSP16 add(XSP16, 24)
+        MOV     A,?V0 + 2
+        ADD     A,#0x10
+        MOV     R2,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??stimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     A,?V0 + 2
+        ADD     A,#0x20
+        MOV     DPL,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+??tcpip_ipv6_output_12:
+        ; Setup parameters for call to function tcpip_output
+        ; Setup parameters for call to function uip_ds6_nbr_get_ll
+        MOV     R2,?V0 + 2
+        MOV     R3,?V0 + 3
+        LCALL   ??uip_ds6_nbr_get_ll?relay
+        LCALL   ??tcpip_output?relay
+        MOV     A,R1
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        SJMP    ??tcpip_ipv6_output_0
+//  726   }
+//  727   /* Multicast IP destination address. */
+//  728   tcpip_output(NULL);
+??tcpip_ipv6_output_3:
+        ; Setup parameters for call to function tcpip_output
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LCALL   ??tcpip_output?relay
+        MOV     A,R1
+//  729   uip_len = 0;
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  730   uip_ext_len = 0;
+        MOV     DPTR,#uip_ext_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  731 }
+??tcpip_ipv6_output_0:
+        MOV     R7,#0xc
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock9
+//  732 #endif /* UIP_CONF_IPV6 */
+//  733 /*---------------------------------------------------------------------------*/
+//  734 #if UIP_UDP
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  735 void
+//  736 tcpip_poll_udp(struct uip_udp_conn *conn)
+tcpip_poll_udp:
+          CFI Block cfiBlock10 Using cfiCommon0
+          CFI Function tcpip_poll_udp
+        CODE
+//  737 {
+        FUNCALL tcpip_poll_udp, process_post
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  738   process_post(&tcpip_process, UDP_POLL, conn);
+        ; Setup parameters for call to function process_post
+        MOV     A,R2
+        MOV     R4,A
+        MOV     A,R3
+        MOV     R5,A
+        MOV     R1,#0x1
+        MOV     R2,#tcpip_process & 0xff
+        MOV     R3,#(tcpip_process >> 8) & 0xff
+        LCALL   ??process_post?relay
+//  739 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock10
+//  740 #endif /* UIP_UDP */
+//  741 /*---------------------------------------------------------------------------*/
+//  742 #if UIP_TCP
+//  743 void
+//  744 tcpip_poll_tcp(struct uip_conn *conn)
+//  745 {
+//  746   process_post(&tcpip_process, TCP_POLL, conn);
+//  747 }
+//  748 #endif /* UIP_TCP */
+//  749 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  750 void
+//  751 tcpip_uipcall(void)
+tcpip_uipcall:
+          CFI Block cfiBlock11 Using cfiCommon0
+          CFI Function tcpip_uipcall
+        CODE
+//  752 {
+        FUNCALL tcpip_uipcall, process_post_synch
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  753   uip_udp_appstate_t *ts;
+//  754   
+//  755 #if UIP_UDP
+//  756   if(uip_conn != NULL) {
+        MOV     DPTR,#uip_conn
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??tcpip_uipcall_0
+//  757     ts = &uip_conn->appstate;
+        MOV     DPTR,#uip_conn
+        MOVX    A,@DPTR
+        ADD     A,#0x28
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R3,A
+        SJMP    ??tcpip_uipcall_1
+//  758   } else {
+//  759     ts = &uip_udp_conn->appstate;
+??tcpip_uipcall_0:
+        MOV     DPTR,#uip_udp_conn
+        MOVX    A,@DPTR
+        ADD     A,#0x15
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R1,A
+        MOV     A,R0
+        MOV     R2,A
+        MOV     A,R1
+        MOV     R3,A
+//  760   }
+//  761 #else /* UIP_UDP */
+//  762   ts = &uip_conn->appstate;
+//  763 #endif /* UIP_UDP */
+//  764 
+//  765 #if UIP_TCP
+//  766  {
+//  767    static unsigned char i;
+//  768    struct listenport *l;
+//  769    
+//  770    /* If this is a connection request for a listening port, we must
+//  771       mark the connection with the right process ID. */
+//  772    if(uip_connected()) {
+//  773      l = &s.listenports[0];
+//  774      for(i = 0; i < UIP_LISTENPORTS; ++i) {
+//  775        if(l->port == uip_conn->lport &&
+//  776 	  l->p != PROCESS_NONE) {
+//  777 	 ts->p = l->p;
+//  778 	 ts->state = NULL;
+//  779 	 break;
+//  780        }
+//  781        ++l;
+//  782      }
+//  783      
+//  784      /* Start the periodic polling, if it isn't already active. */
+//  785      start_periodic_tcp_timer();
+//  786    }
+//  787  }
+//  788 #endif /* UIP_TCP */
+//  789   
+//  790   if(ts->p != NULL) {
+??tcpip_uipcall_1:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??tcpip_uipcall_2
+//  791     process_post_synch(ts->p, tcpip_event, ts->state);
+        ; Setup parameters for call to function process_post_synch
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     DPTR,#tcpip_event
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??process_post_synch?relay
+//  792   }
+//  793 }
+??tcpip_uipcall_2:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock11
+//  794 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  795 PROCESS_THREAD(tcpip_process, ev, data)
+process_thread_tcpip_process:
+          CFI Block cfiBlock12 Using cfiCommon0
+          CFI Function process_thread_tcpip_process
+        CODE
+//  796 {
+        FUNCALL process_thread_tcpip_process, process_alloc_event
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_tcpip_process, etimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_tcpip_process, uip_init
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_tcpip_process, eventhandler
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xe
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 14)
+        ; Saved register size: 14
+        ; Auto size: 0
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     ?V0 + 2,R1
+        MOV     A,R4
+        MOV     R6,A
+        MOV     A,R5
+        MOV     R7,A
+//  797   PROCESS_BEGIN();
+        MOV     R2,#0x1
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        MOV     ?V0 + 4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 5,A
+        MOV     R0,#?V0 + 4
+        LCALL   ?US_SWITCH_SPARSE
+`?<Jumptable for process_thread_tcpip_process>_0`:
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        2
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_tcpip_process_0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        826
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_tcpip_process_1
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_tcpip_process_2
+        CODE
+//  798   
+//  799 #if UIP_TCP
+//  800  {
+//  801    static unsigned char i;
+//  802    
+//  803    for(i = 0; i < UIP_LISTENPORTS; ++i) {
+//  804      s.listenports[i].port = 0;
+//  805    }
+//  806    s.p = PROCESS_CURRENT();
+//  807  }
+//  808 #endif
+//  809 
+//  810   tcpip_event = process_alloc_event();
+??process_thread_tcpip_process_0:
+        ; Setup parameters for call to function process_alloc_event
+        LCALL   ??process_alloc_event?relay
+        MOV     A,R1
+        MOV     DPTR,#tcpip_event
+        MOVX    @DPTR,A
+//  811 #if UIP_CONF_ICMP6
+//  812   tcpip_icmp6_event = process_alloc_event();
+//  813 #endif /* UIP_CONF_ICMP6 */
+//  814   etimer_set(&periodic, CLOCK_SECOND / 2);
+        ; Setup parameters for call to function etimer_set
+        MOV     R4,#0x40
+        MOV     R5,#0x0
+        MOV     R2,#periodic & 0xff
+        MOV     R3,#(periodic >> 8) & 0xff
+        LCALL   ??etimer_set?relay
+//  815 
+//  816   uip_init();
+        ; Setup parameters for call to function uip_init
+        LCALL   ??uip_init?relay
+//  817 #ifdef UIP_FALLBACK_INTERFACE
+//  818   UIP_FALLBACK_INTERFACE.init();
+//  819 #endif
+//  820 /* initialize RPL if configured for using RPL */
+//  821 #if UIP_CONF_IPV6 && UIP_CONF_IPV6_RPL
+//  822   rpl_init();
+//  823 #endif /* UIP_CONF_IPV6_RPL */
+//  824 
+//  825   while(1) {
+//  826     PROCESS_YIELD();
+??process_thread_tcpip_process_3:
+        MOV     R2,#0x0
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOV     A,#0x3a
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x3
+        MOVX    @DPTR,A
+??process_thread_tcpip_process_1:
+        MOV     A,R2
+        JNZ     ??process_thread_tcpip_process_4
+        MOV     R1,#0x1
+        SJMP    ??process_thread_tcpip_process_5
+//  827     eventhandler(ev, data);
+??process_thread_tcpip_process_4:
+        ; Setup parameters for call to function eventhandler
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        MOV     R1,?V0 + 2
+        LCALL   ??eventhandler?relay
+        SJMP    ??process_thread_tcpip_process_3
+//  828   }
+//  829   
+//  830   PROCESS_END();
+??process_thread_tcpip_process_2:
+        MOV     R2,#0x0
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     R1,#0x3
+??process_thread_tcpip_process_5:
+        MOV     R7,#0x6
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock12
+//  831 }
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for tcpip_process>`:
+        DATA16
+        DW 0H
+        DW ??process_thread_tcpip_process?relay
+        DB 0, 0, 0, 0
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for __Constant_3e8>`:
+        DATA32
+        DD 1000
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for __Constant_5>`:
+        DATA32
+        DD 5
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??tcpip_output?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    tcpip_output
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??tcpip_set_outputfunc?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    tcpip_set_outputfunc
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??check_for_tcp_syn?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    check_for_tcp_syn
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??packet_input?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    packet_input
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??udp_attach?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    udp_attach
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??udp_new?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    udp_new
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??udp_broadcast_new?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    udp_broadcast_new
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??eventhandler?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    eventhandler
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??tcpip_input?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    tcpip_input
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??tcpip_ipv6_output?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    tcpip_ipv6_output
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??tcpip_poll_udp?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    tcpip_poll_udp
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??tcpip_uipcall?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    tcpip_uipcall
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_thread_tcpip_process?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_thread_tcpip_process
+
+        END
+//  832 /*---------------------------------------------------------------------------*/
+// 
+// 1 534 bytes in segment BANKED_CODE
+//    78 bytes in segment BANK_RELAYS
+//    16 bytes in segment XDATA_I
+//    16 bytes in segment XDATA_ID
+//    11 bytes in segment XDATA_Z
+// 
+// 1 620 bytes of CODE  memory (+ 8 bytes shared)
+//    19 bytes of XDATA memory (+ 8 bytes shared)
+//
+//Errors: none
+//Warnings: 1

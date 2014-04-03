@@ -1,0 +1,147 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:47 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\cpu\cc253x\dev\dma.c              #
+#    Command line       =  D:\myWork\myWork\cpu\cc253x\dev\dma.c -D           #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\dma.lst                                     #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\dma.r51                                      #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\cpu\cc253x\dev\dma.c
+      1          /**
+      2           * \file
+      3           *         Driver for the cc2530 DMA controller. Derived from the cc2430
+      4           *         equivalent
+      5           *
+      6           * \author
+      7           *         Original: Martti Huttunen <martti@sensinode.com>
+      8           *         Port: Zach Shelby <zach@sensinode.com>
+      9           *         Further Modifications:
+     10           *               George Oikonomou <oikonomou@users.sourceforge.net>
+     11           *
+     12           */
+     13          
+     14          #include "contiki.h"
+     15          #include "dev/dma.h"
+     16          #include "cc253x.h"
+     17          
+     18          #if DMA_ON
+     19          struct dma_config dma_conf[DMA_CHANNEL_COUNT]; /* DMA Descriptors */
+     20          struct process *dma_callback[DMA_CHANNEL_COUNT];
+     21          /*---------------------------------------------------------------------------*/
+     22          void
+     23          dma_init(void)
+     24          {
+     25            uint16_t tmp_ptr;
+     26          
+     27            memset(dma_conf, 0, 4 * sizeof(dma_config_t));
+     28          
+     29            for(tmp_ptr = 0; tmp_ptr < DMA_CHANNEL_COUNT; tmp_ptr++) {
+     30              dma_callback[tmp_ptr] = 0;
+     31            }
+     32          
+     33            /* The address of the descriptor for Channel 0 is configured separately */
+     34            tmp_ptr = (uint16_t)&(dma_conf[0]);
+     35            DMA0CFGH = tmp_ptr >> 8;
+     36            DMA0CFGL = tmp_ptr;
+     37          
+     38            /*
+     39             * Descriptors for Channels 1-4 must be consecutive in RAM.
+     40             * We write the address of the 1st one to the register and the rest are
+     41             * derived by the SoC
+     42             */
+     43          #if (DMA_CHANNEL_COUNT > 1)
+     44            tmp_ptr = (uint16_t)&(dma_conf[1]);
+     45            DMA1CFGH = tmp_ptr >> 8;
+     46            DMA1CFGL = tmp_ptr;
+     47          #endif
+     48          
+     49            DMAIE = 1;	/* Enable DMA interrupts */
+     50          }
+     51          /*---------------------------------------------------------------------------*/
+     52          /*
+     53           * Associate process p with DMA channel c. When a transfer on that channel
+     54           * completes, the ISR will poll this process.
+     55           */
+     56          void
+     57          dma_associate_process(struct process *p, uint8_t c)
+     58          {
+     59            if((!c) || (c >= DMA_CHANNEL_COUNT)) {
+     60              return;
+     61            }
+     62          
+     63            if(p) {
+     64              dma_conf[c].inc_prio |= 8; /* Enable interrupt generation */
+     65              DMAIE = 1; /* Make sure DMA interrupts are acknowledged */
+     66            }
+     67            dma_callback[c] = p;
+     68          }
+     69          /*---------------------------------------------------------------------------*/
+     70          /*
+     71           * Reset a channel to idle state. As per cc253x datasheet section 8.1,
+     72           * we must reconfigure the channel to trigger source 0 between each
+     73           * reconfiguration.
+     74           */
+     75          void
+     76          dma_reset(uint8_t c)
+     77          {
+     78            static __xdata uint8_t dummy;
+     79            if(c >= DMA_CHANNEL_COUNT) {
+     80              return;
+     81            }
+     82            DMA_ABORT(c);
+     83            dma_conf[c].src_h = (uint16_t)&dummy >> 8;
+     84            dma_conf[c].src_l = (uint16_t)&dummy;
+     85            dma_conf[c].dst_h = (uint16_t)&dummy >> 8;
+     86            dma_conf[c].dst_l = (uint16_t)&dummy;
+     87            dma_conf[c].len_h = 0;
+     88            dma_conf[c].len_l = 1;
+     89            dma_conf[c].wtt = DMA_BLOCK;
+     90            dma_conf[c].inc_prio = DMA_PRIO_ASSURED;
+     91            DMA_TRIGGER(c); /** The operation order is important */
+     92            DMA_ARM(c);
+     93            while(DMAARM & (1 << c));
+     94          }
+     95          #endif
+
+
+ 
+
+ 
+
+
+Errors: none
+Warnings: none

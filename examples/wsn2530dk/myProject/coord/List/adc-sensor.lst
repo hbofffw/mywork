@@ -1,0 +1,374 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:44 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\platform\wsn2530dk\dev\adc-sensor #
+#                          .c                                                 #
+#    Command line       =  D:\myWork\myWork\platform\wsn2530dk\dev\adc-sensor #
+#                          .c -D AUTOSTART_ENABLE -D PROJECT_CONF_H -lC       #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\adc-sensor.lst                              #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\adc-sensor.r51                               #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
+   \                                 In  segment SFR_AN, at 0x88
+   \   union <unnamed> volatile __sfr _A_TCON
+   \                     _A_TCON:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xb6
+   \   unsigned char volatile __sfr ADCCON3
+   \                     ADCCON3:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xba
+   \   unsigned char volatile __sfr ADCL
+   \                     ADCL:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xbb
+   \   unsigned char volatile __sfr ADCH
+   \                     ADCH:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xf2
+   \   unsigned char volatile __sfr APCFG
+   \                     APCFG:
+   \   000000                DS 1
+D:\myWork\myWork\platform\wsn2530dk\dev\adc-sensor.c
+      1          /*
+      2           * Copyright (c) 2011, George Oikonomou - <oikonomou@users.sourceforge.net>
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           */
+     31          
+     32          /**
+     33           * \file
+     34           *         ADC sensor module for TI SmartRF05EB devices.
+     35           *
+     36           * \author
+     37           *         George Oikonomou - <oikonomou@users.sourceforge.net>
+     38           */
+     39          #include "sfr-bits.h"
+     40          #include "cc253x.h"
+     41          #include "adc-sensor.h"
+     42          
+     43          #if ADC_SENSOR_ON
+     44          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     45          static int
+     46          value(int type)
+   \                     value:
+     47          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+     48            uint16_t reading;
+     49            /*
+     50             * For single-shot AD conversions, we may only write to ADCCON3[3:0] once
+     51             * (This write triggers the conversion). We thus use the variable 'command'
+     52             * to store intermediate steps (reference, decimation rate, input channel)
+     53             */
+     54            uint8_t command;
+     55          
+     56            /* 1.25V ref, max decimation rate */
+     57            command = ADCCON3_EDIV1 | ADCCON3_EDIV0;
+   \   000005   75..30       MOV     ?V0 + 0,#0x30
+     58          
+     59            /* Clear the Interrupt Flag */
+     60            ADCIF = 0;
+   \   000008   C28D         CLR     0x88.5
+     61          
+     62            /* Depending on the desired reading, append the input bits to 'command' and
+     63             * enable the corresponding input channel in ADCCFG if necessary */
+     64            switch(type) {
+   \   00000A   8A..         MOV     ?V0 + 2,R2
+   \   00000C   8B..         MOV     ?V0 + 3,R3
+   \   00000E   78..         MOV     R0,#?V0 + 2
+   \   000010   12....       LCALL   ?US_SWITCH_SPARSE
+   \                     `?<Jumptable for value>_0`:
+   \   000013   0000         DW        0
+   \   000015   0200         DW        2
+   \   000017   0000         DW        0
+   \   000019   ....         DW        ??value_0
+   \   00001B   0400         DW        4
+   \   00001D   ....         DW        ??value_1
+   \   00001F   ....         DW        ??value_2
+     65          #if TEMP_SENSOR_ON
+     66            case ADC_SENSOR_TYPE_TEMP:
+     67              command |= ADCCON3_ECH3 | ADCCON3_ECH2 | ADCCON3_ECH1;
+   \                     ??value_0:
+   \   000021   43..0E       ORL     ?V0 + 0,#0xe
+     68              break;
+     69          #endif
+     70          #if VDD_SENSOR_ON
+     71            case ADC_SENSOR_TYPE_VDD:
+     72              command |= ADCCON3_ECH3 | ADCCON3_ECH2 | ADCCON3_ECH1 | ADCCON3_ECH0;
+     73              break;
+     74          #endif
+     75            default:
+     76              /* If the sensor is not present or disabled in conf, return -1 */
+     77              return -1;
+     78            }
+     79          
+     80            /* Writing in bits 3:0 of ADCCON3 will trigger a single conversion */
+     81            ADCCON3 = command;
+   \                     ??value_3:
+   \   000024   85..B6       MOV     0xb6,?V0 + 0
+     82          
+     83            /*
+     84             * When the conversion is complete, the ADC interrupt flag is set. We don't
+     85             * use an ISR here, we just wait on the flag and clear it afterwards.
+     86             */
+     87            while(!ADCIF);
+   \                     ??value_4:
+   \   000027   A28D         MOV     C,0x88.5
+   \   000029   50FC         JNC     ??value_4
+     88          
+     89            /* Clear the Interrupt Flag */
+     90            ADCIF = 0;
+   \   00002B   C28D         CLR     0x88.5
+     91          
+     92            reading = ADCL;
+   \   00002D   E5BA         MOV     A,0xba
+   \   00002F   FA           MOV     R2,A
+   \   000030   7B00         MOV     R3,#0x0
+     93            reading |= (((uint8_t) ADCH) << 8);
+   \   000032   E5BB         MOV     A,0xbb
+   \   000034   F8           MOV     R0,A
+   \   000035   7900         MOV     R1,#0x0
+   \   000037   E4           CLR     A
+   \   000038   C8           XCH     A,R0
+   \   000039   F9           MOV     R1,A
+   \   00003A   E8           MOV     A,R0
+   \   00003B   4A           ORL     A,R2
+   \   00003C   FA           MOV     R2,A
+   \   00003D   E9           MOV     A,R1
+   \   00003E   4B           ORL     A,R3
+   \   00003F   FB           MOV     R3,A
+     94            /* 12-bit decimation rate: 4 LS bits are noise */
+     95            reading >>= 4;
+   \   000040   8A..         MOV     ?V0 + 0,R2
+   \   000042   8B..         MOV     ?V0 + 1,R3
+   \   000044   7404         MOV     A,#0x4
+   \   000046   78..         MOV     R0,#?V0 + 0
+   \   000048   12....       LCALL   ?US_SHR
+   \   00004B   AA..         MOV     R2,?V0 + 0
+   \   00004D   AB..         MOV     R3,?V0 + 1
+     96          
+     97            return reading;
+   \                     ??value_5:
+   \   00004F   7F04         MOV     R7,#0x4
+   \   000051   02....       LJMP    ?BANKED_LEAVE_XDATA
+   \                     ??value_1:
+   \   000054   43..0F       ORL     ?V0 + 0,#0xf
+   \   000057   80CB         SJMP    ??value_3
+   \                     ??value_2:
+   \   000059   7AFF         MOV     R2,#-0x1
+   \   00005B   7BFF         MOV     R3,#-0x1
+   \   00005D   80F0         SJMP    ??value_5
+   \   00005F                REQUIRE _A_TCON
+   \   00005F                REQUIRE ADCCON3
+   \   00005F                REQUIRE ADCL
+   \   00005F                REQUIRE ADCH
+     98          }
+     99          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    100          static int
+    101          status(int type)
+   \                     status:
+    102          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+    103            return 1;
+   \   000000   7A01         MOV     R2,#0x1
+   \   000002   7B00         MOV     R3,#0x0
+   \   000004   02....       LJMP    ?BRET
+    104          }
+    105          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    106          static int
+    107          configure(int type, int value)
+   \                     configure:
+    108          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    109            switch(type) {
+   \   000004   7480         MOV     A,#-0x80
+   \   000006   6A           XRL     A,R2
+   \   000007   7003         JNZ     ??configure_0
+   \   000009   7400         MOV     A,#0x0
+   \   00000B   6B           XRL     A,R3
+   \                     ??configure_0:
+   \   00000C   700F         JNZ     ??configure_1
+    110            case SENSORS_HW_INIT:
+    111          #if TEMP_SENSOR_ON
+    112              /* Connect temperature sensor to the SoC */
+    113              ATEST = 1;
+   \   00000E   9061BD       MOV     DPTR,#0x61bd
+   \   000011   7401         MOV     A,#0x1
+   \   000013   F0           MOVX    @DPTR,A
+    114              TESTREG0 = 1;
+   \   000014   90624B       MOV     DPTR,#0x624b
+   \   000017   7401         MOV     A,#0x1
+   \   000019   F0           MOVX    @DPTR,A
+    115          #endif
+    116              APCFG = 0; /* Disables Input Channels */
+   \   00001A   75F200       MOV     0xf2,#0x0
+    117              break;
+    118            }
+    119            return 1;
+   \                     ??configure_1:
+   \   00001D   7A01         MOV     R2,#0x1
+   \   00001F   7B00         MOV     R3,#0x0
+   \   000021   D083         POP     DPH
+   \   000023   D082         POP     DPL
+   \   000025   02....       LJMP    ?BRET
+   \   000028                REQUIRE APCFG
+    120          }
+    121          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+    122          SENSORS_SENSOR(adc_sensor, ADC_SENSOR, value, configure, status);
+   \                     adc_sensor:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for adc_sensor>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "ADC">>`:
+   \   000000   41444300     DB "ADC"
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for adc_sensor>`:
+   \   000000   ....         DW `?<Constant "ADC">`
+   \   000002   ....         DW ??value?relay
+   \   000004   ....         DW ??configure?relay
+   \   000006   ....         DW ??status?relay
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??value?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    value
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??status?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    status
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??configure?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    configure
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "ADC">`:
+   \   000000                DS 4
+   \   000004                REQUIRE `?<Initializer for <Constant "ADC">>`
+   \   000004                REQUIRE __INIT_XDATA_I
+    123          #endif /* ADC_SENSOR_ON */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       2      0      0  configure
+       0      0      0  status
+       0      0     12  value
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       4  ?<Constant "ADC">
+       4  ?<Initializer for <Constant "ADC">>
+       8  ?<Initializer for adc_sensor>
+       6  ??configure?relay
+       6  ??status?relay
+       6  ??value?relay
+       1  ADCCON3
+       1  ADCH
+       1  ADCL
+       1  APCFG
+       1  _A_TCON
+       8  adc_sensor
+      40  configure
+       7  status
+      95  value
+
+ 
+ 142 bytes in segment BANKED_CODE
+  18 bytes in segment BANK_RELAYS
+   5 bytes in segment SFR_AN
+  12 bytes in segment XDATA_I
+  12 bytes in segment XDATA_ID
+ 
+ 172 bytes of CODE  memory
+   0 bytes of DATA  memory (+ 5 bytes shared)
+  12 bytes of XDATA memory
+
+Errors: none
+Warnings: none

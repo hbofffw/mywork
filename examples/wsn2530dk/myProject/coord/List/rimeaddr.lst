@@ -1,0 +1,248 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:39 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\rime\rimeaddr.c          #
+#    Command line       =  D:\myWork\myWork\core\net\rime\rimeaddr.c -D       #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\rimeaddr.lst                                #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\rimeaddr.r51                                 #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\rime\rimeaddr.c
+      1          /**
+      2           * \addtogroup rimeaddr
+      3           * @{
+      4           */
+      5          
+      6          /*
+      7           * Copyright (c) 2007, Swedish Institute of Computer Science.
+      8           * All rights reserved.
+      9           *
+     10           * Redistribution and use in source and binary forms, with or without
+     11           * modification, are permitted provided that the following conditions
+     12           * are met:
+     13           * 1. Redistributions of source code must retain the above copyright
+     14           *    notice, this list of conditions and the following disclaimer.
+     15           * 2. Redistributions in binary form must reproduce the above copyright
+     16           *    notice, this list of conditions and the following disclaimer in the
+     17           *    documentation and/or other materials provided with the distribution.
+     18           * 3. Neither the name of the Institute nor the names of its contributors
+     19           *    may be used to endorse or promote products derived from this software
+     20           *    without specific prior written permission.
+     21           *
+     22           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     23           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     24           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     25           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     26           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     27           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     28           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     29           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     30           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     31           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     32           * SUCH DAMAGE.
+     33           *
+     34           * This file is part of the Contiki operating system.
+     35           *
+     36           */
+     37          
+     38          /**
+     39           * \file
+     40           *         Functions for manipulating Rime addresses
+     41           * \author
+     42           *         Adam Dunkels <adam@sics.se>
+     43           */
+     44          
+     45          #include "net/rime/rimeaddr.h"
+     46          #include <string.h>
+     47          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     48          rimeaddr_t rimeaddr_node_addr;
+   \                     rimeaddr_node_addr:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     49          #if RIMEADDR_SIZE == 2
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     50          const rimeaddr_t rimeaddr_null = { { 0, 0 } };
+   \                     rimeaddr_null:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     51          #else /*RIMEADDR_SIZE == 2*/
+     52          #if RIMEADDR_SIZE == 8
+     53          const rimeaddr_t rimeaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
+     54          #endif /*RIMEADDR_SIZE == 8*/
+     55          #endif /*RIMEADDR_SIZE == 2*/
+     56          
+     57          
+     58          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     59          void
+     60          rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *src)
+   \                     rimeaddr_copy:
+     61          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     62          	memcpy(dest, src, RIMEADDR_SIZE);
+   \   000005                ; Setup parameters for call to function memcpy
+   \   000005   75..02       MOV     ?V0 + 0,#0x2
+   \   000008   75..00       MOV     ?V0 + 1,#0x0
+   \   00000B   78..         MOV     R0,#?V0 + 0
+   \   00000D   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000010   12....       LCALL   ??memcpy?relay
+   \   000013   7402         MOV     A,#0x2
+   \   000015   12....       LCALL   ?DEALLOC_XSTACK8
+     63          }
+   \   000018   7F02         MOV     R7,#0x2
+   \   00001A   02....       LJMP    ?BANKED_LEAVE_XDATA
+     64          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     65          int
+     66          rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2)
+   \                     rimeaddr_cmp:
+     67          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     68          	return (memcmp(addr1, addr2, RIMEADDR_SIZE) == 0);
+   \   000005                ; Setup parameters for call to function memcmp
+   \   000005   75..02       MOV     ?V0 + 0,#0x2
+   \   000008   75..00       MOV     ?V0 + 1,#0x0
+   \   00000B   78..         MOV     R0,#?V0 + 0
+   \   00000D   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000010   12....       LCALL   ??memcmp?relay
+   \   000013   7402         MOV     A,#0x2
+   \   000015   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000018   8A..         MOV     ?V0 + 0,R2
+   \   00001A   8B..         MOV     ?V0 + 1,R3
+   \   00001C   E5..         MOV     A,?V0 + 0
+   \   00001E   45..         ORL     A,?V0 + 1
+   \   000020   7004         JNZ     ??rimeaddr_cmp_0
+   \   000022   D2F0         SETB    B.0
+   \   000024   8002         SJMP    ??rimeaddr_cmp_1
+   \                     ??rimeaddr_cmp_0:
+   \   000026   C2F0         CLR     B.0
+   \                     ??rimeaddr_cmp_1:
+   \   000028   A2F0         MOV     C,B.0
+   \   00002A   E4           CLR     A
+   \   00002B   33           RLC     A
+   \   00002C   FA           MOV     R2,A
+   \   00002D   7B00         MOV     R3,#0x0
+   \   00002F   7F02         MOV     R7,#0x2
+   \   000031   02....       LJMP    ?BANKED_LEAVE_XDATA
+     69          }
+     70          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     71          void
+     72          rimeaddr_set_node_addr(rimeaddr_t *t)
+   \                     rimeaddr_set_node_addr:
+     73          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     74            rimeaddr_copy(&rimeaddr_node_addr, t);
+   \   000004                ; Setup parameters for call to function rimeaddr_copy
+   \   000004   EA           MOV     A,R2
+   \   000005   FC           MOV     R4,A
+   \   000006   EB           MOV     A,R3
+   \   000007   FD           MOV     R5,A
+   \   000008   7A..         MOV     R2,#rimeaddr_node_addr & 0xff
+   \   00000A   7B..         MOV     R3,#(rimeaddr_node_addr >> 8) & 0xff
+   \   00000C   12....       LCALL   ??rimeaddr_copy?relay
+     75          }
+   \   00000F   D083         POP     DPH
+   \   000011   D082         POP     DPL
+   \   000013   02....       LJMP    ?BRET
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rimeaddr_copy?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rimeaddr_copy
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rimeaddr_cmp?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rimeaddr_cmp
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rimeaddr_set_node_addr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rimeaddr_set_node_addr
+     76          /*---------------------------------------------------------------------------*/
+     77          /** @} */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     12  rimeaddr_cmp
+                          0 0 12 -> memcmp
+       0      0     12  rimeaddr_copy
+                          0 0 12 -> memcpy
+       2      0      0  rimeaddr_set_node_addr
+                          2 0  0 -> rimeaddr_copy
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??rimeaddr_cmp?relay
+       6  ??rimeaddr_copy?relay
+       6  ??rimeaddr_set_node_addr?relay
+      52  rimeaddr_cmp
+      29  rimeaddr_copy
+       2  rimeaddr_node_addr
+       2  rimeaddr_null
+      22  rimeaddr_set_node_addr
+
+ 
+ 103 bytes in segment BANKED_CODE
+  18 bytes in segment BANK_RELAYS
+   4 bytes in segment XDATA_Z
+ 
+ 121 bytes of CODE  memory
+   4 bytes of XDATA memory
+
+Errors: none
+Warnings: none

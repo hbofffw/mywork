@@ -1,0 +1,924 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:43 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\lib\sensors.c                #
+#    Command line       =  D:\myWork\myWork\core\lib\sensors.c -D             #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\sensors.lst                                 #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\sensors.r51                                  #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\lib\sensors.c
+      1          /*
+      2           * Copyright (c) 2009, Swedish Institute of Computer Science
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           */
+     32          /* exeperimental code, will be renamed to sensors.c when done */
+     33          
+     34          
+     35          #include <string.h>
+     36          
+     37          #include "contiki.h"
+     38          
+     39          #include "lib/sensors.h"
+     40          
+     41          const extern struct sensors_sensor *sensors[];
+     42          extern unsigned char sensors_flags[];
+     43          
+     44          #define FLAG_CHANGED    0x80
+     45          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     46          process_event_t sensors_event;
+   \                     sensors_event:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+     47          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     48          static unsigned char num_sensors;
+   \                     num_sensors:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+     49          
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     50          PROCESS(sensors_process, "Sensors");
+   \                     sensors_process:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for sensors_process>`
+   \   000008                REQUIRE __INIT_XDATA_I
+     51          
+     52          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     53          static int
+     54          get_sensor_index(const struct sensors_sensor *s)
+   \                     get_sensor_index:
+     55          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+     56            int i;
+     57            for(i = 0; i < num_sensors; ++i) {
+   \   000005   7800         MOV     R0,#0x0
+   \   000007   7900         MOV     R1,#0x0
+   \   000009   8008         SJMP    ??get_sensor_index_0
+   \                     ??get_sensor_index_1:
+   \   00000B   E8           MOV     A,R0
+   \   00000C   2401         ADD     A,#0x1
+   \   00000E   F8           MOV     R0,A
+   \   00000F   E9           MOV     A,R1
+   \   000010   3400         ADDC    A,#0x0
+   \   000012   F9           MOV     R1,A
+   \                     ??get_sensor_index_0:
+   \   000013   90....       MOV     DPTR,#num_sensors
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   FC           MOV     R4,A
+   \   000018   7D00         MOV     R5,#0x0
+   \   00001A   C3           CLR     C
+   \   00001B   E8           MOV     A,R0
+   \   00001C   9C           SUBB    A,R4
+   \   00001D   E9           MOV     A,R1
+   \   00001E   9D           SUBB    A,R5
+   \   00001F   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000021   65D0         XRL     A,PSW
+   \   000023   33           RLC     A
+   \   000024   5036         JNC     ??get_sensor_index_2
+     58              if(sensors[i] == s) {
+   \   000026   E8           MOV     A,R0
+   \   000027   FC           MOV     R4,A
+   \   000028   E9           MOV     A,R1
+   \   000029   FD           MOV     R5,A
+   \   00002A   EC           MOV     A,R4
+   \   00002B   75F002       MOV     B,#0x2
+   \   00002E   A4           MUL     AB
+   \   00002F   CC           XCH     A,R4
+   \   000030   AEF0         MOV     R6,B
+   \   000032   75F000       MOV     B,#0x0
+   \   000035   A4           MUL     AB
+   \   000036   2E           ADD     A,R6
+   \   000037   FE           MOV     R6,A
+   \   000038   75F002       MOV     B,#0x2
+   \   00003B   ED           MOV     A,R5
+   \   00003C   A4           MUL     AB
+   \   00003D   2E           ADD     A,R6
+   \   00003E   FD           MOV     R5,A
+   \   00003F   74..         MOV     A,#sensors & 0xff
+   \   000041   2C           ADD     A,R4
+   \   000042   F582         MOV     DPL,A
+   \   000044   74..         MOV     A,#(sensors >> 8) & 0xff
+   \   000046   3D           ADDC    A,R5
+   \   000047   F583         MOV     DPH,A
+   \   000049   E0           MOVX    A,@DPTR
+   \   00004A   FC           MOV     R4,A
+   \   00004B   A3           INC     DPTR
+   \   00004C   E0           MOVX    A,@DPTR
+   \   00004D   FD           MOV     R5,A
+   \   00004E   EA           MOV     A,R2
+   \   00004F   6C           XRL     A,R4
+   \   000050   7002         JNZ     ??get_sensor_index_3
+   \   000052   EB           MOV     A,R3
+   \   000053   6D           XRL     A,R5
+   \                     ??get_sensor_index_3:
+   \   000054   70B5         JNZ     ??get_sensor_index_1
+     59                return i;
+   \   000056   E8           MOV     A,R0
+   \   000057   FA           MOV     R2,A
+   \   000058   E9           MOV     A,R1
+   \   000059   FB           MOV     R3,A
+   \   00005A   8004         SJMP    ??get_sensor_index_4
+     60              }
+     61            }
+     62            return i;
+   \                     ??get_sensor_index_2:
+   \   00005C   E8           MOV     A,R0
+   \   00005D   FA           MOV     R2,A
+   \   00005E   E9           MOV     A,R1
+   \   00005F   FB           MOV     R3,A
+   \                     ??get_sensor_index_4:
+   \   000060   7F01         MOV     R7,#0x1
+   \   000062   02....       LJMP    ?BANKED_LEAVE_XDATA
+     63          }
+     64          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     65          const struct sensors_sensor *
+     66          sensors_first(void)
+   \                     sensors_first:
+     67          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     68            return sensors[0];
+   \   000004   90....       MOV     DPTR,#sensors
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   FA           MOV     R2,A
+   \   000009   A3           INC     DPTR
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   FB           MOV     R3,A
+   \   00000C   D083         POP     DPH
+   \   00000E   D082         POP     DPL
+   \   000010   02....       LJMP    ?BRET
+     69          }
+     70          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     71          const struct sensors_sensor *
+     72          sensors_next(const struct sensors_sensor *s)
+   \                     sensors_next:
+     73          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     74            return sensors[get_sensor_index(s) + 1];
+   \   000005                ; Setup parameters for call to function get_sensor_index
+   \   000005   12....       LCALL   ??get_sensor_index?relay
+   \   000008   8A..         MOV     ?V0 + 0,R2
+   \   00000A   8B..         MOV     ?V0 + 1,R3
+   \   00000C   A8..         MOV     R0,?V0 + 0
+   \   00000E   A9..         MOV     R1,?V0 + 1
+   \   000010   E8           MOV     A,R0
+   \   000011   75F002       MOV     B,#0x2
+   \   000014   A4           MUL     AB
+   \   000015   C8           XCH     A,R0
+   \   000016   AAF0         MOV     R2,B
+   \   000018   75F000       MOV     B,#0x0
+   \   00001B   A4           MUL     AB
+   \   00001C   2A           ADD     A,R2
+   \   00001D   FA           MOV     R2,A
+   \   00001E   75F002       MOV     B,#0x2
+   \   000021   E5..         MOV     A,?V0 + 1
+   \   000023   A4           MUL     AB
+   \   000024   2A           ADD     A,R2
+   \   000025   F9           MOV     R1,A
+   \   000026   74..         MOV     A,#(sensors + 2) & 0xff
+   \   000028   28           ADD     A,R0
+   \   000029   F582         MOV     DPL,A
+   \   00002B   74..         MOV     A,#((sensors + 2) >> 8) & 0xff
+   \   00002D   39           ADDC    A,R1
+   \   00002E   F583         MOV     DPH,A
+   \   000030   E0           MOVX    A,@DPTR
+   \   000031   FA           MOV     R2,A
+   \   000032   A3           INC     DPTR
+   \   000033   E0           MOVX    A,@DPTR
+   \   000034   FB           MOV     R3,A
+   \   000035   7F02         MOV     R7,#0x2
+   \   000037   02....       LJMP    ?BANKED_LEAVE_XDATA
+     75          }
+     76          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     77          void
+     78          sensors_changed(const struct sensors_sensor *s)
+   \                     sensors_changed:
+     79          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     80            sensors_flags[get_sensor_index(s)] |= FLAG_CHANGED;
+   \   000005                ; Setup parameters for call to function get_sensor_index
+   \   000005   12....       LCALL   ??get_sensor_index?relay
+   \   000008   8A..         MOV     ?V0 + 0,R2
+   \   00000A   8B..         MOV     ?V0 + 1,R3
+   \   00000C   A8..         MOV     R0,?V0 + 0
+   \   00000E   A9..         MOV     R1,?V0 + 1
+   \   000010   74..         MOV     A,#sensors_flags & 0xff
+   \   000012   28           ADD     A,R0
+   \   000013   F582         MOV     DPL,A
+   \   000015   74..         MOV     A,#(sensors_flags >> 8) & 0xff
+   \   000017   39           ADDC    A,R1
+   \   000018   F583         MOV     DPH,A
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   D2E7         SETB    0xE0 /* A   */.7
+   \   00001D   F0           MOVX    @DPTR,A
+     81            process_poll(&sensors_process);
+   \   00001E                ; Setup parameters for call to function process_poll
+   \   00001E   7A..         MOV     R2,#sensors_process & 0xff
+   \   000020   7B..         MOV     R3,#(sensors_process >> 8) & 0xff
+   \   000022   12....       LCALL   ??process_poll?relay
+     82          }
+   \   000025   7F02         MOV     R7,#0x2
+   \   000027   02....       LJMP    ?BANKED_LEAVE_XDATA
+     83          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     84          const struct sensors_sensor *
+     85          sensors_find(const char *prefix)
+   \                     sensors_find:
+     86          {
+   \   000000   74F2         MOV     A,#-0xe
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 14
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+     87            int i;
+     88            unsigned short len;
+     89          
+     90            /* Search through all processes and search for the specified process
+     91               name. */
+     92            len = strlen(prefix);
+   \   000009                ; Setup parameters for call to function strlen
+   \   000009   EE           MOV     A,R6
+   \   00000A   FA           MOV     R2,A
+   \   00000B   EF           MOV     A,R7
+   \   00000C   FB           MOV     R3,A
+   \   00000D   12....       LCALL   ??strlen?relay
+   \   000010   8A..         MOV     ?V0 + 0,R2
+   \   000012   8B..         MOV     ?V0 + 1,R3
+   \   000014   85....       MOV     ?V0 + 2,?V0 + 0
+   \   000017   85....       MOV     ?V0 + 3,?V0 + 1
+     93          
+     94            for(i = 0; i < num_sensors; ++i) {
+   \   00001A   75..00       MOV     ?V0 + 0,#0x0
+   \   00001D   75..00       MOV     ?V0 + 1,#0x0
+   \   000020   800C         SJMP    ??sensors_find_0
+   \                     ??sensors_find_1:
+   \   000022   E5..         MOV     A,?V0 + 0
+   \   000024   2401         ADD     A,#0x1
+   \   000026   F5..         MOV     ?V0 + 0,A
+   \   000028   E5..         MOV     A,?V0 + 1
+   \   00002A   3400         ADDC    A,#0x0
+   \   00002C   F5..         MOV     ?V0 + 1,A
+   \                     ??sensors_find_0:
+   \   00002E   90....       MOV     DPTR,#num_sensors
+   \   000031   E0           MOVX    A,@DPTR
+   \   000032   F8           MOV     R0,A
+   \   000033   7900         MOV     R1,#0x0
+   \   000035   C3           CLR     C
+   \   000036   E5..         MOV     A,?V0 + 0
+   \   000038   98           SUBB    A,R0
+   \   000039   E5..         MOV     A,?V0 + 1
+   \   00003B   99           SUBB    A,R1
+   \   00003C   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   00003E   65D0         XRL     A,PSW
+   \   000040   33           RLC     A
+   \   000041   5078         JNC     ??sensors_find_2
+     95              if(strncmp(prefix, sensors[i]->type, len) == 0) {
+   \   000043                ; Setup parameters for call to function strncmp
+   \   000043   78..         MOV     R0,#?V0 + 2
+   \   000045   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000048   A8..         MOV     R0,?V0 + 0
+   \   00004A   A9..         MOV     R1,?V0 + 1
+   \   00004C   E8           MOV     A,R0
+   \   00004D   75F002       MOV     B,#0x2
+   \   000050   A4           MUL     AB
+   \   000051   C8           XCH     A,R0
+   \   000052   AAF0         MOV     R2,B
+   \   000054   75F000       MOV     B,#0x0
+   \   000057   A4           MUL     AB
+   \   000058   2A           ADD     A,R2
+   \   000059   FA           MOV     R2,A
+   \   00005A   75F002       MOV     B,#0x2
+   \   00005D   E5..         MOV     A,?V0 + 1
+   \   00005F   A4           MUL     AB
+   \   000060   2A           ADD     A,R2
+   \   000061   F9           MOV     R1,A
+   \   000062   74..         MOV     A,#sensors & 0xff
+   \   000064   28           ADD     A,R0
+   \   000065   F582         MOV     DPL,A
+   \   000067   74..         MOV     A,#(sensors >> 8) & 0xff
+   \   000069   39           ADDC    A,R1
+   \   00006A   F583         MOV     DPH,A
+   \   00006C   E0           MOVX    A,@DPTR
+   \   00006D   F8           MOV     R0,A
+   \   00006E   A3           INC     DPTR
+   \   00006F   E0           MOVX    A,@DPTR
+   \   000070   F583         MOV     DPH,A
+   \   000072   8882         MOV     DPL,R0
+   \   000074   E0           MOVX    A,@DPTR
+   \   000075   FC           MOV     R4,A
+   \   000076   A3           INC     DPTR
+   \   000077   E0           MOVX    A,@DPTR
+   \   000078   FD           MOV     R5,A
+   \   000079   EE           MOV     A,R6
+   \   00007A   FA           MOV     R2,A
+   \   00007B   EF           MOV     A,R7
+   \   00007C   FB           MOV     R3,A
+   \   00007D   12....       LCALL   ??strncmp?relay
+   \   000080   7402         MOV     A,#0x2
+   \   000082   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000085   8A..         MOV     ?V0 + 4,R2
+   \   000087   8B..         MOV     ?V0 + 5,R3
+   \   000089   E5..         MOV     A,?V0 + 4
+   \   00008B   45..         ORL     A,?V0 + 5
+   \   00008D   7093         JNZ     ??sensors_find_1
+     96                return sensors[i];
+   \   00008F   E5..         MOV     A,?V0 + 0
+   \   000091   75F002       MOV     B,#0x2
+   \   000094   A4           MUL     AB
+   \   000095   C5..         XCH     A,?V0 + 0
+   \   000097   A8F0         MOV     R0,B
+   \   000099   75F000       MOV     B,#0x0
+   \   00009C   A4           MUL     AB
+   \   00009D   28           ADD     A,R0
+   \   00009E   F8           MOV     R0,A
+   \   00009F   75F002       MOV     B,#0x2
+   \   0000A2   E5..         MOV     A,?V0 + 1
+   \   0000A4   A4           MUL     AB
+   \   0000A5   28           ADD     A,R0
+   \   0000A6   F5..         MOV     ?V0 + 1,A
+   \   0000A8   74..         MOV     A,#sensors & 0xff
+   \   0000AA   25..         ADD     A,?V0 + 0
+   \   0000AC   F582         MOV     DPL,A
+   \   0000AE   74..         MOV     A,#(sensors >> 8) & 0xff
+   \   0000B0   35..         ADDC    A,?V0 + 1
+   \   0000B2   F583         MOV     DPH,A
+   \   0000B4   E0           MOVX    A,@DPTR
+   \   0000B5   FA           MOV     R2,A
+   \   0000B6   A3           INC     DPTR
+   \   0000B7   E0           MOVX    A,@DPTR
+   \   0000B8   FB           MOV     R3,A
+   \   0000B9   8004         SJMP    ??sensors_find_3
+     97              }
+     98            }
+     99            return NULL;
+   \                     ??sensors_find_2:
+   \   0000BB   7A00         MOV     R2,#0x0
+   \   0000BD   7B00         MOV     R3,#0x0
+   \                     ??sensors_find_3:
+   \   0000BF   7F06         MOV     R7,#0x6
+   \   0000C1   02....       LJMP    ?BANKED_LEAVE_XDATA
+    100          }
+    101          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    102          PROCESS_THREAD(sensors_process, ev, data)
+   \                     process_thread_sensors_process:
+    103          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   89..         MOV     ?V0 + 0,R1
+    104            static int i;
+    105            static int events;
+    106          
+    107            PROCESS_BEGIN();
+   \   00000B   7A01         MOV     R2,#0x1
+   \   00000D   8E82         MOV     DPL,R6
+   \   00000F   8F83         MOV     DPH,R7
+   \   000011   E0           MOVX    A,@DPTR
+   \   000012   F5..         MOV     ?V0 + 2,A
+   \   000014   A3           INC     DPTR
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   F5..         MOV     ?V0 + 3,A
+   \   000018   78..         MOV     R0,#?V0 + 2
+   \   00001A   12....       LCALL   ?US_SWITCH_SPARSE
+   \                     `?<Jumptable for process_thread_sensors_process_0`:
+   \   00001D   0000         DW        0
+   \   00001F   0300         DW        3
+   \   000021   0000         DW        0
+   \   000023   ....         DW        ??process_thread_sensors_process_0
+   \   000025   7700         DW        119
+   \   000027   ....         DW        ??process_thread_sensors_process_1
+   \   000029   7E00         DW        126
+   \   00002B   ....         DW        ??process_thread_sensors_process_2
+   \   00002D   ....         DW        ??process_thread_sensors_process_3
+    108          
+    109            sensors_event = process_alloc_event();
+   \                     ??process_thread_sensors_process_0:
+   \   00002F                ; Setup parameters for call to function process_alloc_event
+   \   00002F   12....       LCALL   ??process_alloc_event?relay
+   \   000032   E9           MOV     A,R1
+   \   000033   90....       MOV     DPTR,#sensors_event
+   \   000036   F0           MOVX    @DPTR,A
+    110          
+    111            for(i = 0; sensors[i] != NULL; ++i) {
+   \   000037   90....       MOV     DPTR,#??i
+   \   00003A   7400         MOV     A,#0x0
+   \   00003C   F0           MOVX    @DPTR,A
+   \   00003D   A3           INC     DPTR
+   \   00003E   7400         MOV     A,#0x0
+   \   000040   F0           MOVX    @DPTR,A
+   \   000041   8069         SJMP    ??process_thread_sensors_process_4
+    112              sensors_flags[i] = 0;
+   \                     ??process_thread_sensors_process_5:
+   \   000043   90....       MOV     DPTR,#??i
+   \   000046   E0           MOVX    A,@DPTR
+   \   000047   24..         ADD     A,#sensors_flags & 0xff
+   \   000049   F8           MOV     R0,A
+   \   00004A   A3           INC     DPTR
+   \   00004B   E0           MOVX    A,@DPTR
+   \   00004C   34..         ADDC    A,#(sensors_flags >> 8) & 0xff
+   \   00004E   F9           MOV     R1,A
+   \   00004F   8882         MOV     DPL,R0
+   \   000051   8983         MOV     DPH,R1
+   \   000053   7400         MOV     A,#0x0
+   \   000055   F0           MOVX    @DPTR,A
+    113              sensors[i]->configure(SENSORS_HW_INIT, 0);
+   \   000056                ; Setup parameters for indirect call
+   \   000056   7C00         MOV     R4,#0x0
+   \   000058   7D00         MOV     R5,#0x0
+   \   00005A   7A80         MOV     R2,#-0x80
+   \   00005C   7B00         MOV     R3,#0x0
+   \   00005E   90....       MOV     DPTR,#??i
+   \   000061   E0           MOVX    A,@DPTR
+   \   000062   F8           MOV     R0,A
+   \   000063   A3           INC     DPTR
+   \   000064   E0           MOVX    A,@DPTR
+   \   000065   F9           MOV     R1,A
+   \   000066   E8           MOV     A,R0
+   \   000067   75F002       MOV     B,#0x2
+   \   00006A   A4           MUL     AB
+   \   00006B   C8           XCH     A,R0
+   \   00006C   85F0..       MOV     ?V0 + 1,B
+   \   00006F   75F000       MOV     B,#0x0
+   \   000072   A4           MUL     AB
+   \   000073   25..         ADD     A,?V0 + 1
+   \   000075   F5..         MOV     ?V0 + 1,A
+   \   000077   75F002       MOV     B,#0x2
+   \   00007A   E9           MOV     A,R1
+   \   00007B   A4           MUL     AB
+   \   00007C   25..         ADD     A,?V0 + 1
+   \   00007E   F9           MOV     R1,A
+   \   00007F   74..         MOV     A,#sensors & 0xff
+   \   000081   28           ADD     A,R0
+   \   000082   F582         MOV     DPL,A
+   \   000084   74..         MOV     A,#(sensors >> 8) & 0xff
+   \   000086   39           ADDC    A,R1
+   \   000087   F583         MOV     DPH,A
+   \   000089   E0           MOVX    A,@DPTR
+   \   00008A   F8           MOV     R0,A
+   \   00008B   A3           INC     DPTR
+   \   00008C   E0           MOVX    A,@DPTR
+   \   00008D   F583         MOV     DPH,A
+   \   00008F   8882         MOV     DPL,R0
+   \   000091   A3           INC     DPTR
+   \   000092   A3           INC     DPTR
+   \   000093   A3           INC     DPTR
+   \   000094   A3           INC     DPTR
+   \   000095   E0           MOVX    A,@DPTR
+   \   000096   F8           MOV     R0,A
+   \   000097   A3           INC     DPTR
+   \   000098   E0           MOVX    A,@DPTR
+   \   000099   F583         MOV     DPH,A
+   \   00009B   8882         MOV     DPL,R0
+   \   00009D   12....       LCALL   ?CALL_IND
+    114            }
+   \   0000A0   90....       MOV     DPTR,#??i
+   \   0000A3   E0           MOVX    A,@DPTR
+   \   0000A4   2401         ADD     A,#0x1
+   \   0000A6   F0           MOVX    @DPTR,A
+   \   0000A7   A3           INC     DPTR
+   \   0000A8   E0           MOVX    A,@DPTR
+   \   0000A9   3400         ADDC    A,#0x0
+   \   0000AB   F0           MOVX    @DPTR,A
+   \                     ??process_thread_sensors_process_4:
+   \   0000AC   90....       MOV     DPTR,#??i
+   \   0000AF   E0           MOVX    A,@DPTR
+   \   0000B0   F8           MOV     R0,A
+   \   0000B1   A3           INC     DPTR
+   \   0000B2   E0           MOVX    A,@DPTR
+   \   0000B3   F9           MOV     R1,A
+   \   0000B4   E8           MOV     A,R0
+   \   0000B5   75F002       MOV     B,#0x2
+   \   0000B8   A4           MUL     AB
+   \   0000B9   C8           XCH     A,R0
+   \   0000BA   AAF0         MOV     R2,B
+   \   0000BC   75F000       MOV     B,#0x0
+   \   0000BF   A4           MUL     AB
+   \   0000C0   2A           ADD     A,R2
+   \   0000C1   FA           MOV     R2,A
+   \   0000C2   75F002       MOV     B,#0x2
+   \   0000C5   E9           MOV     A,R1
+   \   0000C6   A4           MUL     AB
+   \   0000C7   2A           ADD     A,R2
+   \   0000C8   F9           MOV     R1,A
+   \   0000C9   74..         MOV     A,#sensors & 0xff
+   \   0000CB   28           ADD     A,R0
+   \   0000CC   F582         MOV     DPL,A
+   \   0000CE   74..         MOV     A,#(sensors >> 8) & 0xff
+   \   0000D0   39           ADDC    A,R1
+   \   0000D1   F583         MOV     DPH,A
+   \   0000D3   E0           MOVX    A,@DPTR
+   \   0000D4   F8           MOV     R0,A
+   \   0000D5   A3           INC     DPTR
+   \   0000D6   E0           MOVX    A,@DPTR
+   \   0000D7   F9           MOV     R1,A
+   \   0000D8   E8           MOV     A,R0
+   \   0000D9   49           ORL     A,R1
+   \   0000DA   6003         JZ      $+5
+   \   0000DC   02....       LJMP    ??process_thread_sensors_process_5 & 0xFFFF
+    115            num_sensors = i;
+   \   0000DF   90....       MOV     DPTR,#??i
+   \   0000E2   E0           MOVX    A,@DPTR
+   \   0000E3   F8           MOV     R0,A
+   \   0000E4   A3           INC     DPTR
+   \   0000E5   E0           MOVX    A,@DPTR
+   \   0000E6   F9           MOV     R1,A
+   \   0000E7   E8           MOV     A,R0
+   \   0000E8   90....       MOV     DPTR,#num_sensors
+   \   0000EB   F0           MOVX    @DPTR,A
+    116          
+    117            while(1) {
+    118          
+    119              PROCESS_WAIT_EVENT();
+   \                     ??process_thread_sensors_process_6:
+   \   0000EC   7A00         MOV     R2,#0x0
+   \   0000EE   8E82         MOV     DPL,R6
+   \   0000F0   8F83         MOV     DPH,R7
+   \   0000F2   7477         MOV     A,#0x77
+   \   0000F4   F0           MOVX    @DPTR,A
+   \   0000F5   A3           INC     DPTR
+   \   0000F6   7400         MOV     A,#0x0
+   \   0000F8   F0           MOVX    @DPTR,A
+   \                     ??process_thread_sensors_process_1:
+   \   0000F9   EA           MOV     A,R2
+   \   0000FA   7005         JNZ     ??process_thread_sensors_process_7
+   \   0000FC   7901         MOV     R1,#0x1
+   \   0000FE   02....       LJMP    ??process_thread_sensors_process_8 & 0xFFFF
+    120          
+    121              do {
+    122                events = 0;
+   \                     ??process_thread_sensors_process_7:
+   \   000101   90....       MOV     DPTR,#??events
+   \   000104   7400         MOV     A,#0x0
+   \   000106   F0           MOVX    @DPTR,A
+   \   000107   A3           INC     DPTR
+   \   000108   7400         MOV     A,#0x0
+   \   00010A   F0           MOVX    @DPTR,A
+    123                for(i = 0; i < num_sensors; ++i) {
+   \   00010B   90....       MOV     DPTR,#??i
+   \   00010E   7400         MOV     A,#0x0
+   \   000110   F0           MOVX    @DPTR,A
+   \   000111   A3           INC     DPTR
+   \   000112   7400         MOV     A,#0x0
+   \   000114   F0           MOVX    @DPTR,A
+   \                     ??process_thread_sensors_process_9:
+   \   000115   90....       MOV     DPTR,#??i
+   \   000118   C082         PUSH    DPL
+   \   00011A   C083         PUSH    DPH
+   \   00011C   90....       MOV     DPTR,#num_sensors
+   \   00011F   E0           MOVX    A,@DPTR
+   \   000120   F8           MOV     R0,A
+   \   000121   7900         MOV     R1,#0x0
+   \   000123   D083         POP     DPH
+   \   000125   D082         POP     DPL
+   \   000127   C3           CLR     C
+   \   000128   E0           MOVX    A,@DPTR
+   \   000129   98           SUBB    A,R0
+   \   00012A   A3           INC     DPTR
+   \   00012B   E0           MOVX    A,@DPTR
+   \   00012C   99           SUBB    A,R1
+   \   00012D   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   00012F   65D0         XRL     A,PSW
+   \   000131   33           RLC     A
+   \   000132   4003         JC      $+5
+   \   000134   02....       LJMP    ??process_thread_sensors_process_10 & 0xFFFF
+    124          	if(sensors_flags[i] & FLAG_CHANGED) {
+   \   000137   90....       MOV     DPTR,#??i
+   \   00013A   E0           MOVX    A,@DPTR
+   \   00013B   24..         ADD     A,#sensors_flags & 0xff
+   \   00013D   F8           MOV     R0,A
+   \   00013E   A3           INC     DPTR
+   \   00013F   E0           MOVX    A,@DPTR
+   \   000140   34..         ADDC    A,#(sensors_flags >> 8) & 0xff
+   \   000142   F9           MOV     R1,A
+   \   000143   8882         MOV     DPL,R0
+   \   000145   8983         MOV     DPH,R1
+   \   000147   E0           MOVX    A,@DPTR
+   \   000148   A2E7         MOV     C,0xE0 /* A   */.7
+   \   00014A   507E         JNC     ??process_thread_sensors_process_11
+    125          	  if(process_post(PROCESS_BROADCAST, sensors_event, (void *)sensors[i]) == PROCESS_ERR_OK) {
+   \   00014C                ; Setup parameters for call to function process_post
+   \   00014C   90....       MOV     DPTR,#??i
+   \   00014F   E0           MOVX    A,@DPTR
+   \   000150   F8           MOV     R0,A
+   \   000151   A3           INC     DPTR
+   \   000152   E0           MOVX    A,@DPTR
+   \   000153   F9           MOV     R1,A
+   \   000154   E8           MOV     A,R0
+   \   000155   75F002       MOV     B,#0x2
+   \   000158   A4           MUL     AB
+   \   000159   C8           XCH     A,R0
+   \   00015A   AAF0         MOV     R2,B
+   \   00015C   75F000       MOV     B,#0x0
+   \   00015F   A4           MUL     AB
+   \   000160   2A           ADD     A,R2
+   \   000161   FA           MOV     R2,A
+   \   000162   75F002       MOV     B,#0x2
+   \   000165   E9           MOV     A,R1
+   \   000166   A4           MUL     AB
+   \   000167   2A           ADD     A,R2
+   \   000168   F9           MOV     R1,A
+   \   000169   74..         MOV     A,#sensors & 0xff
+   \   00016B   28           ADD     A,R0
+   \   00016C   F582         MOV     DPL,A
+   \   00016E   74..         MOV     A,#(sensors >> 8) & 0xff
+   \   000170   39           ADDC    A,R1
+   \   000171   F583         MOV     DPH,A
+   \   000173   E0           MOVX    A,@DPTR
+   \   000174   FC           MOV     R4,A
+   \   000175   A3           INC     DPTR
+   \   000176   E0           MOVX    A,@DPTR
+   \   000177   FD           MOV     R5,A
+   \   000178   90....       MOV     DPTR,#sensors_event
+   \   00017B   E0           MOVX    A,@DPTR
+   \   00017C   F9           MOV     R1,A
+   \   00017D   7A00         MOV     R2,#0x0
+   \   00017F   7B00         MOV     R3,#0x0
+   \   000181   12....       LCALL   ??process_post?relay
+   \   000184   8A..         MOV     ?V0 + 2,R2
+   \   000186   8B..         MOV     ?V0 + 3,R3
+   \   000188   E5..         MOV     A,?V0 + 2
+   \   00018A   45..         ORL     A,?V0 + 3
+   \   00018C   701C         JNZ     ??process_thread_sensors_process_12
+    126          	    PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event);
+   \   00018E   7A00         MOV     R2,#0x0
+   \   000190   8E82         MOV     DPL,R6
+   \   000192   8F83         MOV     DPH,R7
+   \   000194   747E         MOV     A,#0x7e
+   \   000196   F0           MOVX    @DPTR,A
+   \   000197   A3           INC     DPTR
+   \   000198   7400         MOV     A,#0x0
+   \   00019A   F0           MOVX    @DPTR,A
+   \                     ??process_thread_sensors_process_2:
+   \   00019B   EA           MOV     A,R2
+   \   00019C   6008         JZ      ??process_thread_sensors_process_13
+   \   00019E   90....       MOV     DPTR,#sensors_event
+   \   0001A1   E0           MOVX    A,@DPTR
+   \   0001A2   65..         XRL     A,?V0 + 0
+   \   0001A4   6004         JZ      ??process_thread_sensors_process_12
+   \                     ??process_thread_sensors_process_13:
+   \   0001A6   7901         MOV     R1,#0x1
+   \   0001A8   8050         SJMP    ??process_thread_sensors_process_8
+    127          	  }
+    128          	  sensors_flags[i] &= ~FLAG_CHANGED;
+   \                     ??process_thread_sensors_process_12:
+   \   0001AA   90....       MOV     DPTR,#??i
+   \   0001AD   E0           MOVX    A,@DPTR
+   \   0001AE   24..         ADD     A,#sensors_flags & 0xff
+   \   0001B0   F8           MOV     R0,A
+   \   0001B1   A3           INC     DPTR
+   \   0001B2   E0           MOVX    A,@DPTR
+   \   0001B3   34..         ADDC    A,#(sensors_flags >> 8) & 0xff
+   \   0001B5   F9           MOV     R1,A
+   \   0001B6   8882         MOV     DPL,R0
+   \   0001B8   8983         MOV     DPH,R1
+   \   0001BA   E0           MOVX    A,@DPTR
+   \   0001BB   C2E7         CLR     0xE0 /* A   */.7
+   \   0001BD   F0           MOVX    @DPTR,A
+    129          	  events++;
+   \   0001BE   90....       MOV     DPTR,#??events
+   \   0001C1   E0           MOVX    A,@DPTR
+   \   0001C2   2401         ADD     A,#0x1
+   \   0001C4   F0           MOVX    @DPTR,A
+   \   0001C5   A3           INC     DPTR
+   \   0001C6   E0           MOVX    A,@DPTR
+   \   0001C7   3400         ADDC    A,#0x0
+   \   0001C9   F0           MOVX    @DPTR,A
+    130          	}
+    131                }
+   \                     ??process_thread_sensors_process_11:
+   \   0001CA   90....       MOV     DPTR,#??i
+   \   0001CD   E0           MOVX    A,@DPTR
+   \   0001CE   2401         ADD     A,#0x1
+   \   0001D0   F0           MOVX    @DPTR,A
+   \   0001D1   A3           INC     DPTR
+   \   0001D2   E0           MOVX    A,@DPTR
+   \   0001D3   3400         ADDC    A,#0x0
+   \   0001D5   F0           MOVX    @DPTR,A
+   \   0001D6   02....       LJMP    ??process_thread_sensors_process_9 & 0xFFFF
+    132              } while(events);
+   \                     ??process_thread_sensors_process_10:
+   \   0001D9   90....       MOV     DPTR,#??events
+   \   0001DC   E0           MOVX    A,@DPTR
+   \   0001DD   F8           MOV     R0,A
+   \   0001DE   A3           INC     DPTR
+   \   0001DF   E0           MOVX    A,@DPTR
+   \   0001E0   F9           MOV     R1,A
+   \   0001E1   E8           MOV     A,R0
+   \   0001E2   49           ORL     A,R1
+   \   0001E3   6003         JZ      $+5
+   \   0001E5   02....       LJMP    ??process_thread_sensors_process_7 & 0xFFFF
+   \   0001E8   02....       LJMP    ??process_thread_sensors_process_6 & 0xFFFF
+    133            }
+    134          
+    135            PROCESS_END();
+   \                     ??process_thread_sensors_process_3:
+   \   0001EB   7A00         MOV     R2,#0x0
+   \   0001ED   8E82         MOV     DPL,R6
+   \   0001EF   8F83         MOV     DPH,R7
+   \   0001F1   7400         MOV     A,#0x0
+   \   0001F3   F0           MOVX    @DPTR,A
+   \   0001F4   A3           INC     DPTR
+   \   0001F5   7400         MOV     A,#0x0
+   \   0001F7   F0           MOVX    @DPTR,A
+   \   0001F8   7903         MOV     R1,#0x3
+   \                     ??process_thread_sensors_process_8:
+   \   0001FA   7F04         MOV     R7,#0x4
+   \   0001FC   02....       LJMP    ?BANKED_LEAVE_XDATA
+    136          }
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \                     ??i:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \                     ??events:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for sensors_process>`:
+   \   000000   0000         DW 0H
+   \   000002   ....         DW ??process_thread_sensors_process?relay
+   \   000004   00000000     DB 0, 0, 0, 0
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??get_sensor_index?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    get_sensor_index
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??sensors_first?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    sensors_first
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??sensors_next?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    sensors_next
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??sensors_changed?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    sensors_changed
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??sensors_find?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    sensors_find
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_thread_sensors_process?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_thread_sensors_process
+    137          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     19  get_sensor_index
+       2      0     12  process_thread_sensors_process
+                          0 0 12 -> process_alloc_event
+                          0 0 12 -> process_post
+       0      0     10  sensors_changed
+                          0 0 10 -> get_sensor_index
+                          0 0 10 -> process_poll
+       0      0     16  sensors_find
+                          0 0 14 -> strlen
+                          0 0 16 -> strncmp
+       2      0      0  sensors_first
+       0      0     10  sensors_next
+                          0 0 10 -> get_sensor_index
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       8  ?<Initializer for sensors_process>
+       6  ??get_sensor_index?relay
+       6  ??process_thread_sensors_process?relay
+       6  ??sensors_changed?relay
+       6  ??sensors_find?relay
+       6  ??sensors_first?relay
+       6  ??sensors_next?relay
+       2  events
+     101  get_sensor_index
+       2  i
+       1  num_sensors
+     511  process_thread_sensors_process
+      42  sensors_changed
+       1  sensors_event
+     196  sensors_find
+      19  sensors_first
+      58  sensors_next
+       8  sensors_process
+
+ 
+ 927 bytes in segment BANKED_CODE
+  36 bytes in segment BANK_RELAYS
+   8 bytes in segment XDATA_I
+   8 bytes in segment XDATA_ID
+   6 bytes in segment XDATA_Z
+ 
+ 971 bytes of CODE  memory
+  14 bytes of XDATA memory
+
+Errors: none
+Warnings: none

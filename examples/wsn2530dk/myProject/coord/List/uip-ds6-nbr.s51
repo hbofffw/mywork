@@ -1,0 +1,2378 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:52 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\net\uip-ds6-nbr.c           /
+//    Command line       =  D:\myWork\myWork\core\net\uip-ds6-nbr.c -D        /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\uip-ds6-nbr.s51                           /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME `uip-ds6-nbr`
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?L_MOV_X
+        EXTERN ?PUSH_XSTACK8_X_FOUR
+        EXTERN ?PUSH_XSTACK_I_FOUR
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?UL_DIV_MOD
+        EXTERN ?UL_GT
+        EXTERN ?V0
+        EXTERN ?XSTACK_DISP0_8
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        PUBLIC ??uip_ds6_get_least_lifetime_neighbor?relay
+        FUNCTION ??uip_ds6_get_least_lifetime_neighbor?relay,0203H
+        PUBLIC ??uip_ds6_link_neighbor_callback?relay
+        FUNCTION ??uip_ds6_link_neighbor_callback?relay,0203H
+        PUBLIC ??uip_ds6_nbr_add?relay
+        FUNCTION ??uip_ds6_nbr_add?relay,0203H
+        PUBLIC ??uip_ds6_nbr_get_ipaddr?relay
+        FUNCTION ??uip_ds6_nbr_get_ipaddr?relay,0203H
+        PUBLIC ??uip_ds6_nbr_get_ll?relay
+        FUNCTION ??uip_ds6_nbr_get_ll?relay,0203H
+        PUBLIC ??uip_ds6_nbr_ipaddr_from_lladdr?relay
+        FUNCTION ??uip_ds6_nbr_ipaddr_from_lladdr?relay,0203H
+        PUBLIC ??uip_ds6_nbr_ll_lookup?relay
+        FUNCTION ??uip_ds6_nbr_ll_lookup?relay,0203H
+        PUBLIC ??uip_ds6_nbr_lladdr_from_ipaddr?relay
+        FUNCTION ??uip_ds6_nbr_lladdr_from_ipaddr?relay,0203H
+        PUBLIC ??uip_ds6_nbr_lookup?relay
+        FUNCTION ??uip_ds6_nbr_lookup?relay,0203H
+        PUBLIC ??uip_ds6_nbr_num?relay
+        FUNCTION ??uip_ds6_nbr_num?relay,0203H
+        PUBLIC ??uip_ds6_nbr_rm?relay
+        FUNCTION ??uip_ds6_nbr_rm?relay,0203H
+        PUBLIC ??uip_ds6_neighbor_periodic?relay
+        FUNCTION ??uip_ds6_neighbor_periodic?relay,0203H
+        PUBLIC ??uip_ds6_neighbors_init?relay
+        FUNCTION ??uip_ds6_neighbors_init?relay,0203H
+        PUBWEAK __Constant_0
+        PUBWEAK __Constant_3e8
+        PUBLIC ds6_neighbors
+        PUBLIC uip_ds6_get_least_lifetime_neighbor
+        FUNCTION uip_ds6_get_least_lifetime_neighbor,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        PUBLIC uip_ds6_link_neighbor_callback
+        FUNCTION uip_ds6_link_neighbor_callback,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC uip_ds6_nbr_add
+        FUNCTION uip_ds6_nbr_add,021203H
+        ARGFRAME XSTACK, 1, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 18, STACK
+        PUBLIC uip_ds6_nbr_get_ipaddr
+        FUNCTION uip_ds6_nbr_get_ipaddr,0203H
+        ARGFRAME XSTACK, 0, STACK
+        PUBLIC uip_ds6_nbr_get_ll
+        FUNCTION uip_ds6_nbr_get_ll,021203H
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC uip_ds6_nbr_ipaddr_from_lladdr
+        FUNCTION uip_ds6_nbr_ipaddr_from_lladdr,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC uip_ds6_nbr_ll_lookup
+        FUNCTION uip_ds6_nbr_ll_lookup,021203H
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC uip_ds6_nbr_lladdr_from_ipaddr
+        FUNCTION uip_ds6_nbr_lladdr_from_ipaddr,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC uip_ds6_nbr_lookup
+        FUNCTION uip_ds6_nbr_lookup,021203H
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 14, STACK
+        PUBLIC uip_ds6_nbr_num
+        FUNCTION uip_ds6_nbr_num,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC uip_ds6_nbr_rm
+        FUNCTION uip_ds6_nbr_rm,021603H
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC uip_ds6_neighbor_periodic
+        FUNCTION uip_ds6_neighbor_periodic,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 24, STACK
+        PUBLIC uip_ds6_neighbors_init
+        FUNCTION uip_ds6_neighbors_init,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+memcmp              SYMBOL "memcmp"
+??memcmp?relay      SYMBOL "?relay", memcmp
+memcpy              SYMBOL "memcpy"
+??memcpy?relay      SYMBOL "?relay", memcpy
+nbr_table_add_lladdr SYMBOL "nbr_table_add_lladdr"
+??nbr_table_add_lladdr?relay SYMBOL "?relay", nbr_table_add_lladdr
+nbr_table_get_from_lladdr SYMBOL "nbr_table_get_from_lladdr"
+??nbr_table_get_from_lladdr?relay SYMBOL "?relay", nbr_table_get_from_lladdr
+nbr_table_get_lladdr SYMBOL "nbr_table_get_lladdr"
+??nbr_table_get_lladdr?relay SYMBOL "?relay", nbr_table_get_lladdr
+nbr_table_head      SYMBOL "nbr_table_head"
+??nbr_table_head?relay SYMBOL "?relay", nbr_table_head
+nbr_table_next      SYMBOL "nbr_table_next"
+??nbr_table_next?relay SYMBOL "?relay", nbr_table_next
+nbr_table_register  SYMBOL "nbr_table_register"
+??nbr_table_register?relay SYMBOL "?relay", nbr_table_register
+nbr_table_remove    SYMBOL "nbr_table_remove"
+??nbr_table_remove?relay SYMBOL "?relay", nbr_table_remove
+packetbuf_addr      SYMBOL "packetbuf_addr"
+??packetbuf_addr?relay SYMBOL "?relay", packetbuf_addr
+rimeaddr_cmp        SYMBOL "rimeaddr_cmp"
+??rimeaddr_cmp?relay SYMBOL "?relay", rimeaddr_cmp
+stimer_expired      SYMBOL "stimer_expired"
+??stimer_expired?relay SYMBOL "?relay", stimer_expired
+stimer_remaining    SYMBOL "stimer_remaining"
+??stimer_remaining?relay SYMBOL "?relay", stimer_remaining
+stimer_set          SYMBOL "stimer_set"
+??stimer_set?relay  SYMBOL "?relay", stimer_set
+uip_ds6_defrt_lookup SYMBOL "uip_ds6_defrt_lookup"
+??uip_ds6_defrt_lookup?relay SYMBOL "?relay", uip_ds6_defrt_lookup
+uip_ds6_defrt_rm    SYMBOL "uip_ds6_defrt_rm"
+??uip_ds6_defrt_rm?relay SYMBOL "?relay", uip_ds6_defrt_rm
+uip_nd6_ns_output   SYMBOL "uip_nd6_ns_output"
+??uip_nd6_ns_output?relay SYMBOL "?relay", uip_nd6_ns_output
+uip_ds6_get_least_lifetime_neighbor SYMBOL "uip_ds6_get_least_lifetime_neighbor"
+??uip_ds6_get_least_lifetime_neighbor?relay SYMBOL "?relay", uip_ds6_get_least_lifetime_neighbor
+uip_ds6_link_neighbor_callback SYMBOL "uip_ds6_link_neighbor_callback"
+??uip_ds6_link_neighbor_callback?relay SYMBOL "?relay", uip_ds6_link_neighbor_callback
+uip_ds6_nbr_add     SYMBOL "uip_ds6_nbr_add"
+??uip_ds6_nbr_add?relay SYMBOL "?relay", uip_ds6_nbr_add
+uip_ds6_nbr_get_ipaddr SYMBOL "uip_ds6_nbr_get_ipaddr"
+??uip_ds6_nbr_get_ipaddr?relay SYMBOL "?relay", uip_ds6_nbr_get_ipaddr
+uip_ds6_nbr_get_ll  SYMBOL "uip_ds6_nbr_get_ll"
+??uip_ds6_nbr_get_ll?relay SYMBOL "?relay", uip_ds6_nbr_get_ll
+uip_ds6_nbr_ipaddr_from_lladdr SYMBOL "uip_ds6_nbr_ipaddr_from_lladdr"
+??uip_ds6_nbr_ipaddr_from_lladdr?relay SYMBOL "?relay", uip_ds6_nbr_ipaddr_from_lladdr
+uip_ds6_nbr_ll_lookup SYMBOL "uip_ds6_nbr_ll_lookup"
+??uip_ds6_nbr_ll_lookup?relay SYMBOL "?relay", uip_ds6_nbr_ll_lookup
+uip_ds6_nbr_lladdr_from_ipaddr SYMBOL "uip_ds6_nbr_lladdr_from_ipaddr"
+??uip_ds6_nbr_lladdr_from_ipaddr?relay SYMBOL "?relay", uip_ds6_nbr_lladdr_from_ipaddr
+uip_ds6_nbr_lookup  SYMBOL "uip_ds6_nbr_lookup"
+??uip_ds6_nbr_lookup?relay SYMBOL "?relay", uip_ds6_nbr_lookup
+uip_ds6_nbr_num     SYMBOL "uip_ds6_nbr_num"
+??uip_ds6_nbr_num?relay SYMBOL "?relay", uip_ds6_nbr_num
+uip_ds6_nbr_rm      SYMBOL "uip_ds6_nbr_rm"
+??uip_ds6_nbr_rm?relay SYMBOL "?relay", uip_ds6_nbr_rm
+uip_ds6_neighbor_periodic SYMBOL "uip_ds6_neighbor_periodic"
+??uip_ds6_neighbor_periodic?relay SYMBOL "?relay", uip_ds6_neighbor_periodic
+uip_ds6_neighbors_init SYMBOL "uip_ds6_neighbors_init"
+??uip_ds6_neighbors_init?relay SYMBOL "?relay", uip_ds6_neighbors_init
+
+        EXTERN ??memcmp?relay
+        FUNCTION ??memcmp?relay,00H
+        EXTERN ??memcpy?relay
+        FUNCTION ??memcpy?relay,00H
+        EXTERN ??nbr_table_add_lladdr?relay
+        FUNCTION ??nbr_table_add_lladdr?relay,00H
+        EXTERN ??nbr_table_get_from_lladdr?relay
+        FUNCTION ??nbr_table_get_from_lladdr?relay,00H
+        EXTERN ??nbr_table_get_lladdr?relay
+        FUNCTION ??nbr_table_get_lladdr?relay,00H
+        EXTERN ??nbr_table_head?relay
+        FUNCTION ??nbr_table_head?relay,00H
+        EXTERN ??nbr_table_next?relay
+        FUNCTION ??nbr_table_next?relay,00H
+        EXTERN ??nbr_table_register?relay
+        FUNCTION ??nbr_table_register?relay,00H
+        EXTERN ??nbr_table_remove?relay
+        FUNCTION ??nbr_table_remove?relay,00H
+        EXTERN ??packetbuf_addr?relay
+        FUNCTION ??packetbuf_addr?relay,00H
+        EXTERN ??rimeaddr_cmp?relay
+        FUNCTION ??rimeaddr_cmp?relay,00H
+        EXTERN ??stimer_expired?relay
+        FUNCTION ??stimer_expired?relay,00H
+        EXTERN ??stimer_remaining?relay
+        FUNCTION ??stimer_remaining?relay,00H
+        EXTERN ??stimer_set?relay
+        FUNCTION ??stimer_set?relay,00H
+        EXTERN ??uip_ds6_defrt_lookup?relay
+        FUNCTION ??uip_ds6_defrt_lookup?relay,00H
+        EXTERN ??uip_ds6_defrt_rm?relay
+        FUNCTION ??uip_ds6_defrt_rm?relay,00H
+        EXTERN ??uip_nd6_ns_output?relay
+        FUNCTION ??uip_nd6_ns_output?relay,00H
+        EXTERN memcmp
+        FUNCTION memcmp,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memcpy
+        FUNCTION memcpy,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN nbr_table_add_lladdr
+        FUNCTION nbr_table_add_lladdr,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN nbr_table_get_from_lladdr
+        FUNCTION nbr_table_get_from_lladdr,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN nbr_table_get_lladdr
+        FUNCTION nbr_table_get_lladdr,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN nbr_table_head
+        FUNCTION nbr_table_head,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN nbr_table_next
+        FUNCTION nbr_table_next,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN nbr_table_register
+        FUNCTION nbr_table_register,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN nbr_table_remove
+        FUNCTION nbr_table_remove,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_addr
+        FUNCTION packetbuf_addr,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN rimeaddr_cmp
+        FUNCTION rimeaddr_cmp,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN rimeaddr_null
+        EXTERN stimer_expired
+        FUNCTION stimer_expired,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN stimer_remaining
+        FUNCTION stimer_remaining,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN stimer_set
+        FUNCTION stimer_set,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 24, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_defrt_lookup
+        FUNCTION uip_ds6_defrt_lookup,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_defrt_rm
+        FUNCTION uip_ds6_defrt_rm,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_if
+        EXTERN uip_len
+        EXTERN uip_nd6_ns_output
+        FUNCTION uip_nd6_ns_output,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+// D:\myWork\myWork\core\net\uip-ds6-nbr.c
+//    1 /**
+//    2  * \addtogroup uip6
+//    3  * @{
+//    4  */
+//    5 
+//    6 /*
+//    7  * Copyright (c) 2013, Swedish Institute of Computer Science.
+//    8  * All rights reserved.
+//    9  *
+//   10  * Redistribution and use in source and binary forms, with or without
+//   11  * modification, are permitted provided that the following conditions
+//   12  * are met:
+//   13  * 1. Redistributions of source code must retain the above copyright
+//   14  *    notice, this list of conditions and the following disclaimer.
+//   15  * 2. Redistributions in binary form must reproduce the above copyright
+//   16  *    notice, this list of conditions and the following disclaimer in the
+//   17  *    documentation and/or other materials provided with the distribution.
+//   18  * 3. Neither the name of the Institute nor the names of its contributors
+//   19  *    may be used to endorse or promote products derived from this software
+//   20  *    without specific prior written permission.
+//   21  *
+//   22  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   23  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   24  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   25  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   26  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   27  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   28  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   29  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   30  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   31  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   32  * SUCH DAMAGE.
+//   33  *
+//   34  *
+//   35  */
+//   36 
+//   37 /**
+//   38  * \file
+//   39  *         IPv6 Neighbor cache (link-layer/IPv6 address mapping)
+//   40  * \author Mathilde Durvy <mdurvy@cisco.com>
+//   41  * \author Julien Abeille <jabeille@cisco.com>
+//   42  * \author Simon Duquennoy <simonduq@sics.se>
+//   43  *
+//   44  */
+//   45 
+//   46 #include <string.h>
+//   47 #include <stdlib.h>
+//   48 #include <stddef.h>
+//   49 #include "lib/list.h"
+//   50 #include "net/rime/rimeaddr.h"
+//   51 #include "net/packetbuf.h"
+//   52 #include "net/uip-ds6-nbr.h"
+//   53 
+//   54 #define DEBUG DEBUG_NONE
+//   55 #include "net/uip-debug.h"
+//   56 
+//   57 #ifdef UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED
+//   58 #define NEIGHBOR_STATE_CHANGED(n) UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED(n)
+//   59 void NEIGHBOR_STATE_CHANGED(uip_ds6_nbr_t *n);
+//   60 #else
+//   61 #define NEIGHBOR_STATE_CHANGED(n)
+//   62 #endif /* UIP_DS6_CONF_NEIGHBOR_STATE_CHANGED */
+//   63 
+//   64 #ifdef UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK
+//   65 #define LINK_NEIGHBOR_CALLBACK(addr, status, numtx) UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK(addr, status, numtx)
+//   66 void LINK_NEIGHBOR_CALLBACK(const rimeaddr_t *addr, int status, int numtx);
+//   67 #else
+//   68 #define LINK_NEIGHBOR_CALLBACK(addr, status, numtx)
+//   69 #endif /* UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK */
+//   70 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   71 NBR_TABLE_GLOBAL(uip_ds6_nbr_t, ds6_neighbors);
+_ds6_neighbors_mem:
+        DS 140
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+// static nbr_table_t ds6_neighbors_struct
+ds6_neighbors_struct:
+        DATA8
+        DS 8
+        REQUIRE `?<Initializer for ds6_neighbors_struct>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+// nbr_table_t *__xdata ds6_neighbors
+ds6_neighbors:
+        DATA16
+        DS 2
+        REQUIRE `?<Initializer for ds6_neighbors>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA32
+__Constant_0:
+        DS 4
+        REQUIRE `?<Initializer for __Constant_0>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA32
+__Constant_3e8:
+        DS 4
+        REQUIRE `?<Initializer for __Constant_3e8>`
+        REQUIRE __INIT_XDATA_I
+//   72 
+//   73 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   74 void
+//   75 uip_ds6_neighbors_init(void)
+uip_ds6_neighbors_init:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function uip_ds6_neighbors_init
+        CODE
+//   76 {
+        FUNCALL uip_ds6_neighbors_init, nbr_table_register
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   77   nbr_table_register(ds6_neighbors, (nbr_table_callback *)uip_ds6_nbr_rm);
+        ; Setup parameters for call to function nbr_table_register
+        MOV     R4,#??uip_ds6_nbr_rm?relay & 0xff
+        MOV     R5,#(??uip_ds6_nbr_rm?relay >> 8) & 0xff
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_register?relay
+//   78 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock0
+//   79 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   80 uip_ds6_nbr_t *
+//   81 uip_ds6_nbr_add(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr,
+uip_ds6_nbr_add:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function uip_ds6_nbr_add
+        CODE
+//   82                 uint8_t isrouter, uint8_t state)
+//   83 {
+        FUNCALL uip_ds6_nbr_add, nbr_table_add_lladdr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_nbr_add, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_nbr_add, stimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_nbr_add, stimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xe
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 14)
+        ; Saved register size: 14
+        ; Auto size: 0
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     ?V0 + 2,R1
+        MOV     A,#0xe
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     ?V0 + 3,A
+//   84   uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (rimeaddr_t*)lladdr);
+        ; Setup parameters for call to function nbr_table_add_lladdr
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_add_lladdr?relay
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     R6,?V0 + 4
+        MOV     R7,?V0 + 5
+//   85   if(nbr) {
+        MOV     A,R6
+        ORL     A,R7
+        JZ      ??uip_ds6_nbr_add_0
+//   86     uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 4,#0x10
+        MOV     ?V0 + 5,#0x0
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 14)
+//   87     nbr->isrouter = isrouter;
+        MOV     A,?V0 + 2
+        MOV     A,R6
+        ADD     A,#0x21
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,?V0 + 2
+        MOVX    @DPTR,A
+//   88     nbr->state = state;
+        MOV     A,?V0 + 3
+        MOV     A,R6
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,?V0 + 3
+        MOVX    @DPTR,A
+//   89   #if UIP_CONF_IPV6_QUEUE_PKT
+//   90     uip_packetqueue_new(&nbr->packethandle);
+//   91   #endif /* UIP_CONF_IPV6_QUEUE_PKT */
+//   92     /* timers are set separately, for now we put them in expired state */
+//   93     stimer_set(&nbr->reachable, 0);
+        ; Setup parameters for call to function stimer_set
+        MOV     DPTR,#__Constant_0
+        LCALL   ?PUSH_XSTACK8_X_FOUR
+          CFI CFA_XSP16 add(XSP16, 18)
+        MOV     A,R6
+        ADD     A,#0x10
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??stimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 14)
+//   94     stimer_set(&nbr->sendns, 0);
+        ; Setup parameters for call to function stimer_set
+        MOV     DPTR,#__Constant_0
+        LCALL   ?PUSH_XSTACK8_X_FOUR
+          CFI CFA_XSP16 add(XSP16, 18)
+        MOV     A,R6
+        ADD     A,#0x18
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??stimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 14)
+//   95     nbr->nscount = 0;
+        MOV     A,R6
+        ADD     A,#0x20
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   96     PRINTF("Adding neighbor with ip addr ");
+//   97     PRINT6ADDR(ipaddr);
+//   98     PRINTF(" link addr ");
+//   99     PRINTLLADDR(lladdr);
+//  100     PRINTF(" state %u\n", state);
+//  101     NEIGHBOR_STATE_CHANGED(nbr);
+//  102     return nbr;
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        SJMP    ??uip_ds6_nbr_add_1
+//  103   } else {
+//  104     PRINTF("uip_ds6_nbr_add drop ip addr ");
+//  105     PRINT6ADDR(ipaddr);
+//  106     PRINTF(" link addr (%p) ", lladdr);
+//  107     PRINTLLADDR(lladdr);
+//  108     PRINTF(" state %u\n", state);
+//  109     return NULL;
+??uip_ds6_nbr_add_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??uip_ds6_nbr_add_1:
+        MOV     R7,#0x6
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//  110   }
+//  111 }
+//  112 
+//  113 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  114 void
+//  115 uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
+uip_ds6_nbr_rm:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function uip_ds6_nbr_rm
+        CODE
+//  116 {
+        FUNCALL uip_ds6_nbr_rm, nbr_table_remove
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  117   if(nbr != NULL) {
+        MOV     A,R2
+        ORL     A,R3
+        JZ      ??uip_ds6_nbr_rm_0
+//  118 #if UIP_CONF_IPV6_QUEUE_PKT
+//  119     uip_packetqueue_free(&nbr->packethandle);
+//  120 #endif /* UIP_CONF_IPV6_QUEUE_PKT */
+//  121     NEIGHBOR_STATE_CHANGED(nbr);
+//  122     nbr_table_remove(ds6_neighbors, nbr);
+        ; Setup parameters for call to function nbr_table_remove
+        MOV     A,R2
+        MOV     R4,A
+        MOV     A,R3
+        MOV     R5,A
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_remove?relay
+//  123   }
+//  124   return;
+??uip_ds6_nbr_rm_0:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock2
+//  125 }
+//  126 
+//  127 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  128 uip_ipaddr_t *
+//  129 uip_ds6_nbr_get_ipaddr(uip_ds6_nbr_t *nbr)
+uip_ds6_nbr_get_ipaddr:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function uip_ds6_nbr_get_ipaddr
+        CODE
+//  130 {
+        ; Saved register size: 0
+        ; Auto size: 0
+//  131   return (nbr != NULL) ? &nbr->ipaddr : NULL;
+        MOV     A,R2
+        ORL     A,R3
+        JNZ     ??uip_ds6_nbr_get_ipaddr_0
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??uip_ds6_nbr_get_ipaddr_0:
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock3
+//  132 }
+//  133 
+//  134 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  135 uip_lladdr_t *
+//  136 uip_ds6_nbr_get_ll(uip_ds6_nbr_t *nbr)
+uip_ds6_nbr_get_ll:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function uip_ds6_nbr_get_ll
+        CODE
+//  137 {
+        FUNCALL uip_ds6_nbr_get_ll, nbr_table_get_lladdr
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  138   return (uip_lladdr_t *)nbr_table_get_lladdr(ds6_neighbors, nbr);
+        ; Setup parameters for call to function nbr_table_get_lladdr
+        MOV     A,R2
+        MOV     R4,A
+        MOV     A,R3
+        MOV     R5,A
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_get_lladdr?relay
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock4
+//  139 }
+//  140 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  141 int
+//  142 uip_ds6_nbr_num(void)
+uip_ds6_nbr_num:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function uip_ds6_nbr_num
+        CODE
+//  143 {
+        FUNCALL uip_ds6_nbr_num, nbr_table_head
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_nbr_num, nbr_table_next
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  144   uip_ds6_nbr_t *nbr;
+//  145   int num;
+//  146 
+//  147   num = 0;
+        MOV     R6,#0x0
+        MOV     R7,#0x0
+//  148   for(nbr = nbr_table_head(ds6_neighbors);
+        ; Setup parameters for call to function nbr_table_head
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_head?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        SJMP    ??uip_ds6_nbr_num_0
+//  149       nbr != NULL;
+//  150       nbr = nbr_table_next(ds6_neighbors, nbr)) {
+//  151     num++;
+??uip_ds6_nbr_num_1:
+        MOV     A,R6
+        ADD     A,#0x1
+        MOV     R6,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R7,A
+//  152   }
+        ; Setup parameters for call to function nbr_table_next
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_next?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+??uip_ds6_nbr_num_0:
+        MOV     A,R4
+        ORL     A,R5
+        JNZ     ??uip_ds6_nbr_num_1
+//  153   return num;
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock5
+//  154 }
+//  155 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  156 uip_ds6_nbr_t *
+//  157 uip_ds6_nbr_lookup(uip_ipaddr_t *ipaddr)
+uip_ds6_nbr_lookup:
+          CFI Block cfiBlock6 Using cfiCommon0
+          CFI Function uip_ds6_nbr_lookup
+        CODE
+//  158 {
+        FUNCALL uip_ds6_nbr_lookup, nbr_table_head
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_nbr_lookup, nbr_table_next
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_nbr_lookup, memcmp
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+//  159   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
+        ; Setup parameters for call to function nbr_table_head
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_head?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     R6,?V0 + 2
+        MOV     R7,?V0 + 3
+//  160   if(ipaddr != NULL) {
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     ??uip_ds6_nbr_lookup_0
+//  161     while(nbr != NULL) {
+//  162       if(uip_ipaddr_cmp(&nbr->ipaddr, ipaddr)) {
+//  163         return nbr;
+//  164       }
+//  165       nbr = nbr_table_next(ds6_neighbors, nbr);
+//  166     }
+//  167   }
+//  168   return NULL;
+??uip_ds6_nbr_lookup_1:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??uip_ds6_nbr_lookup_2:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+??uip_ds6_nbr_lookup_3:
+        ; Setup parameters for call to function nbr_table_next
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_next?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     R6,?V0 + 2
+        MOV     R7,?V0 + 3
+??uip_ds6_nbr_lookup_0:
+        MOV     A,R6
+        ORL     A,R7
+        JZ      ??uip_ds6_nbr_lookup_1
+        ; Setup parameters for call to function memcmp
+        MOV     ?V0 + 2,#0x10
+        MOV     ?V0 + 3,#0x0
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??memcmp?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JNZ     ??uip_ds6_nbr_lookup_3
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        SJMP    ??uip_ds6_nbr_lookup_2
+          CFI EndBlock cfiBlock6
+//  169 }
+//  170 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  171 uip_ds6_nbr_t *
+//  172 uip_ds6_nbr_ll_lookup(uip_lladdr_t *lladdr)
+uip_ds6_nbr_ll_lookup:
+          CFI Block cfiBlock7 Using cfiCommon0
+          CFI Function uip_ds6_nbr_ll_lookup
+        CODE
+//  173 {
+        FUNCALL uip_ds6_nbr_ll_lookup, nbr_table_get_from_lladdr
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  174   return nbr_table_get_from_lladdr(ds6_neighbors, (rimeaddr_t*)lladdr);
+        ; Setup parameters for call to function nbr_table_get_from_lladdr
+        MOV     A,R2
+        MOV     R4,A
+        MOV     A,R3
+        MOV     R5,A
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_get_from_lladdr?relay
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock7
+//  175 }
+//  176 
+//  177 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  178 uip_ipaddr_t *
+//  179 uip_ds6_nbr_ipaddr_from_lladdr(uip_lladdr_t *lladdr)
+uip_ds6_nbr_ipaddr_from_lladdr:
+          CFI Block cfiBlock8 Using cfiCommon0
+          CFI Function uip_ds6_nbr_ipaddr_from_lladdr
+        CODE
+//  180 {
+        FUNCALL uip_ds6_nbr_ipaddr_from_lladdr, uip_ds6_nbr_ll_lookup
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  181   uip_ds6_nbr_t *nbr = uip_ds6_nbr_ll_lookup(lladdr);
+        ; Setup parameters for call to function uip_ds6_nbr_ll_lookup
+        LCALL   ??uip_ds6_nbr_ll_lookup?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+//  182   return nbr ? &nbr->ipaddr : NULL;
+        MOV     A,R2
+        ORL     A,R3
+        JNZ     ??uip_ds6_nbr_ipaddr_from_lladdr_0
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??uip_ds6_nbr_ipaddr_from_lladdr_0:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock8
+//  183 }
+//  184 
+//  185 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  186 uip_lladdr_t *
+//  187 uip_ds6_nbr_lladdr_from_ipaddr(uip_ipaddr_t *ipaddr)
+uip_ds6_nbr_lladdr_from_ipaddr:
+          CFI Block cfiBlock9 Using cfiCommon0
+          CFI Function uip_ds6_nbr_lladdr_from_ipaddr
+        CODE
+//  188 {
+        FUNCALL uip_ds6_nbr_lladdr_from_ipaddr, uip_ds6_nbr_lookup
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_nbr_lladdr_from_ipaddr, uip_ds6_nbr_get_ll
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  189   uip_ds6_nbr_t *nbr = uip_ds6_nbr_lookup(ipaddr);
+        ; Setup parameters for call to function uip_ds6_nbr_lookup
+        LCALL   ??uip_ds6_nbr_lookup?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+//  190   return nbr ? uip_ds6_nbr_get_ll(nbr) : NULL;
+        MOV     A,R2
+        ORL     A,R3
+        JZ      ??uip_ds6_nbr_lladdr_from_ipaddr_0
+        ; Setup parameters for call to function uip_ds6_nbr_get_ll
+        LCALL   ??uip_ds6_nbr_get_ll?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        SJMP    ??uip_ds6_nbr_lladdr_from_ipaddr_1
+??uip_ds6_nbr_lladdr_from_ipaddr_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??uip_ds6_nbr_lladdr_from_ipaddr_1:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock9
+//  191 }
+//  192 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  193 void
+//  194 uip_ds6_link_neighbor_callback(int status, int numtx)
+uip_ds6_link_neighbor_callback:
+          CFI Block cfiBlock10 Using cfiCommon0
+          CFI Function uip_ds6_link_neighbor_callback
+        CODE
+//  195 {
+        FUNCALL uip_ds6_link_neighbor_callback, packetbuf_addr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_link_neighbor_callback, rimeaddr_cmp
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  196   const rimeaddr_t *dest = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+        ; Setup parameters for call to function packetbuf_addr
+        MOV     R1,#0x19
+        LCALL   ??packetbuf_addr?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+//  197   if(rimeaddr_cmp(dest, &rimeaddr_null)) {
+        ; Setup parameters for call to function rimeaddr_cmp
+        MOV     R4,#rimeaddr_null & 0xff
+        MOV     R5,#(rimeaddr_null >> 8) & 0xff
+        LCALL   ??rimeaddr_cmp?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+//  198     return;
+//  199   }
+//  200 
+//  201   LINK_NEIGHBOR_CALLBACK(dest, status, numtx);
+//  202 
+//  203 #if UIP_DS6_LL_NUD
+//  204   if(status == MAC_TX_OK) {
+//  205     uip_ds6_nbr_t *nbr;
+//  206     nbr = uip_ds6_nbr_ll_lookup((uip_lladdr_t *)dest);
+//  207     if(nbr != NULL &&
+//  208         (nbr->state == STALE || nbr->state == DELAY || nbr->state == PROBE)) {
+//  209       nbr->state = REACHABLE;
+//  210       stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+//  211       PRINTF("uip-ds6-neighbor : received a link layer ACK : ");
+//  212       PRINTLLADDR((uip_lladdr_t *)dest);
+//  213       PRINTF(" is reachable.\n");
+//  214     }
+//  215   }
+//  216 #endif /* UIP_DS6_LL_NUD */
+//  217 
+//  218 }
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock10
+//  219 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  220 void
+//  221 uip_ds6_neighbor_periodic(void)
+uip_ds6_neighbor_periodic:
+          CFI Block cfiBlock11 Using cfiCommon0
+          CFI Function uip_ds6_neighbor_periodic
+        CODE
+//  222 {
+        FUNCALL uip_ds6_neighbor_periodic, nbr_table_head
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_neighbor_periodic, nbr_table_next
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_neighbor_periodic, stimer_expired
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_neighbor_periodic, uip_ds6_nbr_rm
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_neighbor_periodic, stimer_expired
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_neighbor_periodic, uip_nd6_ns_output
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_neighbor_periodic, stimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 24, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 24, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_neighbor_periodic, stimer_expired
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_neighbor_periodic, stimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 24, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 24, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_neighbor_periodic, uip_ds6_defrt_lookup
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_neighbor_periodic, uip_ds6_defrt_rm
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_neighbor_periodic, uip_ds6_nbr_rm
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_neighbor_periodic, stimer_expired
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_neighbor_periodic, uip_nd6_ns_output
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_neighbor_periodic, stimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 24, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 24, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x14
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V11 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V10 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V9 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V8 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V7 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-16)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-17)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-18)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-19)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-20)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 20)
+        ; Saved register size: 20
+        ; Auto size: 0
+//  223   /* Periodic processing on neighbors */
+//  224   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
+        ; Setup parameters for call to function nbr_table_head
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_head?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,?V0 + 3
+        SJMP    ??uip_ds6_neighbor_periodic_0
+//  225   while(nbr != NULL) {
+//  226     switch(nbr->state) {
+//  227     case NBR_REACHABLE:
+//  228       if(stimer_expired(&nbr->reachable)) {
+//  229         PRINTF("REACHABLE: moving to STALE (");
+//  230         PRINT6ADDR(&nbr->ipaddr);
+//  231         PRINTF(")\n");
+//  232         nbr->state = NBR_STALE;
+//  233       }
+//  234       break;
+//  235 #if UIP_ND6_SEND_NA
+//  236     case NBR_INCOMPLETE:
+//  237       if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
+//  238         uip_ds6_nbr_rm(nbr);
+//  239       } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
+//  240         nbr->nscount++;
+//  241         PRINTF("NBR_INCOMPLETE: NS %u\n", nbr->nscount);
+//  242         uip_nd6_ns_output(NULL, NULL, &nbr->ipaddr);
+//  243         stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+//  244       }
+//  245       break;
+//  246     case NBR_DELAY:
+//  247       if(stimer_expired(&nbr->reachable)) {
+//  248         nbr->state = NBR_PROBE;
+//  249         nbr->nscount = 0;
+//  250         PRINTF("DELAY: moving to PROBE\n");
+//  251         stimer_set(&nbr->sendns, 0);
+//  252       }
+//  253       break;
+//  254     case NBR_PROBE:
+//  255       if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
+//  256         uip_ds6_defrt_t *locdefrt;
+//  257         PRINTF("PROBE END\n");
+//  258         if((locdefrt = uip_ds6_defrt_lookup(&nbr->ipaddr)) != NULL) {
+//  259           if (!locdefrt->isinfinite) {
+//  260             uip_ds6_defrt_rm(locdefrt);
+//  261           }
+//  262         }
+//  263         uip_ds6_nbr_rm(nbr);
+//  264       } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
+//  265         nbr->nscount++;
+//  266         PRINTF("PROBE: NS %u\n", nbr->nscount);
+//  267         uip_nd6_ns_output(NULL, &nbr->ipaddr, &nbr->ipaddr);
+//  268         stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+//  269       }
+//  270       break;
+//  271 #endif /* UIP_ND6_SEND_NA */
+//  272     default:
+//  273       break;
+//  274     }
+//  275     nbr = nbr_table_next(ds6_neighbors, nbr);
+??uip_ds6_neighbor_periodic_1:
+        ; Setup parameters for call to function nbr_table_next
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_next?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,?V0 + 3
+??uip_ds6_neighbor_periodic_0:
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     $+5
+        LJMP    ??uip_ds6_neighbor_periodic_2 & 0xFFFF
+        MOV     A,?V0 + 0
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        JZ      ??uip_ds6_neighbor_periodic_3
+        DEC     A
+        JZ      ??uip_ds6_neighbor_periodic_4
+        ADD     A,#-0x2
+        JNZ     $+5
+        LJMP    ??uip_ds6_neighbor_periodic_5 & 0xFFFF
+        DEC     A
+        JNZ     $+5
+        LJMP    ??uip_ds6_neighbor_periodic_6 & 0xFFFF
+        SJMP    ??uip_ds6_neighbor_periodic_1
+??uip_ds6_neighbor_periodic_4:
+        ; Setup parameters for call to function stimer_expired
+        MOV     A,?V0 + 0
+        ADD     A,#0x10
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??stimer_expired?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JZ      ??uip_ds6_neighbor_periodic_1
+        MOV     A,?V0 + 0
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+        SJMP    ??uip_ds6_neighbor_periodic_1
+??uip_ds6_neighbor_periodic_3:
+        MOV     A,?V0 + 0
+        ADD     A,#0x20
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        CLR     C
+        SUBB    A,#0x3
+        JC      ??uip_ds6_neighbor_periodic_7
+        ; Setup parameters for call to function uip_ds6_nbr_rm
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        LCALL   ??uip_ds6_nbr_rm?relay
+        LJMP    ??uip_ds6_neighbor_periodic_1 & 0xFFFF
+??uip_ds6_neighbor_periodic_7:
+        ; Setup parameters for call to function stimer_expired
+        MOV     A,?V0 + 0
+        ADD     A,#0x18
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??stimer_expired?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JZ      ??uip_ds6_neighbor_periodic_8
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_ds6_neighbor_periodic_8
+        MOV     A,?V0 + 0
+        ADD     A,#0x20
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+        ; Setup parameters for call to function uip_nd6_ns_output
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LCALL   ??uip_nd6_ns_output?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        ; Setup parameters for call to function stimer_set
+        MOV     DPTR,#uip_ds6_if + 13
+        MOV     R0,#?V0 + 4
+        LCALL   ?L_MOV_X
+        MOV     DPTR,#__Constant_3e8
+        MOV     R0,#?V0 + 8
+        LCALL   ?L_MOV_X
+        MOV     R0,#?V0 + 4
+        MOV     R1,#?V0 + 8
+        LCALL   ?UL_DIV_MOD
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_FOUR
+          CFI CFA_XSP16 add(XSP16, 24)
+        MOV     A,?V0 + 0
+        ADD     A,#0x18
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??stimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+??uip_ds6_neighbor_periodic_8:
+        LJMP    ??uip_ds6_neighbor_periodic_1 & 0xFFFF
+??uip_ds6_neighbor_periodic_5:
+        ; Setup parameters for call to function stimer_expired
+        MOV     A,?V0 + 0
+        ADD     A,#0x10
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??stimer_expired?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JZ      ??uip_ds6_neighbor_periodic_9
+        MOV     A,?V0 + 0
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x4
+        MOVX    @DPTR,A
+        MOV     A,?V0 + 0
+        ADD     A,#0x20
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        ; Setup parameters for call to function stimer_set
+        MOV     DPTR,#__Constant_0
+        LCALL   ?PUSH_XSTACK8_X_FOUR
+          CFI CFA_XSP16 add(XSP16, 24)
+        MOV     A,?V0 + 0
+        ADD     A,#0x18
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??stimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+??uip_ds6_neighbor_periodic_9:
+        LJMP    ??uip_ds6_neighbor_periodic_1 & 0xFFFF
+??uip_ds6_neighbor_periodic_6:
+        MOV     A,?V0 + 0
+        ADD     A,#0x20
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        CLR     C
+        SUBB    A,#0x3
+        JC      ??uip_ds6_neighbor_periodic_10
+        ; Setup parameters for call to function uip_ds6_defrt_lookup
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        LCALL   ??uip_ds6_defrt_lookup?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     R0,?V0 + 2
+        MOV     R1,?V0 + 3
+        MOV     A,R0
+        MOV     R2,A
+        MOV     A,R1
+        MOV     R3,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??uip_ds6_neighbor_periodic_11
+        MOV     A,R2
+        ADD     A,#0x1a
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        JNZ     ??uip_ds6_neighbor_periodic_11
+        ; Setup parameters for call to function uip_ds6_defrt_rm
+        LCALL   ??uip_ds6_defrt_rm?relay
+??uip_ds6_neighbor_periodic_11:
+        ; Setup parameters for call to function uip_ds6_nbr_rm
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        LCALL   ??uip_ds6_nbr_rm?relay
+        SJMP    ??uip_ds6_neighbor_periodic_12
+??uip_ds6_neighbor_periodic_10:
+        ; Setup parameters for call to function stimer_expired
+        MOV     A,?V0 + 0
+        ADD     A,#0x18
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??stimer_expired?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JZ      ??uip_ds6_neighbor_periodic_12
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_ds6_neighbor_periodic_12
+        MOV     A,?V0 + 0
+        ADD     A,#0x20
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+        ; Setup parameters for call to function uip_nd6_ns_output
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LCALL   ??uip_nd6_ns_output?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        ; Setup parameters for call to function stimer_set
+        MOV     DPTR,#uip_ds6_if + 13
+        MOV     R0,#?V0 + 4
+        LCALL   ?L_MOV_X
+        MOV     DPTR,#__Constant_3e8
+        MOV     R0,#?V0 + 8
+        LCALL   ?L_MOV_X
+        MOV     R0,#?V0 + 4
+        MOV     R1,#?V0 + 8
+        LCALL   ?UL_DIV_MOD
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_FOUR
+          CFI CFA_XSP16 add(XSP16, 24)
+        MOV     A,?V0 + 0
+        ADD     A,#0x18
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??stimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+??uip_ds6_neighbor_periodic_12:
+        LJMP    ??uip_ds6_neighbor_periodic_1 & 0xFFFF
+//  276   }
+//  277 }
+??uip_ds6_neighbor_periodic_2:
+        MOV     R7,#0xc
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock11
+//  278 
+//  279 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  280 uip_ds6_nbr_t *
+//  281 uip_ds6_get_least_lifetime_neighbor(void)
+uip_ds6_get_least_lifetime_neighbor:
+          CFI Block cfiBlock12 Using cfiCommon0
+          CFI Function uip_ds6_get_least_lifetime_neighbor
+        CODE
+//  282 {
+        FUNCALL uip_ds6_get_least_lifetime_neighbor, nbr_table_head
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_get_least_lifetime_neighbor, nbr_table_next
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_get_least_lifetime_neighbor, stimer_remaining
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_ds6_get_least_lifetime_neighbor, stimer_remaining
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x14
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V11 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V10 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V9 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V8 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V7 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-16)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-17)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-18)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-19)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-20)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 20)
+        ; Saved register size: 20
+        ; Auto size: 0
+//  283   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
+        ; Setup parameters for call to function nbr_table_head
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_head?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,?V0 + 3
+//  284   uip_ds6_nbr_t *nbr_expiring = NULL;
+        MOV     R6,#0x0
+        MOV     R7,#0x0
+        SJMP    ??uip_ds6_get_least_lifetime_neighbor_0
+//  285   while(nbr != NULL) {
+//  286     if(nbr_expiring != NULL) {
+//  287       clock_time_t curr = stimer_remaining(&nbr->reachable);
+//  288       if(curr < stimer_remaining(&nbr->reachable)) {
+//  289         nbr_expiring = nbr;
+//  290       }
+//  291     } else {
+//  292       nbr_expiring = nbr;
+??uip_ds6_get_least_lifetime_neighbor_1:
+        MOV     R6,?V0 + 0
+        MOV     R7,?V0 + 1
+//  293     }
+//  294     nbr = nbr_table_next(ds6_neighbors, nbr);
+??uip_ds6_get_least_lifetime_neighbor_2:
+        ; Setup parameters for call to function nbr_table_next
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     DPTR,#ds6_neighbors
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??nbr_table_next?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,?V0 + 3
+??uip_ds6_get_least_lifetime_neighbor_0:
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??uip_ds6_get_least_lifetime_neighbor_3
+        MOV     A,R6
+        ORL     A,R7
+        JZ      ??uip_ds6_get_least_lifetime_neighbor_1
+        ; Setup parameters for call to function stimer_remaining
+        MOV     A,?V0 + 0
+        ADD     A,#0x10
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??stimer_remaining?relay
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     ?V0 + 6,R4
+        MOV     ?V0 + 7,R5
+        MOV     ?V0 + 2,?V0 + 4
+        MOV     ?V0 + 3,?V0 + 5
+        MOV     ?V0 + 4,?V0 + 2
+        MOV     ?V0 + 5,?V0 + 3
+        ; Setup parameters for call to function stimer_remaining
+        MOV     A,?V0 + 0
+        ADD     A,#0x10
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??stimer_remaining?relay
+        MOV     ?V0 + 8,R2
+        MOV     ?V0 + 9,R3
+        MOV     ?V0 + 10,R4
+        MOV     ?V0 + 11,R5
+        CLR     A
+        MOV     ?V0 + 6,A
+        MOV     ?V0 + 7,A
+        MOV     R0,#?V0 + 8
+        MOV     R1,#?V0 + 4
+        LCALL   ?UL_GT
+        JNC     ??uip_ds6_get_least_lifetime_neighbor_2
+        MOV     R6,?V0 + 0
+        MOV     R7,?V0 + 1
+        SJMP    ??uip_ds6_get_least_lifetime_neighbor_2
+//  295   }
+//  296   return nbr_expiring;
+??uip_ds6_get_least_lifetime_neighbor_3:
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        MOV     R7,#0xc
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock12
+//  297 }
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for ds6_neighbors_struct>`:
+        DATA16
+        DW 0
+        DW 35
+        DW 0H
+        DW _ds6_neighbors_mem
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for ds6_neighbors>`:
+        DATA16
+        DW ds6_neighbors_struct
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for __Constant_0>`:
+        DATA32
+        DD 0
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for __Constant_3e8>`:
+        DATA32
+        DD 1000
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_ds6_neighbors_init?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_ds6_neighbors_init
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_ds6_nbr_add?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_ds6_nbr_add
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_ds6_nbr_rm?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_ds6_nbr_rm
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_ds6_nbr_get_ipaddr?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_ds6_nbr_get_ipaddr
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_ds6_nbr_get_ll?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_ds6_nbr_get_ll
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_ds6_nbr_num?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_ds6_nbr_num
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_ds6_nbr_lookup?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_ds6_nbr_lookup
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_ds6_nbr_ll_lookup?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_ds6_nbr_ll_lookup
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_ds6_nbr_ipaddr_from_lladdr?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_ds6_nbr_ipaddr_from_lladdr
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_ds6_nbr_lladdr_from_ipaddr?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_ds6_nbr_lladdr_from_ipaddr
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_ds6_link_neighbor_callback?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_ds6_link_neighbor_callback
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_ds6_neighbor_periodic?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_ds6_neighbor_periodic
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_ds6_get_least_lifetime_neighbor?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_ds6_get_least_lifetime_neighbor
+
+        END
+// 
+// 1 292 bytes in segment BANKED_CODE
+//    78 bytes in segment BANK_RELAYS
+//    18 bytes in segment XDATA_I
+//    18 bytes in segment XDATA_ID
+//   140 bytes in segment XDATA_Z
+// 
+// 1 380 bytes of CODE  memory (+ 8 bytes shared)
+//   150 bytes of XDATA memory (+ 8 bytes shared)
+//
+//Errors: none
+//Warnings: none

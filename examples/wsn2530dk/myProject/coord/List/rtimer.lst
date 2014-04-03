@@ -1,0 +1,381 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:43 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\sys\rtimer.c                 #
+#    Command line       =  D:\myWork\myWork\core\sys\rtimer.c -D              #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\rtimer.lst                                  #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\rtimer.r51                                   #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\sys\rtimer.c
+      1          /**
+      2           * \addtogroup rt
+      3           * @{
+      4           */
+      5          
+      6          /**
+      7           * \file
+      8           *         Implementation of the architecture-agnostic parts of the real-time timer module.
+      9           * \author
+     10           *         Adam Dunkels <adam@sics.se>
+     11           *
+     12           */
+     13          
+     14          
+     15          /*
+     16           * Copyright (c) 2005, Swedish Institute of Computer Science
+     17           * All rights reserved.
+     18           *
+     19           * Redistribution and use in source and binary forms, with or without
+     20           * modification, are permitted provided that the following conditions
+     21           * are met:
+     22           * 1. Redistributions of source code must retain the above copyright
+     23           *    notice, this list of conditions and the following disclaimer.
+     24           * 2. Redistributions in binary form must reproduce the above copyright
+     25           *    notice, this list of conditions and the following disclaimer in the
+     26           *    documentation and/or other materials provided with the distribution.
+     27           * 3. Neither the name of the Institute nor the names of its contributors
+     28           *    may be used to endorse or promote products derived from this software
+     29           *    without specific prior written permission.
+     30           *
+     31           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     32           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     33           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     34           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     35           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     36           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     37           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     38           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     39           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     40           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     41           * SUCH DAMAGE.
+     42           *
+     43           * This file is part of the Contiki operating system.
+     44           *
+     45           */
+     46          
+     47          #include "sys/rtimer.h"
+     48          #include "contiki.h"
+     49          
+     50          #define DEBUG 0
+     51          #if DEBUG
+     52          #include <stdio.h>
+     53          #define PRINTF(...) printf(__VA_ARGS__)
+     54          #else
+     55          #define PRINTF(...)
+     56          #endif
+     57          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     58          static struct rtimer *next_rtimer;
+   \                     next_rtimer:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     59          
+     60          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     61          void
+     62          rtimer_init(void)
+   \                     rtimer_init:
+     63          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     64            rtimer_arch_init();
+   \   000004                ; Setup parameters for call to function rtimer_arch_init
+   \   000004   12....       LCALL   ??rtimer_arch_init?relay
+     65          }
+   \   000007   D083         POP     DPH
+   \   000009   D082         POP     DPL
+   \   00000B   02....       LJMP    ?BRET
+     66          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     67          int
+     68          rtimer_set(struct rtimer *rtimer, rtimer_clock_t time,
+   \                     rtimer_set:
+     69          	   rtimer_clock_t duration,
+     70          	   rtimer_callback_t func, void *ptr)
+     71          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   740E         MOV     A,#0xe
+   \   000007   12....       LCALL   ?XSTACK_DISP0_8
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   FE           MOV     R6,A
+   \   00000C   A3           INC     DPTR
+   \   00000D   E0           MOVX    A,@DPTR
+   \   00000E   FF           MOV     R7,A
+   \   00000F   7410         MOV     A,#0x10
+   \   000011   12....       LCALL   ?XSTACK_DISP0_8
+   \   000014   E0           MOVX    A,@DPTR
+   \   000015   F8           MOV     R0,A
+   \   000016   A3           INC     DPTR
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   F9           MOV     R1,A
+     72            int first = 0;
+   \   000019   75..00       MOV     ?V0 + 2,#0x0
+   \   00001C   75..00       MOV     ?V0 + 3,#0x0
+     73          
+     74            PRINTF("rtimer_set time %d\n", time);
+     75          
+     76            if(next_rtimer == NULL) {
+   \   00001F   90....       MOV     DPTR,#next_rtimer
+   \   000022   E0           MOVX    A,@DPTR
+   \   000023   F5..         MOV     ?V0 + 0,A
+   \   000025   A3           INC     DPTR
+   \   000026   E0           MOVX    A,@DPTR
+   \   000027   F5..         MOV     ?V0 + 1,A
+   \   000029   E5..         MOV     A,?V0 + 0
+   \   00002B   45..         ORL     A,?V0 + 1
+   \   00002D   7006         JNZ     ??rtimer_set_0
+     77              first = 1;
+   \   00002F   75..01       MOV     ?V0 + 2,#0x1
+   \   000032   75..00       MOV     ?V0 + 3,#0x0
+     78            }
+     79          
+     80            rtimer->func = func;
+   \                     ??rtimer_set_0:
+   \   000035   8A82         MOV     DPL,R2
+   \   000037   8B83         MOV     DPH,R3
+   \   000039   A3           INC     DPTR
+   \   00003A   A3           INC     DPTR
+   \   00003B   EE           MOV     A,R6
+   \   00003C   F0           MOVX    @DPTR,A
+   \   00003D   A3           INC     DPTR
+   \   00003E   EF           MOV     A,R7
+   \   00003F   F0           MOVX    @DPTR,A
+     81            rtimer->ptr = ptr;
+   \   000040   8A82         MOV     DPL,R2
+   \   000042   8B83         MOV     DPH,R3
+   \   000044   A3           INC     DPTR
+   \   000045   A3           INC     DPTR
+   \   000046   A3           INC     DPTR
+   \   000047   A3           INC     DPTR
+   \   000048   E8           MOV     A,R0
+   \   000049   F0           MOVX    @DPTR,A
+   \   00004A   A3           INC     DPTR
+   \   00004B   E9           MOV     A,R1
+   \   00004C   F0           MOVX    @DPTR,A
+     82          
+     83            rtimer->time = time;
+   \   00004D   8A82         MOV     DPL,R2
+   \   00004F   8B83         MOV     DPH,R3
+   \   000051   EC           MOV     A,R4
+   \   000052   F0           MOVX    @DPTR,A
+   \   000053   A3           INC     DPTR
+   \   000054   ED           MOV     A,R5
+   \   000055   F0           MOVX    @DPTR,A
+     84            next_rtimer = rtimer;
+   \   000056   90....       MOV     DPTR,#next_rtimer
+   \   000059   EA           MOV     A,R2
+   \   00005A   F0           MOVX    @DPTR,A
+   \   00005B   A3           INC     DPTR
+   \   00005C   EB           MOV     A,R3
+   \   00005D   F0           MOVX    @DPTR,A
+     85          
+     86            if(first == 1) {
+   \   00005E   7401         MOV     A,#0x1
+   \   000060   65..         XRL     A,?V0 + 2
+   \   000062   7004         JNZ     ??rtimer_set_1
+   \   000064   7400         MOV     A,#0x0
+   \   000066   65..         XRL     A,?V0 + 3
+   \                     ??rtimer_set_1:
+   \   000068   7007         JNZ     ??rtimer_set_2
+     87              rtimer_arch_schedule(time);
+   \   00006A                ; Setup parameters for call to function rtimer_arch_schedule
+   \   00006A   EC           MOV     A,R4
+   \   00006B   FA           MOV     R2,A
+   \   00006C   ED           MOV     A,R5
+   \   00006D   FB           MOV     R3,A
+   \   00006E   12....       LCALL   ??rtimer_arch_schedule?relay
+     88            }
+     89            return RTIMER_OK;
+   \                     ??rtimer_set_2:
+   \   000071   7A00         MOV     R2,#0x0
+   \   000073   7B00         MOV     R3,#0x0
+   \   000075   7F04         MOV     R7,#0x4
+   \   000077   02....       LJMP    ?BANKED_LEAVE_XDATA
+     90          }
+     91          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     92          void
+     93          rtimer_run_next(void)
+   \                     rtimer_run_next:
+     94          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     95            struct rtimer *t;
+     96            if(next_rtimer == NULL) {
+   \   000004   90....       MOV     DPTR,#next_rtimer
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   F8           MOV     R0,A
+   \   000009   A3           INC     DPTR
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F9           MOV     R1,A
+   \   00000C   E8           MOV     A,R0
+   \   00000D   49           ORL     A,R1
+   \   00000E   604F         JZ      ??rtimer_run_next_0
+     97              return;
+     98            }
+     99            t = next_rtimer;
+   \   000010   90....       MOV     DPTR,#next_rtimer
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   FA           MOV     R2,A
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   FB           MOV     R3,A
+    100            next_rtimer = NULL;
+   \   000018   90....       MOV     DPTR,#next_rtimer
+   \   00001B   7400         MOV     A,#0x0
+   \   00001D   F0           MOVX    @DPTR,A
+   \   00001E   A3           INC     DPTR
+   \   00001F   7400         MOV     A,#0x0
+   \   000021   F0           MOVX    @DPTR,A
+    101            t->func(t, t->ptr);
+   \   000022                ; Setup parameters for indirect call
+   \   000022   8A82         MOV     DPL,R2
+   \   000024   8B83         MOV     DPH,R3
+   \   000026   A3           INC     DPTR
+   \   000027   A3           INC     DPTR
+   \   000028   A3           INC     DPTR
+   \   000029   A3           INC     DPTR
+   \   00002A   E0           MOVX    A,@DPTR
+   \   00002B   FC           MOV     R4,A
+   \   00002C   A3           INC     DPTR
+   \   00002D   E0           MOVX    A,@DPTR
+   \   00002E   FD           MOV     R5,A
+   \   00002F   8A82         MOV     DPL,R2
+   \   000031   8B83         MOV     DPH,R3
+   \   000033   A3           INC     DPTR
+   \   000034   A3           INC     DPTR
+   \   000035   E0           MOVX    A,@DPTR
+   \   000036   F8           MOV     R0,A
+   \   000037   A3           INC     DPTR
+   \   000038   E0           MOVX    A,@DPTR
+   \   000039   F583         MOV     DPH,A
+   \   00003B   8882         MOV     DPL,R0
+   \   00003D   12....       LCALL   ?CALL_IND
+    102            if(next_rtimer != NULL) {
+   \   000040   90....       MOV     DPTR,#next_rtimer
+   \   000043   E0           MOVX    A,@DPTR
+   \   000044   F8           MOV     R0,A
+   \   000045   A3           INC     DPTR
+   \   000046   E0           MOVX    A,@DPTR
+   \   000047   F9           MOV     R1,A
+   \   000048   E8           MOV     A,R0
+   \   000049   49           ORL     A,R1
+   \   00004A   6013         JZ      ??rtimer_run_next_0
+    103              rtimer_arch_schedule(next_rtimer->time);
+   \   00004C                ; Setup parameters for call to function rtimer_arch_schedule
+   \   00004C   90....       MOV     DPTR,#next_rtimer
+   \   00004F   E0           MOVX    A,@DPTR
+   \   000050   F8           MOV     R0,A
+   \   000051   A3           INC     DPTR
+   \   000052   E0           MOVX    A,@DPTR
+   \   000053   F583         MOV     DPH,A
+   \   000055   8882         MOV     DPL,R0
+   \   000057   E0           MOVX    A,@DPTR
+   \   000058   FA           MOV     R2,A
+   \   000059   A3           INC     DPTR
+   \   00005A   E0           MOVX    A,@DPTR
+   \   00005B   FB           MOV     R3,A
+   \   00005C   12....       LCALL   ??rtimer_arch_schedule?relay
+    104            }
+    105            return;
+   \                     ??rtimer_run_next_0:
+   \   00005F   D083         POP     DPH
+   \   000061   D082         POP     DPL
+   \   000063   02....       LJMP    ?BRET
+    106          }
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rtimer_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rtimer_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rtimer_set?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rtimer_set
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rtimer_run_next?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rtimer_run_next
+    107          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       2      0      0  rtimer_init
+                          2 0  0 -> rtimer_arch_init
+       2      0      0  rtimer_run_next
+                          2 0  0 -> rtimer_arch_schedule
+       0      0     18  rtimer_set
+                          0 0 12 -> rtimer_arch_schedule
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??rtimer_init?relay
+       6  ??rtimer_run_next?relay
+       6  ??rtimer_set?relay
+       2  next_rtimer
+      14  rtimer_init
+     102  rtimer_run_next
+     122  rtimer_set
+
+ 
+ 238 bytes in segment BANKED_CODE
+  18 bytes in segment BANK_RELAYS
+   2 bytes in segment XDATA_Z
+ 
+ 256 bytes of CODE  memory
+   2 bytes of XDATA memory
+
+Errors: none
+Warnings: none

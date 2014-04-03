@@ -1,0 +1,326 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:52 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\cpu\cc253x\dev\uart0.c            #
+#    Command line       =  D:\myWork\myWork\cpu\cc253x\dev\uart0.c -D         #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\uart0.lst                                   #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\uart0.r51                                    #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
+   \                                 In  segment SFR_AN, at 0x80
+   \   union <unnamed> volatile __sfr _A_P0
+   \                     _A_P0:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xa8
+   \   union <unnamed> volatile __sfr _A_IEN0
+   \                     _A_IEN0:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe8
+   \   union <unnamed> volatile __sfr _A_IRCON2
+   \                     _A_IRCON2:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xf1
+   \   unsigned char volatile __sfr PERCFG
+   \                     PERCFG:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xf3
+   \   unsigned char volatile __sfr P0SEL
+   \                     P0SEL:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xfd
+   \   unsigned char volatile __sfr P0DIR
+   \                     P0DIR:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0x86
+   \   unsigned char volatile __sfr U0CSR
+   \                     U0CSR:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xc1
+   \   unsigned char volatile __sfr U0DBUF
+   \                     U0DBUF:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xc2
+   \   unsigned char volatile __sfr U0BAUD
+   \                     U0BAUD:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xc4
+   \   unsigned char volatile __sfr U0UCR
+   \                     U0UCR:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xc5
+   \   unsigned char volatile __sfr U0GCR
+   \                     U0GCR:
+   \   000000                DS 1
+D:\myWork\myWork\cpu\cc253x\dev\uart0.c
+      1          /**
+      2           * \file
+      3           *
+      4           *   uart0 write routines
+      5           *
+      6           * \author
+      7           *
+      8           *   Anthony "Asterisk" Ambuehl
+      9           *
+     10           */
+     11          #include <stdlib.h>
+     12          #include <string.h>
+     13          
+     14          #include "cc253x.h"
+     15          #include "sfr-bits.h"
+     16          #include "dev/uart0.h"
+     17          
+     18          #if UART0_ENABLE
+     19          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     20          void
+     21          uart0_init()
+   \                     uart0_init:
+     22          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+     23          #if UART0_CONF_HIGH_SPEED
+     24            UART_SET_SPEED(0, UART_460_M, UART_460_E);
+     25          #else
+     26            UART_SET_SPEED(0, UART_115_M, UART_115_E);
+   \   000000   75C2D8       MOV     0xc2,#-0x28
+   \   000003   75C50B       MOV     0xc5,#0xb
+     27            //UART_SET_SPEED(0,UART_9_M,UART_921_E);
+     28          #endif
+     29          
+     30          #ifdef UART0_ALTERNATIVE_2
+     31            PERCFG |= PERCFG_U0CFG;  /* alternative port 2 = P1.5-2 */
+     32          #ifdef UART0_RTSCTS
+     33            P1SEL |= 0x3C;    /* peripheral select for TX and RX, RTS, CTS */
+     34          #else
+     35            P1SEL |= 0x30;    /* peripheral select for TX and RX */
+     36            P1 &= ~0x08;      /* RTS down */
+     37          #endif
+     38            P1DIR |= 0x28;    /* RTS, TX out */
+     39            P1DIR &= ~0x14;   /* CTS & RX in */
+     40          #else
+     41            PERCFG &= ~PERCFG_U0CFG; /* alternative port 1 = P0.5-2 */
+   \   000006   53F1FE       ANL     0xf1,#0xfe
+     42          #ifdef UART0_RTSCTS
+     43            P0SEL |= 0x20 | 0x10;    /* peripheral select for TX and RX */
+     44          #else
+     45            P0SEL |= 0x0C;    /* peripheral select for TX and RX */
+   \   000009   43F30C       ORL     0xf3,#0xc
+     46            P0 &= ~0x20;    /* RTS down */
+   \   00000C   C285         CLR     0x80.5
+     47          #endif
+     48            P0DIR |= 0x28;    /* RTS, TX out */
+   \   00000E   43FD28       ORL     0xfd,#0x28
+     49            P0DIR &= ~0x14;   /* CTS, RX in */
+   \   000011   53FDEB       ANL     0xfd,#0xeb
+     50          #endif
+     51          
+     52          
+     53          #ifdef UART0_RTSCTS
+     54            U0UCR = 0x42; /*defaults: 8N1, RTS/CTS, high stop bit*/
+     55          #else
+     56            U0UCR = 0x02; /*defaults: 8N1, no flow control, high stop bit*/
+   \   000014   75C402       MOV     0xc4,#0x2
+     57          #endif
+     58          
+     59            U0CSR = UCSR_MODE; /* UART mode */
+   \   000017   758680       MOV     0x86,#-0x80
+     60            U0UCR |= 0x80; /* Flush */
+   \   00001A   43C480       ORL     0xc4,#0x80
+     61            UART0_RX_EN();
+   \   00001D   438640       ORL     0x86,#0x40
+     62          
+     63            UART0_RX_INT(1);
+   \   000020   D2AA         SETB    0xa8.2
+     64          }
+   \   000022   02....       LJMP    ?BRET
+   \   000025                REQUIRE U0BAUD
+   \   000025                REQUIRE U0GCR
+   \   000025                REQUIRE PERCFG
+   \   000025                REQUIRE P0SEL
+   \   000025                REQUIRE _A_P0
+   \   000025                REQUIRE P0DIR
+   \   000025                REQUIRE U0UCR
+   \   000025                REQUIRE U0CSR
+   \   000025                REQUIRE _A_IEN0
+     65          /*---------------------------------------------------------------------------*/
+     66          /* Write one byte over the UART. */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     67          void
+     68          uart0_writeb(uint8_t byte)
+   \                     uart0_writeb:
+     69          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+     70            UTX0IF = 0;
+   \   000000   C2E9         CLR     0xe8.1
+     71            U0DBUF = byte;
+   \   000002   89C1         MOV     0xc1,R1
+     72            while(!UTX0IF); /* Wait until byte has been transmitted. */
+   \                     ??uart0_writeb_0:
+   \   000004   A2E9         MOV     C,0xe8.1
+   \   000006   50FC         JNC     ??uart0_writeb_0
+     73            UTX0IF = 0;
+   \   000008   C2E9         CLR     0xe8.1
+     74          }
+   \   00000A   02....       LJMP    ?BRET
+   \   00000D                REQUIRE _A_IRCON2
+   \   00000D                REQUIRE U0DBUF
+     75          
+     76          /* Write n byte over the UART0. */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     77          void
+     78          uart0_write(uint8_t *data, uint16_t len)
+   \                     uart0_write:
+     79          {  
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     80            uint16_t i;  
+     81            for(i=0; i<len; i++) {    
+   \   000004   7800         MOV     R0,#0x0
+   \   000006   7900         MOV     R1,#0x0
+   \   000008   8019         SJMP    ??uart0_write_0
+     82              UTX0IF = 0;    
+   \                     ??uart0_write_1:
+   \   00000A   C2E9         CLR     0xe8.1
+     83              U0DBUF = data[i];    
+   \   00000C   EA           MOV     A,R2
+   \   00000D   28           ADD     A,R0
+   \   00000E   F582         MOV     DPL,A
+   \   000010   EB           MOV     A,R3
+   \   000011   39           ADDC    A,R1
+   \   000012   F583         MOV     DPH,A
+   \   000014   E0           MOVX    A,@DPTR
+   \   000015   F5C1         MOV     0xc1,A
+     84              while(!UTX0IF);  /* Wait until byte has been transmitted. */  
+   \                     ??uart0_write_2:
+   \   000017   A2E9         MOV     C,0xe8.1
+   \   000019   50FC         JNC     ??uart0_write_2
+     85            }  
+   \   00001B   E8           MOV     A,R0
+   \   00001C   2401         ADD     A,#0x1
+   \   00001E   F8           MOV     R0,A
+   \   00001F   E9           MOV     A,R1
+   \   000020   3400         ADDC    A,#0x0
+   \   000022   F9           MOV     R1,A
+   \                     ??uart0_write_0:
+   \   000023   C3           CLR     C
+   \   000024   E8           MOV     A,R0
+   \   000025   9C           SUBB    A,R4
+   \   000026   E9           MOV     A,R1
+   \   000027   9D           SUBB    A,R5
+   \   000028   40E0         JC      ??uart0_write_1
+     86            UTX0IF = 0;
+   \   00002A   C2E9         CLR     0xe8.1
+     87          }
+   \   00002C   D083         POP     DPH
+   \   00002E   D082         POP     DPL
+   \   000030   02....       LJMP    ?BRET
+   \   000033                REQUIRE _A_IRCON2
+   \   000033                REQUIRE U0DBUF
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uart0_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uart0_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uart0_writeb?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uart0_writeb
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uart0_write?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uart0_write
+     88          #endif
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0      0  uart0_init
+       2      0      0  uart0_write
+       0      0      0  uart0_writeb
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??uart0_init?relay
+       6  ??uart0_write?relay
+       6  ??uart0_writeb?relay
+       1  P0DIR
+       1  P0SEL
+       1  PERCFG
+       1  U0BAUD
+       1  U0CSR
+       1  U0DBUF
+       1  U0GCR
+       1  U0UCR
+       1  _A_IEN0
+       1  _A_IRCON2
+       1  _A_P0
+      37  uart0_init
+      51  uart0_write
+      13  uart0_writeb
+
+ 
+ 101 bytes in segment BANKED_CODE
+  18 bytes in segment BANK_RELAYS
+  11 bytes in segment SFR_AN
+ 
+ 119 bytes of CODE memory
+   0 bytes of DATA memory (+ 11 bytes shared)
+
+Errors: none
+Warnings: none

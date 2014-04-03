@@ -1,0 +1,930 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:42 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\rpl\rpl-mrhof.c          #
+#    Command line       =  D:\myWork\myWork\core\net\rpl\rpl-mrhof.c -D       #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\rpl-mrhof.lst                               #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\rpl-mrhof.r51                                #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\rpl\rpl-mrhof.c
+      1          /**
+      2           * \addtogroup uip6
+      3           * @{
+      4           */
+      5          /*
+      6           * Copyright (c) 2010, Swedish Institute of Computer Science.
+      7           * All rights reserved.
+      8           *
+      9           * Redistribution and use in source and binary forms, with or without
+     10           * modification, are permitted provided that the following conditions
+     11           * are met:
+     12           * 1. Redistributions of source code must retain the above copyright
+     13           *    notice, this list of conditions and the following disclaimer.
+     14           * 2. Redistributions in binary form must reproduce the above copyright
+     15           *    notice, this list of conditions and the following disclaimer in the
+     16           *    documentation and/or other materials provided with the distribution.
+     17           * 3. Neither the name of the Institute nor the names of its contributors
+     18           *    may be used to endorse or promote products derived from this software
+     19           *    without specific prior written permission.
+     20           *
+     21           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     22           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     23           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     24           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     25           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     26           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     27           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     28           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     29           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     30           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     31           * SUCH DAMAGE.
+     32           *
+     33           * This file is part of the Contiki operating system.
+     34           *
+     35           */
+     36          /**
+     37           * \file
+     38           *         The Minimum Rank with Hysteresis Objective Function (MRHOF)
+     39           *
+     40           *         This implementation uses the estimated number of 
+     41           *         transmissions (ETX) as the additive routing metric,
+     42           *         and also provides stubs for the energy metric.
+     43           *
+     44           * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
+     45           */
+     46          
+     47          #include "net/rpl/rpl-private.h"
+     48          #include "net/nbr-table.h"
+     49          
+     50          #define DEBUG DEBUG_NONE
+     51          #include "net/uip-debug.h"
+     52          
+     53          static void reset(rpl_dag_t *);
+     54          static void neighbor_link_callback(rpl_parent_t *, int, int);
+     55          static rpl_parent_t *best_parent(rpl_parent_t *, rpl_parent_t *);
+     56          static rpl_dag_t *best_dag(rpl_dag_t *, rpl_dag_t *);
+     57          static rpl_rank_t calculate_rank(rpl_parent_t *, rpl_rank_t);
+     58          static void update_metric_container(rpl_instance_t *);
+     59          
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     60          rpl_of_t rpl_mrhof = {
+   \                     rpl_mrhof:
+   \   000000                DS 14
+   \   00000E                REQUIRE `?<Initializer for rpl_mrhof>`
+   \   00000E                REQUIRE __INIT_XDATA_I
+     61            reset,
+     62            neighbor_link_callback,
+     63            best_parent,
+     64            best_dag,
+     65            calculate_rank,
+     66            update_metric_container,
+     67            1
+     68          };
+     69          
+     70          /* Constants for the ETX moving average */
+     71          #define ETX_SCALE   100
+     72          #define ETX_ALPHA   90
+     73          
+     74          /* Reject parents that have a higher link metric than the following. */
+     75          #define MAX_LINK_METRIC			10
+     76          
+     77          /* Reject parents that have a higher path cost than the following. */
+     78          #define MAX_PATH_COST			100
+     79          
+     80          /*
+     81           * The rank must differ more than 1/PARENT_SWITCH_THRESHOLD_DIV in order
+     82           * to switch preferred parent.
+     83           */
+     84          #define PARENT_SWITCH_THRESHOLD_DIV	2
+     85          
+     86          typedef uint16_t rpl_path_metric_t;
+     87          
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     88          static rpl_path_metric_t
+     89          calculate_path_metric(rpl_parent_t *p)
+   \                     calculate_path_metric:
+     90          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+     91            if(p == NULL) {
+   \   000005   EA           MOV     A,R2
+   \   000006   4B           ORL     A,R3
+   \   000007   7006         JNZ     ??calculate_path_metric_0
+     92              return MAX_PATH_COST * RPL_DAG_MC_ETX_DIVISOR;
+   \   000009   7A00         MOV     R2,#0x0
+   \   00000B   7B32         MOV     R3,#0x32
+   \   00000D   8027         SJMP    ??calculate_path_metric_1
+     93            } else {
+     94              long link_metric = p->link_metric;
+   \                     ??calculate_path_metric_0:
+   \   00000F   8A82         MOV     DPL,R2
+   \   000011   8B83         MOV     DPH,R3
+   \   000013   A3           INC     DPTR
+   \   000014   A3           INC     DPTR
+   \   000015   A3           INC     DPTR
+   \   000016   A3           INC     DPTR
+   \   000017   A3           INC     DPTR
+   \   000018   A3           INC     DPTR
+   \   000019   E0           MOVX    A,@DPTR
+   \   00001A   F5..         MOV     ?V0 + 0,A
+   \   00001C   A3           INC     DPTR
+   \   00001D   E0           MOVX    A,@DPTR
+   \   00001E   F5..         MOV     ?V0 + 1,A
+   \   000020   E4           CLR     A
+   \   000021   F5..         MOV     ?V0 + 2,A
+   \   000023   F5..         MOV     ?V0 + 3,A
+     95          #if RPL_DAG_MC == RPL_DAG_MC_NONE
+     96              return p->rank + (uint16_t)link_metric;
+   \   000025   8A82         MOV     DPL,R2
+   \   000027   8B83         MOV     DPH,R3
+   \   000029   A3           INC     DPTR
+   \   00002A   A3           INC     DPTR
+   \   00002B   A3           INC     DPTR
+   \   00002C   A3           INC     DPTR
+   \   00002D   E0           MOVX    A,@DPTR
+   \   00002E   25..         ADD     A,?V0 + 0
+   \   000030   FA           MOV     R2,A
+   \   000031   A3           INC     DPTR
+   \   000032   E0           MOVX    A,@DPTR
+   \   000033   35..         ADDC    A,?V0 + 1
+   \   000035   FB           MOV     R3,A
+   \                     ??calculate_path_metric_1:
+   \   000036   7F04         MOV     R7,#0x4
+   \   000038   02....       LJMP    ?BANKED_LEAVE_XDATA
+     97          #elif RPL_DAG_MC == RPL_DAG_MC_ETX
+     98              return p->mc.obj.etx + (uint16_t)link_metric;
+     99          #elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
+    100              return p->mc.obj.energy.energy_test + (uint16_t)link_metric;
+    101          #endif /* RPL_DAG_MC */
+    102            }
+    103          }
+    104          
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    105          static void
+    106          reset(rpl_dag_t *sag)
+   \                     reset:
+    107          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+    108          }
+   \   000000   02....       LJMP    ?BRET
+    109          
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    110          static void
+    111          neighbor_link_callback(rpl_parent_t *p, int status, int numtx)
+   \                     neighbor_link_callback:
+    112          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   740A         MOV     A,#0xa
+   \   00000B   12....       LCALL   ?XSTACK_DISP0_8
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   F8           MOV     R0,A
+   \   000010   A3           INC     DPTR
+   \   000011   E0           MOVX    A,@DPTR
+   \   000012   F9           MOV     R1,A
+    113            /* Do not penalize the ETX when collisions or transmission errors occur. */
+    114            if(status == MAC_TX_OK || status == MAC_TX_NOACK) {
+   \   000013   EC           MOV     A,R4
+   \   000014   4D           ORL     A,R5
+   \   000015   600D         JZ      ??neighbor_link_callback_0
+   \   000017   7402         MOV     A,#0x2
+   \   000019   6C           XRL     A,R4
+   \   00001A   7003         JNZ     ??neighbor_link_callback_1
+   \   00001C   7400         MOV     A,#0x0
+   \   00001E   6D           XRL     A,R5
+   \                     ??neighbor_link_callback_1:
+   \   00001F   6003         JZ      $+5
+   \   000021   02....       LJMP    ??neighbor_link_callback_2 & 0xFFFF
+    115              int recorded_etx = p->link_metric;
+   \                     ??neighbor_link_callback_0:
+   \   000024   8E82         MOV     DPL,R6
+   \   000026   8F83         MOV     DPH,R7
+   \   000028   A3           INC     DPTR
+   \   000029   A3           INC     DPTR
+   \   00002A   A3           INC     DPTR
+   \   00002B   A3           INC     DPTR
+   \   00002C   A3           INC     DPTR
+   \   00002D   A3           INC     DPTR
+   \   00002E   E0           MOVX    A,@DPTR
+   \   00002F   FA           MOV     R2,A
+   \   000030   A3           INC     DPTR
+   \   000031   E0           MOVX    A,@DPTR
+   \   000032   FB           MOV     R3,A
+    116              int packet_etx = numtx * RPL_DAG_MC_ETX_DIVISOR;
+   \   000033   E8           MOV     A,R0
+   \   000034   75F080       MOV     B,#-0x80
+   \   000037   A4           MUL     AB
+   \   000038   C8           XCH     A,R0
+   \   000039   85F0..       MOV     ?V0 + 0,B
+   \   00003C   75F000       MOV     B,#0x0
+   \   00003F   A4           MUL     AB
+   \   000040   25..         ADD     A,?V0 + 0
+   \   000042   F5..         MOV     ?V0 + 0,A
+   \   000044   75F080       MOV     B,#-0x80
+   \   000047   E9           MOV     A,R1
+   \   000048   A4           MUL     AB
+   \   000049   25..         ADD     A,?V0 + 0
+   \   00004B   F9           MOV     R1,A
+    117              int new_etx;
+    118          
+    119              if(status == MAC_TX_NOACK) {
+   \   00004C   7402         MOV     A,#0x2
+   \   00004E   6C           XRL     A,R4
+   \   00004F   7003         JNZ     ??neighbor_link_callback_3
+   \   000051   7400         MOV     A,#0x0
+   \   000053   6D           XRL     A,R5
+   \                     ??neighbor_link_callback_3:
+   \   000054   7004         JNZ     ??neighbor_link_callback_4
+    120                packet_etx = MAX_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
+   \   000056   7800         MOV     R0,#0x0
+   \   000058   7905         MOV     R1,#0x5
+    121              }
+    122          
+    123              new_etx = ((uint16_t)recorded_etx * ETX_ALPHA +
+    124                  (uint16_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
+   \                     ??neighbor_link_callback_4:
+   \   00005A   EA           MOV     A,R2
+   \   00005B   75F05A       MOV     B,#0x5a
+   \   00005E   A4           MUL     AB
+   \   00005F   CA           XCH     A,R2
+   \   000060   ACF0         MOV     R4,B
+   \   000062   75F000       MOV     B,#0x0
+   \   000065   A4           MUL     AB
+   \   000066   2C           ADD     A,R4
+   \   000067   FC           MOV     R4,A
+   \   000068   75F05A       MOV     B,#0x5a
+   \   00006B   EB           MOV     A,R3
+   \   00006C   A4           MUL     AB
+   \   00006D   2C           ADD     A,R4
+   \   00006E   FB           MOV     R3,A
+   \   00006F   E8           MOV     A,R0
+   \   000070   75F00A       MOV     B,#0xa
+   \   000073   A4           MUL     AB
+   \   000074   C8           XCH     A,R0
+   \   000075   ACF0         MOV     R4,B
+   \   000077   75F000       MOV     B,#0x0
+   \   00007A   A4           MUL     AB
+   \   00007B   2C           ADD     A,R4
+   \   00007C   FC           MOV     R4,A
+   \   00007D   75F00A       MOV     B,#0xa
+   \   000080   E9           MOV     A,R1
+   \   000081   A4           MUL     AB
+   \   000082   2C           ADD     A,R4
+   \   000083   F9           MOV     R1,A
+   \   000084   EA           MOV     A,R2
+   \   000085   28           ADD     A,R0
+   \   000086   F8           MOV     R0,A
+   \   000087   EB           MOV     A,R3
+   \   000088   39           ADDC    A,R1
+   \   000089   F9           MOV     R1,A
+   \   00008A   7A64         MOV     R2,#0x64
+   \   00008C   7B00         MOV     R3,#0x0
+   \   00008E   12....       LCALL   ?US_DIV_MOD
+   \   000091   88..         MOV     ?V0 + 0,R0
+   \   000093   89..         MOV     ?V0 + 1,R1
+   \   000095   A8..         MOV     R0,?V0 + 0
+   \   000097   A9..         MOV     R1,?V0 + 1
+    125          
+    126              PRINTF("RPL: ETX changed from %d to %d (packet ETX = %d) %d\n",
+    127                  recorded_etx / p->dag->instance->min_hoprankinc,
+    128                  new_etx  / p->dag->instance->min_hoprankinc,
+    129                  packet_etx / p->dag->instance->min_hoprankinc,
+    130                  dest->u8[7]);
+    131              p->link_metric = new_etx;
+   \   000099   8E82         MOV     DPL,R6
+   \   00009B   8F83         MOV     DPH,R7
+   \   00009D   A3           INC     DPTR
+   \   00009E   A3           INC     DPTR
+   \   00009F   A3           INC     DPTR
+   \   0000A0   A3           INC     DPTR
+   \   0000A1   A3           INC     DPTR
+   \   0000A2   A3           INC     DPTR
+   \   0000A3   E5..         MOV     A,?V0 + 0
+   \   0000A5   F0           MOVX    @DPTR,A
+   \   0000A6   A3           INC     DPTR
+   \   0000A7   E5..         MOV     A,?V0 + 1
+   \   0000A9   F0           MOVX    @DPTR,A
+    132          
+    133            }
+    134          }
+   \                     ??neighbor_link_callback_2:
+   \   0000AA   7F02         MOV     R7,#0x2
+   \   0000AC   02....       LJMP    ?BANKED_LEAVE_XDATA
+    135          
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    136          static rpl_rank_t
+    137          calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
+   \                     calculate_rank:
+    138          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    139            rpl_rank_t new_rank;
+    140            rpl_rank_t rank_increase;
+    141          
+    142            if(p == NULL) {
+   \   000004   EA           MOV     A,R2
+   \   000005   4B           ORL     A,R3
+   \   000006   7010         JNZ     ??calculate_rank_0
+    143              if(base_rank == 0) {
+   \   000008   EC           MOV     A,R4
+   \   000009   4D           ORL     A,R5
+   \   00000A   7006         JNZ     ??calculate_rank_1
+    144                return INFINITE_RANK;
+   \   00000C   7AFF         MOV     R2,#-0x1
+   \   00000E   7BFF         MOV     R3,#-0x1
+   \   000010   8042         SJMP    ??calculate_rank_2
+    145              }
+    146              rank_increase = RPL_INIT_LINK_METRIC;
+   \                     ??calculate_rank_1:
+   \   000012   7800         MOV     R0,#0x0
+   \   000014   7905         MOV     R1,#0x5
+   \   000016   8020         SJMP    ??calculate_rank_3
+    147            } else {
+    148              /* multiply first, then scale down to avoid truncation effects */
+    149              rank_increase = p->link_metric;
+   \                     ??calculate_rank_0:
+   \   000018   8A82         MOV     DPL,R2
+   \   00001A   8B83         MOV     DPH,R3
+   \   00001C   A3           INC     DPTR
+   \   00001D   A3           INC     DPTR
+   \   00001E   A3           INC     DPTR
+   \   00001F   A3           INC     DPTR
+   \   000020   A3           INC     DPTR
+   \   000021   A3           INC     DPTR
+   \   000022   E0           MOVX    A,@DPTR
+   \   000023   F8           MOV     R0,A
+   \   000024   A3           INC     DPTR
+   \   000025   E0           MOVX    A,@DPTR
+   \   000026   F9           MOV     R1,A
+    150              if(base_rank == 0) {
+   \   000027   EC           MOV     A,R4
+   \   000028   4D           ORL     A,R5
+   \   000029   700D         JNZ     ??calculate_rank_3
+    151                base_rank = p->rank;
+   \   00002B   8A82         MOV     DPL,R2
+   \   00002D   8B83         MOV     DPH,R3
+   \   00002F   A3           INC     DPTR
+   \   000030   A3           INC     DPTR
+   \   000031   A3           INC     DPTR
+   \   000032   A3           INC     DPTR
+   \   000033   E0           MOVX    A,@DPTR
+   \   000034   FC           MOV     R4,A
+   \   000035   A3           INC     DPTR
+   \   000036   E0           MOVX    A,@DPTR
+   \   000037   FD           MOV     R5,A
+    152              }
+    153            }
+    154          
+    155            if(INFINITE_RANK - base_rank < rank_increase) {
+   \                     ??calculate_rank_3:
+   \   000038   74FF         MOV     A,#-0x1
+   \   00003A   C3           CLR     C
+   \   00003B   9C           SUBB    A,R4
+   \   00003C   FA           MOV     R2,A
+   \   00003D   74FF         MOV     A,#-0x1
+   \   00003F   9D           SUBB    A,R5
+   \   000040   FB           MOV     R3,A
+   \   000041   C3           CLR     C
+   \   000042   EA           MOV     A,R2
+   \   000043   98           SUBB    A,R0
+   \   000044   EB           MOV     A,R3
+   \   000045   99           SUBB    A,R1
+   \   000046   5006         JNC     ??calculate_rank_4
+    156              /* Reached the maximum rank. */
+    157              new_rank = INFINITE_RANK;
+   \   000048   7AFF         MOV     R2,#-0x1
+   \   00004A   7BFF         MOV     R3,#-0x1
+   \   00004C   8006         SJMP    ??calculate_rank_2
+    158            } else {
+    159             /* Calculate the rank based on the new rank information from DIO or
+    160                stored otherwise. */
+    161              new_rank = base_rank + rank_increase;
+   \                     ??calculate_rank_4:
+   \   00004E   EC           MOV     A,R4
+   \   00004F   28           ADD     A,R0
+   \   000050   FA           MOV     R2,A
+   \   000051   ED           MOV     A,R5
+   \   000052   39           ADDC    A,R1
+   \   000053   FB           MOV     R3,A
+    162            }
+    163          
+    164            return new_rank;
+   \                     ??calculate_rank_2:
+   \   000054   D083         POP     DPH
+   \   000056   D082         POP     DPL
+   \   000058   02....       LJMP    ?BRET
+    165          }
+    166          
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    167          static rpl_dag_t *
+    168          best_dag(rpl_dag_t *d1, rpl_dag_t *d2)
+   \                     best_dag:
+    169          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    170            if(d1->grounded != d2->grounded) {
+   \   000004   EA           MOV     A,R2
+   \   000005   2413         ADD     A,#0x13
+   \   000007   F582         MOV     DPL,A
+   \   000009   EB           MOV     A,R3
+   \   00000A   3400         ADDC    A,#0x0
+   \   00000C   F583         MOV     DPH,A
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   F8           MOV     R0,A
+   \   000010   EC           MOV     A,R4
+   \   000011   2413         ADD     A,#0x13
+   \   000013   F582         MOV     DPL,A
+   \   000015   ED           MOV     A,R5
+   \   000016   3400         ADDC    A,#0x0
+   \   000018   F583         MOV     DPH,A
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   68           XRL     A,R0
+   \   00001C   6013         JZ      ??best_dag_0
+    171              return d1->grounded ? d1 : d2;
+   \   00001E   EA           MOV     A,R2
+   \   00001F   2413         ADD     A,#0x13
+   \   000021   F582         MOV     DPL,A
+   \   000023   EB           MOV     A,R3
+   \   000024   3400         ADDC    A,#0x0
+   \   000026   F583         MOV     DPH,A
+   \   000028   E0           MOVX    A,@DPTR
+   \   000029   706E         JNZ     ??best_dag_1
+   \   00002B   EC           MOV     A,R4
+   \   00002C   FA           MOV     R2,A
+   \   00002D   ED           MOV     A,R5
+   \   00002E   FB           MOV     R3,A
+   \   00002F   8068         SJMP    ??best_dag_1
+    172            }
+    173          
+    174            if(d1->preference != d2->preference) {
+   \                     ??best_dag_0:
+   \   000031   EA           MOV     A,R2
+   \   000032   2414         ADD     A,#0x14
+   \   000034   F582         MOV     DPL,A
+   \   000036   EB           MOV     A,R3
+   \   000037   3400         ADDC    A,#0x0
+   \   000039   F583         MOV     DPH,A
+   \   00003B   E0           MOVX    A,@DPTR
+   \   00003C   F8           MOV     R0,A
+   \   00003D   EC           MOV     A,R4
+   \   00003E   2414         ADD     A,#0x14
+   \   000040   F582         MOV     DPL,A
+   \   000042   ED           MOV     A,R5
+   \   000043   3400         ADDC    A,#0x0
+   \   000045   F583         MOV     DPH,A
+   \   000047   E0           MOVX    A,@DPTR
+   \   000048   68           XRL     A,R0
+   \   000049   6021         JZ      ??best_dag_2
+    175              return d1->preference > d2->preference ? d1 : d2;
+   \   00004B   EA           MOV     A,R2
+   \   00004C   2414         ADD     A,#0x14
+   \   00004E   F582         MOV     DPL,A
+   \   000050   EB           MOV     A,R3
+   \   000051   3400         ADDC    A,#0x0
+   \   000053   F583         MOV     DPH,A
+   \   000055   E0           MOVX    A,@DPTR
+   \   000056   F8           MOV     R0,A
+   \   000057   EC           MOV     A,R4
+   \   000058   2414         ADD     A,#0x14
+   \   00005A   F582         MOV     DPL,A
+   \   00005C   ED           MOV     A,R5
+   \   00005D   3400         ADDC    A,#0x0
+   \   00005F   F583         MOV     DPH,A
+   \   000061   E0           MOVX    A,@DPTR
+   \   000062   C3           CLR     C
+   \   000063   98           SUBB    A,R0
+   \   000064   4033         JC      ??best_dag_1
+   \   000066   EC           MOV     A,R4
+   \   000067   FA           MOV     R2,A
+   \   000068   ED           MOV     A,R5
+   \   000069   FB           MOV     R3,A
+   \   00006A   802D         SJMP    ??best_dag_1
+    176            }
+    177          
+    178            return d1->rank < d2->rank ? d1 : d2;
+   \                     ??best_dag_2:
+   \   00006C   EA           MOV     A,R2
+   \   00006D   2419         ADD     A,#0x19
+   \   00006F   F582         MOV     DPL,A
+   \   000071   EB           MOV     A,R3
+   \   000072   3400         ADDC    A,#0x0
+   \   000074   F583         MOV     DPH,A
+   \   000076   C082         PUSH    DPL
+   \   000078   C083         PUSH    DPH
+   \   00007A   EC           MOV     A,R4
+   \   00007B   2419         ADD     A,#0x19
+   \   00007D   F582         MOV     DPL,A
+   \   00007F   ED           MOV     A,R5
+   \   000080   3400         ADDC    A,#0x0
+   \   000082   F583         MOV     DPH,A
+   \   000084   E0           MOVX    A,@DPTR
+   \   000085   F8           MOV     R0,A
+   \   000086   A3           INC     DPTR
+   \   000087   E0           MOVX    A,@DPTR
+   \   000088   F9           MOV     R1,A
+   \   000089   D083         POP     DPH
+   \   00008B   D082         POP     DPL
+   \   00008D   C3           CLR     C
+   \   00008E   E0           MOVX    A,@DPTR
+   \   00008F   98           SUBB    A,R0
+   \   000090   A3           INC     DPTR
+   \   000091   E0           MOVX    A,@DPTR
+   \   000092   99           SUBB    A,R1
+   \   000093   4004         JC      ??best_dag_1
+   \   000095   EC           MOV     A,R4
+   \   000096   FA           MOV     R2,A
+   \   000097   ED           MOV     A,R5
+   \   000098   FB           MOV     R3,A
+   \                     ??best_dag_1:
+   \   000099   D083         POP     DPH
+   \   00009B   D082         POP     DPL
+   \   00009D   02....       LJMP    ?BRET
+    179          }
+    180          
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    181          static rpl_parent_t *
+    182          best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
+   \                     best_parent:
+    183          {
+   \   000000   74EE         MOV     A,#-0x12
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 18
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   8C..         MOV     ?V0 + 0,R4
+   \   00000B   8D..         MOV     ?V0 + 1,R5
+    184            rpl_dag_t *dag;
+    185            rpl_path_metric_t min_diff;
+    186            rpl_path_metric_t p1_metric;
+    187            rpl_path_metric_t p2_metric;
+    188          
+    189            dag = p1->dag; /* Both parents must be in the same DAG. */
+   \   00000D   8E82         MOV     DPL,R6
+   \   00000F   8F83         MOV     DPH,R7
+   \   000011   A3           INC     DPTR
+   \   000012   A3           INC     DPTR
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   F5..         MOV     ?V0 + 2,A
+   \   000016   A3           INC     DPTR
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   F5..         MOV     ?V0 + 3,A
+    190          
+    191            min_diff = RPL_DAG_MC_ETX_DIVISOR /
+    192                       PARENT_SWITCH_THRESHOLD_DIV;
+   \   00001A   75..40       MOV     ?V0 + 6,#0x40
+   \   00001D   75..00       MOV     ?V0 + 7,#0x0
+    193          
+    194            p1_metric = calculate_path_metric(p1);
+   \   000020                ; Setup parameters for call to function calculate_path_metric
+   \   000020   EE           MOV     A,R6
+   \   000021   FA           MOV     R2,A
+   \   000022   EF           MOV     A,R7
+   \   000023   FB           MOV     R3,A
+   \   000024   12....       LCALL   ??calculate_path_metric?relay
+   \   000027   8A..         MOV     ?V0 + 8,R2
+   \   000029   8B..         MOV     ?V0 + 9,R3
+   \   00002B   85....       MOV     ?V0 + 4,?V0 + 8
+   \   00002E   85....       MOV     ?V0 + 5,?V0 + 9
+    195            p2_metric = calculate_path_metric(p2);
+   \   000031                ; Setup parameters for call to function calculate_path_metric
+   \   000031   AA..         MOV     R2,?V0 + 0
+   \   000033   AB..         MOV     R3,?V0 + 1
+   \   000035   12....       LCALL   ??calculate_path_metric?relay
+   \   000038   8A..         MOV     ?V0 + 8,R2
+   \   00003A   8B..         MOV     ?V0 + 9,R3
+   \   00003C   A8..         MOV     R0,?V0 + 8
+   \   00003E   A9..         MOV     R1,?V0 + 9
+    196          
+    197            /* Maintain stability of the preferred parent in case of similar ranks. */
+    198            if(p1 == dag->preferred_parent || p2 == dag->preferred_parent) {
+   \   000040   E5..         MOV     A,?V0 + 2
+   \   000042   2417         ADD     A,#0x17
+   \   000044   F582         MOV     DPL,A
+   \   000046   E5..         MOV     A,?V0 + 3
+   \   000048   3400         ADDC    A,#0x0
+   \   00004A   F583         MOV     DPH,A
+   \   00004C   E0           MOVX    A,@DPTR
+   \   00004D   FA           MOV     R2,A
+   \   00004E   A3           INC     DPTR
+   \   00004F   E0           MOVX    A,@DPTR
+   \   000050   FB           MOV     R3,A
+   \   000051   EE           MOV     A,R6
+   \   000052   6A           XRL     A,R2
+   \   000053   7002         JNZ     ??best_parent_0
+   \   000055   EF           MOV     A,R7
+   \   000056   6B           XRL     A,R3
+   \                     ??best_parent_0:
+   \   000057   601B         JZ      ??best_parent_1
+   \   000059   E5..         MOV     A,?V0 + 2
+   \   00005B   2417         ADD     A,#0x17
+   \   00005D   F582         MOV     DPL,A
+   \   00005F   E5..         MOV     A,?V0 + 3
+   \   000061   3400         ADDC    A,#0x0
+   \   000063   F583         MOV     DPH,A
+   \   000065   E0           MOVX    A,@DPTR
+   \   000066   FA           MOV     R2,A
+   \   000067   A3           INC     DPTR
+   \   000068   E0           MOVX    A,@DPTR
+   \   000069   FB           MOV     R3,A
+   \   00006A   E5..         MOV     A,?V0 + 0
+   \   00006C   6A           XRL     A,R2
+   \   00006D   7003         JNZ     ??best_parent_2
+   \   00006F   E5..         MOV     A,?V0 + 1
+   \   000071   6B           XRL     A,R3
+   \                     ??best_parent_2:
+   \   000072   7036         JNZ     ??best_parent_3
+    199              if(p1_metric < p2_metric + min_diff &&
+    200                 p1_metric > p2_metric - min_diff) {
+   \                     ??best_parent_1:
+   \   000074   E8           MOV     A,R0
+   \   000075   25..         ADD     A,?V0 + 6
+   \   000077   FA           MOV     R2,A
+   \   000078   E9           MOV     A,R1
+   \   000079   35..         ADDC    A,?V0 + 7
+   \   00007B   FB           MOV     R3,A
+   \   00007C   C3           CLR     C
+   \   00007D   E5..         MOV     A,?V0 + 4
+   \   00007F   9A           SUBB    A,R2
+   \   000080   E5..         MOV     A,?V0 + 5
+   \   000082   9B           SUBB    A,R3
+   \   000083   5025         JNC     ??best_parent_3
+   \   000085   E8           MOV     A,R0
+   \   000086   C3           CLR     C
+   \   000087   95..         SUBB    A,?V0 + 6
+   \   000089   FA           MOV     R2,A
+   \   00008A   E9           MOV     A,R1
+   \   00008B   95..         SUBB    A,?V0 + 7
+   \   00008D   FB           MOV     R3,A
+   \   00008E   C3           CLR     C
+   \   00008F   EA           MOV     A,R2
+   \   000090   95..         SUBB    A,?V0 + 4
+   \   000092   EB           MOV     A,R3
+   \   000093   95..         SUBB    A,?V0 + 5
+   \   000095   5013         JNC     ??best_parent_3
+    201                PRINTF("RPL: MRHOF hysteresis: %u <= %u <= %u\n",
+    202                       p2_metric - min_diff,
+    203                       p1_metric,
+    204                       p2_metric + min_diff);
+    205                return dag->preferred_parent;
+   \   000097   E5..         MOV     A,?V0 + 2
+   \   000099   2417         ADD     A,#0x17
+   \   00009B   F582         MOV     DPL,A
+   \   00009D   E5..         MOV     A,?V0 + 3
+   \   00009F   3400         ADDC    A,#0x0
+   \   0000A1   F583         MOV     DPH,A
+   \   0000A3   E0           MOVX    A,@DPTR
+   \   0000A4   FA           MOV     R2,A
+   \   0000A5   A3           INC     DPTR
+   \   0000A6   E0           MOVX    A,@DPTR
+   \   0000A7   FB           MOV     R3,A
+   \   0000A8   8013         SJMP    ??best_parent_4
+    206              }
+    207            }
+    208          
+    209            return p1_metric < p2_metric ? p1 : p2;
+   \                     ??best_parent_3:
+   \   0000AA   C3           CLR     C
+   \   0000AB   E5..         MOV     A,?V0 + 4
+   \   0000AD   98           SUBB    A,R0
+   \   0000AE   E5..         MOV     A,?V0 + 5
+   \   0000B0   99           SUBB    A,R1
+   \   0000B1   5006         JNC     ??best_parent_5
+   \   0000B3   EE           MOV     A,R6
+   \   0000B4   FA           MOV     R2,A
+   \   0000B5   EF           MOV     A,R7
+   \   0000B6   FB           MOV     R3,A
+   \   0000B7   8004         SJMP    ??best_parent_4
+   \                     ??best_parent_5:
+   \   0000B9   AA..         MOV     R2,?V0 + 0
+   \   0000BB   AB..         MOV     R3,?V0 + 1
+   \                     ??best_parent_4:
+   \   0000BD   7F0A         MOV     R7,#0xa
+   \   0000BF   02....       LJMP    ?BANKED_LEAVE_XDATA
+    210          }
+    211          
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    212          static void
+    213          update_metric_container(rpl_instance_t *instance)
+   \                     update_metric_container:
+    214          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    215            instance->mc.type = RPL_DAG_MC;
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   7400         MOV     A,#0x0
+   \   00000A   F0           MOVX    @DPTR,A
+    216          
+    217          #if RPL_DAG_MC != RPL_DAG_MC_NONE
+    218          
+    219            rpl_path_metric_t path_metric;
+    220            rpl_dag_t *dag;
+    221          #if RPL_DAG_MC == RPL_DAG_MC_ENERGY
+    222            uint8_t type;
+    223          #endif
+    224          
+    225            instance->mc.type = RPL_DAG_MC;
+    226            instance->mc.flags = RPL_DAG_MC_FLAG_P;
+    227            instance->mc.aggr = RPL_DAG_MC_AGGR_ADDITIVE;
+    228            instance->mc.prec = 0;
+    229          
+    230            dag = instance->current_dag;
+    231          
+    232            if (!dag->joined) {
+    233              /* We should probably do something here */
+    234              return;
+    235            }
+    236          
+    237            if(dag->rank == ROOT_RANK(instance)) {
+    238              path_metric = 0;
+    239            } else {
+    240              path_metric = calculate_path_metric(dag->preferred_parent);
+    241            }
+    242          
+    243          #endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
+    244          
+    245          #if RPL_DAG_MC == RPL_DAG_MC_NONE
+    246            /* Do nothing more */
+    247          #elif RPL_DAG_MC == RPL_DAG_MC_ETX
+    248          
+    249            instance->mc.length = sizeof(instance->mc.obj.etx);
+    250            instance->mc.obj.etx = path_metric;
+    251          
+    252            PRINTF("RPL: My path ETX to the root is %u.%u\n",
+    253          	instance->mc.obj.etx / RPL_DAG_MC_ETX_DIVISOR,
+    254          	(instance->mc.obj.etx % RPL_DAG_MC_ETX_DIVISOR * 100) / RPL_DAG_MC_ETX_DIVISOR);
+    255          
+    256          #elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
+    257          
+    258            instance->mc.length = sizeof(instance->mc.obj.energy);
+    259          
+    260            if(dag->rank == ROOT_RANK(instance)) {
+    261              type = RPL_DAG_MC_ENERGY_TYPE_MAINS;
+    262            } else {
+    263              type = RPL_DAG_MC_ENERGY_TYPE_BATTERY;
+    264            }
+    265          
+    266            instance->mc.obj.energy.flags = type << RPL_DAG_MC_ENERGY_TYPE;
+    267            instance->mc.obj.energy.energy_est = path_metric;
+    268          
+    269          #else
+    270          
+    271          #pragma error "Unsupported RPL_DAG_MC configured. See rpl.h."
+    272          
+    273          #endif /* RPL_DAG_MC */
+    274          }
+   \   00000B   D083         POP     DPH
+   \   00000D   D082         POP     DPL
+   \   00000F   02....       LJMP    ?BRET
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for rpl_mrhof>`:
+   \   000000   ....         DW ??reset?relay
+   \   000002   ....         DW ??neighbor_link_callback?relay
+   \   000004   ....         DW ??best_parent?relay
+   \   000006   ....         DW ??best_dag?relay
+   \   000008   ....         DW ??calculate_rank?relay
+   \   00000A   ....         DW ??update_metric_container?relay
+   \   00000C   0100         DW 1
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??calculate_path_metric?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    calculate_path_metric
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??reset?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    reset
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??neighbor_link_callback?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    neighbor_link_callback
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??calculate_rank?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    calculate_rank
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??best_dag?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    best_dag
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??best_parent?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    best_parent
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??update_metric_container?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    update_metric_container
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       4      0      0  best_dag
+       0      0     18  best_parent
+                          0 0 18 -> calculate_path_metric
+       0      0     30  calculate_path_metric
+       2      0      0  calculate_rank
+       0      0     12  neighbor_link_callback
+       0      0      0  reset
+       2      0      0  update_metric_container
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+      14  ?<Initializer for rpl_mrhof>
+       6  ??best_dag?relay
+       6  ??best_parent?relay
+       6  ??calculate_path_metric?relay
+       6  ??calculate_rank?relay
+       6  ??neighbor_link_callback?relay
+       6  ??reset?relay
+       6  ??update_metric_container?relay
+     160  best_dag
+     194  best_parent
+      59  calculate_path_metric
+      91  calculate_rank
+     175  neighbor_link_callback
+       3  reset
+      14  rpl_mrhof
+      18  update_metric_container
+
+ 
+ 700 bytes in segment BANKED_CODE
+  42 bytes in segment BANK_RELAYS
+  14 bytes in segment XDATA_I
+  14 bytes in segment XDATA_ID
+ 
+ 756 bytes of CODE  memory
+  14 bytes of XDATA memory
+
+Errors: none
+Warnings: none

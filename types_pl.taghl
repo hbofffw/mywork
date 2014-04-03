@@ -1,0 +1,3 @@
+syn keyword CTagsLabel printhelp bypass
+syn keyword CTagsFunction rrdcreate
+

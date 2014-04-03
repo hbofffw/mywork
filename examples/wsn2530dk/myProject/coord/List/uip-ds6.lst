@@ -1,0 +1,3205 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:53 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\uip-ds6.c                #
+#    Command line       =  D:\myWork\myWork\core\net\uip-ds6.c -D             #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\uip-ds6.lst                                 #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\uip-ds6.r51                                  #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\uip-ds6.c
+      1          /**
+      2           * \addtogroup uip6
+      3           * @{
+      4           */
+      5          
+      6          /**
+      7           * \file
+      8           *         IPv6 data structures handling functions.
+      9           *         Comprises part of the Neighbor discovery (RFC 4861)
+     10           *         and auto configuration (RFC 4862) state machines.
+     11           * \author Mathilde Durvy <mdurvy@cisco.com>
+     12           * \author Julien Abeille <jabeille@cisco.com>
+     13           */
+     14          /*
+     15           * Copyright (c) 2006, Swedish Institute of Computer Science.
+     16           * All rights reserved.
+     17           *
+     18           * Redistribution and use in source and binary forms, with or without
+     19           * modification, are permitted provided that the following conditions
+     20           * are met:
+     21           * 1. Redistributions of source code must retain the above copyright
+     22           *   notice, this list of conditions and the following disclaimer.
+     23           * 2. Redistributions in binary form must reproduce the above copyright
+     24           *   notice, this list of conditions and the following disclaimer in the
+     25           *   documentation and/or other materials provided with the distribution.
+     26           * 3. Neither the name of the Institute nor the names of its contributors
+     27           *   may be used to endorse or promote products derived from this software
+     28           *   without specific prior written permission.
+     29           *
+     30           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     31           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     32           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     33           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     34           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     35           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     36           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     37           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     38           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     39           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     40           * SUCH DAMAGE.
+     41           *
+     42           */
+     43          #include <string.h>
+     44          #include <stdlib.h>
+     45          #include <stddef.h>
+     46          #include "lib/random.h"
+     47          #include "net/uip-nd6.h"
+     48          #include "net/uip-ds6.h"
+     49          #include "net/uip-packetqueue.h"
+     50          
+     51          #if UIP_CONF_IPV6
+     52          
+     53          #define DEBUG DEBUG_NONE
+     54          #include "net/uip-debug.h"
+     55          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     56          struct etimer uip_ds6_timer_periodic;                           /** \brief Timer for maintenance of data structures */
+   \                     uip_ds6_timer_periodic:
+   \   000000                DS 8
+   \   000008                REQUIRE __INIT_XDATA_Z
+     57          
+     58          #if UIP_CONF_ROUTER
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     59          struct stimer uip_ds6_timer_ra;                                 /** \brief RA timer, to schedule RA sending */
+   \                     uip_ds6_timer_ra:
+   \   000000                DS 8
+   \   000008                REQUIRE __INIT_XDATA_Z
+     60          #if UIP_ND6_SEND_RA
+     61          static uint8_t racount;                                         /** \brief number of RA already sent */
+     62          static uint16_t rand_time;                                      /** \brief random time value for timers */
+     63          #endif
+     64          #else /* UIP_CONF_ROUTER */
+     65          struct etimer uip_ds6_timer_rs;                                 /** \brief RS timer, to schedule RS sending */
+     66          static uint8_t rscount;                                         /** \brief number of rs already sent */
+     67          #endif /* UIP_CONF_ROUTER */
+     68          
+     69          /** \name "DS6" Data structures */
+     70          /** @{ */
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     71          uip_ds6_netif_t uip_ds6_if;                                       /** \brief The single interface */
+   \                     uip_ds6_if:
+   \   000000                DS 221
+   \   0000DD                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     72          uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];          /** \brief Prefix list */
+   \                     uip_ds6_prefix_list:
+   \   000000                DS 84
+   \   000054                REQUIRE __INIT_XDATA_Z
+     73          
+     74          /* Used by Cooja to enable extraction of addresses from memory.*/
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     75          uint8_t uip_ds6_addr_size;
+   \                     uip_ds6_addr_size:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     76          uint8_t uip_ds6_netif_addr_list_offset;
+   \                     uip_ds6_netif_addr_list_offset:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+     77          
+     78          /** @} */
+     79          
+     80          /* "full" (as opposed to pointer) ip address used in this file,  */
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     81          static uip_ipaddr_t loc_fipaddr;
+   \                     loc_fipaddr:
+   \   000000                DS 16
+   \   000010                REQUIRE __INIT_XDATA_Z
+     82          
+     83          /* Pointers used in this file */
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     84          static uip_ds6_addr_t *locaddr;
+   \                     locaddr:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     85          static uip_ds6_maddr_t *locmaddr;
+   \                     locmaddr:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     86          static uip_ds6_aaddr_t *locaaddr;
+   \                     locaaddr:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     87          static uip_ds6_prefix_t *locprefix;
+   \                     locprefix:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     88          
+     89          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     90          void
+     91          uip_ds6_init(void)
+   \                     uip_ds6_init:
+     92          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     93          
+     94            uip_ds6_neighbors_init();
+   \   000005                ; Setup parameters for call to function uip_ds6_neighbors_init
+   \   000005   12....       LCALL   ??uip_ds6_neighbors_init?relay
+     95            uip_ds6_route_init();
+   \   000008                ; Setup parameters for call to function uip_ds6_route_init
+   \   000008   12....       LCALL   ??uip_ds6_route_init?relay
+     96          
+     97            PRINTF("Init of IPv6 data structures\n");
+     98            PRINTF("%u neighbors\n%u default routers\n%u prefixes\n%u routes\n%u unicast addresses\n%u multicast addresses\n%u anycast addresses\n",
+     99               NBR_TABLE_MAX_NEIGHBORS, UIP_DS6_DEFRT_NB, UIP_DS6_PREFIX_NB, UIP_DS6_ROUTE_NB,
+    100               UIP_DS6_ADDR_NB, UIP_DS6_MADDR_NB, UIP_DS6_AADDR_NB);
+    101            memset(uip_ds6_prefix_list, 0, sizeof(uip_ds6_prefix_list));
+   \   00000B                ; Setup parameters for call to function memset
+   \   00000B   75..54       MOV     ?V0 + 0,#0x54
+   \   00000E   75..00       MOV     ?V0 + 1,#0x0
+   \   000011   78..         MOV     R0,#?V0 + 0
+   \   000013   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000016   7C00         MOV     R4,#0x0
+   \   000018   7D00         MOV     R5,#0x0
+   \   00001A   7A..         MOV     R2,#uip_ds6_prefix_list & 0xff
+   \   00001C   7B..         MOV     R3,#(uip_ds6_prefix_list >> 8) & 0xff
+   \   00001E   12....       LCALL   ??memset?relay
+   \   000021   7402         MOV     A,#0x2
+   \   000023   12....       LCALL   ?DEALLOC_XSTACK8
+    102            memset(&uip_ds6_if, 0, sizeof(uip_ds6_if));
+   \   000026                ; Setup parameters for call to function memset
+   \   000026   75..DD       MOV     ?V0 + 0,#-0x23
+   \   000029   75..00       MOV     ?V0 + 1,#0x0
+   \   00002C   78..         MOV     R0,#?V0 + 0
+   \   00002E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000031   7C00         MOV     R4,#0x0
+   \   000033   7D00         MOV     R5,#0x0
+   \   000035   7A..         MOV     R2,#uip_ds6_if & 0xff
+   \   000037   7B..         MOV     R3,#(uip_ds6_if >> 8) & 0xff
+   \   000039   12....       LCALL   ??memset?relay
+   \   00003C   7402         MOV     A,#0x2
+   \   00003E   12....       LCALL   ?DEALLOC_XSTACK8
+    103            uip_ds6_addr_size = sizeof(struct uip_ds6_addr);
+   \   000041   90....       MOV     DPTR,#uip_ds6_addr_size
+   \   000044   741C         MOV     A,#0x1c
+   \   000046   F0           MOVX    @DPTR,A
+    104            uip_ds6_netif_addr_list_offset = offsetof(struct uip_ds6_netif, addr_list);
+   \   000047   90....       MOV     DPTR,#uip_ds6_netif_addr_list_offset
+   \   00004A   7412         MOV     A,#0x12
+   \   00004C   F0           MOVX    @DPTR,A
+    105          
+    106            /* Set interface parameters */
+    107            uip_ds6_if.link_mtu = UIP_LINK_MTU;
+   \   00004D   7C00         MOV     R4,#0x0
+   \   00004F   7D05         MOV     R5,#0x5
+   \   000051   7E00         MOV     R6,#0x0
+   \   000053   7F00         MOV     R7,#0x0
+   \   000055   90....       MOV     DPTR,#uip_ds6_if
+   \   000058   EC           MOV     A,R4
+   \   000059   F0           MOVX    @DPTR,A
+   \   00005A   A3           INC     DPTR
+   \   00005B   ED           MOV     A,R5
+   \   00005C   F0           MOVX    @DPTR,A
+   \   00005D   A3           INC     DPTR
+   \   00005E   EE           MOV     A,R6
+   \   00005F   F0           MOVX    @DPTR,A
+   \   000060   A3           INC     DPTR
+   \   000061   EF           MOV     A,R7
+   \   000062   F0           MOVX    @DPTR,A
+    108            uip_ds6_if.cur_hop_limit = UIP_TTL;
+   \   000063   90....       MOV     DPTR,#uip_ds6_if + 4
+   \   000066   7440         MOV     A,#0x40
+   \   000068   F0           MOVX    @DPTR,A
+    109            uip_ds6_if.base_reachable_time = UIP_ND6_REACHABLE_TIME;
+   \   000069   7CC0         MOV     R4,#-0x40
+   \   00006B   7D27         MOV     R5,#0x27
+   \   00006D   7E09         MOV     R6,#0x9
+   \   00006F   7F00         MOV     R7,#0x0
+   \   000071   90....       MOV     DPTR,#uip_ds6_if + 5
+   \   000074   EC           MOV     A,R4
+   \   000075   F0           MOVX    @DPTR,A
+   \   000076   A3           INC     DPTR
+   \   000077   ED           MOV     A,R5
+   \   000078   F0           MOVX    @DPTR,A
+   \   000079   A3           INC     DPTR
+   \   00007A   EE           MOV     A,R6
+   \   00007B   F0           MOVX    @DPTR,A
+   \   00007C   A3           INC     DPTR
+   \   00007D   EF           MOV     A,R7
+   \   00007E   F0           MOVX    @DPTR,A
+    110            uip_ds6_if.reachable_time = uip_ds6_compute_reachable_time();
+   \   00007F                ; Setup parameters for call to function uip_ds6_compute_reachable_time
+   \   00007F   12....       LCALL   ??uip_ds6_compute_reachable_time?relay
+   \   000082   90....       MOV     DPTR,#uip_ds6_if + 9
+   \   000085   12....       LCALL   ?XSTORE_R2345
+    111            uip_ds6_if.retrans_timer = UIP_ND6_RETRANS_TIMER;
+   \   000088   7C10         MOV     R4,#0x10
+   \   00008A   7D27         MOV     R5,#0x27
+   \   00008C   7E00         MOV     R6,#0x0
+   \   00008E   7F00         MOV     R7,#0x0
+   \   000090   90....       MOV     DPTR,#uip_ds6_if + 13
+   \   000093   EC           MOV     A,R4
+   \   000094   F0           MOVX    @DPTR,A
+   \   000095   A3           INC     DPTR
+   \   000096   ED           MOV     A,R5
+   \   000097   F0           MOVX    @DPTR,A
+   \   000098   A3           INC     DPTR
+   \   000099   EE           MOV     A,R6
+   \   00009A   F0           MOVX    @DPTR,A
+   \   00009B   A3           INC     DPTR
+   \   00009C   EF           MOV     A,R7
+   \   00009D   F0           MOVX    @DPTR,A
+    112            uip_ds6_if.maxdadns = UIP_ND6_DEF_MAXDADNS;
+   \   00009E   90....       MOV     DPTR,#uip_ds6_if + 17
+   \   0000A1   7400         MOV     A,#0x0
+   \   0000A3   F0           MOVX    @DPTR,A
+    113          
+    114            /* Create link local address, prefix, multicast addresses, anycast addresses */
+    115            uip_create_linklocal_prefix(&loc_fipaddr);
+   \   0000A4   90....       MOV     DPTR,#loc_fipaddr
+   \   0000A7   74FE         MOV     A,#-0x2
+   \   0000A9   F0           MOVX    @DPTR,A
+   \   0000AA   A3           INC     DPTR
+   \   0000AB   7480         MOV     A,#-0x80
+   \   0000AD   F0           MOVX    @DPTR,A
+   \   0000AE   90....       MOV     DPTR,#loc_fipaddr + 2
+   \   0000B1   7400         MOV     A,#0x0
+   \   0000B3   F0           MOVX    @DPTR,A
+   \   0000B4   A3           INC     DPTR
+   \   0000B5   7400         MOV     A,#0x0
+   \   0000B7   F0           MOVX    @DPTR,A
+   \   0000B8   90....       MOV     DPTR,#loc_fipaddr + 4
+   \   0000BB   7400         MOV     A,#0x0
+   \   0000BD   F0           MOVX    @DPTR,A
+   \   0000BE   A3           INC     DPTR
+   \   0000BF   7400         MOV     A,#0x0
+   \   0000C1   F0           MOVX    @DPTR,A
+   \   0000C2   90....       MOV     DPTR,#loc_fipaddr + 6
+   \   0000C5   7400         MOV     A,#0x0
+   \   0000C7   F0           MOVX    @DPTR,A
+   \   0000C8   A3           INC     DPTR
+   \   0000C9   7400         MOV     A,#0x0
+   \   0000CB   F0           MOVX    @DPTR,A
+    116          #if UIP_CONF_ROUTER
+    117            uip_ds6_prefix_add(&loc_fipaddr, UIP_DEFAULT_PREFIX_LEN, 0, 0, 0, 0);
+   \   0000CC                ; Setup parameters for call to function uip_ds6_prefix_add
+   \   0000CC   90....       MOV     DPTR,#__Constant_0
+   \   0000CF   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   0000D2   90....       MOV     DPTR,#__Constant_0
+   \   0000D5   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   0000D8   7D00         MOV     R5,#0x0
+   \   0000DA   7C00         MOV     R4,#0x0
+   \   0000DC   7940         MOV     R1,#0x40
+   \   0000DE   7A..         MOV     R2,#loc_fipaddr & 0xff
+   \   0000E0   7B..         MOV     R3,#(loc_fipaddr >> 8) & 0xff
+   \   0000E2   12....       LCALL   ??uip_ds6_prefix_add?relay
+   \   0000E5   7408         MOV     A,#0x8
+   \   0000E7   12....       LCALL   ?DEALLOC_XSTACK8
+    118          #else /* UIP_CONF_ROUTER */
+    119            uip_ds6_prefix_add(&loc_fipaddr, UIP_DEFAULT_PREFIX_LEN, 0);
+    120          #endif /* UIP_CONF_ROUTER */
+    121            uip_ds6_set_addr_iid(&loc_fipaddr, &uip_lladdr);
+   \   0000EA                ; Setup parameters for call to function uip_ds6_set_addr_iid
+   \   0000EA   7C..         MOV     R4,#uip_lladdr & 0xff
+   \   0000EC   7D..         MOV     R5,#(uip_lladdr >> 8) & 0xff
+   \   0000EE   7A..         MOV     R2,#loc_fipaddr & 0xff
+   \   0000F0   7B..         MOV     R3,#(loc_fipaddr >> 8) & 0xff
+   \   0000F2   12....       LCALL   ??uip_ds6_set_addr_iid?relay
+    122            uip_ds6_addr_add(&loc_fipaddr, 0, ADDR_AUTOCONF);
+   \   0000F5                ; Setup parameters for call to function uip_ds6_addr_add
+   \   0000F5   90....       MOV     DPTR,#__Constant_0
+   \   0000F8   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   0000FB   7901         MOV     R1,#0x1
+   \   0000FD   7A..         MOV     R2,#loc_fipaddr & 0xff
+   \   0000FF   7B..         MOV     R3,#(loc_fipaddr >> 8) & 0xff
+   \   000101   12....       LCALL   ??uip_ds6_addr_add?relay
+   \   000104   7404         MOV     A,#0x4
+   \   000106   12....       LCALL   ?DEALLOC_XSTACK8
+    123          
+    124            uip_create_linklocal_allnodes_mcast(&loc_fipaddr);
+   \   000109   90....       MOV     DPTR,#loc_fipaddr
+   \   00010C   74FF         MOV     A,#-0x1
+   \   00010E   F0           MOVX    @DPTR,A
+   \   00010F   A3           INC     DPTR
+   \   000110   7402         MOV     A,#0x2
+   \   000112   F0           MOVX    @DPTR,A
+   \   000113   90....       MOV     DPTR,#loc_fipaddr + 2
+   \   000116   7400         MOV     A,#0x0
+   \   000118   F0           MOVX    @DPTR,A
+   \   000119   A3           INC     DPTR
+   \   00011A   7400         MOV     A,#0x0
+   \   00011C   F0           MOVX    @DPTR,A
+   \   00011D   90....       MOV     DPTR,#loc_fipaddr + 4
+   \   000120   7400         MOV     A,#0x0
+   \   000122   F0           MOVX    @DPTR,A
+   \   000123   A3           INC     DPTR
+   \   000124   7400         MOV     A,#0x0
+   \   000126   F0           MOVX    @DPTR,A
+   \   000127   90....       MOV     DPTR,#loc_fipaddr + 6
+   \   00012A   7400         MOV     A,#0x0
+   \   00012C   F0           MOVX    @DPTR,A
+   \   00012D   A3           INC     DPTR
+   \   00012E   7400         MOV     A,#0x0
+   \   000130   F0           MOVX    @DPTR,A
+   \   000131   90....       MOV     DPTR,#loc_fipaddr + 8
+   \   000134   7400         MOV     A,#0x0
+   \   000136   F0           MOVX    @DPTR,A
+   \   000137   A3           INC     DPTR
+   \   000138   7400         MOV     A,#0x0
+   \   00013A   F0           MOVX    @DPTR,A
+   \   00013B   90....       MOV     DPTR,#loc_fipaddr + 10
+   \   00013E   7400         MOV     A,#0x0
+   \   000140   F0           MOVX    @DPTR,A
+   \   000141   A3           INC     DPTR
+   \   000142   7400         MOV     A,#0x0
+   \   000144   F0           MOVX    @DPTR,A
+   \   000145   90....       MOV     DPTR,#loc_fipaddr + 12
+   \   000148   7400         MOV     A,#0x0
+   \   00014A   F0           MOVX    @DPTR,A
+   \   00014B   A3           INC     DPTR
+   \   00014C   7400         MOV     A,#0x0
+   \   00014E   F0           MOVX    @DPTR,A
+   \   00014F   90....       MOV     DPTR,#loc_fipaddr + 14
+   \   000152   7400         MOV     A,#0x0
+   \   000154   F0           MOVX    @DPTR,A
+   \   000155   A3           INC     DPTR
+   \   000156   7401         MOV     A,#0x1
+   \   000158   F0           MOVX    @DPTR,A
+    125            uip_ds6_maddr_add(&loc_fipaddr);
+   \   000159                ; Setup parameters for call to function uip_ds6_maddr_add
+   \   000159   7A..         MOV     R2,#loc_fipaddr & 0xff
+   \   00015B   7B..         MOV     R3,#(loc_fipaddr >> 8) & 0xff
+   \   00015D   12....       LCALL   ??uip_ds6_maddr_add?relay
+    126          #if UIP_CONF_ROUTER
+    127            uip_create_linklocal_allrouters_mcast(&loc_fipaddr);
+   \   000160   90....       MOV     DPTR,#loc_fipaddr
+   \   000163   74FF         MOV     A,#-0x1
+   \   000165   F0           MOVX    @DPTR,A
+   \   000166   A3           INC     DPTR
+   \   000167   7402         MOV     A,#0x2
+   \   000169   F0           MOVX    @DPTR,A
+   \   00016A   90....       MOV     DPTR,#loc_fipaddr + 2
+   \   00016D   7400         MOV     A,#0x0
+   \   00016F   F0           MOVX    @DPTR,A
+   \   000170   A3           INC     DPTR
+   \   000171   7400         MOV     A,#0x0
+   \   000173   F0           MOVX    @DPTR,A
+   \   000174   90....       MOV     DPTR,#loc_fipaddr + 4
+   \   000177   7400         MOV     A,#0x0
+   \   000179   F0           MOVX    @DPTR,A
+   \   00017A   A3           INC     DPTR
+   \   00017B   7400         MOV     A,#0x0
+   \   00017D   F0           MOVX    @DPTR,A
+   \   00017E   90....       MOV     DPTR,#loc_fipaddr + 6
+   \   000181   7400         MOV     A,#0x0
+   \   000183   F0           MOVX    @DPTR,A
+   \   000184   A3           INC     DPTR
+   \   000185   7400         MOV     A,#0x0
+   \   000187   F0           MOVX    @DPTR,A
+   \   000188   90....       MOV     DPTR,#loc_fipaddr + 8
+   \   00018B   7400         MOV     A,#0x0
+   \   00018D   F0           MOVX    @DPTR,A
+   \   00018E   A3           INC     DPTR
+   \   00018F   7400         MOV     A,#0x0
+   \   000191   F0           MOVX    @DPTR,A
+   \   000192   90....       MOV     DPTR,#loc_fipaddr + 10
+   \   000195   7400         MOV     A,#0x0
+   \   000197   F0           MOVX    @DPTR,A
+   \   000198   A3           INC     DPTR
+   \   000199   7400         MOV     A,#0x0
+   \   00019B   F0           MOVX    @DPTR,A
+   \   00019C   90....       MOV     DPTR,#loc_fipaddr + 12
+   \   00019F   7400         MOV     A,#0x0
+   \   0001A1   F0           MOVX    @DPTR,A
+   \   0001A2   A3           INC     DPTR
+   \   0001A3   7400         MOV     A,#0x0
+   \   0001A5   F0           MOVX    @DPTR,A
+   \   0001A6   90....       MOV     DPTR,#loc_fipaddr + 14
+   \   0001A9   7400         MOV     A,#0x0
+   \   0001AB   F0           MOVX    @DPTR,A
+   \   0001AC   A3           INC     DPTR
+   \   0001AD   7402         MOV     A,#0x2
+   \   0001AF   F0           MOVX    @DPTR,A
+    128            uip_ds6_maddr_add(&loc_fipaddr);
+   \   0001B0                ; Setup parameters for call to function uip_ds6_maddr_add
+   \   0001B0   7A..         MOV     R2,#loc_fipaddr & 0xff
+   \   0001B2   7B..         MOV     R3,#(loc_fipaddr >> 8) & 0xff
+   \   0001B4   12....       LCALL   ??uip_ds6_maddr_add?relay
+    129          #if UIP_ND6_SEND_RA
+    130            stimer_set(&uip_ds6_timer_ra, 2);     /* wait to have a link local IP address */
+    131          #endif /* UIP_ND6_SEND_RA */
+    132          #else /* UIP_CONF_ROUTER */
+    133            etimer_set(&uip_ds6_timer_rs,
+    134                       random_rand() % (UIP_ND6_MAX_RTR_SOLICITATION_DELAY *
+    135                                        CLOCK_SECOND));
+    136          #endif /* UIP_CONF_ROUTER */
+    137            etimer_set(&uip_ds6_timer_periodic, UIP_DS6_PERIOD);
+   \   0001B7                ; Setup parameters for call to function etimer_set
+   \   0001B7   7C0C         MOV     R4,#0xc
+   \   0001B9   7D00         MOV     R5,#0x0
+   \   0001BB   7A..         MOV     R2,#uip_ds6_timer_periodic & 0xff
+   \   0001BD   7B..         MOV     R3,#(uip_ds6_timer_periodic >> 8) & 0xff
+   \   0001BF   12....       LCALL   ??etimer_set?relay
+    138          
+    139            return;
+   \   0001C2   7F02         MOV     R7,#0x2
+   \   0001C4   02....       LJMP    ?BANKED_LEAVE_XDATA
+    140          }
+    141          
+    142          
+    143          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    144          void
+    145          uip_ds6_periodic(void)
+   \                     uip_ds6_periodic:
+    146          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    147          
+    148            /* Periodic processing on unicast addresses */
+    149            for(locaddr = uip_ds6_if.addr_list;
+   \   000005   90....       MOV     DPTR,#locaddr
+   \   000008   74..         MOV     A,#(uip_ds6_if + 18) & 0xff
+   \   00000A   F0           MOVX    @DPTR,A
+   \   00000B   A3           INC     DPTR
+   \   00000C   74..         MOV     A,#((uip_ds6_if + 18) >> 8) & 0xff
+   \   00000E   F0           MOVX    @DPTR,A
+   \   00000F   805A         SJMP    ??uip_ds6_periodic_0
+    150                locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
+    151              if(locaddr->isused) {
+   \                     ??uip_ds6_periodic_1:
+   \   000011   90....       MOV     DPTR,#locaddr
+   \   000014   E0           MOVX    A,@DPTR
+   \   000015   F8           MOV     R0,A
+   \   000016   A3           INC     DPTR
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   F583         MOV     DPH,A
+   \   00001A   8882         MOV     DPL,R0
+   \   00001C   E0           MOVX    A,@DPTR
+   \   00001D   6038         JZ      ??uip_ds6_periodic_2
+    152                if((!locaddr->isinfinite) && (stimer_expired(&locaddr->vlifetime))) {
+   \   00001F   90....       MOV     DPTR,#locaddr
+   \   000022   E0           MOVX    A,@DPTR
+   \   000023   F8           MOV     R0,A
+   \   000024   A3           INC     DPTR
+   \   000025   E0           MOVX    A,@DPTR
+   \   000026   C8           XCH     A,R0
+   \   000027   2413         ADD     A,#0x13
+   \   000029   F582         MOV     DPL,A
+   \   00002B   E8           MOV     A,R0
+   \   00002C   3400         ADDC    A,#0x0
+   \   00002E   F583         MOV     DPH,A
+   \   000030   E0           MOVX    A,@DPTR
+   \   000031   7024         JNZ     ??uip_ds6_periodic_2
+   \   000033                ; Setup parameters for call to function stimer_expired
+   \   000033   90....       MOV     DPTR,#locaddr
+   \   000036   E0           MOVX    A,@DPTR
+   \   000037   2414         ADD     A,#0x14
+   \   000039   FA           MOV     R2,A
+   \   00003A   A3           INC     DPTR
+   \   00003B   E0           MOVX    A,@DPTR
+   \   00003C   3400         ADDC    A,#0x0
+   \   00003E   FB           MOV     R3,A
+   \   00003F   12....       LCALL   ??stimer_expired?relay
+   \   000042   8A..         MOV     ?V0 + 0,R2
+   \   000044   8B..         MOV     ?V0 + 1,R3
+   \   000046   E5..         MOV     A,?V0 + 0
+   \   000048   45..         ORL     A,?V0 + 1
+   \   00004A   600B         JZ      ??uip_ds6_periodic_2
+    153                  uip_ds6_addr_rm(locaddr);
+   \   00004C                ; Setup parameters for call to function uip_ds6_addr_rm
+   \   00004C   90....       MOV     DPTR,#locaddr
+   \   00004F   E0           MOVX    A,@DPTR
+   \   000050   FA           MOV     R2,A
+   \   000051   A3           INC     DPTR
+   \   000052   E0           MOVX    A,@DPTR
+   \   000053   FB           MOV     R3,A
+   \   000054   12....       LCALL   ??uip_ds6_addr_rm?relay
+    154          #if UIP_ND6_DEF_MAXDADNS > 0
+    155                } else if((locaddr->state == ADDR_TENTATIVE)
+    156                          && (locaddr->dadnscount <= uip_ds6_if.maxdadns)
+    157                          && (timer_expired(&locaddr->dadtimer))
+    158                          && (uip_len == 0)) {
+    159                  uip_ds6_dad(locaddr);
+    160          #endif /* UIP_ND6_DEF_MAXDADNS > 0 */
+    161                }
+    162              }
+    163            }
+   \                     ??uip_ds6_periodic_2:
+   \   000057   90....       MOV     DPTR,#locaddr
+   \   00005A   E0           MOVX    A,@DPTR
+   \   00005B   241C         ADD     A,#0x1c
+   \   00005D   F8           MOV     R0,A
+   \   00005E   A3           INC     DPTR
+   \   00005F   E0           MOVX    A,@DPTR
+   \   000060   3400         ADDC    A,#0x0
+   \   000062   F9           MOV     R1,A
+   \   000063   90....       MOV     DPTR,#locaddr
+   \   000066   E8           MOV     A,R0
+   \   000067   F0           MOVX    @DPTR,A
+   \   000068   A3           INC     DPTR
+   \   000069   E9           MOV     A,R1
+   \   00006A   F0           MOVX    @DPTR,A
+   \                     ??uip_ds6_periodic_0:
+   \   00006B   90....       MOV     DPTR,#locaddr
+   \   00006E   C3           CLR     C
+   \   00006F   E0           MOVX    A,@DPTR
+   \   000070   94..         SUBB    A,#(uip_ds6_if + 102) & 0xff
+   \   000072   A3           INC     DPTR
+   \   000073   E0           MOVX    A,@DPTR
+   \   000074   94..         SUBB    A,#((uip_ds6_if + 102) >> 8) & 0xff
+   \   000076   4099         JC      ??uip_ds6_periodic_1
+    164          
+    165            /* Periodic processing on default routers */
+    166            uip_ds6_defrt_periodic();
+   \   000078                ; Setup parameters for call to function uip_ds6_defrt_periodic
+   \   000078   12....       LCALL   ??uip_ds6_defrt_periodic?relay
+    167            /*  for(locdefrt = uip_ds6_defrt_list;
+    168                locdefrt < uip_ds6_defrt_list + UIP_DS6_DEFRT_NB; locdefrt++) {
+    169              if((locdefrt->isused) && (!locdefrt->isinfinite) &&
+    170                 (stimer_expired(&(locdefrt->lifetime)))) {
+    171                uip_ds6_defrt_rm(locdefrt);
+    172              }
+    173              }*/
+    174          
+    175          #if !UIP_CONF_ROUTER
+    176            /* Periodic processing on prefixes */
+    177            for(locprefix = uip_ds6_prefix_list;
+    178                locprefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB;
+    179                locprefix++) {
+    180              if(locprefix->isused && !locprefix->isinfinite
+    181                 && stimer_expired(&(locprefix->vlifetime))) {
+    182                uip_ds6_prefix_rm(locprefix);
+    183              }
+    184            }
+    185          #endif /* !UIP_CONF_ROUTER */
+    186          
+    187            uip_ds6_neighbor_periodic();
+   \   00007B                ; Setup parameters for call to function uip_ds6_neighbor_periodic
+   \   00007B   12....       LCALL   ??uip_ds6_neighbor_periodic?relay
+    188          
+    189          #if UIP_CONF_ROUTER & UIP_ND6_SEND_RA
+    190            /* Periodic RA sending */
+    191            if(stimer_expired(&uip_ds6_timer_ra) && (uip_len == 0)) {
+    192              uip_ds6_send_ra_periodic();
+    193            }
+    194          #endif /* UIP_CONF_ROUTER & UIP_ND6_SEND_RA */
+    195            etimer_reset(&uip_ds6_timer_periodic);
+   \   00007E                ; Setup parameters for call to function etimer_reset
+   \   00007E   7A..         MOV     R2,#uip_ds6_timer_periodic & 0xff
+   \   000080   7B..         MOV     R3,#(uip_ds6_timer_periodic >> 8) & 0xff
+   \   000082   12....       LCALL   ??etimer_reset?relay
+    196            return;
+   \   000085   7F02         MOV     R7,#0x2
+   \   000087   02....       LJMP    ?BANKED_LEAVE_XDATA
+    197          }
+    198          
+    199          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    200          uint8_t
+    201          uip_ds6_list_loop(uip_ds6_element_t *list, uint8_t size,
+   \                     uip_ds6_list_loop:
+    202                            uint16_t elementsize, uip_ipaddr_t *ipaddr,
+    203                            uint8_t ipaddrlen, uip_ds6_element_t **out_element)
+    204          {
+   \   000000   74EC         MOV     A,#-0x14
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 20
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 4,R2
+   \   000007   8B..         MOV     ?V0 + 5,R3
+   \   000009   89..         MOV     ?V0 + 8,R1
+   \   00000B   8C..         MOV     ?V0 + 2,R4
+   \   00000D   8D..         MOV     ?V0 + 3,R5
+   \   00000F   7417         MOV     A,#0x17
+   \   000011   12....       LCALL   ?XSTACK_DISP0_8
+   \   000014   E0           MOVX    A,@DPTR
+   \   000015   F5..         MOV     ?V0 + 0,A
+   \   000017   A3           INC     DPTR
+   \   000018   E0           MOVX    A,@DPTR
+   \   000019   F5..         MOV     ?V0 + 1,A
+    205            uip_ds6_element_t *element;
+    206          
+    207            *out_element = NULL;
+   \   00001B   85..82       MOV     DPL,?V0 + 0
+   \   00001E   85..83       MOV     DPH,?V0 + 1
+   \   000021   7400         MOV     A,#0x0
+   \   000023   F0           MOVX    @DPTR,A
+   \   000024   A3           INC     DPTR
+   \   000025   7400         MOV     A,#0x0
+   \   000027   F0           MOVX    @DPTR,A
+    208          
+    209            for(element = list;
+   \   000028   AE..         MOV     R6,?V0 + 4
+   \   00002A   AF..         MOV     R7,?V0 + 5
+   \   00002C   7414         MOV     A,#0x14
+   \   00002E   12....       LCALL   ?XSTACK_DISP0_8
+   \   000031   E0           MOVX    A,@DPTR
+   \   000032   F5..         MOV     ?V0 + 6,A
+   \   000034   A3           INC     DPTR
+   \   000035   E0           MOVX    A,@DPTR
+   \   000036   F5..         MOV     ?V0 + 7,A
+   \   000038   7416         MOV     A,#0x16
+   \   00003A   12....       LCALL   ?XSTACK_DISP0_8
+   \   00003D   E0           MOVX    A,@DPTR
+   \   00003E   F5..         MOV     ?V0 + 9,A
+   \   000040   8013         SJMP    ??uip_ds6_list_loop_0
+    210                element <
+    211                (uip_ds6_element_t *)((uint8_t *)list + (size * elementsize));
+    212                element = (uip_ds6_element_t *)((uint8_t *)element + elementsize)) {
+    213              if(element->isused) {
+    214                if(uip_ipaddr_prefixcmp(&element->ipaddr, ipaddr, ipaddrlen)) {
+    215                  *out_element = element;
+    216                  return FOUND;
+    217                }
+    218              } else {
+    219                *out_element = element;
+   \                     ??uip_ds6_list_loop_1:
+   \   000042   85..82       MOV     DPL,?V0 + 0
+   \   000045   85..83       MOV     DPH,?V0 + 1
+   \   000048   EE           MOV     A,R6
+   \   000049   F0           MOVX    @DPTR,A
+   \   00004A   A3           INC     DPTR
+   \   00004B   EF           MOV     A,R7
+   \   00004C   F0           MOVX    @DPTR,A
+    220              }
+   \                     ??uip_ds6_list_loop_2:
+   \   00004D   EE           MOV     A,R6
+   \   00004E   25..         ADD     A,?V0 + 2
+   \   000050   FE           MOV     R6,A
+   \   000051   EF           MOV     A,R7
+   \   000052   35..         ADDC    A,?V0 + 3
+   \   000054   FF           MOV     R7,A
+   \                     ??uip_ds6_list_loop_0:
+   \   000055   85....       MOV     ?V0 + 10,?V0 + 8
+   \   000058   75..00       MOV     ?V0 + 11,#0x0
+   \   00005B   A8..         MOV     R0,?V0 + 2
+   \   00005D   A9..         MOV     R1,?V0 + 3
+   \   00005F   E8           MOV     A,R0
+   \   000060   85..F0       MOV     B,?V0 + 10
+   \   000063   A4           MUL     AB
+   \   000064   C8           XCH     A,R0
+   \   000065   AAF0         MOV     R2,B
+   \   000067   85..F0       MOV     B,?V0 + 11
+   \   00006A   A4           MUL     AB
+   \   00006B   2A           ADD     A,R2
+   \   00006C   FA           MOV     R2,A
+   \   00006D   85..F0       MOV     B,?V0 + 10
+   \   000070   E5..         MOV     A,?V0 + 3
+   \   000072   A4           MUL     AB
+   \   000073   2A           ADD     A,R2
+   \   000074   F9           MOV     R1,A
+   \   000075   E5..         MOV     A,?V0 + 4
+   \   000077   28           ADD     A,R0
+   \   000078   F8           MOV     R0,A
+   \   000079   E5..         MOV     A,?V0 + 5
+   \   00007B   39           ADDC    A,R1
+   \   00007C   F9           MOV     R1,A
+   \   00007D   C3           CLR     C
+   \   00007E   EE           MOV     A,R6
+   \   00007F   98           SUBB    A,R0
+   \   000080   EF           MOV     A,R7
+   \   000081   99           SUBB    A,R1
+   \   000082   5046         JNC     ??uip_ds6_list_loop_3
+   \   000084   8E82         MOV     DPL,R6
+   \   000086   8F83         MOV     DPH,R7
+   \   000088   E0           MOVX    A,@DPTR
+   \   000089   60B7         JZ      ??uip_ds6_list_loop_1
+   \   00008B                ; Setup parameters for call to function memcmp
+   \   00008B   E5..         MOV     A,?V0 + 9
+   \   00008D   13           RRC     A
+   \   00008E   13           RRC     A
+   \   00008F   13           RRC     A
+   \   000090   541F         ANL     A,#0x1f
+   \   000092   F5..         MOV     ?V0 + 10,A
+   \   000094   75..00       MOV     ?V0 + 11,#0x0
+   \   000097   78..         MOV     R0,#?V0 + 10
+   \   000099   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00009C   AC..         MOV     R4,?V0 + 6
+   \   00009E   AD..         MOV     R5,?V0 + 7
+   \   0000A0   8E82         MOV     DPL,R6
+   \   0000A2   8F83         MOV     DPH,R7
+   \   0000A4   A3           INC     DPTR
+   \   0000A5   AA82         MOV     R2,DPL
+   \   0000A7   AB83         MOV     R3,DPH
+   \   0000A9   12....       LCALL   ??memcmp?relay
+   \   0000AC   7402         MOV     A,#0x2
+   \   0000AE   12....       LCALL   ?DEALLOC_XSTACK8
+   \   0000B1   8A..         MOV     ?V0 + 10,R2
+   \   0000B3   8B..         MOV     ?V0 + 11,R3
+   \   0000B5   E5..         MOV     A,?V0 + 10
+   \   0000B7   45..         ORL     A,?V0 + 11
+   \   0000B9   7092         JNZ     ??uip_ds6_list_loop_2
+   \   0000BB   85..82       MOV     DPL,?V0 + 0
+   \   0000BE   85..83       MOV     DPH,?V0 + 1
+   \   0000C1   EE           MOV     A,R6
+   \   0000C2   F0           MOVX    @DPTR,A
+   \   0000C3   A3           INC     DPTR
+   \   0000C4   EF           MOV     A,R7
+   \   0000C5   F0           MOVX    @DPTR,A
+   \   0000C6   7900         MOV     R1,#0x0
+   \   0000C8   8015         SJMP    ??uip_ds6_list_loop_4
+    221            }
+    222          
+    223            return *out_element != NULL ? FREESPACE : NOSPACE;
+   \                     ??uip_ds6_list_loop_3:
+   \   0000CA   85..82       MOV     DPL,?V0 + 0
+   \   0000CD   85..83       MOV     DPH,?V0 + 1
+   \   0000D0   E0           MOVX    A,@DPTR
+   \   0000D1   F8           MOV     R0,A
+   \   0000D2   A3           INC     DPTR
+   \   0000D3   E0           MOVX    A,@DPTR
+   \   0000D4   F9           MOV     R1,A
+   \   0000D5   E8           MOV     A,R0
+   \   0000D6   49           ORL     A,R1
+   \   0000D7   6004         JZ      ??uip_ds6_list_loop_5
+   \   0000D9   7901         MOV     R1,#0x1
+   \   0000DB   8002         SJMP    ??uip_ds6_list_loop_4
+   \                     ??uip_ds6_list_loop_5:
+   \   0000DD   7902         MOV     R1,#0x2
+   \                     ??uip_ds6_list_loop_4:
+   \   0000DF   7F0C         MOV     R7,#0xc
+   \   0000E1   02....       LJMP    ?BANKED_LEAVE_XDATA
+    224          }
+    225          
+    226          /*---------------------------------------------------------------------------*/
+    227          #if UIP_CONF_ROUTER
+    228          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    229          uip_ds6_prefix_t *
+    230          uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
+   \                     uip_ds6_prefix_add:
+    231                             uint8_t advertise, uint8_t flags, unsigned long vtime,
+    232                             unsigned long ptime)
+    233          {
+   \   000000   74EA         MOV     A,#-0x16
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 22
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 12,R2
+   \   000007   8B..         MOV     ?V0 + 13,R3
+   \   000009   E9           MOV     A,R1
+   \   00000A   FE           MOV     R6,A
+   \   00000B   8C..         MOV     ?V0 + 8,R4
+   \   00000D   ED           MOV     A,R5
+   \   00000E   FF           MOV     R7,A
+   \   00000F   7416         MOV     A,#0x16
+   \   000011   12....       LCALL   ?XSTACK_DISP0_8
+   \   000014   78..         MOV     R0,#?V0 + 4
+   \   000016   12....       LCALL   ?L_MOV_X
+   \   000019   741A         MOV     A,#0x1a
+   \   00001B   12....       LCALL   ?XSTACK_DISP0_8
+   \   00001E   78..         MOV     R0,#?V0 + 0
+   \   000020   12....       LCALL   ?L_MOV_X
+    234            if(uip_ds6_list_loop
+    235               ((uip_ds6_element_t *)uip_ds6_prefix_list, UIP_DS6_PREFIX_NB,
+    236                sizeof(uip_ds6_prefix_t), ipaddr, ipaddrlen,
+    237                (uip_ds6_element_t **)&locprefix) == FREESPACE) {
+   \   000023                ; Setup parameters for call to function uip_ds6_list_loop
+   \   000023   75....       MOV     ?V0 + 10,#locprefix & 0xff
+   \   000026   75....       MOV     ?V0 + 11,#(locprefix >> 8) & 0xff
+   \   000029   78..         MOV     R0,#?V0 + 10
+   \   00002B   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00002E   EE           MOV     A,R6
+   \   00002F   F5..         MOV     ?V0 + 9,A
+   \   000031   78..         MOV     R0,#?V0 + 9
+   \   000033   12....       LCALL   ?PUSH_XSTACK_I_ONE
+   \   000036   78..         MOV     R0,#?V0 + 12
+   \   000038   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00003B   7C1C         MOV     R4,#0x1c
+   \   00003D   7D00         MOV     R5,#0x0
+   \   00003F   7903         MOV     R1,#0x3
+   \   000041   7A..         MOV     R2,#uip_ds6_prefix_list & 0xff
+   \   000043   7B..         MOV     R3,#(uip_ds6_prefix_list >> 8) & 0xff
+   \   000045   12....       LCALL   ??uip_ds6_list_loop?relay
+   \   000048   7405         MOV     A,#0x5
+   \   00004A   12....       LCALL   ?DEALLOC_XSTACK8
+   \   00004D   E9           MOV     A,R1
+   \   00004E   6401         XRL     A,#0x1
+   \   000050   6003         JZ      $+5
+   \   000052   02....       LJMP    ??uip_ds6_prefix_add_0 & 0xFFFF
+    238              locprefix->isused = 1;
+   \   000055   90....       MOV     DPTR,#locprefix
+   \   000058   E0           MOVX    A,@DPTR
+   \   000059   F8           MOV     R0,A
+   \   00005A   A3           INC     DPTR
+   \   00005B   E0           MOVX    A,@DPTR
+   \   00005C   F583         MOV     DPH,A
+   \   00005E   8882         MOV     DPL,R0
+   \   000060   7401         MOV     A,#0x1
+   \   000062   F0           MOVX    @DPTR,A
+    239              uip_ipaddr_copy(&locprefix->ipaddr, ipaddr);
+   \   000063                ; Setup parameters for call to function memcpy
+   \   000063   75..10       MOV     ?V0 + 10,#0x10
+   \   000066   75..00       MOV     ?V0 + 11,#0x0
+   \   000069   78..         MOV     R0,#?V0 + 10
+   \   00006B   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00006E   AC..         MOV     R4,?V0 + 12
+   \   000070   AD..         MOV     R5,?V0 + 13
+   \   000072   90....       MOV     DPTR,#locprefix
+   \   000075   E0           MOVX    A,@DPTR
+   \   000076   2401         ADD     A,#0x1
+   \   000078   FA           MOV     R2,A
+   \   000079   A3           INC     DPTR
+   \   00007A   E0           MOVX    A,@DPTR
+   \   00007B   3400         ADDC    A,#0x0
+   \   00007D   FB           MOV     R3,A
+   \   00007E   12....       LCALL   ??memcpy?relay
+   \   000081   7402         MOV     A,#0x2
+   \   000083   12....       LCALL   ?DEALLOC_XSTACK8
+    240              locprefix->length = ipaddrlen;
+   \   000086   EE           MOV     A,R6
+   \   000087   C0E0         PUSH    A
+   \   000089   90....       MOV     DPTR,#locprefix
+   \   00008C   E0           MOVX    A,@DPTR
+   \   00008D   F8           MOV     R0,A
+   \   00008E   A3           INC     DPTR
+   \   00008F   E0           MOVX    A,@DPTR
+   \   000090   C8           XCH     A,R0
+   \   000091   2411         ADD     A,#0x11
+   \   000093   F582         MOV     DPL,A
+   \   000095   E8           MOV     A,R0
+   \   000096   3400         ADDC    A,#0x0
+   \   000098   F583         MOV     DPH,A
+   \   00009A   D0E0         POP     A
+   \   00009C   F0           MOVX    @DPTR,A
+    241              locprefix->advertise = advertise;
+   \   00009D   E5..         MOV     A,?V0 + 8
+   \   00009F   90....       MOV     DPTR,#locprefix
+   \   0000A2   E0           MOVX    A,@DPTR
+   \   0000A3   F8           MOV     R0,A
+   \   0000A4   A3           INC     DPTR
+   \   0000A5   E0           MOVX    A,@DPTR
+   \   0000A6   C8           XCH     A,R0
+   \   0000A7   2412         ADD     A,#0x12
+   \   0000A9   F582         MOV     DPL,A
+   \   0000AB   E8           MOV     A,R0
+   \   0000AC   3400         ADDC    A,#0x0
+   \   0000AE   F583         MOV     DPH,A
+   \   0000B0   E5..         MOV     A,?V0 + 8
+   \   0000B2   F0           MOVX    @DPTR,A
+    242              locprefix->l_a_reserved = flags;
+   \   0000B3   EF           MOV     A,R7
+   \   0000B4   C0E0         PUSH    A
+   \   0000B6   90....       MOV     DPTR,#locprefix
+   \   0000B9   E0           MOVX    A,@DPTR
+   \   0000BA   F8           MOV     R0,A
+   \   0000BB   A3           INC     DPTR
+   \   0000BC   E0           MOVX    A,@DPTR
+   \   0000BD   C8           XCH     A,R0
+   \   0000BE   241B         ADD     A,#0x1b
+   \   0000C0   F582         MOV     DPL,A
+   \   0000C2   E8           MOV     A,R0
+   \   0000C3   3400         ADDC    A,#0x0
+   \   0000C5   F583         MOV     DPH,A
+   \   0000C7   D0E0         POP     A
+   \   0000C9   F0           MOVX    @DPTR,A
+    243              locprefix->vlifetime = vtime;
+   \   0000CA   90....       MOV     DPTR,#locprefix
+   \   0000CD   E0           MOVX    A,@DPTR
+   \   0000CE   F8           MOV     R0,A
+   \   0000CF   A3           INC     DPTR
+   \   0000D0   E0           MOVX    A,@DPTR
+   \   0000D1   C8           XCH     A,R0
+   \   0000D2   2413         ADD     A,#0x13
+   \   0000D4   F582         MOV     DPL,A
+   \   0000D6   E8           MOV     A,R0
+   \   0000D7   3400         ADDC    A,#0x0
+   \   0000D9   F583         MOV     DPH,A
+   \   0000DB   78..         MOV     R0,#?V0 + 4
+   \   0000DD   12....       LCALL   ?L_MOV_TO_X
+    244              locprefix->plifetime = ptime;
+   \   0000E0   90....       MOV     DPTR,#locprefix
+   \   0000E3   E0           MOVX    A,@DPTR
+   \   0000E4   F8           MOV     R0,A
+   \   0000E5   A3           INC     DPTR
+   \   0000E6   E0           MOVX    A,@DPTR
+   \   0000E7   C8           XCH     A,R0
+   \   0000E8   2417         ADD     A,#0x17
+   \   0000EA   F582         MOV     DPL,A
+   \   0000EC   E8           MOV     A,R0
+   \   0000ED   3400         ADDC    A,#0x0
+   \   0000EF   F583         MOV     DPH,A
+   \   0000F1   78..         MOV     R0,#?V0 + 0
+   \   0000F3   12....       LCALL   ?L_MOV_TO_X
+    245              PRINTF("Adding prefix ");
+    246              PRINT6ADDR(&locprefix->ipaddr);
+    247              PRINTF("length %u, flags %x, Valid lifetime %lx, Preffered lifetime %lx\n",
+    248                 ipaddrlen, flags, vtime, ptime);
+    249              return locprefix;
+   \   0000F6   90....       MOV     DPTR,#locprefix
+   \   0000F9   E0           MOVX    A,@DPTR
+   \   0000FA   FA           MOV     R2,A
+   \   0000FB   A3           INC     DPTR
+   \   0000FC   E0           MOVX    A,@DPTR
+   \   0000FD   FB           MOV     R3,A
+   \   0000FE   8004         SJMP    ??uip_ds6_prefix_add_1
+    250            } else {
+    251              PRINTF("No more space in Prefix list\n");
+    252            }
+    253            return NULL;
+   \                     ??uip_ds6_prefix_add_0:
+   \   000100   7A00         MOV     R2,#0x0
+   \   000102   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_prefix_add_1:
+   \   000104   7F0E         MOV     R7,#0xe
+   \   000106   02....       LJMP    ?BANKED_LEAVE_XDATA
+    254          }
+    255          
+    256          
+    257          #else /* UIP_CONF_ROUTER */
+    258          uip_ds6_prefix_t *
+    259          uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
+    260                             unsigned long interval)
+    261          {
+    262            if(uip_ds6_list_loop
+    263               ((uip_ds6_element_t *)uip_ds6_prefix_list, UIP_DS6_PREFIX_NB,
+    264                sizeof(uip_ds6_prefix_t), ipaddr, ipaddrlen,
+    265                (uip_ds6_element_t **)&locprefix) == FREESPACE) {
+    266              locprefix->isused = 1;
+    267              uip_ipaddr_copy(&locprefix->ipaddr, ipaddr);
+    268              locprefix->length = ipaddrlen;
+    269              if(interval != 0) {
+    270                stimer_set(&(locprefix->vlifetime), interval);
+    271                locprefix->isinfinite = 0;
+    272              } else {
+    273                locprefix->isinfinite = 1;
+    274              }
+    275              PRINTF("Adding prefix ");
+    276              PRINT6ADDR(&locprefix->ipaddr);
+    277              PRINTF("length %u, vlifetime%lu\n", ipaddrlen, interval);
+    278            }
+    279            return NULL;
+    280          }
+    281          #endif /* UIP_CONF_ROUTER */
+    282          
+    283          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    284          void
+    285          uip_ds6_prefix_rm(uip_ds6_prefix_t *prefix)
+   \                     uip_ds6_prefix_rm:
+    286          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    287            if(prefix != NULL) {
+   \   000004   EA           MOV     A,R2
+   \   000005   4B           ORL     A,R3
+   \   000006   6007         JZ      ??uip_ds6_prefix_rm_0
+    288              prefix->isused = 0;
+   \   000008   8A82         MOV     DPL,R2
+   \   00000A   8B83         MOV     DPH,R3
+   \   00000C   7400         MOV     A,#0x0
+   \   00000E   F0           MOVX    @DPTR,A
+    289            }
+    290            return;
+   \                     ??uip_ds6_prefix_rm_0:
+   \   00000F   D083         POP     DPH
+   \   000011   D082         POP     DPL
+   \   000013   02....       LJMP    ?BRET
+    291          }
+    292          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    293          uip_ds6_prefix_t *
+    294          uip_ds6_prefix_lookup(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen)
+   \                     uip_ds6_prefix_lookup:
+    295          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   E9           MOV     A,R1
+   \   000006   FE           MOV     R6,A
+    296            if(uip_ds6_list_loop((uip_ds6_element_t *)uip_ds6_prefix_list,
+    297          		       UIP_DS6_PREFIX_NB, sizeof(uip_ds6_prefix_t),
+    298          		       ipaddr, ipaddrlen,
+    299          		       (uip_ds6_element_t **)&locprefix) == FOUND) {
+   \   000007                ; Setup parameters for call to function uip_ds6_list_loop
+   \   000007   75....       MOV     ?V0 + 0,#locprefix & 0xff
+   \   00000A   75....       MOV     ?V0 + 1,#(locprefix >> 8) & 0xff
+   \   00000D   78..         MOV     R0,#?V0 + 0
+   \   00000F   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000012   EE           MOV     A,R6
+   \   000013   F5..         MOV     ?V0 + 0,A
+   \   000015   78..         MOV     R0,#?V0 + 0
+   \   000017   12....       LCALL   ?PUSH_XSTACK_I_ONE
+   \   00001A   8A..         MOV     ?V0 + 0,R2
+   \   00001C   8B..         MOV     ?V0 + 1,R3
+   \   00001E   78..         MOV     R0,#?V0 + 0
+   \   000020   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000023   7C1C         MOV     R4,#0x1c
+   \   000025   7D00         MOV     R5,#0x0
+   \   000027   7903         MOV     R1,#0x3
+   \   000029   7A..         MOV     R2,#uip_ds6_prefix_list & 0xff
+   \   00002B   7B..         MOV     R3,#(uip_ds6_prefix_list >> 8) & 0xff
+   \   00002D   12....       LCALL   ??uip_ds6_list_loop?relay
+   \   000030   7405         MOV     A,#0x5
+   \   000032   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000035   E9           MOV     A,R1
+   \   000036   700A         JNZ     ??uip_ds6_prefix_lookup_0
+    300              return locprefix;
+   \   000038   90....       MOV     DPTR,#locprefix
+   \   00003B   E0           MOVX    A,@DPTR
+   \   00003C   FA           MOV     R2,A
+   \   00003D   A3           INC     DPTR
+   \   00003E   E0           MOVX    A,@DPTR
+   \   00003F   FB           MOV     R3,A
+   \   000040   8004         SJMP    ??uip_ds6_prefix_lookup_1
+    301            }
+    302            return NULL;
+   \                     ??uip_ds6_prefix_lookup_0:
+   \   000042   7A00         MOV     R2,#0x0
+   \   000044   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_prefix_lookup_1:
+   \   000046   7F02         MOV     R7,#0x2
+   \   000048   02....       LJMP    ?BANKED_LEAVE_XDATA
+    303          }
+    304          
+    305          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    306          uint8_t
+    307          uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr)
+   \                     uip_ds6_is_addr_onlink:
+    308          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    309            for(locprefix = uip_ds6_prefix_list;
+   \   000009   90....       MOV     DPTR,#locprefix
+   \   00000C   74..         MOV     A,#uip_ds6_prefix_list & 0xff
+   \   00000E   F0           MOVX    @DPTR,A
+   \   00000F   A3           INC     DPTR
+   \   000010   74..         MOV     A,#(uip_ds6_prefix_list >> 8) & 0xff
+   \   000012   F0           MOVX    @DPTR,A
+   \   000013   8014         SJMP    ??uip_ds6_is_addr_onlink_0
+    310                locprefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB; locprefix++) {
+   \                     ??uip_ds6_is_addr_onlink_1:
+   \   000015   90....       MOV     DPTR,#locprefix
+   \   000018   E0           MOVX    A,@DPTR
+   \   000019   241C         ADD     A,#0x1c
+   \   00001B   F8           MOV     R0,A
+   \   00001C   A3           INC     DPTR
+   \   00001D   E0           MOVX    A,@DPTR
+   \   00001E   3400         ADDC    A,#0x0
+   \   000020   F9           MOV     R1,A
+   \   000021   90....       MOV     DPTR,#locprefix
+   \   000024   E8           MOV     A,R0
+   \   000025   F0           MOVX    @DPTR,A
+   \   000026   A3           INC     DPTR
+   \   000027   E9           MOV     A,R1
+   \   000028   F0           MOVX    @DPTR,A
+   \                     ??uip_ds6_is_addr_onlink_0:
+   \   000029   90....       MOV     DPTR,#locprefix
+   \   00002C   C3           CLR     C
+   \   00002D   E0           MOVX    A,@DPTR
+   \   00002E   94..         SUBB    A,#(uip_ds6_prefix_list + 84) & 0xff
+   \   000030   A3           INC     DPTR
+   \   000031   E0           MOVX    A,@DPTR
+   \   000032   94..         SUBB    A,#((uip_ds6_prefix_list + 84) >> 8) & 0xff
+   \   000034   5055         JNC     ??uip_ds6_is_addr_onlink_2
+    311              if(locprefix->isused &&
+    312                 uip_ipaddr_prefixcmp(&locprefix->ipaddr, ipaddr, locprefix->length)) {
+   \   000036   90....       MOV     DPTR,#locprefix
+   \   000039   E0           MOVX    A,@DPTR
+   \   00003A   F8           MOV     R0,A
+   \   00003B   A3           INC     DPTR
+   \   00003C   E0           MOVX    A,@DPTR
+   \   00003D   F583         MOV     DPH,A
+   \   00003F   8882         MOV     DPL,R0
+   \   000041   E0           MOVX    A,@DPTR
+   \   000042   60D1         JZ      ??uip_ds6_is_addr_onlink_1
+   \   000044                ; Setup parameters for call to function memcmp
+   \   000044   90....       MOV     DPTR,#locprefix
+   \   000047   E0           MOVX    A,@DPTR
+   \   000048   F8           MOV     R0,A
+   \   000049   A3           INC     DPTR
+   \   00004A   E0           MOVX    A,@DPTR
+   \   00004B   C8           XCH     A,R0
+   \   00004C   2411         ADD     A,#0x11
+   \   00004E   F582         MOV     DPL,A
+   \   000050   E8           MOV     A,R0
+   \   000051   3400         ADDC    A,#0x0
+   \   000053   F583         MOV     DPH,A
+   \   000055   E0           MOVX    A,@DPTR
+   \   000056   13           RRC     A
+   \   000057   13           RRC     A
+   \   000058   13           RRC     A
+   \   000059   541F         ANL     A,#0x1f
+   \   00005B   F5..         MOV     ?V0 + 0,A
+   \   00005D   75..00       MOV     ?V0 + 1,#0x0
+   \   000060   78..         MOV     R0,#?V0 + 0
+   \   000062   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000065   EE           MOV     A,R6
+   \   000066   FC           MOV     R4,A
+   \   000067   EF           MOV     A,R7
+   \   000068   FD           MOV     R5,A
+   \   000069   90....       MOV     DPTR,#locprefix
+   \   00006C   E0           MOVX    A,@DPTR
+   \   00006D   2401         ADD     A,#0x1
+   \   00006F   FA           MOV     R2,A
+   \   000070   A3           INC     DPTR
+   \   000071   E0           MOVX    A,@DPTR
+   \   000072   3400         ADDC    A,#0x0
+   \   000074   FB           MOV     R3,A
+   \   000075   12....       LCALL   ??memcmp?relay
+   \   000078   7402         MOV     A,#0x2
+   \   00007A   12....       LCALL   ?DEALLOC_XSTACK8
+   \   00007D   8A..         MOV     ?V0 + 0,R2
+   \   00007F   8B..         MOV     ?V0 + 1,R3
+   \   000081   E5..         MOV     A,?V0 + 0
+   \   000083   45..         ORL     A,?V0 + 1
+   \   000085   708E         JNZ     ??uip_ds6_is_addr_onlink_1
+    313                return 1;
+   \   000087   7901         MOV     R1,#0x1
+   \   000089   8002         SJMP    ??uip_ds6_is_addr_onlink_3
+    314              }
+    315            }
+    316            return 0;
+   \                     ??uip_ds6_is_addr_onlink_2:
+   \   00008B   7900         MOV     R1,#0x0
+   \                     ??uip_ds6_is_addr_onlink_3:
+   \   00008D   7F02         MOV     R7,#0x2
+   \   00008F   02....       LJMP    ?BANKED_LEAVE_XDATA
+    317          }
+    318          
+    319          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    320          uip_ds6_addr_t *
+    321          uip_ds6_addr_add(uip_ipaddr_t *ipaddr, unsigned long vlifetime, uint8_t type)
+   \                     uip_ds6_addr_add:
+    322          {
+   \   000000   74F0         MOV     A,#-0x10
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 16
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   E9           MOV     A,R1
+   \   00000A   FE           MOV     R6,A
+    323            if(uip_ds6_list_loop
+    324               ((uip_ds6_element_t *)uip_ds6_if.addr_list, UIP_DS6_ADDR_NB,
+    325                sizeof(uip_ds6_addr_t), ipaddr, 128,
+    326                (uip_ds6_element_t **)&locaddr) == FREESPACE) {
+   \   00000B                ; Setup parameters for call to function uip_ds6_list_loop
+   \   00000B   75....       MOV     ?V0 + 2,#locaddr & 0xff
+   \   00000E   75....       MOV     ?V0 + 3,#(locaddr >> 8) & 0xff
+   \   000011   78..         MOV     R0,#?V0 + 2
+   \   000013   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000016   75..80       MOV     ?V0 + 2,#-0x80
+   \   000019   78..         MOV     R0,#?V0 + 2
+   \   00001B   12....       LCALL   ?PUSH_XSTACK_I_ONE
+   \   00001E   78..         MOV     R0,#?V0 + 0
+   \   000020   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000023   7C1C         MOV     R4,#0x1c
+   \   000025   7D00         MOV     R5,#0x0
+   \   000027   7903         MOV     R1,#0x3
+   \   000029   7A..         MOV     R2,#(uip_ds6_if + 18) & 0xff
+   \   00002B   7B..         MOV     R3,#((uip_ds6_if + 18) >> 8) & 0xff
+   \   00002D   12....       LCALL   ??uip_ds6_list_loop?relay
+   \   000030   7405         MOV     A,#0x5
+   \   000032   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000035   E9           MOV     A,R1
+   \   000036   6401         XRL     A,#0x1
+   \   000038   6003         JZ      $+5
+   \   00003A   02....       LJMP    ??uip_ds6_addr_add_0 & 0xFFFF
+    327              locaddr->isused = 1;
+   \   00003D   90....       MOV     DPTR,#locaddr
+   \   000040   E0           MOVX    A,@DPTR
+   \   000041   F8           MOV     R0,A
+   \   000042   A3           INC     DPTR
+   \   000043   E0           MOVX    A,@DPTR
+   \   000044   F583         MOV     DPH,A
+   \   000046   8882         MOV     DPL,R0
+   \   000048   7401         MOV     A,#0x1
+   \   00004A   F0           MOVX    @DPTR,A
+    328              uip_ipaddr_copy(&locaddr->ipaddr, ipaddr);
+   \   00004B                ; Setup parameters for call to function memcpy
+   \   00004B   75..10       MOV     ?V0 + 2,#0x10
+   \   00004E   75..00       MOV     ?V0 + 3,#0x0
+   \   000051   78..         MOV     R0,#?V0 + 2
+   \   000053   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000056   AC..         MOV     R4,?V0 + 0
+   \   000058   AD..         MOV     R5,?V0 + 1
+   \   00005A   90....       MOV     DPTR,#locaddr
+   \   00005D   E0           MOVX    A,@DPTR
+   \   00005E   2401         ADD     A,#0x1
+   \   000060   FA           MOV     R2,A
+   \   000061   A3           INC     DPTR
+   \   000062   E0           MOVX    A,@DPTR
+   \   000063   3400         ADDC    A,#0x0
+   \   000065   FB           MOV     R3,A
+   \   000066   12....       LCALL   ??memcpy?relay
+   \   000069   7402         MOV     A,#0x2
+   \   00006B   12....       LCALL   ?DEALLOC_XSTACK8
+    329              locaddr->type = type;
+   \   00006E   EE           MOV     A,R6
+   \   00006F   C0E0         PUSH    A
+   \   000071   90....       MOV     DPTR,#locaddr
+   \   000074   E0           MOVX    A,@DPTR
+   \   000075   F8           MOV     R0,A
+   \   000076   A3           INC     DPTR
+   \   000077   E0           MOVX    A,@DPTR
+   \   000078   C8           XCH     A,R0
+   \   000079   2412         ADD     A,#0x12
+   \   00007B   F582         MOV     DPL,A
+   \   00007D   E8           MOV     A,R0
+   \   00007E   3400         ADDC    A,#0x0
+   \   000080   F583         MOV     DPH,A
+   \   000082   D0E0         POP     A
+   \   000084   F0           MOVX    @DPTR,A
+   \   000085   7410         MOV     A,#0x10
+   \   000087   12....       LCALL   ?XSTACK_DISP0_8
+   \   00008A   78..         MOV     R0,#?V0 + 4
+   \   00008C   12....       LCALL   ?L_MOV_X
+    330              if(vlifetime == 0) {
+   \   00008F   E5..         MOV     A,?V0 + 4
+   \   000091   45..         ORL     A,?V0 + 5
+   \   000093   45..         ORL     A,?V0 + 6
+   \   000095   45..         ORL     A,?V0 + 7
+   \   000097   7016         JNZ     ??uip_ds6_addr_add_1
+    331                locaddr->isinfinite = 1;
+   \   000099   90....       MOV     DPTR,#locaddr
+   \   00009C   E0           MOVX    A,@DPTR
+   \   00009D   F8           MOV     R0,A
+   \   00009E   A3           INC     DPTR
+   \   00009F   E0           MOVX    A,@DPTR
+   \   0000A0   C8           XCH     A,R0
+   \   0000A1   2413         ADD     A,#0x13
+   \   0000A3   F582         MOV     DPL,A
+   \   0000A5   E8           MOV     A,R0
+   \   0000A6   3400         ADDC    A,#0x0
+   \   0000A8   F583         MOV     DPH,A
+   \   0000AA   7401         MOV     A,#0x1
+   \   0000AC   F0           MOVX    @DPTR,A
+   \   0000AD   802D         SJMP    ??uip_ds6_addr_add_2
+    332              } else {
+    333                locaddr->isinfinite = 0;
+   \                     ??uip_ds6_addr_add_1:
+   \   0000AF   90....       MOV     DPTR,#locaddr
+   \   0000B2   E0           MOVX    A,@DPTR
+   \   0000B3   F8           MOV     R0,A
+   \   0000B4   A3           INC     DPTR
+   \   0000B5   E0           MOVX    A,@DPTR
+   \   0000B6   C8           XCH     A,R0
+   \   0000B7   2413         ADD     A,#0x13
+   \   0000B9   F582         MOV     DPL,A
+   \   0000BB   E8           MOV     A,R0
+   \   0000BC   3400         ADDC    A,#0x0
+   \   0000BE   F583         MOV     DPH,A
+   \   0000C0   7400         MOV     A,#0x0
+   \   0000C2   F0           MOVX    @DPTR,A
+    334                stimer_set(&(locaddr->vlifetime), vlifetime);
+   \   0000C3                ; Setup parameters for call to function stimer_set
+   \   0000C3   78..         MOV     R0,#?V0 + 4
+   \   0000C5   12....       LCALL   ?PUSH_XSTACK_I_FOUR
+   \   0000C8   90....       MOV     DPTR,#locaddr
+   \   0000CB   E0           MOVX    A,@DPTR
+   \   0000CC   2414         ADD     A,#0x14
+   \   0000CE   FA           MOV     R2,A
+   \   0000CF   A3           INC     DPTR
+   \   0000D0   E0           MOVX    A,@DPTR
+   \   0000D1   3400         ADDC    A,#0x0
+   \   0000D3   FB           MOV     R3,A
+   \   0000D4   12....       LCALL   ??stimer_set?relay
+   \   0000D7   7404         MOV     A,#0x4
+   \   0000D9   12....       LCALL   ?DEALLOC_XSTACK8
+    335              }
+    336          #if UIP_ND6_DEF_MAXDADNS > 0
+    337              locaddr->state = ADDR_TENTATIVE;
+    338              timer_set(&locaddr->dadtimer,
+    339                        random_rand() % (UIP_ND6_MAX_RTR_SOLICITATION_DELAY *
+    340                                         CLOCK_SECOND));
+    341              locaddr->dadnscount = 0;
+    342          #else /* UIP_ND6_DEF_MAXDADNS > 0 */
+    343              locaddr->state = ADDR_PREFERRED;
+   \                     ??uip_ds6_addr_add_2:
+   \   0000DC   90....       MOV     DPTR,#locaddr
+   \   0000DF   E0           MOVX    A,@DPTR
+   \   0000E0   F8           MOV     R0,A
+   \   0000E1   A3           INC     DPTR
+   \   0000E2   E0           MOVX    A,@DPTR
+   \   0000E3   C8           XCH     A,R0
+   \   0000E4   2411         ADD     A,#0x11
+   \   0000E6   F582         MOV     DPL,A
+   \   0000E8   E8           MOV     A,R0
+   \   0000E9   3400         ADDC    A,#0x0
+   \   0000EB   F583         MOV     DPH,A
+   \   0000ED   7401         MOV     A,#0x1
+   \   0000EF   F0           MOVX    @DPTR,A
+    344          #endif /* UIP_ND6_DEF_MAXDADNS > 0 */
+    345              uip_create_solicited_node(ipaddr, &loc_fipaddr);
+   \   0000F0   90....       MOV     DPTR,#loc_fipaddr
+   \   0000F3   74FF         MOV     A,#-0x1
+   \   0000F5   F0           MOVX    @DPTR,A
+   \   0000F6   90....       MOV     DPTR,#loc_fipaddr + 1
+   \   0000F9   7402         MOV     A,#0x2
+   \   0000FB   F0           MOVX    @DPTR,A
+   \   0000FC   90....       MOV     DPTR,#loc_fipaddr + 2
+   \   0000FF   7400         MOV     A,#0x0
+   \   000101   F0           MOVX    @DPTR,A
+   \   000102   A3           INC     DPTR
+   \   000103   7400         MOV     A,#0x0
+   \   000105   F0           MOVX    @DPTR,A
+   \   000106   90....       MOV     DPTR,#loc_fipaddr + 4
+   \   000109   7400         MOV     A,#0x0
+   \   00010B   F0           MOVX    @DPTR,A
+   \   00010C   A3           INC     DPTR
+   \   00010D   7400         MOV     A,#0x0
+   \   00010F   F0           MOVX    @DPTR,A
+   \   000110   90....       MOV     DPTR,#loc_fipaddr + 6
+   \   000113   7400         MOV     A,#0x0
+   \   000115   F0           MOVX    @DPTR,A
+   \   000116   A3           INC     DPTR
+   \   000117   7400         MOV     A,#0x0
+   \   000119   F0           MOVX    @DPTR,A
+   \   00011A   90....       MOV     DPTR,#loc_fipaddr + 8
+   \   00011D   7400         MOV     A,#0x0
+   \   00011F   F0           MOVX    @DPTR,A
+   \   000120   A3           INC     DPTR
+   \   000121   7400         MOV     A,#0x0
+   \   000123   F0           MOVX    @DPTR,A
+   \   000124   90....       MOV     DPTR,#loc_fipaddr + 10
+   \   000127   7400         MOV     A,#0x0
+   \   000129   F0           MOVX    @DPTR,A
+   \   00012A   90....       MOV     DPTR,#loc_fipaddr + 11
+   \   00012D   7401         MOV     A,#0x1
+   \   00012F   F0           MOVX    @DPTR,A
+   \   000130   90....       MOV     DPTR,#loc_fipaddr + 12
+   \   000133   74FF         MOV     A,#-0x1
+   \   000135   F0           MOVX    @DPTR,A
+   \   000136   E5..         MOV     A,?V0 + 0
+   \   000138   240D         ADD     A,#0xd
+   \   00013A   F582         MOV     DPL,A
+   \   00013C   E5..         MOV     A,?V0 + 1
+   \   00013E   3400         ADDC    A,#0x0
+   \   000140   F583         MOV     DPH,A
+   \   000142   E0           MOVX    A,@DPTR
+   \   000143   90....       MOV     DPTR,#loc_fipaddr + 13
+   \   000146   F0           MOVX    @DPTR,A
+   \   000147   E5..         MOV     A,?V0 + 0
+   \   000149   240E         ADD     A,#0xe
+   \   00014B   F582         MOV     DPL,A
+   \   00014D   E5..         MOV     A,?V0 + 1
+   \   00014F   3400         ADDC    A,#0x0
+   \   000151   F583         MOV     DPH,A
+   \   000153   E0           MOVX    A,@DPTR
+   \   000154   F8           MOV     R0,A
+   \   000155   A3           INC     DPTR
+   \   000156   E0           MOVX    A,@DPTR
+   \   000157   F9           MOV     R1,A
+   \   000158   90....       MOV     DPTR,#loc_fipaddr + 14
+   \   00015B   E8           MOV     A,R0
+   \   00015C   F0           MOVX    @DPTR,A
+   \   00015D   A3           INC     DPTR
+   \   00015E   E9           MOV     A,R1
+   \   00015F   F0           MOVX    @DPTR,A
+    346              uip_ds6_maddr_add(&loc_fipaddr);
+   \   000160                ; Setup parameters for call to function uip_ds6_maddr_add
+   \   000160   7A..         MOV     R2,#loc_fipaddr & 0xff
+   \   000162   7B..         MOV     R3,#(loc_fipaddr >> 8) & 0xff
+   \   000164   12....       LCALL   ??uip_ds6_maddr_add?relay
+    347              return locaddr;
+   \   000167   90....       MOV     DPTR,#locaddr
+   \   00016A   E0           MOVX    A,@DPTR
+   \   00016B   FA           MOV     R2,A
+   \   00016C   A3           INC     DPTR
+   \   00016D   E0           MOVX    A,@DPTR
+   \   00016E   FB           MOV     R3,A
+   \   00016F   8004         SJMP    ??uip_ds6_addr_add_3
+    348            }
+    349            return NULL;
+   \                     ??uip_ds6_addr_add_0:
+   \   000171   7A00         MOV     R2,#0x0
+   \   000173   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_addr_add_3:
+   \   000175   7F08         MOV     R7,#0x8
+   \   000177   02....       LJMP    ?BANKED_LEAVE_XDATA
+    350          }
+    351          
+    352          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    353          void
+    354          uip_ds6_addr_rm(uip_ds6_addr_t *addr)
+   \                     uip_ds6_addr_rm:
+    355          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    356            if(addr != NULL) {
+   \   000009   EE           MOV     A,R6
+   \   00000A   4F           ORL     A,R7
+   \   00000B   7003         JNZ     $+5
+   \   00000D   02....       LJMP    ??uip_ds6_addr_rm_0 & 0xFFFF
+    357              uip_create_solicited_node(&addr->ipaddr, &loc_fipaddr);
+   \   000010   90....       MOV     DPTR,#loc_fipaddr
+   \   000013   74FF         MOV     A,#-0x1
+   \   000015   F0           MOVX    @DPTR,A
+   \   000016   90....       MOV     DPTR,#loc_fipaddr + 1
+   \   000019   7402         MOV     A,#0x2
+   \   00001B   F0           MOVX    @DPTR,A
+   \   00001C   90....       MOV     DPTR,#loc_fipaddr + 2
+   \   00001F   7400         MOV     A,#0x0
+   \   000021   F0           MOVX    @DPTR,A
+   \   000022   A3           INC     DPTR
+   \   000023   7400         MOV     A,#0x0
+   \   000025   F0           MOVX    @DPTR,A
+   \   000026   90....       MOV     DPTR,#loc_fipaddr + 4
+   \   000029   7400         MOV     A,#0x0
+   \   00002B   F0           MOVX    @DPTR,A
+   \   00002C   A3           INC     DPTR
+   \   00002D   7400         MOV     A,#0x0
+   \   00002F   F0           MOVX    @DPTR,A
+   \   000030   90....       MOV     DPTR,#loc_fipaddr + 6
+   \   000033   7400         MOV     A,#0x0
+   \   000035   F0           MOVX    @DPTR,A
+   \   000036   A3           INC     DPTR
+   \   000037   7400         MOV     A,#0x0
+   \   000039   F0           MOVX    @DPTR,A
+   \   00003A   90....       MOV     DPTR,#loc_fipaddr + 8
+   \   00003D   7400         MOV     A,#0x0
+   \   00003F   F0           MOVX    @DPTR,A
+   \   000040   A3           INC     DPTR
+   \   000041   7400         MOV     A,#0x0
+   \   000043   F0           MOVX    @DPTR,A
+   \   000044   90....       MOV     DPTR,#loc_fipaddr + 10
+   \   000047   7400         MOV     A,#0x0
+   \   000049   F0           MOVX    @DPTR,A
+   \   00004A   90....       MOV     DPTR,#loc_fipaddr + 11
+   \   00004D   7401         MOV     A,#0x1
+   \   00004F   F0           MOVX    @DPTR,A
+   \   000050   90....       MOV     DPTR,#loc_fipaddr + 12
+   \   000053   74FF         MOV     A,#-0x1
+   \   000055   F0           MOVX    @DPTR,A
+   \   000056   EE           MOV     A,R6
+   \   000057   240E         ADD     A,#0xe
+   \   000059   F582         MOV     DPL,A
+   \   00005B   EF           MOV     A,R7
+   \   00005C   3400         ADDC    A,#0x0
+   \   00005E   F583         MOV     DPH,A
+   \   000060   E0           MOVX    A,@DPTR
+   \   000061   90....       MOV     DPTR,#loc_fipaddr + 13
+   \   000064   F0           MOVX    @DPTR,A
+   \   000065   EE           MOV     A,R6
+   \   000066   240F         ADD     A,#0xf
+   \   000068   F582         MOV     DPL,A
+   \   00006A   EF           MOV     A,R7
+   \   00006B   3400         ADDC    A,#0x0
+   \   00006D   F583         MOV     DPH,A
+   \   00006F   E0           MOVX    A,@DPTR
+   \   000070   F8           MOV     R0,A
+   \   000071   A3           INC     DPTR
+   \   000072   E0           MOVX    A,@DPTR
+   \   000073   F9           MOV     R1,A
+   \   000074   90....       MOV     DPTR,#loc_fipaddr + 14
+   \   000077   E8           MOV     A,R0
+   \   000078   F0           MOVX    @DPTR,A
+   \   000079   A3           INC     DPTR
+   \   00007A   E9           MOV     A,R1
+   \   00007B   F0           MOVX    @DPTR,A
+    358              if((locmaddr = uip_ds6_maddr_lookup(&loc_fipaddr)) != NULL) {
+   \   00007C                ; Setup parameters for call to function uip_ds6_maddr_lookup
+   \   00007C   7A..         MOV     R2,#loc_fipaddr & 0xff
+   \   00007E   7B..         MOV     R3,#(loc_fipaddr >> 8) & 0xff
+   \   000080   12....       LCALL   ??uip_ds6_maddr_lookup?relay
+   \   000083   8A..         MOV     ?V0 + 0,R2
+   \   000085   8B..         MOV     ?V0 + 1,R3
+   \   000087   A8..         MOV     R0,?V0 + 0
+   \   000089   A9..         MOV     R1,?V0 + 1
+   \   00008B   90....       MOV     DPTR,#locmaddr
+   \   00008E   E8           MOV     A,R0
+   \   00008F   F0           MOVX    @DPTR,A
+   \   000090   A3           INC     DPTR
+   \   000091   E9           MOV     A,R1
+   \   000092   F0           MOVX    @DPTR,A
+   \   000093   E8           MOV     A,R0
+   \   000094   49           ORL     A,R1
+   \   000095   600B         JZ      ??uip_ds6_addr_rm_1
+    359                uip_ds6_maddr_rm(locmaddr);
+   \   000097                ; Setup parameters for call to function uip_ds6_maddr_rm
+   \   000097   90....       MOV     DPTR,#locmaddr
+   \   00009A   E0           MOVX    A,@DPTR
+   \   00009B   FA           MOV     R2,A
+   \   00009C   A3           INC     DPTR
+   \   00009D   E0           MOVX    A,@DPTR
+   \   00009E   FB           MOV     R3,A
+   \   00009F   12....       LCALL   ??uip_ds6_maddr_rm?relay
+    360              }
+    361              addr->isused = 0;
+   \                     ??uip_ds6_addr_rm_1:
+   \   0000A2   8E82         MOV     DPL,R6
+   \   0000A4   8F83         MOV     DPH,R7
+   \   0000A6   7400         MOV     A,#0x0
+   \   0000A8   F0           MOVX    @DPTR,A
+    362            }
+    363            return;
+   \                     ??uip_ds6_addr_rm_0:
+   \   0000A9   7F02         MOV     R7,#0x2
+   \   0000AB   02....       LJMP    ?BANKED_LEAVE_XDATA
+    364          }
+    365          
+    366          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    367          uip_ds6_addr_t *
+    368          uip_ds6_addr_lookup(uip_ipaddr_t *ipaddr)
+   \                     uip_ds6_addr_lookup:
+    369          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    370            if(uip_ds6_list_loop
+    371               ((uip_ds6_element_t *)uip_ds6_if.addr_list, UIP_DS6_ADDR_NB,
+    372                sizeof(uip_ds6_addr_t), ipaddr, 128,
+    373                (uip_ds6_element_t **)&locaddr) == FOUND) {
+   \   000005                ; Setup parameters for call to function uip_ds6_list_loop
+   \   000005   75....       MOV     ?V0 + 0,#locaddr & 0xff
+   \   000008   75....       MOV     ?V0 + 1,#(locaddr >> 8) & 0xff
+   \   00000B   78..         MOV     R0,#?V0 + 0
+   \   00000D   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000010   75..80       MOV     ?V0 + 0,#-0x80
+   \   000013   78..         MOV     R0,#?V0 + 0
+   \   000015   12....       LCALL   ?PUSH_XSTACK_I_ONE
+   \   000018   8A..         MOV     ?V0 + 0,R2
+   \   00001A   8B..         MOV     ?V0 + 1,R3
+   \   00001C   78..         MOV     R0,#?V0 + 0
+   \   00001E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000021   7C1C         MOV     R4,#0x1c
+   \   000023   7D00         MOV     R5,#0x0
+   \   000025   7903         MOV     R1,#0x3
+   \   000027   7A..         MOV     R2,#(uip_ds6_if + 18) & 0xff
+   \   000029   7B..         MOV     R3,#((uip_ds6_if + 18) >> 8) & 0xff
+   \   00002B   12....       LCALL   ??uip_ds6_list_loop?relay
+   \   00002E   7405         MOV     A,#0x5
+   \   000030   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000033   E9           MOV     A,R1
+   \   000034   700A         JNZ     ??uip_ds6_addr_lookup_0
+    374              return locaddr;
+   \   000036   90....       MOV     DPTR,#locaddr
+   \   000039   E0           MOVX    A,@DPTR
+   \   00003A   FA           MOV     R2,A
+   \   00003B   A3           INC     DPTR
+   \   00003C   E0           MOVX    A,@DPTR
+   \   00003D   FB           MOV     R3,A
+   \   00003E   8004         SJMP    ??uip_ds6_addr_lookup_1
+    375            }
+    376            return NULL;
+   \                     ??uip_ds6_addr_lookup_0:
+   \   000040   7A00         MOV     R2,#0x0
+   \   000042   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_addr_lookup_1:
+   \   000044   7F02         MOV     R7,#0x2
+   \   000046   02....       LJMP    ?BANKED_LEAVE_XDATA
+    377          }
+    378          
+    379          /*---------------------------------------------------------------------------*/
+    380          /*
+    381           * get a link local address -
+    382           * state = -1 => any address is ok. Otherwise state = desired state of addr.
+    383           * (TENTATIVE, PREFERRED, DEPRECATED)
+    384           */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    385          uip_ds6_addr_t *
+    386          uip_ds6_get_link_local(int8_t state)
+   \                     uip_ds6_get_link_local:
+    387          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    388            for(locaddr = uip_ds6_if.addr_list;
+   \   000004   90....       MOV     DPTR,#locaddr
+   \   000007   74..         MOV     A,#(uip_ds6_if + 18) & 0xff
+   \   000009   F0           MOVX    @DPTR,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   74..         MOV     A,#((uip_ds6_if + 18) >> 8) & 0xff
+   \   00000D   F0           MOVX    @DPTR,A
+   \   00000E   8014         SJMP    ??uip_ds6_get_link_local_0
+    389                locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
+   \                     ??uip_ds6_get_link_local_1:
+   \   000010   90....       MOV     DPTR,#locaddr
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   241C         ADD     A,#0x1c
+   \   000016   FA           MOV     R2,A
+   \   000017   A3           INC     DPTR
+   \   000018   E0           MOVX    A,@DPTR
+   \   000019   3400         ADDC    A,#0x0
+   \   00001B   FB           MOV     R3,A
+   \   00001C   90....       MOV     DPTR,#locaddr
+   \   00001F   EA           MOV     A,R2
+   \   000020   F0           MOVX    @DPTR,A
+   \   000021   A3           INC     DPTR
+   \   000022   EB           MOV     A,R3
+   \   000023   F0           MOVX    @DPTR,A
+   \                     ??uip_ds6_get_link_local_0:
+   \   000024   90....       MOV     DPTR,#locaddr
+   \   000027   C3           CLR     C
+   \   000028   E0           MOVX    A,@DPTR
+   \   000029   94..         SUBB    A,#(uip_ds6_if + 102) & 0xff
+   \   00002B   A3           INC     DPTR
+   \   00002C   E0           MOVX    A,@DPTR
+   \   00002D   94..         SUBB    A,#((uip_ds6_if + 102) >> 8) & 0xff
+   \   00002F   5063         JNC     ??uip_ds6_get_link_local_2
+    390              if(locaddr->isused && (state == -1 || locaddr->state == state)
+    391                 && (uip_is_addr_link_local(&locaddr->ipaddr))) {
+   \   000031   90....       MOV     DPTR,#locaddr
+   \   000034   E0           MOVX    A,@DPTR
+   \   000035   F8           MOV     R0,A
+   \   000036   A3           INC     DPTR
+   \   000037   E0           MOVX    A,@DPTR
+   \   000038   F583         MOV     DPH,A
+   \   00003A   8882         MOV     DPL,R0
+   \   00003C   E0           MOVX    A,@DPTR
+   \   00003D   60D1         JZ      ??uip_ds6_get_link_local_1
+   \   00003F   74FF         MOV     A,#-0x1
+   \   000041   69           XRL     A,R1
+   \   000042   6023         JZ      ??uip_ds6_get_link_local_3
+   \   000044   90....       MOV     DPTR,#locaddr
+   \   000047   E0           MOVX    A,@DPTR
+   \   000048   F8           MOV     R0,A
+   \   000049   A3           INC     DPTR
+   \   00004A   E0           MOVX    A,@DPTR
+   \   00004B   C8           XCH     A,R0
+   \   00004C   2411         ADD     A,#0x11
+   \   00004E   F582         MOV     DPL,A
+   \   000050   E8           MOV     A,R0
+   \   000051   3400         ADDC    A,#0x0
+   \   000053   F583         MOV     DPH,A
+   \   000055   E0           MOVX    A,@DPTR
+   \   000056   FC           MOV     R4,A
+   \   000057   7D00         MOV     R5,#0x0
+   \   000059   E9           MOV     A,R1
+   \   00005A   FA           MOV     R2,A
+   \   00005B   33           RLC     A
+   \   00005C   95E0         SUBB    A,0xE0 /* A   */
+   \   00005E   FB           MOV     R3,A
+   \   00005F   EA           MOV     A,R2
+   \   000060   6C           XRL     A,R4
+   \   000061   7002         JNZ     ??uip_ds6_get_link_local_4
+   \   000063   EB           MOV     A,R3
+   \   000064   6D           XRL     A,R5
+   \                     ??uip_ds6_get_link_local_4:
+   \   000065   70A9         JNZ     ??uip_ds6_get_link_local_1
+   \                     ??uip_ds6_get_link_local_3:
+   \   000067   90....       MOV     DPTR,#locaddr
+   \   00006A   E0           MOVX    A,@DPTR
+   \   00006B   F8           MOV     R0,A
+   \   00006C   A3           INC     DPTR
+   \   00006D   E0           MOVX    A,@DPTR
+   \   00006E   F583         MOV     DPH,A
+   \   000070   8882         MOV     DPL,R0
+   \   000072   A3           INC     DPTR
+   \   000073   E0           MOVX    A,@DPTR
+   \   000074   64FE         XRL     A,#0xfe
+   \   000076   7098         JNZ     ??uip_ds6_get_link_local_1
+   \   000078   90....       MOV     DPTR,#locaddr
+   \   00007B   E0           MOVX    A,@DPTR
+   \   00007C   F8           MOV     R0,A
+   \   00007D   A3           INC     DPTR
+   \   00007E   E0           MOVX    A,@DPTR
+   \   00007F   F583         MOV     DPH,A
+   \   000081   8882         MOV     DPL,R0
+   \   000083   A3           INC     DPTR
+   \   000084   A3           INC     DPTR
+   \   000085   E0           MOVX    A,@DPTR
+   \   000086   6480         XRL     A,#0x80
+   \   000088   7086         JNZ     ??uip_ds6_get_link_local_1
+    392                return locaddr;
+   \   00008A   90....       MOV     DPTR,#locaddr
+   \   00008D   E0           MOVX    A,@DPTR
+   \   00008E   FA           MOV     R2,A
+   \   00008F   A3           INC     DPTR
+   \   000090   E0           MOVX    A,@DPTR
+   \   000091   FB           MOV     R3,A
+   \   000092   8004         SJMP    ??uip_ds6_get_link_local_5
+    393              }
+    394            }
+    395            return NULL;
+   \                     ??uip_ds6_get_link_local_2:
+   \   000094   7A00         MOV     R2,#0x0
+   \   000096   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_get_link_local_5:
+   \   000098   D083         POP     DPH
+   \   00009A   D082         POP     DPL
+   \   00009C   02....       LJMP    ?BRET
+    396          }
+    397          
+    398          /*---------------------------------------------------------------------------*/
+    399          /*
+    400           * get a global address -
+    401           * state = -1 => any address is ok. Otherwise state = desired state of addr.
+    402           * (TENTATIVE, PREFERRED, DEPRECATED)
+    403           */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    404          uip_ds6_addr_t *
+    405          uip_ds6_get_global(int8_t state)
+   \                     uip_ds6_get_global:
+    406          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    407            for(locaddr = uip_ds6_if.addr_list;
+   \   000004   90....       MOV     DPTR,#locaddr
+   \   000007   74..         MOV     A,#(uip_ds6_if + 18) & 0xff
+   \   000009   F0           MOVX    @DPTR,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   74..         MOV     A,#((uip_ds6_if + 18) >> 8) & 0xff
+   \   00000D   F0           MOVX    @DPTR,A
+   \   00000E   8014         SJMP    ??uip_ds6_get_global_0
+    408                locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
+   \                     ??uip_ds6_get_global_1:
+   \   000010   90....       MOV     DPTR,#locaddr
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   241C         ADD     A,#0x1c
+   \   000016   FA           MOV     R2,A
+   \   000017   A3           INC     DPTR
+   \   000018   E0           MOVX    A,@DPTR
+   \   000019   3400         ADDC    A,#0x0
+   \   00001B   FB           MOV     R3,A
+   \   00001C   90....       MOV     DPTR,#locaddr
+   \   00001F   EA           MOV     A,R2
+   \   000020   F0           MOVX    @DPTR,A
+   \   000021   A3           INC     DPTR
+   \   000022   EB           MOV     A,R3
+   \   000023   F0           MOVX    @DPTR,A
+   \                     ??uip_ds6_get_global_0:
+   \   000024   90....       MOV     DPTR,#locaddr
+   \   000027   C3           CLR     C
+   \   000028   E0           MOVX    A,@DPTR
+   \   000029   94..         SUBB    A,#(uip_ds6_if + 102) & 0xff
+   \   00002B   A3           INC     DPTR
+   \   00002C   E0           MOVX    A,@DPTR
+   \   00002D   94..         SUBB    A,#((uip_ds6_if + 102) >> 8) & 0xff
+   \   00002F   5063         JNC     ??uip_ds6_get_global_2
+    409              if(locaddr->isused && (state == -1 || locaddr->state == state)
+    410                 && !(uip_is_addr_link_local(&locaddr->ipaddr))) {
+   \   000031   90....       MOV     DPTR,#locaddr
+   \   000034   E0           MOVX    A,@DPTR
+   \   000035   F8           MOV     R0,A
+   \   000036   A3           INC     DPTR
+   \   000037   E0           MOVX    A,@DPTR
+   \   000038   F583         MOV     DPH,A
+   \   00003A   8882         MOV     DPL,R0
+   \   00003C   E0           MOVX    A,@DPTR
+   \   00003D   60D1         JZ      ??uip_ds6_get_global_1
+   \   00003F   74FF         MOV     A,#-0x1
+   \   000041   69           XRL     A,R1
+   \   000042   6023         JZ      ??uip_ds6_get_global_3
+   \   000044   90....       MOV     DPTR,#locaddr
+   \   000047   E0           MOVX    A,@DPTR
+   \   000048   F8           MOV     R0,A
+   \   000049   A3           INC     DPTR
+   \   00004A   E0           MOVX    A,@DPTR
+   \   00004B   C8           XCH     A,R0
+   \   00004C   2411         ADD     A,#0x11
+   \   00004E   F582         MOV     DPL,A
+   \   000050   E8           MOV     A,R0
+   \   000051   3400         ADDC    A,#0x0
+   \   000053   F583         MOV     DPH,A
+   \   000055   E0           MOVX    A,@DPTR
+   \   000056   FC           MOV     R4,A
+   \   000057   7D00         MOV     R5,#0x0
+   \   000059   E9           MOV     A,R1
+   \   00005A   FA           MOV     R2,A
+   \   00005B   33           RLC     A
+   \   00005C   95E0         SUBB    A,0xE0 /* A   */
+   \   00005E   FB           MOV     R3,A
+   \   00005F   EA           MOV     A,R2
+   \   000060   6C           XRL     A,R4
+   \   000061   7002         JNZ     ??uip_ds6_get_global_4
+   \   000063   EB           MOV     A,R3
+   \   000064   6D           XRL     A,R5
+   \                     ??uip_ds6_get_global_4:
+   \   000065   70A9         JNZ     ??uip_ds6_get_global_1
+   \                     ??uip_ds6_get_global_3:
+   \   000067   90....       MOV     DPTR,#locaddr
+   \   00006A   E0           MOVX    A,@DPTR
+   \   00006B   F8           MOV     R0,A
+   \   00006C   A3           INC     DPTR
+   \   00006D   E0           MOVX    A,@DPTR
+   \   00006E   F583         MOV     DPH,A
+   \   000070   8882         MOV     DPL,R0
+   \   000072   A3           INC     DPTR
+   \   000073   E0           MOVX    A,@DPTR
+   \   000074   64FE         XRL     A,#0xfe
+   \   000076   7012         JNZ     ??uip_ds6_get_global_5
+   \   000078   90....       MOV     DPTR,#locaddr
+   \   00007B   E0           MOVX    A,@DPTR
+   \   00007C   F8           MOV     R0,A
+   \   00007D   A3           INC     DPTR
+   \   00007E   E0           MOVX    A,@DPTR
+   \   00007F   F583         MOV     DPH,A
+   \   000081   8882         MOV     DPL,R0
+   \   000083   A3           INC     DPTR
+   \   000084   A3           INC     DPTR
+   \   000085   E0           MOVX    A,@DPTR
+   \   000086   6480         XRL     A,#0x80
+   \   000088   6086         JZ      ??uip_ds6_get_global_1
+    411                return locaddr;
+   \                     ??uip_ds6_get_global_5:
+   \   00008A   90....       MOV     DPTR,#locaddr
+   \   00008D   E0           MOVX    A,@DPTR
+   \   00008E   FA           MOV     R2,A
+   \   00008F   A3           INC     DPTR
+   \   000090   E0           MOVX    A,@DPTR
+   \   000091   FB           MOV     R3,A
+   \   000092   8004         SJMP    ??uip_ds6_get_global_6
+    412              }
+    413            }
+    414            return NULL;
+   \                     ??uip_ds6_get_global_2:
+   \   000094   7A00         MOV     R2,#0x0
+   \   000096   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_get_global_6:
+   \   000098   D083         POP     DPH
+   \   00009A   D082         POP     DPL
+   \   00009C   02....       LJMP    ?BRET
+    415          }
+    416          
+    417          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    418          uip_ds6_maddr_t *
+    419          uip_ds6_maddr_add(const uip_ipaddr_t *ipaddr)
+   \                     uip_ds6_maddr_add:
+    420          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+    421            if(uip_ds6_list_loop
+    422               ((uip_ds6_element_t *)uip_ds6_if.maddr_list, UIP_DS6_MADDR_NB,
+    423                sizeof(uip_ds6_maddr_t), (void*)ipaddr, 128,
+    424                (uip_ds6_element_t **)&locmaddr) == FREESPACE) {
+   \   000009                ; Setup parameters for call to function uip_ds6_list_loop
+   \   000009   75....       MOV     ?V0 + 2,#locmaddr & 0xff
+   \   00000C   75....       MOV     ?V0 + 3,#(locmaddr >> 8) & 0xff
+   \   00000F   78..         MOV     R0,#?V0 + 2
+   \   000011   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000014   75..80       MOV     ?V0 + 2,#-0x80
+   \   000017   78..         MOV     R0,#?V0 + 2
+   \   000019   12....       LCALL   ?PUSH_XSTACK_I_ONE
+   \   00001C   78..         MOV     R0,#?V0 + 0
+   \   00001E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000021   7C11         MOV     R4,#0x11
+   \   000023   7D00         MOV     R5,#0x0
+   \   000025   7905         MOV     R1,#0x5
+   \   000027   7A..         MOV     R2,#(uip_ds6_if + 136) & 0xff
+   \   000029   7B..         MOV     R3,#((uip_ds6_if + 136) >> 8) & 0xff
+   \   00002B   12....       LCALL   ??uip_ds6_list_loop?relay
+   \   00002E   7405         MOV     A,#0x5
+   \   000030   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000033   E9           MOV     A,R1
+   \   000034   6401         XRL     A,#0x1
+   \   000036   703B         JNZ     ??uip_ds6_maddr_add_0
+    425              locmaddr->isused = 1;
+   \   000038   90....       MOV     DPTR,#locmaddr
+   \   00003B   E0           MOVX    A,@DPTR
+   \   00003C   F8           MOV     R0,A
+   \   00003D   A3           INC     DPTR
+   \   00003E   E0           MOVX    A,@DPTR
+   \   00003F   F583         MOV     DPH,A
+   \   000041   8882         MOV     DPL,R0
+   \   000043   7401         MOV     A,#0x1
+   \   000045   F0           MOVX    @DPTR,A
+    426              uip_ipaddr_copy(&locmaddr->ipaddr, ipaddr);
+   \   000046                ; Setup parameters for call to function memcpy
+   \   000046   75..10       MOV     ?V0 + 2,#0x10
+   \   000049   75..00       MOV     ?V0 + 3,#0x0
+   \   00004C   78..         MOV     R0,#?V0 + 2
+   \   00004E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000051   AC..         MOV     R4,?V0 + 0
+   \   000053   AD..         MOV     R5,?V0 + 1
+   \   000055   90....       MOV     DPTR,#locmaddr
+   \   000058   E0           MOVX    A,@DPTR
+   \   000059   2401         ADD     A,#0x1
+   \   00005B   FA           MOV     R2,A
+   \   00005C   A3           INC     DPTR
+   \   00005D   E0           MOVX    A,@DPTR
+   \   00005E   3400         ADDC    A,#0x0
+   \   000060   FB           MOV     R3,A
+   \   000061   12....       LCALL   ??memcpy?relay
+   \   000064   7402         MOV     A,#0x2
+   \   000066   12....       LCALL   ?DEALLOC_XSTACK8
+    427              return locmaddr;
+   \   000069   90....       MOV     DPTR,#locmaddr
+   \   00006C   E0           MOVX    A,@DPTR
+   \   00006D   FA           MOV     R2,A
+   \   00006E   A3           INC     DPTR
+   \   00006F   E0           MOVX    A,@DPTR
+   \   000070   FB           MOV     R3,A
+   \   000071   8004         SJMP    ??uip_ds6_maddr_add_1
+    428            }
+    429            return NULL;
+   \                     ??uip_ds6_maddr_add_0:
+   \   000073   7A00         MOV     R2,#0x0
+   \   000075   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_maddr_add_1:
+   \   000077   7F04         MOV     R7,#0x4
+   \   000079   02....       LJMP    ?BANKED_LEAVE_XDATA
+    430          }
+    431          
+    432          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    433          void
+    434          uip_ds6_maddr_rm(uip_ds6_maddr_t *maddr)
+   \                     uip_ds6_maddr_rm:
+    435          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    436            if(maddr != NULL) {
+   \   000004   EA           MOV     A,R2
+   \   000005   4B           ORL     A,R3
+   \   000006   6007         JZ      ??uip_ds6_maddr_rm_0
+    437              maddr->isused = 0;
+   \   000008   8A82         MOV     DPL,R2
+   \   00000A   8B83         MOV     DPH,R3
+   \   00000C   7400         MOV     A,#0x0
+   \   00000E   F0           MOVX    @DPTR,A
+    438            }
+    439            return;
+   \                     ??uip_ds6_maddr_rm_0:
+   \   00000F   D083         POP     DPH
+   \   000011   D082         POP     DPL
+   \   000013   02....       LJMP    ?BRET
+    440          }
+    441          
+    442          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    443          uip_ds6_maddr_t *
+    444          uip_ds6_maddr_lookup(const uip_ipaddr_t *ipaddr)
+   \                     uip_ds6_maddr_lookup:
+    445          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    446            if(uip_ds6_list_loop
+    447               ((uip_ds6_element_t *)uip_ds6_if.maddr_list, UIP_DS6_MADDR_NB,
+    448                sizeof(uip_ds6_maddr_t), (void*)ipaddr, 128,
+    449                (uip_ds6_element_t **)&locmaddr) == FOUND) {
+   \   000005                ; Setup parameters for call to function uip_ds6_list_loop
+   \   000005   75....       MOV     ?V0 + 0,#locmaddr & 0xff
+   \   000008   75....       MOV     ?V0 + 1,#(locmaddr >> 8) & 0xff
+   \   00000B   78..         MOV     R0,#?V0 + 0
+   \   00000D   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000010   75..80       MOV     ?V0 + 0,#-0x80
+   \   000013   78..         MOV     R0,#?V0 + 0
+   \   000015   12....       LCALL   ?PUSH_XSTACK_I_ONE
+   \   000018   8A..         MOV     ?V0 + 0,R2
+   \   00001A   8B..         MOV     ?V0 + 1,R3
+   \   00001C   78..         MOV     R0,#?V0 + 0
+   \   00001E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000021   7C11         MOV     R4,#0x11
+   \   000023   7D00         MOV     R5,#0x0
+   \   000025   7905         MOV     R1,#0x5
+   \   000027   7A..         MOV     R2,#(uip_ds6_if + 136) & 0xff
+   \   000029   7B..         MOV     R3,#((uip_ds6_if + 136) >> 8) & 0xff
+   \   00002B   12....       LCALL   ??uip_ds6_list_loop?relay
+   \   00002E   7405         MOV     A,#0x5
+   \   000030   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000033   E9           MOV     A,R1
+   \   000034   700A         JNZ     ??uip_ds6_maddr_lookup_0
+    450              return locmaddr;
+   \   000036   90....       MOV     DPTR,#locmaddr
+   \   000039   E0           MOVX    A,@DPTR
+   \   00003A   FA           MOV     R2,A
+   \   00003B   A3           INC     DPTR
+   \   00003C   E0           MOVX    A,@DPTR
+   \   00003D   FB           MOV     R3,A
+   \   00003E   8004         SJMP    ??uip_ds6_maddr_lookup_1
+    451            }
+    452            return NULL;
+   \                     ??uip_ds6_maddr_lookup_0:
+   \   000040   7A00         MOV     R2,#0x0
+   \   000042   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_maddr_lookup_1:
+   \   000044   7F02         MOV     R7,#0x2
+   \   000046   02....       LJMP    ?BANKED_LEAVE_XDATA
+    453          }
+    454          
+    455          
+    456          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    457          uip_ds6_aaddr_t *
+    458          uip_ds6_aaddr_add(uip_ipaddr_t *ipaddr)
+   \                     uip_ds6_aaddr_add:
+    459          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+    460            if(uip_ds6_list_loop
+    461               ((uip_ds6_element_t *)uip_ds6_if.aaddr_list, UIP_DS6_AADDR_NB,
+    462                sizeof(uip_ds6_aaddr_t), ipaddr, 128,
+    463                (uip_ds6_element_t **)&locaaddr) == FREESPACE) {
+   \   000009                ; Setup parameters for call to function uip_ds6_list_loop
+   \   000009   75....       MOV     ?V0 + 2,#locaaddr & 0xff
+   \   00000C   75....       MOV     ?V0 + 3,#(locaaddr >> 8) & 0xff
+   \   00000F   78..         MOV     R0,#?V0 + 2
+   \   000011   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000014   75..80       MOV     ?V0 + 2,#-0x80
+   \   000017   78..         MOV     R0,#?V0 + 2
+   \   000019   12....       LCALL   ?PUSH_XSTACK_I_ONE
+   \   00001C   78..         MOV     R0,#?V0 + 0
+   \   00001E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000021   7C11         MOV     R4,#0x11
+   \   000023   7D00         MOV     R5,#0x0
+   \   000025   7902         MOV     R1,#0x2
+   \   000027   7A..         MOV     R2,#(uip_ds6_if + 102) & 0xff
+   \   000029   7B..         MOV     R3,#((uip_ds6_if + 102) >> 8) & 0xff
+   \   00002B   12....       LCALL   ??uip_ds6_list_loop?relay
+   \   00002E   7405         MOV     A,#0x5
+   \   000030   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000033   E9           MOV     A,R1
+   \   000034   6401         XRL     A,#0x1
+   \   000036   703B         JNZ     ??uip_ds6_aaddr_add_0
+    464              locaaddr->isused = 1;
+   \   000038   90....       MOV     DPTR,#locaaddr
+   \   00003B   E0           MOVX    A,@DPTR
+   \   00003C   F8           MOV     R0,A
+   \   00003D   A3           INC     DPTR
+   \   00003E   E0           MOVX    A,@DPTR
+   \   00003F   F583         MOV     DPH,A
+   \   000041   8882         MOV     DPL,R0
+   \   000043   7401         MOV     A,#0x1
+   \   000045   F0           MOVX    @DPTR,A
+    465              uip_ipaddr_copy(&locaaddr->ipaddr, ipaddr);
+   \   000046                ; Setup parameters for call to function memcpy
+   \   000046   75..10       MOV     ?V0 + 2,#0x10
+   \   000049   75..00       MOV     ?V0 + 3,#0x0
+   \   00004C   78..         MOV     R0,#?V0 + 2
+   \   00004E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000051   AC..         MOV     R4,?V0 + 0
+   \   000053   AD..         MOV     R5,?V0 + 1
+   \   000055   90....       MOV     DPTR,#locaaddr
+   \   000058   E0           MOVX    A,@DPTR
+   \   000059   2401         ADD     A,#0x1
+   \   00005B   FA           MOV     R2,A
+   \   00005C   A3           INC     DPTR
+   \   00005D   E0           MOVX    A,@DPTR
+   \   00005E   3400         ADDC    A,#0x0
+   \   000060   FB           MOV     R3,A
+   \   000061   12....       LCALL   ??memcpy?relay
+   \   000064   7402         MOV     A,#0x2
+   \   000066   12....       LCALL   ?DEALLOC_XSTACK8
+    466              return locaaddr;
+   \   000069   90....       MOV     DPTR,#locaaddr
+   \   00006C   E0           MOVX    A,@DPTR
+   \   00006D   FA           MOV     R2,A
+   \   00006E   A3           INC     DPTR
+   \   00006F   E0           MOVX    A,@DPTR
+   \   000070   FB           MOV     R3,A
+   \   000071   8004         SJMP    ??uip_ds6_aaddr_add_1
+    467            }
+    468            return NULL;
+   \                     ??uip_ds6_aaddr_add_0:
+   \   000073   7A00         MOV     R2,#0x0
+   \   000075   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_aaddr_add_1:
+   \   000077   7F04         MOV     R7,#0x4
+   \   000079   02....       LJMP    ?BANKED_LEAVE_XDATA
+    469          }
+    470          
+    471          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    472          void
+    473          uip_ds6_aaddr_rm(uip_ds6_aaddr_t *aaddr)
+   \                     uip_ds6_aaddr_rm:
+    474          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    475            if(aaddr != NULL) {
+   \   000004   EA           MOV     A,R2
+   \   000005   4B           ORL     A,R3
+   \   000006   6007         JZ      ??uip_ds6_aaddr_rm_0
+    476              aaddr->isused = 0;
+   \   000008   8A82         MOV     DPL,R2
+   \   00000A   8B83         MOV     DPH,R3
+   \   00000C   7400         MOV     A,#0x0
+   \   00000E   F0           MOVX    @DPTR,A
+    477            }
+    478            return;
+   \                     ??uip_ds6_aaddr_rm_0:
+   \   00000F   D083         POP     DPH
+   \   000011   D082         POP     DPL
+   \   000013   02....       LJMP    ?BRET
+    479          }
+    480          
+    481          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    482          uip_ds6_aaddr_t *
+    483          uip_ds6_aaddr_lookup(uip_ipaddr_t *ipaddr)
+   \                     uip_ds6_aaddr_lookup:
+    484          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    485            if(uip_ds6_list_loop((uip_ds6_element_t *)uip_ds6_if.aaddr_list,
+    486          		       UIP_DS6_AADDR_NB, sizeof(uip_ds6_aaddr_t), ipaddr, 128,
+    487          		       (uip_ds6_element_t **)&locaaddr) == FOUND) {
+   \   000005                ; Setup parameters for call to function uip_ds6_list_loop
+   \   000005   75....       MOV     ?V0 + 0,#locaaddr & 0xff
+   \   000008   75....       MOV     ?V0 + 1,#(locaaddr >> 8) & 0xff
+   \   00000B   78..         MOV     R0,#?V0 + 0
+   \   00000D   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000010   75..80       MOV     ?V0 + 0,#-0x80
+   \   000013   78..         MOV     R0,#?V0 + 0
+   \   000015   12....       LCALL   ?PUSH_XSTACK_I_ONE
+   \   000018   8A..         MOV     ?V0 + 0,R2
+   \   00001A   8B..         MOV     ?V0 + 1,R3
+   \   00001C   78..         MOV     R0,#?V0 + 0
+   \   00001E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000021   7C11         MOV     R4,#0x11
+   \   000023   7D00         MOV     R5,#0x0
+   \   000025   7902         MOV     R1,#0x2
+   \   000027   7A..         MOV     R2,#(uip_ds6_if + 102) & 0xff
+   \   000029   7B..         MOV     R3,#((uip_ds6_if + 102) >> 8) & 0xff
+   \   00002B   12....       LCALL   ??uip_ds6_list_loop?relay
+   \   00002E   7405         MOV     A,#0x5
+   \   000030   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000033   E9           MOV     A,R1
+   \   000034   700A         JNZ     ??uip_ds6_aaddr_lookup_0
+    488              return locaaddr;
+   \   000036   90....       MOV     DPTR,#locaaddr
+   \   000039   E0           MOVX    A,@DPTR
+   \   00003A   FA           MOV     R2,A
+   \   00003B   A3           INC     DPTR
+   \   00003C   E0           MOVX    A,@DPTR
+   \   00003D   FB           MOV     R3,A
+   \   00003E   8004         SJMP    ??uip_ds6_aaddr_lookup_1
+    489            }
+    490            return NULL;
+   \                     ??uip_ds6_aaddr_lookup_0:
+   \   000040   7A00         MOV     R2,#0x0
+   \   000042   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_aaddr_lookup_1:
+   \   000044   7F02         MOV     R7,#0x2
+   \   000046   02....       LJMP    ?BANKED_LEAVE_XDATA
+    491          }
+    492          
+    493          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    494          void
+    495          uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)
+   \                     uip_ds6_select_src:
+    496          {
+   \   000000   74F3         MOV     A,#-0xd
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 13
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   8C..         MOV     ?V0 + 0,R4
+   \   00000B   8D..         MOV     ?V0 + 1,R5
+    497            uint8_t best = 0;             /* number of bit in common with best match */
+   \   00000D   75..00       MOV     ?V0 + 4,#0x0
+    498            uint8_t n = 0;
+   \   000010   7800         MOV     R0,#0x0
+    499            uip_ds6_addr_t *matchaddr = NULL;
+   \   000012   75..00       MOV     ?V0 + 2,#0x0
+   \   000015   75..00       MOV     ?V0 + 3,#0x0
+    500          
+    501            if(!uip_is_addr_link_local(dst) && !uip_is_addr_mcast(dst)) {
+   \   000018   85..82       MOV     DPL,?V0 + 0
+   \   00001B   85..83       MOV     DPH,?V0 + 1
+   \   00001E   E0           MOVX    A,@DPTR
+   \   00001F   64FE         XRL     A,#0xfe
+   \   000021   700F         JNZ     ??uip_ds6_select_src_0
+   \   000023   85..82       MOV     DPL,?V0 + 0
+   \   000026   85..83       MOV     DPH,?V0 + 1
+   \   000029   A3           INC     DPTR
+   \   00002A   E0           MOVX    A,@DPTR
+   \   00002B   6480         XRL     A,#0x80
+   \   00002D   7003         JNZ     $+5
+   \   00002F   02....       LJMP    ??uip_ds6_select_src_1 & 0xFFFF
+   \                     ??uip_ds6_select_src_0:
+   \   000032   85..82       MOV     DPL,?V0 + 0
+   \   000035   85..83       MOV     DPH,?V0 + 1
+   \   000038   E0           MOVX    A,@DPTR
+   \   000039   64FF         XRL     A,#0xff
+   \   00003B   7003         JNZ     $+5
+   \   00003D   02....       LJMP    ??uip_ds6_select_src_1 & 0xFFFF
+    502              /* find longest match */
+    503              for(locaddr = uip_ds6_if.addr_list;
+   \   000040   90....       MOV     DPTR,#locaddr
+   \   000043   74..         MOV     A,#(uip_ds6_if + 18) & 0xff
+   \   000045   F0           MOVX    @DPTR,A
+   \   000046   A3           INC     DPTR
+   \   000047   74..         MOV     A,#((uip_ds6_if + 18) >> 8) & 0xff
+   \   000049   F0           MOVX    @DPTR,A
+    504                  locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
+   \                     ??uip_ds6_select_src_2:
+   \   00004A   90....       MOV     DPTR,#locaddr
+   \   00004D   C3           CLR     C
+   \   00004E   E0           MOVX    A,@DPTR
+   \   00004F   94..         SUBB    A,#(uip_ds6_if + 102) & 0xff
+   \   000051   A3           INC     DPTR
+   \   000052   E0           MOVX    A,@DPTR
+   \   000053   94..         SUBB    A,#((uip_ds6_if + 102) >> 8) & 0xff
+   \   000055   4003         JC      $+5
+   \   000057   02....       LJMP    ??uip_ds6_select_src_3 & 0xFFFF
+    505                /* Only preferred global (not link-local) addresses */
+    506                if(locaddr->isused && locaddr->state == ADDR_PREFERRED &&
+    507                   !uip_is_addr_link_local(&locaddr->ipaddr)) {
+   \   00005A   90....       MOV     DPTR,#locaddr
+   \   00005D   E0           MOVX    A,@DPTR
+   \   00005E   F8           MOV     R0,A
+   \   00005F   A3           INC     DPTR
+   \   000060   E0           MOVX    A,@DPTR
+   \   000061   F583         MOV     DPH,A
+   \   000063   8882         MOV     DPL,R0
+   \   000065   E0           MOVX    A,@DPTR
+   \   000066   6062         JZ      ??uip_ds6_select_src_4
+   \   000068   90....       MOV     DPTR,#locaddr
+   \   00006B   E0           MOVX    A,@DPTR
+   \   00006C   F8           MOV     R0,A
+   \   00006D   A3           INC     DPTR
+   \   00006E   E0           MOVX    A,@DPTR
+   \   00006F   C8           XCH     A,R0
+   \   000070   2411         ADD     A,#0x11
+   \   000072   F582         MOV     DPL,A
+   \   000074   E8           MOV     A,R0
+   \   000075   3400         ADDC    A,#0x0
+   \   000077   F583         MOV     DPH,A
+   \   000079   E0           MOVX    A,@DPTR
+   \   00007A   6401         XRL     A,#0x1
+   \   00007C   704C         JNZ     ??uip_ds6_select_src_4
+   \   00007E   90....       MOV     DPTR,#locaddr
+   \   000081   E0           MOVX    A,@DPTR
+   \   000082   F8           MOV     R0,A
+   \   000083   A3           INC     DPTR
+   \   000084   E0           MOVX    A,@DPTR
+   \   000085   F583         MOV     DPH,A
+   \   000087   8882         MOV     DPL,R0
+   \   000089   A3           INC     DPTR
+   \   00008A   E0           MOVX    A,@DPTR
+   \   00008B   64FE         XRL     A,#0xfe
+   \   00008D   7012         JNZ     ??uip_ds6_select_src_5
+   \   00008F   90....       MOV     DPTR,#locaddr
+   \   000092   E0           MOVX    A,@DPTR
+   \   000093   F8           MOV     R0,A
+   \   000094   A3           INC     DPTR
+   \   000095   E0           MOVX    A,@DPTR
+   \   000096   F583         MOV     DPH,A
+   \   000098   8882         MOV     DPL,R0
+   \   00009A   A3           INC     DPTR
+   \   00009B   A3           INC     DPTR
+   \   00009C   E0           MOVX    A,@DPTR
+   \   00009D   6480         XRL     A,#0x80
+   \   00009F   6029         JZ      ??uip_ds6_select_src_4
+    508                  n = get_match_length(dst, &locaddr->ipaddr);
+   \                     ??uip_ds6_select_src_5:
+   \   0000A1                ; Setup parameters for call to function get_match_length
+   \   0000A1   90....       MOV     DPTR,#locaddr
+   \   0000A4   E0           MOVX    A,@DPTR
+   \   0000A5   2401         ADD     A,#0x1
+   \   0000A7   FC           MOV     R4,A
+   \   0000A8   A3           INC     DPTR
+   \   0000A9   E0           MOVX    A,@DPTR
+   \   0000AA   3400         ADDC    A,#0x0
+   \   0000AC   FD           MOV     R5,A
+   \   0000AD   AA..         MOV     R2,?V0 + 0
+   \   0000AF   AB..         MOV     R3,?V0 + 1
+   \   0000B1   12....       LCALL   ??get_match_length?relay
+   \   0000B4   E9           MOV     A,R1
+   \   0000B5   F8           MOV     R0,A
+    509                  if(n >= best) {
+   \   0000B6   E8           MOV     A,R0
+   \   0000B7   C3           CLR     C
+   \   0000B8   95..         SUBB    A,?V0 + 4
+   \   0000BA   400E         JC      ??uip_ds6_select_src_4
+    510                    best = n;
+   \   0000BC   88..         MOV     ?V0 + 4,R0
+    511                    matchaddr = locaddr;
+   \   0000BE   90....       MOV     DPTR,#locaddr
+   \   0000C1   E0           MOVX    A,@DPTR
+   \   0000C2   F8           MOV     R0,A
+   \   0000C3   A3           INC     DPTR
+   \   0000C4   E0           MOVX    A,@DPTR
+   \   0000C5   F9           MOV     R1,A
+   \   0000C6   88..         MOV     ?V0 + 2,R0
+   \   0000C8   89..         MOV     ?V0 + 3,R1
+    512                  }
+    513                }
+    514              }
+   \                     ??uip_ds6_select_src_4:
+   \   0000CA   90....       MOV     DPTR,#locaddr
+   \   0000CD   E0           MOVX    A,@DPTR
+   \   0000CE   241C         ADD     A,#0x1c
+   \   0000D0   F8           MOV     R0,A
+   \   0000D1   A3           INC     DPTR
+   \   0000D2   E0           MOVX    A,@DPTR
+   \   0000D3   3400         ADDC    A,#0x0
+   \   0000D5   F9           MOV     R1,A
+   \   0000D6   90....       MOV     DPTR,#locaddr
+   \   0000D9   E8           MOV     A,R0
+   \   0000DA   F0           MOVX    @DPTR,A
+   \   0000DB   A3           INC     DPTR
+   \   0000DC   E9           MOV     A,R1
+   \   0000DD   F0           MOVX    @DPTR,A
+   \   0000DE   02....       LJMP    ??uip_ds6_select_src_2 & 0xFFFF
+    515            } else {
+    516              matchaddr = uip_ds6_get_link_local(ADDR_PREFERRED);
+   \                     ??uip_ds6_select_src_1:
+   \   0000E1                ; Setup parameters for call to function uip_ds6_get_link_local
+   \   0000E1   7901         MOV     R1,#0x1
+   \   0000E3   12....       LCALL   ??uip_ds6_get_link_local?relay
+   \   0000E6   8A..         MOV     ?V0 + 0,R2
+   \   0000E8   8B..         MOV     ?V0 + 1,R3
+   \   0000EA   85....       MOV     ?V0 + 2,?V0 + 0
+   \   0000ED   85....       MOV     ?V0 + 3,?V0 + 1
+    517            }
+    518          
+    519            /* use the :: (unspecified address) as source if no match found */
+    520            if(matchaddr == NULL) {
+   \                     ??uip_ds6_select_src_3:
+   \   0000F0   E5..         MOV     A,?V0 + 2
+   \   0000F2   45..         ORL     A,?V0 + 3
+   \   0000F4   6003         JZ      $+5
+   \   0000F6   02....       LJMP    ??uip_ds6_select_src_6 & 0xFFFF
+    521              uip_create_unspecified(src);
+   \   0000F9   8E82         MOV     DPL,R6
+   \   0000FB   8F83         MOV     DPH,R7
+   \   0000FD   7400         MOV     A,#0x0
+   \   0000FF   F0           MOVX    @DPTR,A
+   \   000100   A3           INC     DPTR
+   \   000101   7400         MOV     A,#0x0
+   \   000103   F0           MOVX    @DPTR,A
+   \   000104   8E82         MOV     DPL,R6
+   \   000106   8F83         MOV     DPH,R7
+   \   000108   A3           INC     DPTR
+   \   000109   A3           INC     DPTR
+   \   00010A   7400         MOV     A,#0x0
+   \   00010C   F0           MOVX    @DPTR,A
+   \   00010D   A3           INC     DPTR
+   \   00010E   7400         MOV     A,#0x0
+   \   000110   F0           MOVX    @DPTR,A
+   \   000111   8E82         MOV     DPL,R6
+   \   000113   8F83         MOV     DPH,R7
+   \   000115   A3           INC     DPTR
+   \   000116   A3           INC     DPTR
+   \   000117   A3           INC     DPTR
+   \   000118   A3           INC     DPTR
+   \   000119   7400         MOV     A,#0x0
+   \   00011B   F0           MOVX    @DPTR,A
+   \   00011C   A3           INC     DPTR
+   \   00011D   7400         MOV     A,#0x0
+   \   00011F   F0           MOVX    @DPTR,A
+   \   000120   8E82         MOV     DPL,R6
+   \   000122   8F83         MOV     DPH,R7
+   \   000124   A3           INC     DPTR
+   \   000125   A3           INC     DPTR
+   \   000126   A3           INC     DPTR
+   \   000127   A3           INC     DPTR
+   \   000128   A3           INC     DPTR
+   \   000129   A3           INC     DPTR
+   \   00012A   7400         MOV     A,#0x0
+   \   00012C   F0           MOVX    @DPTR,A
+   \   00012D   A3           INC     DPTR
+   \   00012E   7400         MOV     A,#0x0
+   \   000130   F0           MOVX    @DPTR,A
+   \   000131   8E82         MOV     DPL,R6
+   \   000133   8F83         MOV     DPH,R7
+   \   000135   A3           INC     DPTR
+   \   000136   A3           INC     DPTR
+   \   000137   A3           INC     DPTR
+   \   000138   A3           INC     DPTR
+   \   000139   A3           INC     DPTR
+   \   00013A   A3           INC     DPTR
+   \   00013B   A3           INC     DPTR
+   \   00013C   A3           INC     DPTR
+   \   00013D   7400         MOV     A,#0x0
+   \   00013F   F0           MOVX    @DPTR,A
+   \   000140   A3           INC     DPTR
+   \   000141   7400         MOV     A,#0x0
+   \   000143   F0           MOVX    @DPTR,A
+   \   000144   8E82         MOV     DPL,R6
+   \   000146   8F83         MOV     DPH,R7
+   \   000148   A3           INC     DPTR
+   \   000149   A3           INC     DPTR
+   \   00014A   A3           INC     DPTR
+   \   00014B   A3           INC     DPTR
+   \   00014C   A3           INC     DPTR
+   \   00014D   A3           INC     DPTR
+   \   00014E   A3           INC     DPTR
+   \   00014F   A3           INC     DPTR
+   \   000150   A3           INC     DPTR
+   \   000151   A3           INC     DPTR
+   \   000152   7400         MOV     A,#0x0
+   \   000154   F0           MOVX    @DPTR,A
+   \   000155   A3           INC     DPTR
+   \   000156   7400         MOV     A,#0x0
+   \   000158   F0           MOVX    @DPTR,A
+   \   000159   EE           MOV     A,R6
+   \   00015A   240C         ADD     A,#0xc
+   \   00015C   F582         MOV     DPL,A
+   \   00015E   EF           MOV     A,R7
+   \   00015F   3400         ADDC    A,#0x0
+   \   000161   F583         MOV     DPH,A
+   \   000163   7400         MOV     A,#0x0
+   \   000165   F0           MOVX    @DPTR,A
+   \   000166   A3           INC     DPTR
+   \   000167   7400         MOV     A,#0x0
+   \   000169   F0           MOVX    @DPTR,A
+   \   00016A   EE           MOV     A,R6
+   \   00016B   240E         ADD     A,#0xe
+   \   00016D   F582         MOV     DPL,A
+   \   00016F   EF           MOV     A,R7
+   \   000170   3400         ADDC    A,#0x0
+   \   000172   F583         MOV     DPH,A
+   \   000174   7400         MOV     A,#0x0
+   \   000176   F0           MOVX    @DPTR,A
+   \   000177   A3           INC     DPTR
+   \   000178   7400         MOV     A,#0x0
+   \   00017A   F0           MOVX    @DPTR,A
+   \   00017B   8022         SJMP    ??uip_ds6_select_src_7
+    522            } else {
+    523              uip_ipaddr_copy(src, &matchaddr->ipaddr);
+   \                     ??uip_ds6_select_src_6:
+   \   00017D                ; Setup parameters for call to function memcpy
+   \   00017D   75..10       MOV     ?V0 + 0,#0x10
+   \   000180   75..00       MOV     ?V0 + 1,#0x0
+   \   000183   78..         MOV     R0,#?V0 + 0
+   \   000185   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000188   85..82       MOV     DPL,?V0 + 2
+   \   00018B   85..83       MOV     DPH,?V0 + 3
+   \   00018E   A3           INC     DPTR
+   \   00018F   AC82         MOV     R4,DPL
+   \   000191   AD83         MOV     R5,DPH
+   \   000193   EE           MOV     A,R6
+   \   000194   FA           MOV     R2,A
+   \   000195   EF           MOV     A,R7
+   \   000196   FB           MOV     R3,A
+   \   000197   12....       LCALL   ??memcpy?relay
+   \   00019A   7402         MOV     A,#0x2
+   \   00019C   12....       LCALL   ?DEALLOC_XSTACK8
+    524            }
+    525          }
+   \                     ??uip_ds6_select_src_7:
+   \   00019F   7F05         MOV     R7,#0x5
+   \   0001A1   02....       LJMP    ?BANKED_LEAVE_XDATA
+    526          
+    527          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    528          void
+    529          uip_ds6_set_addr_iid(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
+   \                     uip_ds6_set_addr_iid:
+    530          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    531            /* We consider only links with IEEE EUI-64 identifier or
+    532             * IEEE 48-bit MAC addresses */
+    533          #if (UIP_LLADDR_LEN == 8)
+    534            memcpy(ipaddr->u8 + 8, lladdr, UIP_LLADDR_LEN);
+   \   000009                ; Setup parameters for call to function memcpy
+   \   000009   75..08       MOV     ?V0 + 0,#0x8
+   \   00000C   75..00       MOV     ?V0 + 1,#0x0
+   \   00000F   78..         MOV     R0,#?V0 + 0
+   \   000011   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000014   EE           MOV     A,R6
+   \   000015   2408         ADD     A,#0x8
+   \   000017   FA           MOV     R2,A
+   \   000018   EF           MOV     A,R7
+   \   000019   3400         ADDC    A,#0x0
+   \   00001B   FB           MOV     R3,A
+   \   00001C   12....       LCALL   ??memcpy?relay
+   \   00001F   7402         MOV     A,#0x2
+   \   000021   12....       LCALL   ?DEALLOC_XSTACK8
+    535            ipaddr->u8[8] ^= 0x02;
+   \   000024   8E82         MOV     DPL,R6
+   \   000026   8F83         MOV     DPH,R7
+   \   000028   A3           INC     DPTR
+   \   000029   A3           INC     DPTR
+   \   00002A   A3           INC     DPTR
+   \   00002B   A3           INC     DPTR
+   \   00002C   A3           INC     DPTR
+   \   00002D   A3           INC     DPTR
+   \   00002E   A3           INC     DPTR
+   \   00002F   A3           INC     DPTR
+   \   000030   E0           MOVX    A,@DPTR
+   \   000031   6402         XRL     A,#0x2
+   \   000033   F0           MOVX    @DPTR,A
+    536          #elif (UIP_LLADDR_LEN == 6)
+    537            memcpy(ipaddr->u8 + 8, lladdr, 3);
+    538            ipaddr->u8[11] = 0xff;
+    539            ipaddr->u8[12] = 0xfe;
+    540            memcpy(ipaddr->u8 + 13, (uint8_t *)lladdr + 3, 3);
+    541            ipaddr->u8[8] ^= 0x02;
+    542          #else
+    543          #pragma error uip-ds6.c cannot build interface address when UIP_LLADDR_LEN is not 6 or 8
+    544          #endif
+    545          }
+   \   000034   7F02         MOV     R7,#0x2
+   \   000036   02....       LJMP    ?BANKED_LEAVE_XDATA
+    546          
+    547          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    548          uint8_t
+    549          get_match_length(uip_ipaddr_t *src, uip_ipaddr_t *dst)
+   \                     get_match_length:
+    550          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+    551            uint8_t j, k, x_or;
+    552            uint8_t len = 0;
+   \   000005   7900         MOV     R1,#0x0
+    553          
+    554            for(j = 0; j < 16; j++) {
+   \   000007   75..00       MOV     ?V0 + 2,#0x0
+   \   00000A   8006         SJMP    ??get_match_length_0
+    555              if(src->u8[j] == dst->u8[j]) {
+    556                len += 8;
+   \                     ??get_match_length_1:
+   \   00000C   7408         MOV     A,#0x8
+   \   00000E   29           ADD     A,R1
+   \   00000F   F9           MOV     R1,A
+    557              } else {
+   \   000010   05..         INC     ?V0 + 2
+   \                     ??get_match_length_0:
+   \   000012   E5..         MOV     A,?V0 + 2
+   \   000014   C3           CLR     C
+   \   000015   9410         SUBB    A,#0x10
+   \   000017   505D         JNC     ??get_match_length_2
+   \   000019   85....       MOV     ?V0 + 0,?V0 + 2
+   \   00001C   75..00       MOV     ?V0 + 1,#0x0
+   \   00001F   EA           MOV     A,R2
+   \   000020   25..         ADD     A,?V0 + 0
+   \   000022   F582         MOV     DPL,A
+   \   000024   EB           MOV     A,R3
+   \   000025   35..         ADDC    A,?V0 + 1
+   \   000027   F583         MOV     DPH,A
+   \   000029   E0           MOVX    A,@DPTR
+   \   00002A   F8           MOV     R0,A
+   \   00002B   85....       MOV     ?V0 + 0,?V0 + 2
+   \   00002E   75..00       MOV     ?V0 + 1,#0x0
+   \   000031   EC           MOV     A,R4
+   \   000032   25..         ADD     A,?V0 + 0
+   \   000034   F582         MOV     DPL,A
+   \   000036   ED           MOV     A,R5
+   \   000037   35..         ADDC    A,?V0 + 1
+   \   000039   F583         MOV     DPH,A
+   \   00003B   E0           MOVX    A,@DPTR
+   \   00003C   68           XRL     A,R0
+   \   00003D   60CD         JZ      ??get_match_length_1
+    558                x_or = src->u8[j] ^ dst->u8[j];
+   \   00003F   85....       MOV     ?V0 + 0,?V0 + 2
+   \   000042   75..00       MOV     ?V0 + 1,#0x0
+   \   000045   EC           MOV     A,R4
+   \   000046   25..         ADD     A,?V0 + 0
+   \   000048   F582         MOV     DPL,A
+   \   00004A   ED           MOV     A,R5
+   \   00004B   35..         ADDC    A,?V0 + 1
+   \   00004D   F583         MOV     DPH,A
+   \   00004F   E0           MOVX    A,@DPTR
+   \   000050   F8           MOV     R0,A
+   \   000051   75..00       MOV     ?V0 + 3,#0x0
+   \   000054   EA           MOV     A,R2
+   \   000055   25..         ADD     A,?V0 + 2
+   \   000057   F582         MOV     DPL,A
+   \   000059   EB           MOV     A,R3
+   \   00005A   35..         ADDC    A,?V0 + 3
+   \   00005C   F583         MOV     DPH,A
+   \   00005E   E0           MOVX    A,@DPTR
+   \   00005F   68           XRL     A,R0
+   \   000060   FA           MOV     R2,A
+    559                for(k = 0; k < 8; k++) {
+   \   000061   7800         MOV     R0,#0x0
+   \   000063   8006         SJMP    ??get_match_length_3
+    560                  if((x_or & 0x80) == 0) {
+    561                    len++;
+   \                     ??get_match_length_4:
+   \   000065   09           INC     R1
+    562                    x_or <<= 1;
+   \   000066   EA           MOV     A,R2
+   \   000067   C3           CLR     C
+   \   000068   33           RLC     A
+   \   000069   FA           MOV     R2,A
+    563                  } else {
+   \   00006A   08           INC     R0
+   \                     ??get_match_length_3:
+   \   00006B   E8           MOV     A,R0
+   \   00006C   C3           CLR     C
+   \   00006D   9408         SUBB    A,#0x8
+   \   00006F   5005         JNC     ??get_match_length_2
+   \   000071   EA           MOV     A,R2
+   \   000072   A2E7         MOV     C,0xE0 /* A   */.7
+   \   000074   50EF         JNC     ??get_match_length_4
+    564                    break;
+    565                  }
+    566                }
+    567                break;
+    568              }
+    569            }
+    570            return len;
+   \                     ??get_match_length_2:
+   \   000076   7F04         MOV     R7,#0x4
+   \   000078   02....       LJMP    ?BANKED_LEAVE_XDATA
+    571          }
+    572          
+    573          /*---------------------------------------------------------------------------*/
+    574          #if UIP_ND6_DEF_MAXDADNS > 0
+    575          void
+    576          uip_ds6_dad(uip_ds6_addr_t *addr)
+    577          {
+    578            /* send maxdadns NS for DAD  */
+    579            if(addr->dadnscount < uip_ds6_if.maxdadns) {
+    580              uip_nd6_ns_output(NULL, NULL, &addr->ipaddr);
+    581              addr->dadnscount++;
+    582              timer_set(&addr->dadtimer,
+    583                        uip_ds6_if.retrans_timer / 1000 * CLOCK_SECOND);
+    584              return;
+    585            }
+    586            /*
+    587             * If we arrive here it means DAD succeeded, otherwise the dad process
+    588             * would have been interrupted in ds6_dad_ns/na_input
+    589             */
+    590            PRINTF("DAD succeeded, ipaddr:");
+    591            PRINT6ADDR(&addr->ipaddr);
+    592            PRINTF("\n");
+    593          
+    594            addr->state = ADDR_PREFERRED;
+    595            return;
+    596          }
+    597          
+    598          /*---------------------------------------------------------------------------*/
+    599          /*
+    600           * Calling code must handle when this returns 0 (e.g. link local
+    601           * address can not be used).
+    602           */
+    603          int
+    604          uip_ds6_dad_failed(uip_ds6_addr_t *addr)
+    605          {
+    606            if(uip_is_addr_link_local(&addr->ipaddr)) {
+    607              PRINTF("Contiki shutdown, DAD for link local address failed\n");
+    608              return 0;
+    609            }
+    610            uip_ds6_addr_rm(addr);
+    611            return 1;
+    612          }
+    613          #endif /*UIP_ND6_DEF_MAXDADNS > 0 */
+    614          
+    615          /*---------------------------------------------------------------------------*/
+    616          #if UIP_CONF_ROUTER
+    617          #if UIP_ND6_SEND_RA
+    618          void
+    619          uip_ds6_send_ra_sollicited(void)
+    620          {
+    621            /* We have a pb here: RA timer max possible value is 1800s,
+    622             * hence we have to use stimers. However, when receiving a RS, we
+    623             * should delay the reply by a random value between 0 and 500ms timers.
+    624             * stimers are in seconds, hence we cannot do this. Therefore we just send
+    625             * the RA (setting the timer to 0 below). We keep the code logic for
+    626             * the days contiki will support appropriate timers */
+    627            rand_time = 0;
+    628            PRINTF("Solicited RA, random time %u\n", rand_time);
+    629          
+    630            if(stimer_remaining(&uip_ds6_timer_ra) > rand_time) {
+    631              if(stimer_elapsed(&uip_ds6_timer_ra) < UIP_ND6_MIN_DELAY_BETWEEN_RAS) {
+    632                /* Ensure that the RAs are rate limited */
+    633          /*      stimer_set(&uip_ds6_timer_ra, rand_time +
+    634                           UIP_ND6_MIN_DELAY_BETWEEN_RAS -
+    635                           stimer_elapsed(&uip_ds6_timer_ra));
+    636            */ } else {
+    637                stimer_set(&uip_ds6_timer_ra, rand_time);
+    638              }
+    639            }
+    640          }
+    641          
+    642          /*---------------------------------------------------------------------------*/
+    643          void
+    644          uip_ds6_send_ra_periodic(void)
+    645          {
+    646            if(racount > 0) {
+    647              /* send previously scheduled RA */
+    648              uip_nd6_ra_output(NULL);
+    649              PRINTF("Sending periodic RA\n");
+    650            }
+    651          
+    652            rand_time = UIP_ND6_MIN_RA_INTERVAL + random_rand() %
+    653              (uint16_t) (UIP_ND6_MAX_RA_INTERVAL - UIP_ND6_MIN_RA_INTERVAL);
+    654            PRINTF("Random time 1 = %u\n", rand_time);
+    655          
+    656            if(racount < UIP_ND6_MAX_INITIAL_RAS) {
+    657              if(rand_time > UIP_ND6_MAX_INITIAL_RA_INTERVAL) {
+    658                rand_time = UIP_ND6_MAX_INITIAL_RA_INTERVAL;
+    659                PRINTF("Random time 2 = %u\n", rand_time);
+    660              }
+    661              racount++;
+    662            }
+    663            PRINTF("Random time 3 = %u\n", rand_time);
+    664            stimer_set(&uip_ds6_timer_ra, rand_time);
+    665          }
+    666          
+    667          #endif /* UIP_ND6_SEND_RA */
+    668          #else /* UIP_CONF_ROUTER */
+    669          /*---------------------------------------------------------------------------*/
+    670          void
+    671          uip_ds6_send_rs(void)
+    672          {
+    673            if((uip_ds6_defrt_choose() == NULL)
+    674               && (rscount < UIP_ND6_MAX_RTR_SOLICITATIONS)) {
+    675              PRINTF("Sending RS %u\n", rscount);
+    676              uip_nd6_rs_output();
+    677              rscount++;
+    678              etimer_set(&uip_ds6_timer_rs,
+    679                         UIP_ND6_RTR_SOLICITATION_INTERVAL * CLOCK_SECOND);
+    680            } else {
+    681              PRINTF("Router found ? (boolean): %u\n",
+    682                     (uip_ds6_defrt_choose() != NULL));
+    683              etimer_stop(&uip_ds6_timer_rs);
+    684            }
+    685            return;
+    686          }
+    687          
+    688          #endif /* UIP_CONF_ROUTER */
+    689          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    690          uint32_t
+    691          uip_ds6_compute_reachable_time(void)
+   \                     uip_ds6_compute_reachable_time:
+    692          {
+   \   000000   74E8         MOV     A,#-0x18
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 24
+   \   000005                ; Auto size: 0
+    693            return (uint32_t) (UIP_ND6_MIN_RANDOM_FACTOR
+    694                               (uip_ds6_if.base_reachable_time)) +
+    695              ((uint16_t) (random_rand() << 8) +
+    696               (uint16_t) random_rand()) %
+    697              (uint32_t) (UIP_ND6_MAX_RANDOM_FACTOR(uip_ds6_if.base_reachable_time) -
+    698                          UIP_ND6_MIN_RANDOM_FACTOR(uip_ds6_if.base_reachable_time));
+   \   000005                ; Setup parameters for call to function random_rand
+   \   000005   12....       LCALL   ??random_rand?relay
+   \   000008   8A..         MOV     ?V0 + 0,R2
+   \   00000A   8B..         MOV     ?V0 + 1,R3
+   \   00000C   AE..         MOV     R6,?V0 + 0
+   \   00000E   AF..         MOV     R7,?V0 + 1
+   \   000010                ; Setup parameters for call to function random_rand
+   \   000010   12....       LCALL   ??random_rand?relay
+   \   000013   8A..         MOV     ?V0 + 0,R2
+   \   000015   8B..         MOV     ?V0 + 1,R3
+   \   000017   AA..         MOV     R2,?V0 + 0
+   \   000019   AB..         MOV     R3,?V0 + 1
+   \   00001B   90....       MOV     DPTR,#uip_ds6_if + 5
+   \   00001E   78..         MOV     R0,#?V0 + 4
+   \   000020   12....       LCALL   ?L_MOV_X
+   \   000023   7401         MOV     A,#0x1
+   \   000025   78..         MOV     R0,#?V0 + 4
+   \   000027   12....       LCALL   ?UL_SHR
+   \   00002A   E4           CLR     A
+   \   00002B   CE           XCH     A,R6
+   \   00002C   FF           MOV     R7,A
+   \   00002D   EE           MOV     A,R6
+   \   00002E   2A           ADD     A,R2
+   \   00002F   F5..         MOV     ?V0 + 0,A
+   \   000031   EF           MOV     A,R7
+   \   000032   3B           ADDC    A,R3
+   \   000033   F5..         MOV     ?V0 + 1,A
+   \   000035   E4           CLR     A
+   \   000036   F5..         MOV     ?V0 + 2,A
+   \   000038   F5..         MOV     ?V0 + 3,A
+   \   00003A   90....       MOV     DPTR,#uip_ds6_if + 5
+   \   00003D   C082         PUSH    DPL
+   \   00003F   C083         PUSH    DPH
+   \   000041   90....       MOV     DPTR,#uip_ds6_if + 5
+   \   000044   78..         MOV     R0,#?V0 + 8
+   \   000046   12....       LCALL   ?L_MOV_X
+   \   000049   7401         MOV     A,#0x1
+   \   00004B   78..         MOV     R0,#?V0 + 8
+   \   00004D   12....       LCALL   ?UL_SHR
+   \   000050   D083         POP     DPH
+   \   000052   D082         POP     DPL
+   \   000054   78..         MOV     R0,#?V0 + 8
+   \   000056   12....       LCALL   ?L_ADD_X
+   \   000059   90....       MOV     DPTR,#uip_ds6_if + 5
+   \   00005C   78..         MOV     R0,#?V0 + 12
+   \   00005E   12....       LCALL   ?L_MOV_X
+   \   000061   7401         MOV     A,#0x1
+   \   000063   78..         MOV     R0,#?V0 + 12
+   \   000065   12....       LCALL   ?UL_SHR
+   \   000068   78..         MOV     R0,#?V0 + 8
+   \   00006A   79..         MOV     R1,#?V0 + 12
+   \   00006C   12....       LCALL   ?L_SUB
+   \   00006F   78..         MOV     R0,#?V0 + 0
+   \   000071   79..         MOV     R1,#?V0 + 8
+   \   000073   12....       LCALL   ?UL_DIV_MOD
+   \   000076   78..         MOV     R0,#?V0 + 4
+   \   000078   79..         MOV     R1,#?V0 + 8
+   \   00007A   12....       LCALL   ?L_ADD
+   \   00007D   AA..         MOV     R2,?V0 + 4
+   \   00007F   AB..         MOV     R3,?V0 + 5
+   \   000081   AC..         MOV     R4,?V0 + 6
+   \   000083   AD..         MOV     R5,?V0 + 7
+   \   000085   7F10         MOV     R7,#0x10
+   \   000087   02....       LJMP    ?BANKED_LEAVE_XDATA
+    699          }
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     __Constant_0:
+   \   000000                DS 4
+   \   000004                REQUIRE `?<Initializer for __Constant_0>`
+   \   000004                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for __Constant_0>`:
+   \   000000   00000000     DD 0
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_periodic?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_periodic
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_list_loop?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_list_loop
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_prefix_add?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_prefix_add
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_prefix_rm?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_prefix_rm
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_prefix_lookup?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_prefix_lookup
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_is_addr_onlink?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_is_addr_onlink
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_addr_add?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_addr_add
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_addr_rm?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_addr_rm
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_addr_lookup?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_addr_lookup
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_get_link_local?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_get_link_local
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_get_global?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_get_global
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_maddr_add?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_maddr_add
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_maddr_rm?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_maddr_rm
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_maddr_lookup?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_maddr_lookup
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_aaddr_add?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_aaddr_add
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_aaddr_rm?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_aaddr_rm
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_aaddr_lookup?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_aaddr_lookup
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_select_src?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_select_src
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_set_addr_iid?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_set_addr_iid
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??get_match_length?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    get_match_length
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_compute_reachable_time?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_compute_reachable_time
+    700          /*---------------------------------------------------------------------------*/
+    701          /** @} */
+    702          #endif /* UIP_CONF_IPV6 */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     25  get_match_length
+       0      0     17  uip_ds6_aaddr_add
+                          0 0 14 -> memcpy
+                          0 0 17 -> uip_ds6_list_loop
+       0      0     15  uip_ds6_aaddr_lookup
+                          0 0 15 -> uip_ds6_list_loop
+       2      0      0  uip_ds6_aaddr_rm
+       1      0     35  uip_ds6_addr_add
+                          0 0 18 -> memcpy
+                          0 0 20 -> stimer_set
+                          0 0 21 -> uip_ds6_list_loop
+                          0 0 16 -> uip_ds6_maddr_add
+       0      0     15  uip_ds6_addr_lookup
+                          0 0 15 -> uip_ds6_list_loop
+       0      0     20  uip_ds6_addr_rm
+                          0 0 10 -> uip_ds6_maddr_lookup
+                          0 0 10 -> uip_ds6_maddr_rm
+       2      0     34  uip_ds6_compute_reachable_time
+                          0 0 24 -> random_rand
+       2      0      0  uip_ds6_get_global
+       2      0     13  uip_ds6_get_link_local
+       0      0     18  uip_ds6_init
+                          0 0 10 -> etimer_set
+                          0 0 12 -> memset
+                          0 0 14 -> uip_ds6_addr_add
+                          0 0 10 -> uip_ds6_compute_reachable_time
+                          0 0 10 -> uip_ds6_maddr_add
+                          0 0 10 -> uip_ds6_neighbors_init
+                          0 0 18 -> uip_ds6_prefix_add
+                          0 0 10 -> uip_ds6_route_init
+                          0 0 10 -> uip_ds6_set_addr_iid
+       0      0     12  uip_ds6_is_addr_onlink
+                          0 0 12 -> memcmp
+       0      0     49  uip_ds6_list_loop
+                          0 0 22 -> memcmp
+       0      0     33  uip_ds6_maddr_add
+                          0 0 14 -> memcpy
+                          0 0 17 -> uip_ds6_list_loop
+       0      0     25  uip_ds6_maddr_lookup
+                          0 0 15 -> uip_ds6_list_loop
+       2      0     10  uip_ds6_maddr_rm
+       0      0     10  uip_ds6_periodic
+                          0 0 10 -> etimer_reset
+                          0 0 10 -> stimer_expired
+                          0 0 10 -> uip_ds6_addr_rm
+                          0 0 10 -> uip_ds6_defrt_periodic
+                          0 0 10 -> uip_ds6_neighbor_periodic
+       1      0     45  uip_ds6_prefix_add
+                          0 0 24 -> memcpy
+                          0 0 27 -> uip_ds6_list_loop
+       0      0     15  uip_ds6_prefix_lookup
+                          0 0 15 -> uip_ds6_list_loop
+       2      0      0  uip_ds6_prefix_rm
+       0      0     15  uip_ds6_select_src
+                          0 0 13 -> get_match_length
+                          0 0 15 -> memcpy
+                          0 0 13 -> uip_ds6_get_link_local
+       0      0     22  uip_ds6_set_addr_iid
+                          0 0 12 -> memcpy
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       4  ?<Initializer for __Constant_0>
+       6  ??get_match_length?relay
+       6  ??uip_ds6_aaddr_add?relay
+       6  ??uip_ds6_aaddr_lookup?relay
+       6  ??uip_ds6_aaddr_rm?relay
+       6  ??uip_ds6_addr_add?relay
+       6  ??uip_ds6_addr_lookup?relay
+       6  ??uip_ds6_addr_rm?relay
+       6  ??uip_ds6_compute_reachable_time?relay
+       6  ??uip_ds6_get_global?relay
+       6  ??uip_ds6_get_link_local?relay
+       6  ??uip_ds6_init?relay
+       6  ??uip_ds6_is_addr_onlink?relay
+       6  ??uip_ds6_list_loop?relay
+       6  ??uip_ds6_maddr_add?relay
+       6  ??uip_ds6_maddr_lookup?relay
+       6  ??uip_ds6_maddr_rm?relay
+       6  ??uip_ds6_periodic?relay
+       6  ??uip_ds6_prefix_add?relay
+       6  ??uip_ds6_prefix_lookup?relay
+       6  ??uip_ds6_prefix_rm?relay
+       6  ??uip_ds6_select_src?relay
+       6  ??uip_ds6_set_addr_iid?relay
+       4  __Constant_0
+     123  get_match_length
+      16  loc_fipaddr
+       2  locaaddr
+       2  locaddr
+       2  locmaddr
+       2  locprefix
+     124  uip_ds6_aaddr_add
+      73  uip_ds6_aaddr_lookup
+      22  uip_ds6_aaddr_rm
+     378  uip_ds6_addr_add
+      73  uip_ds6_addr_lookup
+     174  uip_ds6_addr_rm
+       1  uip_ds6_addr_size
+     138  uip_ds6_compute_reachable_time
+     159  uip_ds6_get_global
+     159  uip_ds6_get_link_local
+     221  uip_ds6_if
+     455  uip_ds6_init
+     146  uip_ds6_is_addr_onlink
+     228  uip_ds6_list_loop
+     124  uip_ds6_maddr_add
+      73  uip_ds6_maddr_lookup
+      22  uip_ds6_maddr_rm
+       1  uip_ds6_netif_addr_list_offset
+     138  uip_ds6_periodic
+     265  uip_ds6_prefix_add
+      84  uip_ds6_prefix_list
+      75  uip_ds6_prefix_lookup
+      22  uip_ds6_prefix_rm
+     420  uip_ds6_select_src
+      57  uip_ds6_set_addr_iid
+       8  uip_ds6_timer_periodic
+       8  uip_ds6_timer_ra
+
+ 
+ 3 448 bytes in segment BANKED_CODE
+   132 bytes in segment BANK_RELAYS
+     4 bytes in segment XDATA_I
+     4 bytes in segment XDATA_ID
+   347 bytes in segment XDATA_Z
+ 
+ 3 580 bytes of CODE  memory (+ 4 bytes shared)
+   347 bytes of XDATA memory (+ 4 bytes shared)
+
+Errors: none
+Warnings: none

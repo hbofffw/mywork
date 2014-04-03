@@ -1,0 +1,2420 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:53 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\uip-ds6-route.c          #
+#    Command line       =  D:\myWork\myWork\core\net\uip-ds6-route.c -D       #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\uip-ds6-route.lst                           #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\uip-ds6-route.r51                            #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\uip-ds6-route.c
+      1          /*
+      2           * Copyright (c) 2012, Thingsquare, http://www.thingsquare.com/.
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           *
+     14           * 3. Neither the name of the copyright holder nor the names of its
+     15           *    contributors may be used to endorse or promote products derived
+     16           *    from this software without specific prior written permission.
+     17           *
+     18           * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+     19           * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+     20           * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+     21           * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+     22           * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+     23           * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+     24           * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+     25           * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     26           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+     27           * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     28           * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+     29           * OF THE POSSIBILITY OF SUCH DAMAGE.
+     30           *
+     31           */
+     32          #include "net/uip-ds6.h"
+     33          #include "net/uip.h"
+     34          
+     35          #include "lib/list.h"
+     36          #include "lib/memb.h"
+     37          #include "net/nbr-table.h"
+     38          
+     39          #if UIP_CONF_IPV6
+     40          
+     41          #include <string.h>
+     42          
+     43          /* The nbr_routes holds a neighbor table to be able to maintain
+     44             information about what routes go through what neighbor. This
+     45             neighbor table is registered with the central nbr-table repository
+     46             so that it will be maintained along with the rest of the neighbor
+     47             tables in the system. */
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     48          NBR_TABLE(struct uip_ds6_route_neighbor_routes, nbr_routes);
+   \                     _nbr_routes_mem:
+   \   000000                DS 16
+   \   000010                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \   static nbr_table_t nbr_routes_struct
+   \                     nbr_routes_struct:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for nbr_routes_struct>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \   static nbr_table_t *__xdata nbr_routes
+   \                     nbr_routes:
+   \   000000                DS 2
+   \   000002                REQUIRE `?<Initializer for nbr_routes>`
+   \   000002                REQUIRE __INIT_XDATA_I
+     49          
+     50          /* Each route is repressented by a uip_ds6_route_t structure and
+     51             memory for each route is allocated from the routememb memory
+     52             block. These routes are maintained on lists of route entries that
+     53             are attached to each neighbor, via the nbr_routes neighbor
+     54             table. */
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     55          MEMB(routememb, uip_ds6_route_t, UIP_DS6_ROUTE_NB);
+   \                     routememb:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for routememb>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static char routememb_memb_count[4]
+   \                     routememb_memb_count:
+   \   000000                DS 4
+   \   000004                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static uip_ds6_route_t routememb_memb_mem[4]
+   \                     routememb_memb_mem:
+   \   000000                DS 116
+   \   000074                REQUIRE __INIT_XDATA_Z
+     56          
+     57          /* Default routes are held on the defaultrouterlist and their
+     58             structures are allocated from the defaultroutermemb memory block.*/
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     59          LIST(defaultrouterlist);
+   \                     defaultrouterlist:
+   \   000000                DS 2
+   \   000002                REQUIRE `?<Initializer for defaultrouterlist>`
+   \   000002                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static void *__xdata defaultrouterlist_list
+   \                     defaultrouterlist_list:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     60          MEMB(defaultroutermemb, uip_ds6_defrt_t, UIP_DS6_DEFRT_NB);
+   \                     defaultroutermemb:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for defaultroutermemb>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static char defaultroutermemb_memb_count[2]
+   \                     defaultroutermemb_memb_count:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static uip_ds6_defrt_t defaultroutermemb_memb_mem[2]
+   \                     defaultroutermemb_memb_mem:
+   \   000000                DS 54
+   \   000036                REQUIRE __INIT_XDATA_Z
+     61          
+     62          #if UIP_DS6_NOTIFICATIONS
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     63          LIST(notificationlist);
+   \                     notificationlist:
+   \   000000                DS 2
+   \   000002                REQUIRE `?<Initializer for notificationlist>`
+   \   000002                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static void *__xdata notificationlist_list
+   \                     notificationlist_list:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     64          #endif
+     65          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     66          static int num_routes = 0;
+   \                     num_routes:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     67          
+     68          #undef DEBUG
+     69          #define DEBUG DEBUG_NONE
+     70          #include "net/uip-debug.h"
+     71          
+     72          static void rm_routelist_callback(nbr_table_item_t *ptr);
+     73          /*---------------------------------------------------------------------------*/
+     74          #if DEBUG != DEBUG_NONE
+     75          static void
+     76          assert_nbr_routes_list_sane(void)
+     77          {
+     78            uip_ds6_route_t *r;
+     79            int count;
+     80          
+     81            /* Check if the route list has an infinite loop. */
+     82            for(r = uip_ds6_route_head(),
+     83                  count = 0;
+     84                r != NULL &&
+     85                  count < UIP_DS6_ROUTE_NB;
+     86                r = uip_ds6_route_next(r),
+     87                  count++);
+     88          
+     89            if(count >= UIP_DS6_ROUTE_NB) {
+     90              printf("uip-ds6-route.c: assert_nbr_routes_list_sane route list is in infinite loop\n");
+     91            }
+     92          
+     93            /* Make sure that the route list has as many entries as the
+     94               num_routes vairable. */
+     95            if(count < num_routes) {
+     96              printf("uip-ds6-route.c: assert_nbr_routes_list_sane too few entries on route list: should be %d, is %d, max %d\n",
+     97                     num_routes, count, UIP_CONF_MAX_ROUTES);
+     98            }
+     99          }
+    100          #endif /* DEBUG != DEBUG_NONE */
+    101          /*---------------------------------------------------------------------------*/
+    102          #if UIP_DS6_NOTIFICATIONS
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    103          static void
+    104          call_route_callback(int event, uip_ipaddr_t *route,
+   \                     call_route_callback:
+    105          		    uip_ipaddr_t *nexthop)
+    106          {
+   \   000000   74EE         MOV     A,#-0x12
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 18
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   8C..         MOV     ?V0 + 2,R4
+   \   00000B   8D..         MOV     ?V0 + 3,R5
+    107            int num;
+    108            struct uip_ds6_notification *n;
+    109            for(n = list_head(notificationlist);
+   \   00000D                ; Setup parameters for call to function list_head
+   \   00000D   90....       MOV     DPTR,#notificationlist
+   \   000010   E0           MOVX    A,@DPTR
+   \   000011   FA           MOV     R2,A
+   \   000012   A3           INC     DPTR
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   FB           MOV     R3,A
+   \   000015   12....       LCALL   ??list_head?relay
+   \   000018   8A..         MOV     ?V0 + 4,R2
+   \   00001A   8B..         MOV     ?V0 + 5,R3
+   \   00001C   AE..         MOV     R6,?V0 + 4
+   \   00001E   AF..         MOV     R7,?V0 + 5
+   \   000020   7412         MOV     A,#0x12
+   \   000022   12....       LCALL   ?XSTACK_DISP0_8
+   \   000025   E0           MOVX    A,@DPTR
+   \   000026   F5..         MOV     ?V0 + 4,A
+   \   000028   A3           INC     DPTR
+   \   000029   E0           MOVX    A,@DPTR
+   \   00002A   F5..         MOV     ?V0 + 5,A
+   \   00002C   8041         SJMP    ??call_route_callback_0
+    110                n != NULL;
+    111                n = list_item_next(n)) {
+    112              if(event == UIP_DS6_NOTIFICATION_DEFRT_ADD ||
+    113                 event == UIP_DS6_NOTIFICATION_DEFRT_RM) {
+    114                num = list_length(defaultrouterlist);
+    115              } else {
+    116                num = num_routes;
+   \                     ??call_route_callback_1:
+   \   00002E   90....       MOV     DPTR,#num_routes
+   \   000031   E0           MOVX    A,@DPTR
+   \   000032   F5..         MOV     ?V0 + 6,A
+   \   000034   A3           INC     DPTR
+   \   000035   E0           MOVX    A,@DPTR
+   \   000036   F5..         MOV     ?V0 + 7,A
+    117              }
+    118              n->callback(event, route, nexthop, num);
+   \                     ??call_route_callback_2:
+   \   000038                ; Setup parameters for indirect call
+   \   000038   78..         MOV     R0,#?V0 + 6
+   \   00003A   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00003D   78..         MOV     R0,#?V0 + 4
+   \   00003F   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000042   AC..         MOV     R4,?V0 + 2
+   \   000044   AD..         MOV     R5,?V0 + 3
+   \   000046   AA..         MOV     R2,?V0 + 0
+   \   000048   AB..         MOV     R3,?V0 + 1
+   \   00004A   8E82         MOV     DPL,R6
+   \   00004C   8F83         MOV     DPH,R7
+   \   00004E   A3           INC     DPTR
+   \   00004F   A3           INC     DPTR
+   \   000050   E0           MOVX    A,@DPTR
+   \   000051   F8           MOV     R0,A
+   \   000052   A3           INC     DPTR
+   \   000053   E0           MOVX    A,@DPTR
+   \   000054   F583         MOV     DPH,A
+   \   000056   8882         MOV     DPL,R0
+   \   000058   12....       LCALL   ?CALL_IND
+   \   00005B   7404         MOV     A,#0x4
+   \   00005D   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000060                ; Setup parameters for call to function list_item_next
+   \   000060   EE           MOV     A,R6
+   \   000061   FA           MOV     R2,A
+   \   000062   EF           MOV     A,R7
+   \   000063   FB           MOV     R3,A
+   \   000064   12....       LCALL   ??list_item_next?relay
+   \   000067   8A..         MOV     ?V0 + 6,R2
+   \   000069   8B..         MOV     ?V0 + 7,R3
+   \   00006B   AE..         MOV     R6,?V0 + 6
+   \   00006D   AF..         MOV     R7,?V0 + 7
+   \                     ??call_route_callback_0:
+   \   00006F   EE           MOV     A,R6
+   \   000070   4F           ORL     A,R7
+   \   000071   6029         JZ      ??call_route_callback_3
+   \   000073   E5..         MOV     A,?V0 + 0
+   \   000075   45..         ORL     A,?V0 + 1
+   \   000077   600C         JZ      ??call_route_callback_4
+   \   000079   7401         MOV     A,#0x1
+   \   00007B   65..         XRL     A,?V0 + 0
+   \   00007D   7004         JNZ     ??call_route_callback_5
+   \   00007F   7400         MOV     A,#0x0
+   \   000081   65..         XRL     A,?V0 + 1
+   \                     ??call_route_callback_5:
+   \   000083   70A9         JNZ     ??call_route_callback_1
+   \                     ??call_route_callback_4:
+   \   000085                ; Setup parameters for call to function list_length
+   \   000085   90....       MOV     DPTR,#defaultrouterlist
+   \   000088   E0           MOVX    A,@DPTR
+   \   000089   FA           MOV     R2,A
+   \   00008A   A3           INC     DPTR
+   \   00008B   E0           MOVX    A,@DPTR
+   \   00008C   FB           MOV     R3,A
+   \   00008D   12....       LCALL   ??list_length?relay
+   \   000090   8A..         MOV     ?V0 + 8,R2
+   \   000092   8B..         MOV     ?V0 + 9,R3
+   \   000094   85....       MOV     ?V0 + 6,?V0 + 8
+   \   000097   85....       MOV     ?V0 + 7,?V0 + 9
+   \   00009A   809C         SJMP    ??call_route_callback_2
+    119            }
+    120          }
+   \                     ??call_route_callback_3:
+   \   00009C   7F0A         MOV     R7,#0xa
+   \   00009E   02....       LJMP    ?BANKED_LEAVE_XDATA
+    121          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    122          void
+    123          uip_ds6_notification_add(struct uip_ds6_notification *n,
+   \                     uip_ds6_notification_add:
+    124          			 uip_ds6_notification_callback c)
+    125          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    126            if(n != NULL && c != NULL) {
+   \   000004   EA           MOV     A,R2
+   \   000005   4B           ORL     A,R3
+   \   000006   601E         JZ      ??uip_ds6_notification_add_0
+   \   000008   EC           MOV     A,R4
+   \   000009   4D           ORL     A,R5
+   \   00000A   601A         JZ      ??uip_ds6_notification_add_0
+    127              n->callback = c;
+   \   00000C   8A82         MOV     DPL,R2
+   \   00000E   8B83         MOV     DPH,R3
+   \   000010   A3           INC     DPTR
+   \   000011   A3           INC     DPTR
+   \   000012   EC           MOV     A,R4
+   \   000013   F0           MOVX    @DPTR,A
+   \   000014   A3           INC     DPTR
+   \   000015   ED           MOV     A,R5
+   \   000016   F0           MOVX    @DPTR,A
+    128              list_add(notificationlist, n);
+   \   000017                ; Setup parameters for call to function list_add
+   \   000017   EA           MOV     A,R2
+   \   000018   FC           MOV     R4,A
+   \   000019   EB           MOV     A,R3
+   \   00001A   FD           MOV     R5,A
+   \   00001B   90....       MOV     DPTR,#notificationlist
+   \   00001E   E0           MOVX    A,@DPTR
+   \   00001F   FA           MOV     R2,A
+   \   000020   A3           INC     DPTR
+   \   000021   E0           MOVX    A,@DPTR
+   \   000022   FB           MOV     R3,A
+   \   000023   12....       LCALL   ??list_add?relay
+    129            }
+    130          }
+   \                     ??uip_ds6_notification_add_0:
+   \   000026   D083         POP     DPH
+   \   000028   D082         POP     DPL
+   \   00002A   02....       LJMP    ?BRET
+    131          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    132          void
+    133          uip_ds6_notification_rm(struct uip_ds6_notification *n)
+   \                     uip_ds6_notification_rm:
+    134          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    135            list_remove(notificationlist, n);
+   \   000004                ; Setup parameters for call to function list_remove
+   \   000004   EA           MOV     A,R2
+   \   000005   FC           MOV     R4,A
+   \   000006   EB           MOV     A,R3
+   \   000007   FD           MOV     R5,A
+   \   000008   90....       MOV     DPTR,#notificationlist
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   FA           MOV     R2,A
+   \   00000D   A3           INC     DPTR
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   FB           MOV     R3,A
+   \   000010   12....       LCALL   ??list_remove?relay
+    136          }
+   \   000013   D083         POP     DPH
+   \   000015   D082         POP     DPL
+   \   000017   02....       LJMP    ?BRET
+    137          #endif
+    138          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    139          void
+    140          uip_ds6_route_init(void)
+   \                     uip_ds6_route_init:
+    141          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    142            memb_init(&routememb);
+   \   000004                ; Setup parameters for call to function memb_init
+   \   000004   7A..         MOV     R2,#routememb & 0xff
+   \   000006   7B..         MOV     R3,#(routememb >> 8) & 0xff
+   \   000008   12....       LCALL   ??memb_init?relay
+    143            nbr_table_register(nbr_routes,
+    144                               (nbr_table_callback *)rm_routelist_callback);
+   \   00000B                ; Setup parameters for call to function nbr_table_register
+   \   00000B   7C..         MOV     R4,#??rm_routelist_callback?relay & 0xff
+   \   00000D   7D..         MOV     R5,#(??rm_routelist_callback?relay >> 8) & 0xff
+   \   00000F   90....       MOV     DPTR,#nbr_routes
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   FA           MOV     R2,A
+   \   000014   A3           INC     DPTR
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   FB           MOV     R3,A
+   \   000017   12....       LCALL   ??nbr_table_register?relay
+    145          
+    146            memb_init(&defaultroutermemb);
+   \   00001A                ; Setup parameters for call to function memb_init
+   \   00001A   7A..         MOV     R2,#defaultroutermemb & 0xff
+   \   00001C   7B..         MOV     R3,#(defaultroutermemb >> 8) & 0xff
+   \   00001E   12....       LCALL   ??memb_init?relay
+    147            list_init(defaultrouterlist);
+   \   000021                ; Setup parameters for call to function list_init
+   \   000021   90....       MOV     DPTR,#defaultrouterlist
+   \   000024   E0           MOVX    A,@DPTR
+   \   000025   FA           MOV     R2,A
+   \   000026   A3           INC     DPTR
+   \   000027   E0           MOVX    A,@DPTR
+   \   000028   FB           MOV     R3,A
+   \   000029   12....       LCALL   ??list_init?relay
+    148          
+    149          #if UIP_DS6_NOTIFICATIONS
+    150            list_init(notificationlist);
+   \   00002C                ; Setup parameters for call to function list_init
+   \   00002C   90....       MOV     DPTR,#notificationlist
+   \   00002F   E0           MOVX    A,@DPTR
+   \   000030   FA           MOV     R2,A
+   \   000031   A3           INC     DPTR
+   \   000032   E0           MOVX    A,@DPTR
+   \   000033   FB           MOV     R3,A
+   \   000034   12....       LCALL   ??list_init?relay
+    151          #endif
+    152          }
+   \   000037   D083         POP     DPH
+   \   000039   D082         POP     DPL
+   \   00003B   02....       LJMP    ?BRET
+    153          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    154          static uip_lladdr_t *
+    155          uip_ds6_route_nexthop_lladdr(uip_ds6_route_t *route)
+   \                     uip_ds6_route_nexthop_lladdr:
+    156          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    157            if(route != NULL) {
+   \   000004   EA           MOV     A,R2
+   \   000005   4B           ORL     A,R3
+   \   000006   6018         JZ      ??uip_ds6_route_nexthop_lladdr_0
+    158              return (uip_lladdr_t *)nbr_table_get_lladdr(nbr_routes, route->routes);
+   \   000008                ; Setup parameters for call to function nbr_table_get_lladdr
+   \   000008   8A82         MOV     DPL,R2
+   \   00000A   8B83         MOV     DPH,R3
+   \   00000C   A3           INC     DPTR
+   \   00000D   A3           INC     DPTR
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   FC           MOV     R4,A
+   \   000010   A3           INC     DPTR
+   \   000011   E0           MOVX    A,@DPTR
+   \   000012   FD           MOV     R5,A
+   \   000013   90....       MOV     DPTR,#nbr_routes
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   FA           MOV     R2,A
+   \   000018   A3           INC     DPTR
+   \   000019   E0           MOVX    A,@DPTR
+   \   00001A   FB           MOV     R3,A
+   \   00001B   12....       LCALL   ??nbr_table_get_lladdr?relay
+   \   00001E   8004         SJMP    ??uip_ds6_route_nexthop_lladdr_1
+    159            } else {
+    160              return NULL;
+   \                     ??uip_ds6_route_nexthop_lladdr_0:
+   \   000020   7A00         MOV     R2,#0x0
+   \   000022   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_route_nexthop_lladdr_1:
+   \   000024   D083         POP     DPH
+   \   000026   D082         POP     DPL
+   \   000028   02....       LJMP    ?BRET
+    161            }
+    162          }
+    163          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    164          uip_ipaddr_t *
+    165          uip_ds6_route_nexthop(uip_ds6_route_t *route)
+   \                     uip_ds6_route_nexthop:
+    166          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    167            if(route != NULL) {
+   \   000004   EA           MOV     A,R2
+   \   000005   4B           ORL     A,R3
+   \   000006   6008         JZ      ??uip_ds6_route_nexthop_0
+    168              return uip_ds6_nbr_ipaddr_from_lladdr(uip_ds6_route_nexthop_lladdr(route));
+   \   000008                ; Setup parameters for call to function uip_ds6_nbr_ipaddr_from_lladdr
+   \   000008                ; Setup parameters for call to function uip_ds6_route_nexthop_lladdr
+   \   000008   12....       LCALL   ??uip_ds6_route_nexthop_lladdr?relay
+   \   00000B   12....       LCALL   ??uip_ds6_nbr_ipaddr_from_lladdr?relay
+   \   00000E   8004         SJMP    ??uip_ds6_route_nexthop_1
+    169            } else {
+    170              return NULL;
+   \                     ??uip_ds6_route_nexthop_0:
+   \   000010   7A00         MOV     R2,#0x0
+   \   000012   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_route_nexthop_1:
+   \   000014   D083         POP     DPH
+   \   000016   D082         POP     DPL
+   \   000018   02....       LJMP    ?BRET
+    171            }
+    172          }
+    173          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    174          uip_ds6_route_t *
+    175          uip_ds6_route_head(void)
+   \                     uip_ds6_route_head:
+    176          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+    177            struct uip_ds6_route_neighbor_routes *routes;
+    178          
+    179            routes = (struct uip_ds6_route_neighbor_routes *)nbr_table_head(nbr_routes);
+   \   000005                ; Setup parameters for call to function nbr_table_head
+   \   000005   90....       MOV     DPTR,#nbr_routes
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   FA           MOV     R2,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   FB           MOV     R3,A
+   \   00000D   12....       LCALL   ??nbr_table_head?relay
+   \   000010   8A..         MOV     ?V0 + 0,R2
+   \   000012   8B..         MOV     ?V0 + 1,R3
+   \   000014   AE..         MOV     R6,?V0 + 0
+   \   000016   AF..         MOV     R7,?V0 + 1
+    180            if(routes != NULL) {
+   \   000018   EE           MOV     A,R6
+   \   000019   4F           ORL     A,R7
+   \   00001A   6028         JZ      ??uip_ds6_route_head_0
+    181              if(list_head(routes->route_list) == NULL) {
+   \   00001C                ; Setup parameters for call to function list_head
+   \   00001C   8E82         MOV     DPL,R6
+   \   00001E   8F83         MOV     DPH,R7
+   \   000020   A3           INC     DPTR
+   \   000021   A3           INC     DPTR
+   \   000022   E0           MOVX    A,@DPTR
+   \   000023   FA           MOV     R2,A
+   \   000024   A3           INC     DPTR
+   \   000025   E0           MOVX    A,@DPTR
+   \   000026   FB           MOV     R3,A
+   \   000027   12....       LCALL   ??list_head?relay
+   \   00002A   8A..         MOV     ?V0 + 2,R2
+   \   00002C   8B..         MOV     ?V0 + 3,R3
+   \   00002E   85....       MOV     ?V0 + 0,?V0 + 2
+   \   000031   85....       MOV     ?V0 + 1,?V0 + 3
+    182                PRINTF("uip_ds6_route_head lead_head(nbr_route_list) is NULL\n");
+    183              }
+    184              return list_head(routes->route_list);
+   \   000034                ; Setup parameters for call to function list_head
+   \   000034   8E82         MOV     DPL,R6
+   \   000036   8F83         MOV     DPH,R7
+   \   000038   A3           INC     DPTR
+   \   000039   A3           INC     DPTR
+   \   00003A   E0           MOVX    A,@DPTR
+   \   00003B   FA           MOV     R2,A
+   \   00003C   A3           INC     DPTR
+   \   00003D   E0           MOVX    A,@DPTR
+   \   00003E   FB           MOV     R3,A
+   \   00003F   12....       LCALL   ??list_head?relay
+   \   000042   8004         SJMP    ??uip_ds6_route_head_1
+    185            } else {
+    186              return NULL;
+   \                     ??uip_ds6_route_head_0:
+   \   000044   7A00         MOV     R2,#0x0
+   \   000046   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_route_head_1:
+   \   000048   7F04         MOV     R7,#0x4
+   \   00004A   02....       LJMP    ?BANKED_LEAVE_XDATA
+    187            }
+    188          }
+    189          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    190          uip_ds6_route_t *
+    191          uip_ds6_route_next(uip_ds6_route_t *r)
+   \                     uip_ds6_route_next:
+    192          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    193            if(r != NULL) {
+   \   000009   EE           MOV     A,R6
+   \   00000A   4F           ORL     A,R7
+   \   00000B   6045         JZ      ??uip_ds6_route_next_0
+    194              uip_ds6_route_t *n = list_item_next(r);
+   \   00000D                ; Setup parameters for call to function list_item_next
+   \   00000D   EE           MOV     A,R6
+   \   00000E   FA           MOV     R2,A
+   \   00000F   EF           MOV     A,R7
+   \   000010   FB           MOV     R3,A
+   \   000011   12....       LCALL   ??list_item_next?relay
+   \   000014   8A..         MOV     ?V0 + 0,R2
+   \   000016   8B..         MOV     ?V0 + 1,R3
+   \   000018   AA..         MOV     R2,?V0 + 0
+   \   00001A   AB..         MOV     R3,?V0 + 1
+    195              if(n != NULL) {
+   \   00001C   EA           MOV     A,R2
+   \   00001D   4B           ORL     A,R3
+   \   00001E   7036         JNZ     ??uip_ds6_route_next_1
+    196                return n;
+    197              } else {
+    198                struct uip_ds6_route_neighbor_routes *routes;
+    199                routes = (struct uip_ds6_route_neighbor_routes *)
+    200                  nbr_table_next(nbr_routes, r->routes);
+   \   000020                ; Setup parameters for call to function nbr_table_next
+   \   000020   8E82         MOV     DPL,R6
+   \   000022   8F83         MOV     DPH,R7
+   \   000024   A3           INC     DPTR
+   \   000025   A3           INC     DPTR
+   \   000026   E0           MOVX    A,@DPTR
+   \   000027   FC           MOV     R4,A
+   \   000028   A3           INC     DPTR
+   \   000029   E0           MOVX    A,@DPTR
+   \   00002A   FD           MOV     R5,A
+   \   00002B   90....       MOV     DPTR,#nbr_routes
+   \   00002E   E0           MOVX    A,@DPTR
+   \   00002F   FA           MOV     R2,A
+   \   000030   A3           INC     DPTR
+   \   000031   E0           MOVX    A,@DPTR
+   \   000032   FB           MOV     R3,A
+   \   000033   12....       LCALL   ??nbr_table_next?relay
+   \   000036   8A..         MOV     ?V0 + 0,R2
+   \   000038   8B..         MOV     ?V0 + 1,R3
+   \   00003A   85..82       MOV     DPL,?V0 + 0
+   \   00003D   85..83       MOV     DPH,?V0 + 1
+    201                if(routes != NULL) {
+   \   000040   E582         MOV     A,DPL
+   \   000042   4583         ORL     A,DPH
+   \   000044   600C         JZ      ??uip_ds6_route_next_0
+    202                  return list_head(routes->route_list);
+   \   000046                ; Setup parameters for call to function list_head
+   \   000046   A3           INC     DPTR
+   \   000047   A3           INC     DPTR
+   \   000048   E0           MOVX    A,@DPTR
+   \   000049   FA           MOV     R2,A
+   \   00004A   A3           INC     DPTR
+   \   00004B   E0           MOVX    A,@DPTR
+   \   00004C   FB           MOV     R3,A
+   \   00004D   12....       LCALL   ??list_head?relay
+   \   000050   8004         SJMP    ??uip_ds6_route_next_1
+    203                }
+    204              }
+    205            }
+    206          
+    207            return NULL;
+   \                     ??uip_ds6_route_next_0:
+   \   000052   7A00         MOV     R2,#0x0
+   \   000054   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_route_next_1:
+   \   000056   7F02         MOV     R7,#0x2
+   \   000058   02....       LJMP    ?BANKED_LEAVE_XDATA
+    208          }
+    209          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    210          int
+    211          uip_ds6_route_num_routes(void)
+   \                     uip_ds6_route_num_routes:
+    212          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    213            return num_routes;
+   \   000004   90....       MOV     DPTR,#num_routes
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   FA           MOV     R2,A
+   \   000009   A3           INC     DPTR
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   FB           MOV     R3,A
+   \   00000C   D083         POP     DPH
+   \   00000E   D082         POP     DPL
+   \   000010   02....       LJMP    ?BRET
+    214          }
+    215          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    216          uip_ds6_route_t *
+    217          uip_ds6_route_lookup(uip_ipaddr_t *addr)
+   \                     uip_ds6_route_lookup:
+    218          {
+   \   000000   74F1         MOV     A,#-0xf
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 15
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+    219            uip_ds6_route_t *r;
+    220            uip_ds6_route_t *found_route;
+    221            uint8_t longestmatch;
+    222          
+    223            PRINTF("uip-ds6-route: Looking up route for ");
+    224            PRINT6ADDR(addr);
+    225            PRINTF("\n");
+    226          
+    227          
+    228            found_route = NULL;
+   \   000009   75..00       MOV     ?V0 + 2,#0x0
+   \   00000C   75..00       MOV     ?V0 + 3,#0x0
+    229            longestmatch = 0;
+   \   00000F   75..00       MOV     ?V0 + 6,#0x0
+    230            for(r = uip_ds6_route_head();
+   \   000012                ; Setup parameters for call to function uip_ds6_route_head
+   \   000012   12....       LCALL   ??uip_ds6_route_head?relay
+   \   000015   8A..         MOV     ?V0 + 4,R2
+   \   000017   8B..         MOV     ?V0 + 5,R3
+   \   000019   AE..         MOV     R6,?V0 + 4
+   \   00001B   AF..         MOV     R7,?V0 + 5
+   \   00001D   8068         SJMP    ??uip_ds6_route_lookup_0
+    231                r != NULL;
+    232                r = uip_ds6_route_next(r)) {
+    233              if(r->length >= longestmatch &&
+    234                 uip_ipaddr_prefixcmp(addr, &r->ipaddr, r->length)) {
+   \                     ??uip_ds6_route_lookup_1:
+   \   00001F   EE           MOV     A,R6
+   \   000020   241C         ADD     A,#0x1c
+   \   000022   F582         MOV     DPL,A
+   \   000024   EF           MOV     A,R7
+   \   000025   3400         ADDC    A,#0x0
+   \   000027   F583         MOV     DPH,A
+   \   000029   E0           MOVX    A,@DPTR
+   \   00002A   C3           CLR     C
+   \   00002B   95..         SUBB    A,?V0 + 6
+   \   00002D   4049         JC      ??uip_ds6_route_lookup_2
+   \   00002F                ; Setup parameters for call to function memcmp
+   \   00002F   EE           MOV     A,R6
+   \   000030   241C         ADD     A,#0x1c
+   \   000032   F582         MOV     DPL,A
+   \   000034   EF           MOV     A,R7
+   \   000035   3400         ADDC    A,#0x0
+   \   000037   F583         MOV     DPH,A
+   \   000039   E0           MOVX    A,@DPTR
+   \   00003A   13           RRC     A
+   \   00003B   13           RRC     A
+   \   00003C   13           RRC     A
+   \   00003D   541F         ANL     A,#0x1f
+   \   00003F   F5..         MOV     ?V0 + 4,A
+   \   000041   75..00       MOV     ?V0 + 5,#0x0
+   \   000044   78..         MOV     R0,#?V0 + 4
+   \   000046   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000049   EE           MOV     A,R6
+   \   00004A   2404         ADD     A,#0x4
+   \   00004C   FC           MOV     R4,A
+   \   00004D   EF           MOV     A,R7
+   \   00004E   3400         ADDC    A,#0x0
+   \   000050   FD           MOV     R5,A
+   \   000051   AA..         MOV     R2,?V0 + 0
+   \   000053   AB..         MOV     R3,?V0 + 1
+   \   000055   12....       LCALL   ??memcmp?relay
+   \   000058   7402         MOV     A,#0x2
+   \   00005A   12....       LCALL   ?DEALLOC_XSTACK8
+   \   00005D   8A..         MOV     ?V0 + 4,R2
+   \   00005F   8B..         MOV     ?V0 + 5,R3
+   \   000061   E5..         MOV     A,?V0 + 4
+   \   000063   45..         ORL     A,?V0 + 5
+   \   000065   7011         JNZ     ??uip_ds6_route_lookup_2
+    235                longestmatch = r->length;
+   \   000067   EE           MOV     A,R6
+   \   000068   241C         ADD     A,#0x1c
+   \   00006A   F582         MOV     DPL,A
+   \   00006C   EF           MOV     A,R7
+   \   00006D   3400         ADDC    A,#0x0
+   \   00006F   F583         MOV     DPH,A
+   \   000071   E0           MOVX    A,@DPTR
+   \   000072   F5..         MOV     ?V0 + 6,A
+    236                found_route = r;
+   \   000074   8E..         MOV     ?V0 + 2,R6
+   \   000076   8F..         MOV     ?V0 + 3,R7
+    237              }
+    238            }
+   \                     ??uip_ds6_route_lookup_2:
+   \   000078                ; Setup parameters for call to function uip_ds6_route_next
+   \   000078   EE           MOV     A,R6
+   \   000079   FA           MOV     R2,A
+   \   00007A   EF           MOV     A,R7
+   \   00007B   FB           MOV     R3,A
+   \   00007C   12....       LCALL   ??uip_ds6_route_next?relay
+   \   00007F   8A..         MOV     ?V0 + 4,R2
+   \   000081   8B..         MOV     ?V0 + 5,R3
+   \   000083   AE..         MOV     R6,?V0 + 4
+   \   000085   AF..         MOV     R7,?V0 + 5
+   \                     ??uip_ds6_route_lookup_0:
+   \   000087   EE           MOV     A,R6
+   \   000088   4F           ORL     A,R7
+   \   000089   7094         JNZ     ??uip_ds6_route_lookup_1
+    239          
+    240            if(found_route != NULL) {
+    241              PRINTF("uip-ds6-route: Found route: ");
+    242              PRINT6ADDR(addr);
+    243              PRINTF(" via ");
+    244              PRINT6ADDR(uip_ds6_route_nexthop(found_route));
+    245              PRINTF("\n");
+    246            } else {
+    247              PRINTF("uip-ds6-route: No route found\n");
+    248            }
+    249          
+    250            return found_route;
+   \   00008B   AA..         MOV     R2,?V0 + 2
+   \   00008D   AB..         MOV     R3,?V0 + 3
+   \   00008F   7F07         MOV     R7,#0x7
+   \   000091   02....       LJMP    ?BANKED_LEAVE_XDATA
+    251          }
+    252          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    253          uip_ds6_route_t *
+    254          uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
+   \                     uip_ds6_route_add:
+    255          		  uip_ipaddr_t *nexthop)
+    256          {
+   \   000000   74EC         MOV     A,#-0x14
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 20
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 2,R2
+   \   000007   8B..         MOV     ?V0 + 3,R3
+   \   000009   89..         MOV     ?V0 + 6,R1
+   \   00000B   8C..         MOV     ?V0 + 8,R4
+   \   00000D   8D..         MOV     ?V0 + 9,R5
+    257            uip_ds6_route_t *r;
+    258          
+    259          #if DEBUG != DEBUG_NONE
+    260            assert_nbr_routes_list_sane();
+    261          #endif /* DEBUG != DEBUG_NONE */
+    262          
+    263            /* Get link-layer address of next hop, make sure it is in neighbor table */
+    264            uip_lladdr_t *nexthop_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(nexthop);
+   \   00000F                ; Setup parameters for call to function uip_ds6_nbr_lladdr_from_ipaddr
+   \   00000F   AA..         MOV     R2,?V0 + 8
+   \   000011   AB..         MOV     R3,?V0 + 9
+   \   000013   12....       LCALL   ??uip_ds6_nbr_lladdr_from_ipaddr?relay
+   \   000016   8A..         MOV     ?V0 + 0,R2
+   \   000018   8B..         MOV     ?V0 + 1,R3
+   \   00001A   85....       MOV     ?V0 + 4,?V0 + 0
+   \   00001D   85....       MOV     ?V0 + 5,?V0 + 1
+    265            if(nexthop_lladdr == NULL) {
+   \   000020   E5..         MOV     A,?V0 + 4
+   \   000022   45..         ORL     A,?V0 + 5
+   \   000024   7007         JNZ     ??uip_ds6_route_add_0
+    266              PRINTF("uip_ds6_route_add: neighbor link-local address unknown ");
+    267              PRINT6ADDR(ipaddr);
+    268              PRINTF("\n");
+    269              return NULL;
+   \   000026   7A00         MOV     R2,#0x0
+   \   000028   7B00         MOV     R3,#0x0
+   \   00002A   02....       LJMP    ??uip_ds6_route_add_1 & 0xFFFF
+    270            }
+    271          
+    272            /* First make sure that we don't add a route twice. If we find an
+    273               existing route for our destination, we'll just update the old
+    274               one. */
+    275            r = uip_ds6_route_lookup(ipaddr);
+   \                     ??uip_ds6_route_add_0:
+   \   00002D                ; Setup parameters for call to function uip_ds6_route_lookup
+   \   00002D   AA..         MOV     R2,?V0 + 2
+   \   00002F   AB..         MOV     R3,?V0 + 3
+   \   000031   12....       LCALL   ??uip_ds6_route_lookup?relay
+   \   000034   8A..         MOV     ?V0 + 0,R2
+   \   000036   8B..         MOV     ?V0 + 1,R3
+   \   000038   AE..         MOV     R6,?V0 + 0
+   \   00003A   AF..         MOV     R7,?V0 + 1
+    276            if(r != NULL) {
+   \   00003C   EE           MOV     A,R6
+   \   00003D   4F           ORL     A,R7
+   \   00003E   6003         JZ      $+5
+   \   000040   02....       LJMP    ??uip_ds6_route_add_2 & 0xFFFF
+    277              PRINTF("uip_ds6_route_add: old route already found, updating this one instead: ");
+    278              PRINT6ADDR(ipaddr);
+    279              PRINTF("\n");
+    280            } else {
+    281              struct uip_ds6_route_neighbor_routes *routes;
+    282              /* If there is no routing entry, create one */
+    283          
+    284              /* Every neighbor on our neighbor table holds a struct
+    285                 uip_ds6_route_neighbor_routes which holds a list of routes that
+    286                 go through the neighbor. We add our route entry to this list.
+    287          
+    288                 We first check to see if we already have this neighbor in our
+    289                 nbr_route table. If so, the neighbor already has a route entry
+    290                 list.
+    291              */
+    292              routes = nbr_table_get_from_lladdr(nbr_routes,
+    293                                                 (rimeaddr_t *)nexthop_lladdr);
+   \   000043                ; Setup parameters for call to function nbr_table_get_from_lladdr
+   \   000043   AC..         MOV     R4,?V0 + 4
+   \   000045   AD..         MOV     R5,?V0 + 5
+   \   000047   90....       MOV     DPTR,#nbr_routes
+   \   00004A   E0           MOVX    A,@DPTR
+   \   00004B   FA           MOV     R2,A
+   \   00004C   A3           INC     DPTR
+   \   00004D   E0           MOVX    A,@DPTR
+   \   00004E   FB           MOV     R3,A
+   \   00004F   12....       LCALL   ??nbr_table_get_from_lladdr?relay
+   \   000052   8A..         MOV     ?V0 + 10,R2
+   \   000054   8B..         MOV     ?V0 + 11,R3
+   \   000056   85....       MOV     ?V0 + 0,?V0 + 10
+   \   000059   85....       MOV     ?V0 + 1,?V0 + 11
+    294          
+    295              if(routes == NULL) {
+   \   00005C   E5..         MOV     A,?V0 + 0
+   \   00005E   45..         ORL     A,?V0 + 1
+   \   000060   7052         JNZ     ??uip_ds6_route_add_3
+    296                /* If the neighbor did not have an entry in our neighbor table,
+    297                   we create one. The nbr_table_add_lladdr() function returns a
+    298                   pointer to a pointer that we may use for our own purposes. We
+    299                   initialize this pointer with the list of routing entries that
+    300                   are attached to this neighbor. */
+    301                routes = nbr_table_add_lladdr(nbr_routes,
+    302                                              (rimeaddr_t *)nexthop_lladdr);
+   \   000062                ; Setup parameters for call to function nbr_table_add_lladdr
+   \   000062   AC..         MOV     R4,?V0 + 4
+   \   000064   AD..         MOV     R5,?V0 + 5
+   \   000066   90....       MOV     DPTR,#nbr_routes
+   \   000069   E0           MOVX    A,@DPTR
+   \   00006A   FA           MOV     R2,A
+   \   00006B   A3           INC     DPTR
+   \   00006C   E0           MOVX    A,@DPTR
+   \   00006D   FB           MOV     R3,A
+   \   00006E   12....       LCALL   ??nbr_table_add_lladdr?relay
+   \   000071   8A..         MOV     ?V0 + 4,R2
+   \   000073   8B..         MOV     ?V0 + 5,R3
+   \   000075   85....       MOV     ?V0 + 0,?V0 + 4
+   \   000078   85....       MOV     ?V0 + 1,?V0 + 5
+    303                if(routes == NULL) {
+   \   00007B   E5..         MOV     A,?V0 + 0
+   \   00007D   45..         ORL     A,?V0 + 1
+   \   00007F   7007         JNZ     ??uip_ds6_route_add_4
+    304                  PRINTF("uip_ds6_route_add: could not allocate a neighbor table entri for new route to ");
+    305                  PRINT6ADDR(ipaddr);
+    306                  PRINTF(", dropping it\n");
+    307                  return NULL;
+   \   000081   7A00         MOV     R2,#0x0
+   \   000083   7B00         MOV     R3,#0x0
+   \   000085   02....       LJMP    ??uip_ds6_route_add_1 & 0xFFFF
+    308                }
+    309                LIST_STRUCT_INIT(routes, route_list);
+   \                     ??uip_ds6_route_add_4:
+   \   000088   85..82       MOV     DPL,?V0 + 0
+   \   00008B   85..83       MOV     DPH,?V0 + 1
+   \   00008E   A3           INC     DPTR
+   \   00008F   A3           INC     DPTR
+   \   000090   E5..         MOV     A,?V0 + 0
+   \   000092   F0           MOVX    @DPTR,A
+   \   000093   A3           INC     DPTR
+   \   000094   E5..         MOV     A,?V0 + 1
+   \   000096   F0           MOVX    @DPTR,A
+   \   000097   85..82       MOV     DPL,?V0 + 0
+   \   00009A   85..83       MOV     DPH,?V0 + 1
+   \   00009D   7400         MOV     A,#0x0
+   \   00009F   F0           MOVX    @DPTR,A
+   \   0000A0   A3           INC     DPTR
+   \   0000A1   7400         MOV     A,#0x0
+   \   0000A3   F0           MOVX    @DPTR,A
+   \   0000A4                ; Setup parameters for call to function list_init
+   \   0000A4   85..82       MOV     DPL,?V0 + 0
+   \   0000A7   85..83       MOV     DPH,?V0 + 1
+   \   0000AA   A3           INC     DPTR
+   \   0000AB   A3           INC     DPTR
+   \   0000AC   E0           MOVX    A,@DPTR
+   \   0000AD   FA           MOV     R2,A
+   \   0000AE   A3           INC     DPTR
+   \   0000AF   E0           MOVX    A,@DPTR
+   \   0000B0   FB           MOV     R3,A
+   \   0000B1   12....       LCALL   ??list_init?relay
+    310              }
+    311          
+    312              /* Allocate a routing entry and populate it. */
+    313              r = memb_alloc(&routememb);
+   \                     ??uip_ds6_route_add_3:
+   \   0000B4                ; Setup parameters for call to function memb_alloc
+   \   0000B4   7A..         MOV     R2,#routememb & 0xff
+   \   0000B6   7B..         MOV     R3,#(routememb >> 8) & 0xff
+   \   0000B8   12....       LCALL   ??memb_alloc?relay
+   \   0000BB   8A..         MOV     ?V0 + 4,R2
+   \   0000BD   8B..         MOV     ?V0 + 5,R3
+   \   0000BF   AE..         MOV     R6,?V0 + 4
+   \   0000C1   AF..         MOV     R7,?V0 + 5
+    314          
+    315              if(r == NULL) {
+   \   0000C3   EE           MOV     A,R6
+   \   0000C4   4F           ORL     A,R7
+   \   0000C5   7007         JNZ     ??uip_ds6_route_add_5
+    316                PRINTF("uip_ds6_route_add: could not allocate memory for new route to ");
+    317                PRINT6ADDR(ipaddr);
+    318                PRINTF(", dropping it\n");
+    319                return NULL;
+   \   0000C7   7A00         MOV     R2,#0x0
+   \   0000C9   7B00         MOV     R3,#0x0
+   \   0000CB   02....       LJMP    ??uip_ds6_route_add_1 & 0xFFFF
+    320              }
+    321          
+    322          
+    323              /* Add the route to this neighbor */
+    324              list_add(routes->route_list, r);
+   \                     ??uip_ds6_route_add_5:
+   \   0000CE                ; Setup parameters for call to function list_add
+   \   0000CE   EE           MOV     A,R6
+   \   0000CF   FC           MOV     R4,A
+   \   0000D0   EF           MOV     A,R7
+   \   0000D1   FD           MOV     R5,A
+   \   0000D2   85..82       MOV     DPL,?V0 + 0
+   \   0000D5   85..83       MOV     DPH,?V0 + 1
+   \   0000D8   A3           INC     DPTR
+   \   0000D9   A3           INC     DPTR
+   \   0000DA   E0           MOVX    A,@DPTR
+   \   0000DB   FA           MOV     R2,A
+   \   0000DC   A3           INC     DPTR
+   \   0000DD   E0           MOVX    A,@DPTR
+   \   0000DE   FB           MOV     R3,A
+   \   0000DF   12....       LCALL   ??list_add?relay
+    325              num_routes++;
+   \   0000E2   90....       MOV     DPTR,#num_routes
+   \   0000E5   E0           MOVX    A,@DPTR
+   \   0000E6   2401         ADD     A,#0x1
+   \   0000E8   F0           MOVX    @DPTR,A
+   \   0000E9   A3           INC     DPTR
+   \   0000EA   E0           MOVX    A,@DPTR
+   \   0000EB   3400         ADDC    A,#0x0
+   \   0000ED   F0           MOVX    @DPTR,A
+    326          
+    327              PRINTF("uip_ds6_route_add num %d\n", num_routes);
+    328              r->routes = routes;
+   \   0000EE   8E82         MOV     DPL,R6
+   \   0000F0   8F83         MOV     DPH,R7
+   \   0000F2   A3           INC     DPTR
+   \   0000F3   A3           INC     DPTR
+   \   0000F4   E5..         MOV     A,?V0 + 0
+   \   0000F6   F0           MOVX    @DPTR,A
+   \   0000F7   A3           INC     DPTR
+   \   0000F8   E5..         MOV     A,?V0 + 1
+   \   0000FA   F0           MOVX    @DPTR,A
+    329            }
+    330          
+    331            uip_ipaddr_copy(&(r->ipaddr), ipaddr);
+   \                     ??uip_ds6_route_add_2:
+   \   0000FB                ; Setup parameters for call to function memcpy
+   \   0000FB   75..10       MOV     ?V0 + 0,#0x10
+   \   0000FE   75..00       MOV     ?V0 + 1,#0x0
+   \   000101   78..         MOV     R0,#?V0 + 0
+   \   000103   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000106   AC..         MOV     R4,?V0 + 2
+   \   000108   AD..         MOV     R5,?V0 + 3
+   \   00010A   EE           MOV     A,R6
+   \   00010B   2404         ADD     A,#0x4
+   \   00010D   FA           MOV     R2,A
+   \   00010E   EF           MOV     A,R7
+   \   00010F   3400         ADDC    A,#0x0
+   \   000111   FB           MOV     R3,A
+   \   000112   12....       LCALL   ??memcpy?relay
+   \   000115   7402         MOV     A,#0x2
+   \   000117   12....       LCALL   ?DEALLOC_XSTACK8
+    332            r->length = length;
+   \   00011A   E5..         MOV     A,?V0 + 6
+   \   00011C   EE           MOV     A,R6
+   \   00011D   241C         ADD     A,#0x1c
+   \   00011F   F582         MOV     DPL,A
+   \   000121   EF           MOV     A,R7
+   \   000122   3400         ADDC    A,#0x0
+   \   000124   F583         MOV     DPH,A
+   \   000126   E5..         MOV     A,?V0 + 6
+   \   000128   F0           MOVX    @DPTR,A
+    333          
+    334          #ifdef UIP_DS6_ROUTE_STATE_TYPE
+    335            memset(&r->state, 0, sizeof(UIP_DS6_ROUTE_STATE_TYPE));
+   \   000129                ; Setup parameters for call to function memset
+   \   000129   75..08       MOV     ?V0 + 0,#0x8
+   \   00012C   75..00       MOV     ?V0 + 1,#0x0
+   \   00012F   78..         MOV     R0,#?V0 + 0
+   \   000131   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000134   7C00         MOV     R4,#0x0
+   \   000136   7D00         MOV     R5,#0x0
+   \   000138   EE           MOV     A,R6
+   \   000139   2414         ADD     A,#0x14
+   \   00013B   FA           MOV     R2,A
+   \   00013C   EF           MOV     A,R7
+   \   00013D   3400         ADDC    A,#0x0
+   \   00013F   FB           MOV     R3,A
+   \   000140   12....       LCALL   ??memset?relay
+   \   000143   7402         MOV     A,#0x2
+   \   000145   12....       LCALL   ?DEALLOC_XSTACK8
+    336          #endif
+    337          
+    338            PRINTF("uip_ds6_route_add: adding route: ");
+    339            PRINT6ADDR(ipaddr);
+    340            PRINTF(" via ");
+    341            PRINT6ADDR(nexthop);
+    342            PRINTF("\n");
+    343            ANNOTATE("#L %u 1;blue\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+    344          
+    345          #if UIP_DS6_NOTIFICATIONS
+    346            call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_ADD, ipaddr, nexthop);
+   \   000148                ; Setup parameters for call to function call_route_callback
+   \   000148   78..         MOV     R0,#?V0 + 8
+   \   00014A   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00014D   AC..         MOV     R4,?V0 + 2
+   \   00014F   AD..         MOV     R5,?V0 + 3
+   \   000151   7A02         MOV     R2,#0x2
+   \   000153   7B00         MOV     R3,#0x0
+   \   000155   12....       LCALL   ??call_route_callback?relay
+   \   000158   7402         MOV     A,#0x2
+   \   00015A   12....       LCALL   ?DEALLOC_XSTACK8
+    347          #endif
+    348          
+    349          #if DEBUG != DEBUG_NONE
+    350            assert_nbr_routes_list_sane();
+    351          #endif /* DEBUG != DEBUG_NONE */
+    352            return r;
+   \   00015D   EE           MOV     A,R6
+   \   00015E   FA           MOV     R2,A
+   \   00015F   EF           MOV     A,R7
+   \   000160   FB           MOV     R3,A
+   \                     ??uip_ds6_route_add_1:
+   \   000161   7F0C         MOV     R7,#0xc
+   \   000163   02....       LJMP    ?BANKED_LEAVE_XDATA
+    353          }
+    354          
+    355          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    356          void
+    357          uip_ds6_route_rm(uip_ds6_route_t *route)
+   \                     uip_ds6_route_rm:
+    358          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    359          #if DEBUG != DEBUG_NONE
+    360            assert_nbr_routes_list_sane();
+    361          #endif /* DEBUG != DEBUG_NONE */
+    362            if(route != NULL && route->routes != NULL) {
+   \   000009   EE           MOV     A,R6
+   \   00000A   4F           ORL     A,R7
+   \   00000B   7003         JNZ     $+5
+   \   00000D   02....       LJMP    ??uip_ds6_route_rm_0 & 0xFFFF
+   \   000010   8E82         MOV     DPL,R6
+   \   000012   8F83         MOV     DPH,R7
+   \   000014   A3           INC     DPTR
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F8           MOV     R0,A
+   \   000018   A3           INC     DPTR
+   \   000019   E0           MOVX    A,@DPTR
+   \   00001A   F9           MOV     R1,A
+   \   00001B   E8           MOV     A,R0
+   \   00001C   49           ORL     A,R1
+   \   00001D   7003         JNZ     $+5
+   \   00001F   02....       LJMP    ??uip_ds6_route_rm_0 & 0xFFFF
+    363          
+    364              PRINTF("uip_ds6_route_rm: removing route: ");
+    365              PRINT6ADDR(&route->ipaddr);
+    366              PRINTF("\n");
+    367          
+    368              list_remove(route->routes->route_list, route);
+   \   000022                ; Setup parameters for call to function list_remove
+   \   000022   EE           MOV     A,R6
+   \   000023   FC           MOV     R4,A
+   \   000024   EF           MOV     A,R7
+   \   000025   FD           MOV     R5,A
+   \   000026   8E82         MOV     DPL,R6
+   \   000028   8F83         MOV     DPH,R7
+   \   00002A   A3           INC     DPTR
+   \   00002B   A3           INC     DPTR
+   \   00002C   E0           MOVX    A,@DPTR
+   \   00002D   F8           MOV     R0,A
+   \   00002E   A3           INC     DPTR
+   \   00002F   E0           MOVX    A,@DPTR
+   \   000030   F583         MOV     DPH,A
+   \   000032   8882         MOV     DPL,R0
+   \   000034   A3           INC     DPTR
+   \   000035   A3           INC     DPTR
+   \   000036   E0           MOVX    A,@DPTR
+   \   000037   FA           MOV     R2,A
+   \   000038   A3           INC     DPTR
+   \   000039   E0           MOVX    A,@DPTR
+   \   00003A   FB           MOV     R3,A
+   \   00003B   12....       LCALL   ??list_remove?relay
+    369              if(list_head(route->routes->route_list) == NULL) {
+   \   00003E                ; Setup parameters for call to function list_head
+   \   00003E   8E82         MOV     DPL,R6
+   \   000040   8F83         MOV     DPH,R7
+   \   000042   A3           INC     DPTR
+   \   000043   A3           INC     DPTR
+   \   000044   E0           MOVX    A,@DPTR
+   \   000045   F8           MOV     R0,A
+   \   000046   A3           INC     DPTR
+   \   000047   E0           MOVX    A,@DPTR
+   \   000048   F583         MOV     DPH,A
+   \   00004A   8882         MOV     DPL,R0
+   \   00004C   A3           INC     DPTR
+   \   00004D   A3           INC     DPTR
+   \   00004E   E0           MOVX    A,@DPTR
+   \   00004F   FA           MOV     R2,A
+   \   000050   A3           INC     DPTR
+   \   000051   E0           MOVX    A,@DPTR
+   \   000052   FB           MOV     R3,A
+   \   000053   12....       LCALL   ??list_head?relay
+   \   000056   8A..         MOV     ?V0 + 0,R2
+   \   000058   8B..         MOV     ?V0 + 1,R3
+   \   00005A   E5..         MOV     A,?V0 + 0
+   \   00005C   45..         ORL     A,?V0 + 1
+   \   00005E   7020         JNZ     ??uip_ds6_route_rm_1
+    370                /* If this was the only route using this neighbor, remove the
+    371                   neibhor from the table */
+    372                PRINTF("uip_ds6_route_rm: removing neighbor too\n");
+    373                nbr_table_remove(nbr_routes, route->routes->route_list);
+   \   000060                ; Setup parameters for call to function nbr_table_remove
+   \   000060   8E82         MOV     DPL,R6
+   \   000062   8F83         MOV     DPH,R7
+   \   000064   A3           INC     DPTR
+   \   000065   A3           INC     DPTR
+   \   000066   E0           MOVX    A,@DPTR
+   \   000067   F8           MOV     R0,A
+   \   000068   A3           INC     DPTR
+   \   000069   E0           MOVX    A,@DPTR
+   \   00006A   F583         MOV     DPH,A
+   \   00006C   8882         MOV     DPL,R0
+   \   00006E   A3           INC     DPTR
+   \   00006F   A3           INC     DPTR
+   \   000070   E0           MOVX    A,@DPTR
+   \   000071   FC           MOV     R4,A
+   \   000072   A3           INC     DPTR
+   \   000073   E0           MOVX    A,@DPTR
+   \   000074   FD           MOV     R5,A
+   \   000075   90....       MOV     DPTR,#nbr_routes
+   \   000078   E0           MOVX    A,@DPTR
+   \   000079   FA           MOV     R2,A
+   \   00007A   A3           INC     DPTR
+   \   00007B   E0           MOVX    A,@DPTR
+   \   00007C   FB           MOV     R3,A
+   \   00007D   12....       LCALL   ??nbr_table_remove?relay
+    374              }
+    375              memb_free(&routememb, route);
+   \                     ??uip_ds6_route_rm_1:
+   \   000080                ; Setup parameters for call to function memb_free
+   \   000080   EE           MOV     A,R6
+   \   000081   FC           MOV     R4,A
+   \   000082   EF           MOV     A,R7
+   \   000083   FD           MOV     R5,A
+   \   000084   7A..         MOV     R2,#routememb & 0xff
+   \   000086   7B..         MOV     R3,#(routememb >> 8) & 0xff
+   \   000088   12....       LCALL   ??memb_free?relay
+   \   00008B   E9           MOV     A,R1
+    376          
+    377              num_routes--;
+   \   00008C   90....       MOV     DPTR,#num_routes
+   \   00008F   E0           MOVX    A,@DPTR
+   \   000090   24FF         ADD     A,#-0x1
+   \   000092   F0           MOVX    @DPTR,A
+   \   000093   A3           INC     DPTR
+   \   000094   E0           MOVX    A,@DPTR
+   \   000095   34FF         ADDC    A,#-0x1
+   \   000097   F0           MOVX    @DPTR,A
+    378          
+    379              PRINTF("uip_ds6_route_rm num %d\n", num_routes);
+    380          
+    381          #if UIP_DS6_NOTIFICATIONS
+    382              call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_RM,
+    383                  &route->ipaddr, uip_ds6_route_nexthop(route));
+   \   000098                ; Setup parameters for call to function call_route_callback
+   \   000098                ; Setup parameters for call to function uip_ds6_route_nexthop
+   \   000098   EE           MOV     A,R6
+   \   000099   FA           MOV     R2,A
+   \   00009A   EF           MOV     A,R7
+   \   00009B   FB           MOV     R3,A
+   \   00009C   12....       LCALL   ??uip_ds6_route_nexthop?relay
+   \   00009F   8A..         MOV     ?V0 + 0,R2
+   \   0000A1   8B..         MOV     ?V0 + 1,R3
+   \   0000A3   78..         MOV     R0,#?V0 + 0
+   \   0000A5   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000A8   EE           MOV     A,R6
+   \   0000A9   2404         ADD     A,#0x4
+   \   0000AB   FC           MOV     R4,A
+   \   0000AC   EF           MOV     A,R7
+   \   0000AD   3400         ADDC    A,#0x0
+   \   0000AF   FD           MOV     R5,A
+   \   0000B0   7A03         MOV     R2,#0x3
+   \   0000B2   7B00         MOV     R3,#0x0
+   \   0000B4   12....       LCALL   ??call_route_callback?relay
+   \   0000B7   7402         MOV     A,#0x2
+   \   0000B9   12....       LCALL   ?DEALLOC_XSTACK8
+    384          #endif
+    385          #if 0 //(DEBUG & DEBUG_ANNOTATE) == DEBUG_ANNOTATE
+    386              /* we need to check if this was the last route towards "nexthop" */
+    387              /* if so - remove that link (annotation) */
+    388              uip_ds6_route_t *r;
+    389              for(r = uip_ds6_route_head();
+    390                  r != NULL;
+    391                  r = uip_ds6_route_next(r)) {
+    392                uip_ipaddr_t *nextr, *nextroute;
+    393                nextr = uip_ds6_route_nexthop(r);
+    394                nextroute = uip_ds6_route_nexthop(route);
+    395                if(nextr != NULL &&
+    396                   nextroute != NULL &&
+    397                   uip_ipaddr_cmp(nextr, nextroute)) {
+    398                  /* we found another link using the specific nexthop, so keep the #L */
+    399                  return;
+    400                }
+    401              }
+    402              ANNOTATE("#L %u 0\n", uip_ds6_route_nexthop(route)->u8[sizeof(uip_ipaddr_t) - 1]);
+    403          #endif
+    404            }
+    405          
+    406          #if DEBUG != DEBUG_NONE
+    407            assert_nbr_routes_list_sane();
+    408          #endif /* DEBUG != DEBUG_NONE */
+    409            return;
+   \                     ??uip_ds6_route_rm_0:
+   \   0000BC   7F02         MOV     R7,#0x2
+   \   0000BE   02....       LJMP    ?BANKED_LEAVE_XDATA
+    410          }
+    411          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    412          static void
+    413          rm_routelist(struct uip_ds6_route_neighbor_routes *routes)
+   \                     rm_routelist:
+    414          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    415          #if DEBUG != DEBUG_NONE
+    416            assert_nbr_routes_list_sane();
+    417          #endif /* DEBUG != DEBUG_NONE */
+    418            PRINTF("uip_ds6_route_rm_routelist\n");
+    419            if(routes != NULL && routes->route_list != NULL) {
+   \   000009   EE           MOV     A,R6
+   \   00000A   4F           ORL     A,R7
+   \   00000B   6053         JZ      ??rm_routelist_0
+   \   00000D   8E82         MOV     DPL,R6
+   \   00000F   8F83         MOV     DPH,R7
+   \   000011   A3           INC     DPTR
+   \   000012   A3           INC     DPTR
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   F8           MOV     R0,A
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F9           MOV     R1,A
+   \   000018   E8           MOV     A,R0
+   \   000019   49           ORL     A,R1
+   \   00001A   6044         JZ      ??rm_routelist_0
+    420              uip_ds6_route_t *r;
+    421              r = list_head(routes->route_list);
+   \   00001C                ; Setup parameters for call to function list_head
+   \   00001C   8E82         MOV     DPL,R6
+   \   00001E   8F83         MOV     DPH,R7
+   \   000020   A3           INC     DPTR
+   \   000021   A3           INC     DPTR
+   \   000022   E0           MOVX    A,@DPTR
+   \   000023   FA           MOV     R2,A
+   \   000024   A3           INC     DPTR
+   \   000025   E0           MOVX    A,@DPTR
+   \   000026   FB           MOV     R3,A
+   \   000027   12....       LCALL   ??list_head?relay
+   \   00002A   8A..         MOV     ?V0 + 0,R2
+   \   00002C   8B..         MOV     ?V0 + 1,R3
+   \   00002E   AA..         MOV     R2,?V0 + 0
+   \   000030   AB..         MOV     R3,?V0 + 1
+   \   000032   8019         SJMP    ??rm_routelist_1
+    422              while(r != NULL) {
+    423                uip_ds6_route_rm(r);
+   \                     ??rm_routelist_2:
+   \   000034                ; Setup parameters for call to function uip_ds6_route_rm
+   \   000034   12....       LCALL   ??uip_ds6_route_rm?relay
+    424                r = list_head(routes->route_list);
+   \   000037                ; Setup parameters for call to function list_head
+   \   000037   8E82         MOV     DPL,R6
+   \   000039   8F83         MOV     DPH,R7
+   \   00003B   A3           INC     DPTR
+   \   00003C   A3           INC     DPTR
+   \   00003D   E0           MOVX    A,@DPTR
+   \   00003E   FA           MOV     R2,A
+   \   00003F   A3           INC     DPTR
+   \   000040   E0           MOVX    A,@DPTR
+   \   000041   FB           MOV     R3,A
+   \   000042   12....       LCALL   ??list_head?relay
+   \   000045   8A..         MOV     ?V0 + 0,R2
+   \   000047   8B..         MOV     ?V0 + 1,R3
+   \   000049   AA..         MOV     R2,?V0 + 0
+   \   00004B   AB..         MOV     R3,?V0 + 1
+    425              }
+   \                     ??rm_routelist_1:
+   \   00004D   EA           MOV     A,R2
+   \   00004E   4B           ORL     A,R3
+   \   00004F   70E3         JNZ     ??rm_routelist_2
+    426              nbr_table_remove(nbr_routes, routes);
+   \   000051                ; Setup parameters for call to function nbr_table_remove
+   \   000051   EE           MOV     A,R6
+   \   000052   FC           MOV     R4,A
+   \   000053   EF           MOV     A,R7
+   \   000054   FD           MOV     R5,A
+   \   000055   90....       MOV     DPTR,#nbr_routes
+   \   000058   E0           MOVX    A,@DPTR
+   \   000059   FA           MOV     R2,A
+   \   00005A   A3           INC     DPTR
+   \   00005B   E0           MOVX    A,@DPTR
+   \   00005C   FB           MOV     R3,A
+   \   00005D   12....       LCALL   ??nbr_table_remove?relay
+    427            }
+    428          #if DEBUG != DEBUG_NONE
+    429            assert_nbr_routes_list_sane();
+    430          #endif /* DEBUG != DEBUG_NONE */
+    431          }
+   \                     ??rm_routelist_0:
+   \   000060   7F02         MOV     R7,#0x2
+   \   000062   02....       LJMP    ?BANKED_LEAVE_XDATA
+    432          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    433          static void
+    434          rm_routelist_callback(nbr_table_item_t *ptr)
+   \                     rm_routelist_callback:
+    435          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    436            rm_routelist((struct uip_ds6_route_neighbor_routes *)ptr);
+   \   000004                ; Setup parameters for call to function rm_routelist
+   \   000004   12....       LCALL   ??rm_routelist?relay
+    437          }
+   \   000007   D083         POP     DPH
+   \   000009   D082         POP     DPL
+   \   00000B   02....       LJMP    ?BRET
+    438          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    439          void
+    440          uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop)
+   \                     uip_ds6_route_rm_by_nexthop:
+    441          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    442            /* Get routing entry list of this neighbor */
+    443            uip_lladdr_t *nexthop_lladdr;
+    444            struct uip_ds6_route_neighbor_routes *routes;
+    445          
+    446            nexthop_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(nexthop);
+   \   000005                ; Setup parameters for call to function uip_ds6_nbr_lladdr_from_ipaddr
+   \   000005   12....       LCALL   ??uip_ds6_nbr_lladdr_from_ipaddr?relay
+   \   000008   8A..         MOV     ?V0 + 0,R2
+   \   00000A   8B..         MOV     ?V0 + 1,R3
+   \   00000C   AC..         MOV     R4,?V0 + 0
+   \   00000E   AD..         MOV     R5,?V0 + 1
+    447            routes = nbr_table_get_from_lladdr(nbr_routes,
+    448                                               (rimeaddr_t *)nexthop_lladdr);
+   \   000010                ; Setup parameters for call to function nbr_table_get_from_lladdr
+   \   000010   90....       MOV     DPTR,#nbr_routes
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   FA           MOV     R2,A
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   FB           MOV     R3,A
+   \   000018   12....       LCALL   ??nbr_table_get_from_lladdr?relay
+   \   00001B   8A..         MOV     ?V0 + 0,R2
+   \   00001D   8B..         MOV     ?V0 + 1,R3
+   \   00001F   AA..         MOV     R2,?V0 + 0
+   \   000021   AB..         MOV     R3,?V0 + 1
+    449            rm_routelist(routes);
+   \   000023                ; Setup parameters for call to function rm_routelist
+   \   000023   12....       LCALL   ??rm_routelist?relay
+    450          }
+   \   000026   7F02         MOV     R7,#0x2
+   \   000028   02....       LJMP    ?BANKED_LEAVE_XDATA
+    451          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    452          uip_ds6_defrt_t *
+    453          uip_ds6_defrt_add(uip_ipaddr_t *ipaddr, unsigned long interval)
+   \                     uip_ds6_defrt_add:
+    454          {
+   \   000000   74F0         MOV     A,#-0x10
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 16
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+    455            uip_ds6_defrt_t *d;
+    456          
+    457          #if DEBUG != DEBUG_NONE
+    458            assert_nbr_routes_list_sane();
+    459          #endif /* DEBUG != DEBUG_NONE */
+    460          
+    461            PRINTF("uip_ds6_defrt_add\n");
+    462            d = uip_ds6_defrt_lookup(ipaddr);
+   \   000009                ; Setup parameters for call to function uip_ds6_defrt_lookup
+   \   000009   AA..         MOV     R2,?V0 + 0
+   \   00000B   AB..         MOV     R3,?V0 + 1
+   \   00000D   12....       LCALL   ??uip_ds6_defrt_lookup?relay
+   \   000010   8A..         MOV     ?V0 + 2,R2
+   \   000012   8B..         MOV     ?V0 + 3,R3
+   \   000014   AE..         MOV     R6,?V0 + 2
+   \   000016   AF..         MOV     R7,?V0 + 3
+    463            if(d == NULL) {
+   \   000018   EE           MOV     A,R6
+   \   000019   4F           ORL     A,R7
+   \   00001A   7029         JNZ     ??uip_ds6_defrt_add_0
+    464              d = memb_alloc(&defaultroutermemb);
+   \   00001C                ; Setup parameters for call to function memb_alloc
+   \   00001C   7A..         MOV     R2,#defaultroutermemb & 0xff
+   \   00001E   7B..         MOV     R3,#(defaultroutermemb >> 8) & 0xff
+   \   000020   12....       LCALL   ??memb_alloc?relay
+   \   000023   8A..         MOV     ?V0 + 2,R2
+   \   000025   8B..         MOV     ?V0 + 3,R3
+   \   000027   AE..         MOV     R6,?V0 + 2
+   \   000029   AF..         MOV     R7,?V0 + 3
+    465              if(d == NULL) {
+   \   00002B   EE           MOV     A,R6
+   \   00002C   4F           ORL     A,R7
+   \   00002D   7007         JNZ     ??uip_ds6_defrt_add_1
+    466                PRINTF("uip_ds6_defrt_add: could not add default route to ");
+    467                PRINT6ADDR(ipaddr);
+    468                PRINTF(", out of memory\n");
+    469                return NULL;
+   \   00002F   7A00         MOV     R2,#0x0
+   \   000031   7B00         MOV     R3,#0x0
+   \   000033   02....       LJMP    ??uip_ds6_defrt_add_2 & 0xFFFF
+    470              } else {
+    471                PRINTF("uip_ds6_defrt_add: adding default route to ");
+    472                PRINT6ADDR(ipaddr);
+    473                PRINTF("\n");
+    474              }
+    475          
+    476              list_push(defaultrouterlist, d);
+   \                     ??uip_ds6_defrt_add_1:
+   \   000036                ; Setup parameters for call to function list_push
+   \   000036   EE           MOV     A,R6
+   \   000037   FC           MOV     R4,A
+   \   000038   EF           MOV     A,R7
+   \   000039   FD           MOV     R5,A
+   \   00003A   90....       MOV     DPTR,#defaultrouterlist
+   \   00003D   E0           MOVX    A,@DPTR
+   \   00003E   FA           MOV     R2,A
+   \   00003F   A3           INC     DPTR
+   \   000040   E0           MOVX    A,@DPTR
+   \   000041   FB           MOV     R3,A
+   \   000042   12....       LCALL   ??list_push?relay
+    477            }
+    478          
+    479            uip_ipaddr_copy(&d->ipaddr, ipaddr);
+   \                     ??uip_ds6_defrt_add_0:
+   \   000045                ; Setup parameters for call to function memcpy
+   \   000045   75..10       MOV     ?V0 + 2,#0x10
+   \   000048   75..00       MOV     ?V0 + 3,#0x0
+   \   00004B   78..         MOV     R0,#?V0 + 2
+   \   00004D   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000050   AC..         MOV     R4,?V0 + 0
+   \   000052   AD..         MOV     R5,?V0 + 1
+   \   000054   EE           MOV     A,R6
+   \   000055   2402         ADD     A,#0x2
+   \   000057   FA           MOV     R2,A
+   \   000058   EF           MOV     A,R7
+   \   000059   3400         ADDC    A,#0x0
+   \   00005B   FB           MOV     R3,A
+   \   00005C   12....       LCALL   ??memcpy?relay
+   \   00005F   7402         MOV     A,#0x2
+   \   000061   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000064   7410         MOV     A,#0x10
+   \   000066   12....       LCALL   ?XSTACK_DISP0_8
+   \   000069   78..         MOV     R0,#?V0 + 4
+   \   00006B   12....       LCALL   ?L_MOV_X
+    480            if(interval != 0) {
+   \   00006E   E5..         MOV     A,?V0 + 4
+   \   000070   45..         ORL     A,?V0 + 5
+   \   000072   45..         ORL     A,?V0 + 6
+   \   000074   45..         ORL     A,?V0 + 7
+   \   000076   6024         JZ      ??uip_ds6_defrt_add_3
+    481              stimer_set(&d->lifetime, interval);
+   \   000078                ; Setup parameters for call to function stimer_set
+   \   000078   78..         MOV     R0,#?V0 + 4
+   \   00007A   12....       LCALL   ?PUSH_XSTACK_I_FOUR
+   \   00007D   EE           MOV     A,R6
+   \   00007E   2412         ADD     A,#0x12
+   \   000080   FA           MOV     R2,A
+   \   000081   EF           MOV     A,R7
+   \   000082   3400         ADDC    A,#0x0
+   \   000084   FB           MOV     R3,A
+   \   000085   12....       LCALL   ??stimer_set?relay
+   \   000088   7404         MOV     A,#0x4
+   \   00008A   12....       LCALL   ?DEALLOC_XSTACK8
+    482              d->isinfinite = 0;
+   \   00008D   EE           MOV     A,R6
+   \   00008E   241A         ADD     A,#0x1a
+   \   000090   F582         MOV     DPL,A
+   \   000092   EF           MOV     A,R7
+   \   000093   3400         ADDC    A,#0x0
+   \   000095   F583         MOV     DPH,A
+   \   000097   7400         MOV     A,#0x0
+   \   000099   F0           MOVX    @DPTR,A
+   \   00009A   800D         SJMP    ??uip_ds6_defrt_add_4
+    483            } else {
+    484              d->isinfinite = 1;
+   \                     ??uip_ds6_defrt_add_3:
+   \   00009C   EE           MOV     A,R6
+   \   00009D   241A         ADD     A,#0x1a
+   \   00009F   F582         MOV     DPL,A
+   \   0000A1   EF           MOV     A,R7
+   \   0000A2   3400         ADDC    A,#0x0
+   \   0000A4   F583         MOV     DPH,A
+   \   0000A6   7401         MOV     A,#0x1
+   \   0000A8   F0           MOVX    @DPTR,A
+    485            }
+    486          
+    487            ANNOTATE("#L %u 1\n", ipaddr->u8[sizeof(uip_ipaddr_t) - 1]);
+    488          
+    489          #if UIP_DS6_NOTIFICATIONS
+    490            call_route_callback(UIP_DS6_NOTIFICATION_DEFRT_ADD, ipaddr, ipaddr);
+   \                     ??uip_ds6_defrt_add_4:
+   \   0000A9                ; Setup parameters for call to function call_route_callback
+   \   0000A9   78..         MOV     R0,#?V0 + 0
+   \   0000AB   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000AE   AC..         MOV     R4,?V0 + 0
+   \   0000B0   AD..         MOV     R5,?V0 + 1
+   \   0000B2   7A00         MOV     R2,#0x0
+   \   0000B4   7B00         MOV     R3,#0x0
+   \   0000B6   12....       LCALL   ??call_route_callback?relay
+   \   0000B9   7402         MOV     A,#0x2
+   \   0000BB   12....       LCALL   ?DEALLOC_XSTACK8
+    491          #endif
+    492          
+    493          #if DEBUG != DEBUG_NONE
+    494            assert_nbr_routes_list_sane();
+    495          #endif /* DEBUG != DEBUG_NONE */
+    496          
+    497            return d;
+   \   0000BE   EE           MOV     A,R6
+   \   0000BF   FA           MOV     R2,A
+   \   0000C0   EF           MOV     A,R7
+   \   0000C1   FB           MOV     R3,A
+   \                     ??uip_ds6_defrt_add_2:
+   \   0000C2   7F08         MOV     R7,#0x8
+   \   0000C4   02....       LJMP    ?BANKED_LEAVE_XDATA
+    498          }
+    499          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    500          void
+    501          uip_ds6_defrt_rm(uip_ds6_defrt_t *defrt)
+   \                     uip_ds6_defrt_rm:
+    502          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    503            uip_ds6_defrt_t *d;
+    504          
+    505          #if DEBUG != DEBUG_NONE
+    506            assert_nbr_routes_list_sane();
+    507          #endif /* DEBUG != DEBUG_NONE */
+    508          
+    509            /* Make sure that the defrt is in the list before we remove it. */
+    510            for(d = list_head(defaultrouterlist);
+   \   000009                ; Setup parameters for call to function list_head
+   \   000009   90....       MOV     DPTR,#defaultrouterlist
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   FA           MOV     R2,A
+   \   00000E   A3           INC     DPTR
+   \   00000F   E0           MOVX    A,@DPTR
+   \   000010   FB           MOV     R3,A
+   \   000011   12....       LCALL   ??list_head?relay
+   \   000014   8A..         MOV     ?V0 + 0,R2
+   \   000016   8B..         MOV     ?V0 + 1,R3
+   \   000018   AA..         MOV     R2,?V0 + 0
+   \   00001A   AB..         MOV     R3,?V0 + 1
+   \   00001C   800B         SJMP    ??uip_ds6_defrt_rm_0
+    511                d != NULL;
+    512                d = list_item_next(d)) {
+   \                     ??uip_ds6_defrt_rm_1:
+   \   00001E                ; Setup parameters for call to function list_item_next
+   \   00001E   12....       LCALL   ??list_item_next?relay
+   \   000021   8A..         MOV     ?V0 + 0,R2
+   \   000023   8B..         MOV     ?V0 + 1,R3
+   \   000025   AA..         MOV     R2,?V0 + 0
+   \   000027   AB..         MOV     R3,?V0 + 1
+   \                     ??uip_ds6_defrt_rm_0:
+   \   000029   EA           MOV     A,R2
+   \   00002A   4B           ORL     A,R3
+   \   00002B   6046         JZ      ??uip_ds6_defrt_rm_2
+    513              if(d == defrt) {
+   \   00002D   EE           MOV     A,R6
+   \   00002E   6A           XRL     A,R2
+   \   00002F   7002         JNZ     ??uip_ds6_defrt_rm_3
+   \   000031   EF           MOV     A,R7
+   \   000032   6B           XRL     A,R3
+   \                     ??uip_ds6_defrt_rm_3:
+   \   000033   70E9         JNZ     ??uip_ds6_defrt_rm_1
+    514                PRINTF("Removing default route\n");
+    515                list_remove(defaultrouterlist, defrt);
+   \   000035                ; Setup parameters for call to function list_remove
+   \   000035   EE           MOV     A,R6
+   \   000036   FC           MOV     R4,A
+   \   000037   EF           MOV     A,R7
+   \   000038   FD           MOV     R5,A
+   \   000039   90....       MOV     DPTR,#defaultrouterlist
+   \   00003C   E0           MOVX    A,@DPTR
+   \   00003D   FA           MOV     R2,A
+   \   00003E   A3           INC     DPTR
+   \   00003F   E0           MOVX    A,@DPTR
+   \   000040   FB           MOV     R3,A
+   \   000041   12....       LCALL   ??list_remove?relay
+    516                memb_free(&defaultroutermemb, defrt);
+   \   000044                ; Setup parameters for call to function memb_free
+   \   000044   EE           MOV     A,R6
+   \   000045   FC           MOV     R4,A
+   \   000046   EF           MOV     A,R7
+   \   000047   FD           MOV     R5,A
+   \   000048   7A..         MOV     R2,#defaultroutermemb & 0xff
+   \   00004A   7B..         MOV     R3,#(defaultroutermemb >> 8) & 0xff
+   \   00004C   12....       LCALL   ??memb_free?relay
+   \   00004F   E9           MOV     A,R1
+    517                ANNOTATE("#L %u 0\n", defrt->ipaddr.u8[sizeof(uip_ipaddr_t) - 1]);
+    518          #if UIP_DS6_NOTIFICATIONS
+    519                call_route_callback(UIP_DS6_NOTIFICATION_DEFRT_RM,
+    520          			  &defrt->ipaddr, &defrt->ipaddr);
+   \   000050                ; Setup parameters for call to function call_route_callback
+   \   000050   EE           MOV     A,R6
+   \   000051   2402         ADD     A,#0x2
+   \   000053   F5..         MOV     ?V0 + 0,A
+   \   000055   EF           MOV     A,R7
+   \   000056   3400         ADDC    A,#0x0
+   \   000058   F5..         MOV     ?V0 + 1,A
+   \   00005A   78..         MOV     R0,#?V0 + 0
+   \   00005C   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00005F   EE           MOV     A,R6
+   \   000060   2402         ADD     A,#0x2
+   \   000062   FC           MOV     R4,A
+   \   000063   EF           MOV     A,R7
+   \   000064   3400         ADDC    A,#0x0
+   \   000066   FD           MOV     R5,A
+   \   000067   7A01         MOV     R2,#0x1
+   \   000069   7B00         MOV     R3,#0x0
+   \   00006B   12....       LCALL   ??call_route_callback?relay
+   \   00006E   7402         MOV     A,#0x2
+   \   000070   12....       LCALL   ?DEALLOC_XSTACK8
+    521          #endif
+    522                return;
+    523              }
+    524            }
+    525          #if DEBUG != DEBUG_NONE
+    526            assert_nbr_routes_list_sane();
+    527          #endif /* DEBUG != DEBUG_NONE */
+    528          
+    529          }
+   \                     ??uip_ds6_defrt_rm_2:
+   \   000073   7F02         MOV     R7,#0x2
+   \   000075   02....       LJMP    ?BANKED_LEAVE_XDATA
+    530          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    531          uip_ds6_defrt_t *
+    532          uip_ds6_defrt_lookup(uip_ipaddr_t *ipaddr)
+   \                     uip_ds6_defrt_lookup:
+    533          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+    534            uip_ds6_defrt_t *d;
+    535            for(d = list_head(defaultrouterlist);
+   \   000009                ; Setup parameters for call to function list_head
+   \   000009   90....       MOV     DPTR,#defaultrouterlist
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   FA           MOV     R2,A
+   \   00000E   A3           INC     DPTR
+   \   00000F   E0           MOVX    A,@DPTR
+   \   000010   FB           MOV     R3,A
+   \   000011   12....       LCALL   ??list_head?relay
+   \   000014   8A..         MOV     ?V0 + 2,R2
+   \   000016   8B..         MOV     ?V0 + 3,R3
+   \   000018   AE..         MOV     R6,?V0 + 2
+   \   00001A   AF..         MOV     R7,?V0 + 3
+   \   00001C   800F         SJMP    ??uip_ds6_defrt_lookup_0
+    536                d != NULL;
+    537                d = list_item_next(d)) {
+   \                     ??uip_ds6_defrt_lookup_1:
+   \   00001E                ; Setup parameters for call to function list_item_next
+   \   00001E   EE           MOV     A,R6
+   \   00001F   FA           MOV     R2,A
+   \   000020   EF           MOV     A,R7
+   \   000021   FB           MOV     R3,A
+   \   000022   12....       LCALL   ??list_item_next?relay
+   \   000025   8A..         MOV     ?V0 + 2,R2
+   \   000027   8B..         MOV     ?V0 + 3,R3
+   \   000029   AE..         MOV     R6,?V0 + 2
+   \   00002B   AF..         MOV     R7,?V0 + 3
+   \                     ??uip_ds6_defrt_lookup_0:
+   \   00002D   EE           MOV     A,R6
+   \   00002E   4F           ORL     A,R7
+   \   00002F   602F         JZ      ??uip_ds6_defrt_lookup_2
+    538              if(uip_ipaddr_cmp(&d->ipaddr, ipaddr)) {
+   \   000031                ; Setup parameters for call to function memcmp
+   \   000031   75..10       MOV     ?V0 + 2,#0x10
+   \   000034   75..00       MOV     ?V0 + 3,#0x0
+   \   000037   78..         MOV     R0,#?V0 + 2
+   \   000039   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00003C   AC..         MOV     R4,?V0 + 0
+   \   00003E   AD..         MOV     R5,?V0 + 1
+   \   000040   EE           MOV     A,R6
+   \   000041   2402         ADD     A,#0x2
+   \   000043   FA           MOV     R2,A
+   \   000044   EF           MOV     A,R7
+   \   000045   3400         ADDC    A,#0x0
+   \   000047   FB           MOV     R3,A
+   \   000048   12....       LCALL   ??memcmp?relay
+   \   00004B   7402         MOV     A,#0x2
+   \   00004D   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000050   8A..         MOV     ?V0 + 2,R2
+   \   000052   8B..         MOV     ?V0 + 3,R3
+   \   000054   E5..         MOV     A,?V0 + 2
+   \   000056   45..         ORL     A,?V0 + 3
+   \   000058   70C4         JNZ     ??uip_ds6_defrt_lookup_1
+    539                return d;
+   \   00005A   EE           MOV     A,R6
+   \   00005B   FA           MOV     R2,A
+   \   00005C   EF           MOV     A,R7
+   \   00005D   FB           MOV     R3,A
+   \   00005E   8004         SJMP    ??uip_ds6_defrt_lookup_3
+    540              }
+    541            }
+    542            return NULL;
+   \                     ??uip_ds6_defrt_lookup_2:
+   \   000060   7A00         MOV     R2,#0x0
+   \   000062   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_defrt_lookup_3:
+   \   000064   7F04         MOV     R7,#0x4
+   \   000066   02....       LJMP    ?BANKED_LEAVE_XDATA
+    543          }
+    544          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    545          uip_ipaddr_t *
+    546          uip_ds6_defrt_choose(void)
+   \                     uip_ds6_defrt_choose:
+    547          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+    548            uip_ds6_defrt_t *d;
+    549            uip_ds6_nbr_t *bestnbr;
+    550            uip_ipaddr_t *addr;
+    551          
+    552            addr = NULL;
+   \   000005   75..00       MOV     ?V0 + 0,#0x0
+   \   000008   75..00       MOV     ?V0 + 1,#0x0
+    553            for(d = list_head(defaultrouterlist);
+   \   00000B                ; Setup parameters for call to function list_head
+   \   00000B   90....       MOV     DPTR,#defaultrouterlist
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   FA           MOV     R2,A
+   \   000010   A3           INC     DPTR
+   \   000011   E0           MOVX    A,@DPTR
+   \   000012   FB           MOV     R3,A
+   \   000013   12....       LCALL   ??list_head?relay
+   \   000016   8A..         MOV     ?V0 + 2,R2
+   \   000018   8B..         MOV     ?V0 + 3,R3
+   \   00001A   AE..         MOV     R6,?V0 + 2
+   \   00001C   AF..         MOV     R7,?V0 + 3
+   \   00001E   8019         SJMP    ??uip_ds6_defrt_choose_0
+    554                d != NULL;
+    555                d = list_item_next(d)) {
+    556              PRINTF("Defrt, IP address ");
+    557              PRINT6ADDR(&d->ipaddr);
+    558              PRINTF("\n");
+    559              bestnbr = uip_ds6_nbr_lookup(&d->ipaddr);
+    560              if(bestnbr != NULL && bestnbr->state != NBR_INCOMPLETE) {
+    561                PRINTF("Defrt found, IP address ");
+    562                PRINT6ADDR(&d->ipaddr);
+    563                PRINTF("\n");
+    564                return &d->ipaddr;
+    565              } else {
+    566                addr = &d->ipaddr;
+   \                     ??uip_ds6_defrt_choose_1:
+   \   000020   EE           MOV     A,R6
+   \   000021   2402         ADD     A,#0x2
+   \   000023   F5..         MOV     ?V0 + 0,A
+   \   000025   EF           MOV     A,R7
+   \   000026   3400         ADDC    A,#0x0
+   \   000028   F5..         MOV     ?V0 + 1,A
+    567                PRINTF("Defrt INCOMPLETE found, IP address ");
+    568                PRINT6ADDR(&d->ipaddr);
+    569                PRINTF("\n");
+    570              }
+   \   00002A                ; Setup parameters for call to function list_item_next
+   \   00002A   EE           MOV     A,R6
+   \   00002B   FA           MOV     R2,A
+   \   00002C   EF           MOV     A,R7
+   \   00002D   FB           MOV     R3,A
+   \   00002E   12....       LCALL   ??list_item_next?relay
+   \   000031   8A..         MOV     ?V0 + 2,R2
+   \   000033   8B..         MOV     ?V0 + 3,R3
+   \   000035   AE..         MOV     R6,?V0 + 2
+   \   000037   AF..         MOV     R7,?V0 + 3
+   \                     ??uip_ds6_defrt_choose_0:
+   \   000039   EE           MOV     A,R6
+   \   00003A   4F           ORL     A,R7
+   \   00003B   602E         JZ      ??uip_ds6_defrt_choose_2
+   \   00003D                ; Setup parameters for call to function uip_ds6_nbr_lookup
+   \   00003D   EE           MOV     A,R6
+   \   00003E   2402         ADD     A,#0x2
+   \   000040   FA           MOV     R2,A
+   \   000041   EF           MOV     A,R7
+   \   000042   3400         ADDC    A,#0x0
+   \   000044   FB           MOV     R3,A
+   \   000045   12....       LCALL   ??uip_ds6_nbr_lookup?relay
+   \   000048   8A..         MOV     ?V0 + 0,R2
+   \   00004A   8B..         MOV     ?V0 + 1,R3
+   \   00004C   A8..         MOV     R0,?V0 + 0
+   \   00004E   A9..         MOV     R1,?V0 + 1
+   \   000050   E8           MOV     A,R0
+   \   000051   49           ORL     A,R1
+   \   000052   60CC         JZ      ??uip_ds6_defrt_choose_1
+   \   000054   E8           MOV     A,R0
+   \   000055   2422         ADD     A,#0x22
+   \   000057   F582         MOV     DPL,A
+   \   000059   E9           MOV     A,R1
+   \   00005A   3400         ADDC    A,#0x0
+   \   00005C   F583         MOV     DPH,A
+   \   00005E   E0           MOVX    A,@DPTR
+   \   00005F   60BF         JZ      ??uip_ds6_defrt_choose_1
+   \   000061   EE           MOV     A,R6
+   \   000062   2402         ADD     A,#0x2
+   \   000064   FA           MOV     R2,A
+   \   000065   EF           MOV     A,R7
+   \   000066   3400         ADDC    A,#0x0
+   \   000068   FB           MOV     R3,A
+   \   000069   8004         SJMP    ??uip_ds6_defrt_choose_3
+    571            }
+    572            return addr;
+   \                     ??uip_ds6_defrt_choose_2:
+   \   00006B   AA..         MOV     R2,?V0 + 0
+   \   00006D   AB..         MOV     R3,?V0 + 1
+   \                     ??uip_ds6_defrt_choose_3:
+   \   00006F   7F04         MOV     R7,#0x4
+   \   000071   02....       LJMP    ?BANKED_LEAVE_XDATA
+    573          }
+    574          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    575          void
+    576          uip_ds6_defrt_periodic(void)
+   \                     uip_ds6_defrt_periodic:
+    577          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    578            uip_ds6_defrt_t *d;
+    579            d = list_head(defaultrouterlist);
+   \   000005                ; Setup parameters for call to function list_head
+   \   000005   90....       MOV     DPTR,#defaultrouterlist
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   FA           MOV     R2,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   FB           MOV     R3,A
+   \   00000D   12....       LCALL   ??list_head?relay
+   \   000010   8A..         MOV     ?V0 + 0,R2
+   \   000012   8B..         MOV     ?V0 + 1,R3
+   \   000014   AE..         MOV     R6,?V0 + 0
+   \   000016   AF..         MOV     R7,?V0 + 1
+   \   000018   801A         SJMP    ??uip_ds6_defrt_periodic_0
+    580            while(d != NULL) {
+    581              if(!d->isinfinite &&
+    582                 stimer_expired(&d->lifetime)) {
+    583                PRINTF("uip_ds6_defrt_periodic: defrt lifetime expired\n");
+    584                uip_ds6_defrt_rm(d);
+   \                     ??uip_ds6_defrt_periodic_1:
+   \   00001A                ; Setup parameters for call to function uip_ds6_defrt_rm
+   \   00001A   EE           MOV     A,R6
+   \   00001B   FA           MOV     R2,A
+   \   00001C   EF           MOV     A,R7
+   \   00001D   FB           MOV     R3,A
+   \   00001E   12....       LCALL   ??uip_ds6_defrt_rm?relay
+    585                d = list_head(defaultrouterlist);
+   \   000021                ; Setup parameters for call to function list_head
+   \   000021   90....       MOV     DPTR,#defaultrouterlist
+   \   000024   E0           MOVX    A,@DPTR
+   \   000025   FA           MOV     R2,A
+   \   000026   A3           INC     DPTR
+   \   000027   E0           MOVX    A,@DPTR
+   \   000028   FB           MOV     R3,A
+   \   000029   12....       LCALL   ??list_head?relay
+   \   00002C   8A..         MOV     ?V0 + 0,R2
+   \   00002E   8B..         MOV     ?V0 + 1,R3
+   \   000030   AE..         MOV     R6,?V0 + 0
+   \   000032   AF..         MOV     R7,?V0 + 1
+    586              } else {
+   \                     ??uip_ds6_defrt_periodic_0:
+   \   000034   EE           MOV     A,R6
+   \   000035   4F           ORL     A,R7
+   \   000036   6033         JZ      ??uip_ds6_defrt_periodic_2
+   \   000038   EE           MOV     A,R6
+   \   000039   241A         ADD     A,#0x1a
+   \   00003B   F582         MOV     DPL,A
+   \   00003D   EF           MOV     A,R7
+   \   00003E   3400         ADDC    A,#0x0
+   \   000040   F583         MOV     DPH,A
+   \   000042   E0           MOVX    A,@DPTR
+   \   000043   7015         JNZ     ??uip_ds6_defrt_periodic_3
+   \   000045                ; Setup parameters for call to function stimer_expired
+   \   000045   EE           MOV     A,R6
+   \   000046   2412         ADD     A,#0x12
+   \   000048   FA           MOV     R2,A
+   \   000049   EF           MOV     A,R7
+   \   00004A   3400         ADDC    A,#0x0
+   \   00004C   FB           MOV     R3,A
+   \   00004D   12....       LCALL   ??stimer_expired?relay
+   \   000050   8A..         MOV     ?V0 + 0,R2
+   \   000052   8B..         MOV     ?V0 + 1,R3
+   \   000054   E5..         MOV     A,?V0 + 0
+   \   000056   45..         ORL     A,?V0 + 1
+   \   000058   70C0         JNZ     ??uip_ds6_defrt_periodic_1
+    587                d = list_item_next(d);
+   \                     ??uip_ds6_defrt_periodic_3:
+   \   00005A                ; Setup parameters for call to function list_item_next
+   \   00005A   EE           MOV     A,R6
+   \   00005B   FA           MOV     R2,A
+   \   00005C   EF           MOV     A,R7
+   \   00005D   FB           MOV     R3,A
+   \   00005E   12....       LCALL   ??list_item_next?relay
+   \   000061   8A..         MOV     ?V0 + 0,R2
+   \   000063   8B..         MOV     ?V0 + 1,R3
+   \   000065   AE..         MOV     R6,?V0 + 0
+   \   000067   AF..         MOV     R7,?V0 + 1
+   \   000069   80C9         SJMP    ??uip_ds6_defrt_periodic_0
+    588              }
+    589            }
+    590          }
+   \                     ??uip_ds6_defrt_periodic_2:
+   \   00006B   7F02         MOV     R7,#0x2
+   \   00006D   02....       LJMP    ?BANKED_LEAVE_XDATA
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for nbr_routes_struct>`:
+   \   000000   0000         DW 0
+   \   000002   0400         DW 4
+   \   000004   0000         DW 0H
+   \   000006   ....         DW _nbr_routes_mem
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for nbr_routes>`:
+   \   000000   ....         DW nbr_routes_struct
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for routememb>`:
+   \   000000   1D00         DW 29
+   \   000002   0400         DW 4
+   \   000004   ....         DW routememb_memb_count
+   \   000006   ....         DW routememb_memb_mem
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for defaultrouterlist>`:
+   \   000000   ....         DW defaultrouterlist_list
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for defaultroutermemb>`:
+   \   000000   1B00         DW 27
+   \   000002   0200         DW 2
+   \   000004   ....         DW defaultroutermemb_memb_count
+   \   000006   ....         DW defaultroutermemb_memb_mem
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for notificationlist>`:
+   \   000000   ....         DW notificationlist_list
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??call_route_callback?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    call_route_callback
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_notification_add?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_notification_add
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_notification_rm?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_notification_rm
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_route_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_route_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_route_nexthop_lladdr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_route_nexthop_lladdr
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_route_nexthop?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_route_nexthop
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_route_head?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_route_head
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_route_next?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_route_next
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_route_num_routes?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_route_num_routes
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_route_lookup?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_route_lookup
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_route_add?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_route_add
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_route_rm?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_route_rm
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rm_routelist?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rm_routelist
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rm_routelist_callback?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rm_routelist_callback
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_route_rm_by_nexthop?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_route_rm_by_nexthop
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_defrt_add?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_defrt_add
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_defrt_rm?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_defrt_rm
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_defrt_lookup?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_defrt_lookup
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_defrt_choose?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_defrt_choose
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_defrt_periodic?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_defrt_periodic
+    591          /*---------------------------------------------------------------------------*/
+    592          
+    593          #endif /* UIP_CONF_IPV6 */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     44  call_route_callback
+                          0 0 18 -> list_head
+                          0 0 18 -> list_item_next
+                          0 0 18 -> list_length
+       0      0     20  rm_routelist
+                          0 0 10 -> list_head
+                          0 0 10 -> nbr_table_remove
+                          0 0 10 -> uip_ds6_route_rm
+       2      0      0  rm_routelist_callback
+                          2 0  0 -> rm_routelist
+       0      0     24  uip_ds6_defrt_add
+                          0 0 18 -> call_route_callback
+                          0 0 16 -> list_push
+                          0 0 16 -> memb_alloc
+                          0 0 18 -> memcpy
+                          0 0 20 -> stimer_set
+                          0 0 16 -> uip_ds6_defrt_lookup
+       0      0     12  uip_ds6_defrt_choose
+                          0 0 12 -> list_head
+                          0 0 12 -> list_item_next
+                          0 0 12 -> uip_ds6_nbr_lookup
+       0      0     30  uip_ds6_defrt_lookup
+                          0 0 12 -> list_head
+                          0 0 12 -> list_item_next
+                          0 0 14 -> memcmp
+       0      0     10  uip_ds6_defrt_periodic
+                          0 0 10 -> list_head
+                          0 0 10 -> list_item_next
+                          0 0 10 -> stimer_expired
+                          0 0 10 -> uip_ds6_defrt_rm
+       0      0     22  uip_ds6_defrt_rm
+                          0 0 12 -> call_route_callback
+                          0 0 10 -> list_head
+                          0 0 10 -> list_item_next
+                          0 0 10 -> list_remove
+                          0 0 10 -> memb_free
+       2      0      0  uip_ds6_notification_add
+                          2 0  0 -> list_add
+       2      0      0  uip_ds6_notification_rm
+                          2 0  0 -> list_remove
+       1      0     22  uip_ds6_route_add
+                          0 0 22 -> call_route_callback
+                          0 0 20 -> list_add
+                          0 0 20 -> list_init
+                          0 0 20 -> memb_alloc
+                          0 0 22 -> memcpy
+                          0 0 22 -> memset
+                          0 0 20 -> nbr_table_add_lladdr
+                          0 0 20 -> nbr_table_get_from_lladdr
+                          0 0 20 -> uip_ds6_nbr_lladdr_from_ipaddr
+                          0 0 20 -> uip_ds6_route_lookup
+       0      0     27  uip_ds6_route_head
+                          0 0 12 -> list_head
+                          0 0 12 -> nbr_table_head
+       2      0      0  uip_ds6_route_init
+                          2 0  0 -> list_init
+                          2 0  0 -> memb_init
+                          2 0  0 -> nbr_table_register
+       0      0     37  uip_ds6_route_lookup
+                          0 0 17 -> memcmp
+                          0 0 15 -> uip_ds6_route_head
+                          0 0 15 -> uip_ds6_route_next
+       0      0     25  uip_ds6_route_next
+                          0 0 10 -> list_head
+                          0 0 10 -> list_item_next
+                          0 0 10 -> nbr_table_next
+       2      0     10  uip_ds6_route_nexthop
+                          2 0  0 -> uip_ds6_nbr_ipaddr_from_lladdr
+                          2 0  0 -> uip_ds6_route_nexthop_lladdr
+       2      0      0  uip_ds6_route_nexthop_lladdr
+                          2 0  0 -> nbr_table_get_lladdr
+       2      0      0  uip_ds6_route_num_routes
+       0      0     22  uip_ds6_route_rm
+                          0 0 12 -> call_route_callback
+                          0 0 10 -> list_head
+                          0 0 10 -> list_remove
+                          0 0 10 -> memb_free
+                          0 0 10 -> nbr_table_remove
+                          0 0 10 -> uip_ds6_route_nexthop
+       0      0     10  uip_ds6_route_rm_by_nexthop
+                          0 0 10 -> nbr_table_get_from_lladdr
+                          0 0 10 -> rm_routelist
+                          0 0 10 -> uip_ds6_nbr_lladdr_from_ipaddr
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       2  ?<Initializer for defaultrouterlist>
+       8  ?<Initializer for defaultroutermemb>
+       2  ?<Initializer for nbr_routes>
+       8  ?<Initializer for nbr_routes_struct>
+       2  ?<Initializer for notificationlist>
+       8  ?<Initializer for routememb>
+       6  ??call_route_callback?relay
+       6  ??rm_routelist?relay
+       6  ??rm_routelist_callback?relay
+       6  ??uip_ds6_defrt_add?relay
+       6  ??uip_ds6_defrt_choose?relay
+       6  ??uip_ds6_defrt_lookup?relay
+       6  ??uip_ds6_defrt_periodic?relay
+       6  ??uip_ds6_defrt_rm?relay
+       6  ??uip_ds6_notification_add?relay
+       6  ??uip_ds6_notification_rm?relay
+       6  ??uip_ds6_route_add?relay
+       6  ??uip_ds6_route_head?relay
+       6  ??uip_ds6_route_init?relay
+       6  ??uip_ds6_route_lookup?relay
+       6  ??uip_ds6_route_next?relay
+       6  ??uip_ds6_route_nexthop?relay
+       6  ??uip_ds6_route_nexthop_lladdr?relay
+       6  ??uip_ds6_route_num_routes?relay
+       6  ??uip_ds6_route_rm?relay
+       6  ??uip_ds6_route_rm_by_nexthop?relay
+      16  _nbr_routes_mem
+     161  call_route_callback
+       2  defaultrouterlist
+       2  defaultrouterlist_list
+       8  defaultroutermemb
+       2  defaultroutermemb_memb_count
+      54  defaultroutermemb_memb_mem
+       2  nbr_routes
+       8  nbr_routes_struct
+       2  notificationlist
+       2  notificationlist_list
+       2  num_routes
+     101  rm_routelist
+      14  rm_routelist_callback
+       8  routememb
+       4  routememb_memb_count
+     116  routememb_memb_mem
+     199  uip_ds6_defrt_add
+     116  uip_ds6_defrt_choose
+     105  uip_ds6_defrt_lookup
+     112  uip_ds6_defrt_periodic
+     120  uip_ds6_defrt_rm
+      45  uip_ds6_notification_add
+      26  uip_ds6_notification_rm
+     358  uip_ds6_route_add
+      77  uip_ds6_route_head
+      62  uip_ds6_route_init
+     148  uip_ds6_route_lookup
+      91  uip_ds6_route_next
+      27  uip_ds6_route_nexthop
+      43  uip_ds6_route_nexthop_lladdr
+      19  uip_ds6_route_num_routes
+     193  uip_ds6_route_rm
+      43  uip_ds6_route_rm_by_nexthop
+
+ 
+ 2 060 bytes in segment BANKED_CODE
+   120 bytes in segment BANK_RELAYS
+    30 bytes in segment XDATA_I
+    30 bytes in segment XDATA_ID
+   198 bytes in segment XDATA_Z
+ 
+ 2 210 bytes of CODE  memory
+   228 bytes of XDATA memory
+
+Errors: none
+Warnings: none

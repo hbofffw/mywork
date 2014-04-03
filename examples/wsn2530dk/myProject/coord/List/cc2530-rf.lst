@@ -1,0 +1,1527 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:45 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\cpu\cc253x\dev\cc2530-rf.c        #
+#    Command line       =  D:\myWork\myWork\cpu\cc253x\dev\cc2530-rf.c -D     #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\cc2530-rf.lst                               #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\cc2530-rf.r51                                #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
+   \                                 In  segment SFR_AN, at 0xd9
+   \   unsigned char volatile __sfr RFD
+   \                     RFD:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe1
+   \   unsigned char volatile __sfr RFST
+   \                     RFST:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe2
+   \   unsigned char volatile __sfr T1CNTL
+   \                     T1CNTL:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe3
+   \   unsigned char volatile __sfr T1CNTH
+   \                     T1CNTH:
+   \   000000                DS 1
+D:\myWork\myWork\cpu\cc253x\dev\cc2530-rf.c
+      1          /*
+      2           * Copyright (c) 2012, YoCiHou - < www.iotdev.net >
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           */
+     31          
+     32          /**
+     33           * \file
+     34           *         Implementation of the cc2530 RF driver
+     35           *
+     36           * \author
+     37           *         George Oikonomou - <oikonomou@users.sourceforge.net>
+     38           *         YoCiHou - < www.iotdev.net >
+     39           */
+     40          #include "contiki.h"
+     41          #include "dev/radio.h"
+     42          #include "dev/cc2530-rf.h"
+     43          #include "cc253x.h"
+     44          #include "sfr-bits.h"
+     45          #include "sys/clock.h"
+     46          #include "sys/rtimer.h"
+     47          
+     48          #include "net/packetbuf.h"
+     49          #include "net/rime/rimestats.h"
+     50          #include "net/rime/rimeaddr.h"
+     51          #include "net/netstack.h"
+     52          
+     53          #include <string.h>
+     54          /*---------------------------------------------------------------------------*/
+     55          #define CHECKSUM_LEN 2
+     56          /*---------------------------------------------------------------------------*/
+     57          #if CC2530_RF_CONF_LEDS
+     58          #define CC2530_RF_LEDS CC2530_RF_CONF_LEDS
+     59          #else
+     60          #define CC2530_RF_LEDS 0
+     61          #endif
+     62          
+     63          #if CC2530_RF_LEDS
+     64          #include "dev/leds.h"
+     65          #define RF_RX_LED_ON()		leds_on(LEDS_RED);
+     66          #define RF_RX_LED_OFF()		leds_off(LEDS_RED);
+     67          #define RF_TX_LED_ON()		leds_on(LEDS_GREEN);
+     68          #define RF_TX_LED_OFF()		leds_off(LEDS_GREEN);
+     69          #else
+     70          #define RF_RX_LED_ON()
+     71          #define RF_RX_LED_OFF()
+     72          #define RF_TX_LED_ON()
+     73          #define RF_TX_LED_OFF()
+     74          #endif
+     75          /*---------------------------------------------------------------------------*/
+     76          #define DEBUG 0
+     77          #if DEBUG
+     78          #include "debug.h"
+     79          #define PUTSTRING(...) putstring(__VA_ARGS__)
+     80          #define PUTHEX(...) puthex(__VA_ARGS__)
+     81          #else
+     82          #define PUTSTRING(...)
+     83          #define PUTHEX(...)
+     84          #endif
+     85          /*---------------------------------------------------------------------------*/
+     86          /* Local RF Flags */
+     87          #define RX_ACTIVE  0x80
+     88          #define WAS_OFF    0x10
+     89          #define RF_ON      0x01
+     90          
+     91          /* Bit Masks for the last byte in the RX FIFO */
+     92          #define CRC_BIT_MASK 0x80
+     93          #define LQI_BIT_MASK 0x7F
+     94          /* RSSI Offset */
+     95          #define RSSI_OFFSET    73
+     96          
+     97          /* 192 ms, radio off -> on interval */
+     98          #define ONOFF_TIME                    RTIMER_ARCH_SECOND / 3125
+     99          
+    100          /*---------------------------------------------------------------------------*/
+    101          #if CC2530_RF_CONF_HEXDUMP
+    102          #include "dev/io-arch.h"
+    103          static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 }; /* Snif */
+    104          #endif
+    105          /*---------------------------------------------------------------------------*/
+    106          #ifdef CC2530_RF_CONF_AUTOACK
+    107          #define CC2530_RF_AUTOACK CC2530_RF_CONF_AUTOACK
+    108          #else
+    109          #define CC2530_RF_AUTOACK 1
+    110          #endif
+    111          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment DATA_Z, align 1, keep-with-next
+    112          static uint8_t CC_AT_DATA rf_flags;
+   \                     rf_flags:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_DATA_Z
+    113          
+    114          static int on(void); /* prepare() needs our prototype */
+    115          static int off(void); /* transmit() needs our prototype */
+    116          static int channel_clear(void); /* transmit() needs our prototype */
+    117          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    118          int8_t
+    119          cc2530_rf_channel_set(uint8_t channel)
+   \                     cc2530_rf_channel_set:
+    120          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   E9           MOV     A,R1
+   \   000006   FE           MOV     R6,A
+    121            PUTSTRING("RF: Set Chan\n");
+    122          
+    123            if((channel < CC2530_RF_CHANNEL_MIN) || (channel > CC2530_RF_CHANNEL_MAX)) {
+   \   000007   EE           MOV     A,R6
+   \   000008   C3           CLR     C
+   \   000009   940B         SUBB    A,#0xb
+   \   00000B   C3           CLR     C
+   \   00000C   9410         SUBB    A,#0x10
+   \   00000E   4004         JC      ??cc2530_rf_channel_set_0
+    124              return -1;
+   \   000010   79FF         MOV     R1,#-0x1
+   \   000012   8013         SJMP    ??cc2530_rf_channel_set_1
+    125            }
+    126          
+    127            /* Changes to FREQCTRL take effect after the next recalibration */
+    128            off();
+   \                     ??cc2530_rf_channel_set_0:
+   \   000014                ; Setup parameters for call to function off
+   \   000014   12....       LCALL   ??off?relay
+    129            FREQCTRL = (CC2530_RF_CHANNEL_MIN
+    130                + (channel - CC2530_RF_CHANNEL_MIN) * CC2530_RF_CHANNEL_SPACING);
+   \   000017   75F005       MOV     B,#0x5
+   \   00001A   EE           MOV     A,R6
+   \   00001B   A4           MUL     AB
+   \   00001C   24D4         ADD     A,#-0x2c
+   \   00001E   90618F       MOV     DPTR,#0x618f
+   \   000021   F0           MOVX    @DPTR,A
+    131            on();
+   \   000022                ; Setup parameters for call to function on
+   \   000022   12....       LCALL   ??on?relay
+    132          
+    133            return (int8_t) channel;
+   \   000025   EE           MOV     A,R6
+   \   000026   F9           MOV     R1,A
+   \                     ??cc2530_rf_channel_set_1:
+   \   000027   7F01         MOV     R7,#0x1
+   \   000029   02....       LJMP    ?BANKED_LEAVE_XDATA
+    134          }
+    135          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    136          uint8_t
+    137          cc2530_rf_power_set(uint8_t new_power)
+   \                     cc2530_rf_power_set:
+    138          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+   \   000004   E9           MOV     A,R1
+   \   000005   F8           MOV     R0,A
+    139            PUTSTRING("RF: Set Power\n");
+    140            /* off() */
+    141            TXPOWER = new_power;
+   \   000006   906190       MOV     DPTR,#0x6190
+   \   000009   F0           MOVX    @DPTR,A
+    142            /* on() */
+    143          
+    144            return TXPOWER;
+   \   00000A   906190       MOV     DPTR,#0x6190
+   \   00000D   E0           MOVX    A,@DPTR
+   \   00000E   F9           MOV     R1,A
+   \   00000F   D083         POP     DPH
+   \   000011   D082         POP     DPL
+   \   000013   02....       LJMP    ?BRET
+    145          }
+    146          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    147          void
+    148          cc2530_rf_set_addr(uint16_t pan)
+   \                     cc2530_rf_set_addr:
+    149          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    150          #if RIMEADDR_SIZE==8 /* EXT_ADDR[7:0] is ignored when using short addresses */
+    151            int i;
+    152            for(i = (RIMEADDR_SIZE - 1); i >= 0; --i) {
+    153              ((uint8_t *)&EXT_ADDR0)[i] = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 1 - i];
+    154            }
+    155          #endif
+    156          
+    157            PAN_ID0 = pan & 0xFF;
+   \   000004   EA           MOV     A,R2
+   \   000005   906172       MOV     DPTR,#0x6172
+   \   000008   F0           MOVX    @DPTR,A
+    158            PAN_ID1 = pan >> 8;
+   \   000009   E4           CLR     A
+   \   00000A   EB           MOV     A,R3
+   \   00000B   FA           MOV     R2,A
+   \   00000C   906173       MOV     DPTR,#0x6173
+   \   00000F   F0           MOVX    @DPTR,A
+    159          
+    160            SHORT_ADDR0 = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 1];
+   \   000010   90....       MOV     DPTR,#rimeaddr_node_addr + 1
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   906174       MOV     DPTR,#0x6174
+   \   000017   F0           MOVX    @DPTR,A
+    161            SHORT_ADDR1 = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 2];
+   \   000018   90....       MOV     DPTR,#rimeaddr_node_addr
+   \   00001B   E0           MOVX    A,@DPTR
+   \   00001C   906175       MOV     DPTR,#0x6175
+   \   00001F   F0           MOVX    @DPTR,A
+    162          }
+   \   000020   D083         POP     DPH
+   \   000022   D082         POP     DPL
+   \   000024   02....       LJMP    ?BRET
+    163          /*---------------------------------------------------------------------------*/
+    164          /* Netstack API radio driver functions */
+    165          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    166          static int
+    167          init(void)
+   \                     init:
+    168          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    169            PUTSTRING("RF: Init\n");
+    170          
+    171            if(rf_flags & RF_ON) {
+   \   000004   E5..         MOV     A,rf_flags
+   \   000006   A2E0         MOV     C,0xE0 /* A   */.0
+   \   000008   5006         JNC     ??init_0
+    172              return 0;
+   \   00000A   7A00         MOV     R2,#0x0
+   \   00000C   7B00         MOV     R3,#0x0
+   \   00000E   8056         SJMP    ??init_1
+    173            }
+    174            //added by dongbo huang,address filter by cc2530 hardware?
+    175            FRMFILT0 = 0x0D;
+   \                     ??init_0:
+   \   000010   906180       MOV     DPTR,#0x6180
+   \   000013   740D         MOV     A,#0xd
+   \   000015   F0           MOVX    @DPTR,A
+    176          
+    177          #if CC2530_RF_LOW_POWER_RX
+    178            /* Reduce RX power consumption current to 20mA at the cost of sensitivity */
+    179            RXCTRL = 0x00;
+    180            FSCTRL = 0x50;
+    181          #else
+    182            RXCTRL = 0x3F;
+   \   000016   9061AB       MOV     DPTR,#0x61ab
+   \   000019   743F         MOV     A,#0x3f
+   \   00001B   F0           MOVX    @DPTR,A
+    183            FSCTRL = 0x55;
+   \   00001C   9061AC       MOV     DPTR,#0x61ac
+   \   00001F   7455         MOV     A,#0x55
+   \   000021   F0           MOVX    @DPTR,A
+    184          #endif /* CC2530_RF_LOW_POWER_RX */
+    185          
+    186            CCACTRL0 = CC2530_RF_CCA_THRES;
+   \   000022   906196       MOV     DPTR,#0x6196
+   \   000025   74F8         MOV     A,#-0x8
+   \   000027   F0           MOVX    @DPTR,A
+    187          
+    188            /*
+    189             * According to the user guide, these registers must be updated from their
+    190             * defaults for optimal performance
+    191             *
+    192             * Table 23-6, Sec. 23.15.1, p. 259
+    193             */
+    194            TXFILTCFG = 0x09; /* TX anti-aliasing filter */
+   \   000028   9061FA       MOV     DPTR,#0x61fa
+   \   00002B   7409         MOV     A,#0x9
+   \   00002D   F0           MOVX    @DPTR,A
+    195            AGCCTRL1 = 0x15;  /* AGC target value */
+   \   00002E   9061B2       MOV     DPTR,#0x61b2
+   \   000031   7415         MOV     A,#0x15
+   \   000033   F0           MOVX    @DPTR,A
+    196            FSCAL1 = 0x00;    /* Reduce the VCO leakage */
+   \   000034   9061AE       MOV     DPTR,#0x61ae
+   \   000037   7400         MOV     A,#0x0
+   \   000039   F0           MOVX    @DPTR,A
+    197          
+    198            /* Auto ACKs and CRC calculation, default RX and TX modes with FIFOs */
+    199            FRMCTRL0 = FRMCTRL0_AUTOCRC;
+   \   00003A   906189       MOV     DPTR,#0x6189
+   \   00003D   7440         MOV     A,#0x40
+   \   00003F   F0           MOVX    @DPTR,A
+    200          #if CC2530_RF_AUTOACK
+    201            FRMCTRL0 |= FRMCTRL0_AUTOACK;
+   \   000040   906189       MOV     DPTR,#0x6189
+   \   000043   E0           MOVX    A,@DPTR
+   \   000044   D2E5         SETB    0xE0 /* A   */.5
+   \   000046   F0           MOVX    @DPTR,A
+    202          #endif
+    203          
+    204            /* Disable source address matching and autopend */
+    205            SRCMATCH = 0; /* investigate */
+   \   000047   906182       MOV     DPTR,#0x6182
+   \   00004A   7400         MOV     A,#0x0
+   \   00004C   F0           MOVX    @DPTR,A
+    206          
+    207            /* MAX FIFOP threshold */
+    208            FIFOPCTRL = CC2530_RF_MAX_PACKET_LEN;
+   \   00004D   906194       MOV     DPTR,#0x6194
+   \   000050   747F         MOV     A,#0x7f
+   \   000052   F0           MOVX    @DPTR,A
+    209          
+    210            cc2530_rf_power_set(CC2530_RF_TX_POWER);
+   \   000053                ; Setup parameters for call to function cc2530_rf_power_set
+   \   000053   79D5         MOV     R1,#-0x2b
+   \   000055   12....       LCALL   ??cc2530_rf_power_set?relay
+   \   000058   E9           MOV     A,R1
+    211            cc2530_rf_channel_set(CC2530_RF_CHANNEL);
+   \   000059                ; Setup parameters for call to function cc2530_rf_channel_set
+   \   000059   7919         MOV     R1,#0x19
+   \   00005B   12....       LCALL   ??cc2530_rf_channel_set?relay
+   \   00005E   E9           MOV     A,R1
+    212          
+    213            RF_TX_LED_ON();
+    214            RF_RX_LED_ON();
+    215          
+    216            rf_flags |= RF_ON;
+   \   00005F   43..01       ORL     rf_flags,#0x1
+    217          
+    218            return 1;
+   \   000062   7A01         MOV     R2,#0x1
+   \   000064   7B00         MOV     R3,#0x0
+   \                     ??init_1:
+   \   000066   D083         POP     DPH
+   \   000068   D082         POP     DPL
+   \   00006A   02....       LJMP    ?BRET
+    219          }
+    220          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    221          static int
+    222          prepare(const void *payload, unsigned short payload_len)
+   \                     prepare:
+    223          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   EC           MOV     A,R4
+   \   00000A   FE           MOV     R6,A
+   \   00000B   ED           MOV     A,R5
+   \   00000C   FF           MOV     R7,A
+    224            uint8_t i;
+    225          
+    226            PUTSTRING("RF: Prepare 0x");
+    227            PUTHEX(payload_len + CHECKSUM_LEN);
+    228            PUTSTRING(" bytes\n");
+    229          
+    230            /*
+    231             * When we transmit in very quick bursts, make sure previous transmission
+    232             * is not still in progress before re-writing to the TX FIFO
+    233             */
+    234            while(FSMSTAT1 & FSMSTAT1_TX_ACTIVE);
+   \                     ??prepare_0:
+   \   00000D   906193       MOV     DPTR,#0x6193
+   \   000010   E0           MOVX    A,@DPTR
+   \   000011   A2E1         MOV     C,0xE0 /* A   */.1
+   \   000013   40F8         JC      ??prepare_0
+    235          
+    236            if((rf_flags & RX_ACTIVE) == 0) {
+   \   000015   E5..         MOV     A,rf_flags
+   \   000017   A2E7         MOV     C,0xE0 /* A   */.7
+   \   000019   4003         JC      ??prepare_1
+    237              on();
+   \   00001B                ; Setup parameters for call to function on
+   \   00001B   12....       LCALL   ??on?relay
+    238            }
+    239          
+    240            CC2530_CSP_ISFLUSHTX();
+   \                     ??prepare_1:
+   \   00001E   75E1EE       MOV     0xe1,#-0x12
+   \   000021   75E1EE       MOV     0xe1,#-0x12
+    241          
+    242            PUTSTRING("RF: data = ");
+    243            /* Send the phy length byte first */
+    244            RFD = payload_len + CHECKSUM_LEN; /* Payload plus FCS */
+   \   000024   EE           MOV     A,R6
+   \   000025   2402         ADD     A,#0x2
+   \   000027   F5D9         MOV     0xd9,A
+    245            for(i = 0; i < payload_len; i++) {
+   \   000029   7800         MOV     R0,#0x0
+   \   00002B   8015         SJMP    ??prepare_2
+    246              RFD = ((unsigned char *)(payload))[i];
+   \                     ??prepare_3:
+   \   00002D   88..         MOV     ?V0 + 2,R0
+   \   00002F   75..00       MOV     ?V0 + 3,#0x0
+   \   000032   E5..         MOV     A,?V0 + 0
+   \   000034   25..         ADD     A,?V0 + 2
+   \   000036   F582         MOV     DPL,A
+   \   000038   E5..         MOV     A,?V0 + 1
+   \   00003A   35..         ADDC    A,?V0 + 3
+   \   00003C   F583         MOV     DPH,A
+   \   00003E   E0           MOVX    A,@DPTR
+   \   00003F   F5D9         MOV     0xd9,A
+    247              PUTHEX(((unsigned char *)(payload))[i]);
+    248            }
+   \   000041   08           INC     R0
+   \                     ??prepare_2:
+   \   000042   88..         MOV     ?V0 + 2,R0
+   \   000044   75..00       MOV     ?V0 + 3,#0x0
+   \   000047   C3           CLR     C
+   \   000048   E5..         MOV     A,?V0 + 2
+   \   00004A   9E           SUBB    A,R6
+   \   00004B   E5..         MOV     A,?V0 + 3
+   \   00004D   9F           SUBB    A,R7
+   \   00004E   40DD         JC      ??prepare_3
+    249            PUTSTRING("\n");
+    250          
+    251            /* Leave space for the FCS */
+    252            RFD = 0;
+   \   000050   75D900       MOV     0xd9,#0x0
+    253            RFD = 0;
+   \   000053   75D900       MOV     0xd9,#0x0
+    254          
+    255            return 0;
+   \   000056   7A00         MOV     R2,#0x0
+   \   000058   7B00         MOV     R3,#0x0
+   \   00005A   7F04         MOV     R7,#0x4
+   \   00005C   02....       LJMP    ?BANKED_LEAVE_XDATA
+   \   00005F                REQUIRE RFST
+   \   00005F                REQUIRE RFD
+    256          }
+    257          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    258          static int
+    259          transmit(unsigned short transmit_len)
+   \                     transmit:
+    260          {
+   \   000000   74F3         MOV     A,#-0xd
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 13
+   \   000005                ; Auto size: 0
+    261            uint8_t counter;
+    262            int ret = RADIO_TX_ERR;
+   \   000005   7E01         MOV     R6,#0x1
+   \   000007   7F00         MOV     R7,#0x0
+    263            rtimer_clock_t t0;
+    264            transmit_len; /* hush the warning */
+                   ^
+Warning[Pe174]: expression has no effect
+    265          
+    266            if(!(rf_flags & RX_ACTIVE)) {
+   \   000009   E5..         MOV     A,rf_flags
+   \   00000B   A2E7         MOV     C,0xE0 /* A   */.7
+   \   00000D   404A         JC      ??transmit_0
+    267              t0 = RTIMER_NOW();
+   \   00000F   E5E2         MOV     A,0xe2
+   \   000011   FA           MOV     R2,A
+   \   000012   7B00         MOV     R3,#0x0
+   \   000014   E5E3         MOV     A,0xe3
+   \   000016   F8           MOV     R0,A
+   \   000017   7900         MOV     R1,#0x0
+   \   000019   E4           CLR     A
+   \   00001A   C8           XCH     A,R0
+   \   00001B   F9           MOV     R1,A
+   \   00001C   EA           MOV     A,R2
+   \   00001D   28           ADD     A,R0
+   \   00001E   FE           MOV     R6,A
+   \   00001F   EB           MOV     A,R3
+   \   000020   39           ADDC    A,R1
+   \   000021   FF           MOV     R7,A
+    268              on();
+   \   000022                ; Setup parameters for call to function on
+   \   000022   12....       LCALL   ??on?relay
+    269              rf_flags |= WAS_OFF;
+   \   000025   43..10       ORL     rf_flags,#0x10
+    270              while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ONOFF_TIME));
+   \                     ??transmit_1:
+   \   000028   E5E2         MOV     A,0xe2
+   \   00002A   FA           MOV     R2,A
+   \   00002B   7B00         MOV     R3,#0x0
+   \   00002D   E5E3         MOV     A,0xe3
+   \   00002F   F8           MOV     R0,A
+   \   000030   7900         MOV     R1,#0x0
+   \   000032   E4           CLR     A
+   \   000033   C8           XCH     A,R0
+   \   000034   F9           MOV     R1,A
+   \   000035   EA           MOV     A,R2
+   \   000036   28           ADD     A,R0
+   \   000037   F8           MOV     R0,A
+   \   000038   EB           MOV     A,R3
+   \   000039   39           ADDC    A,R1
+   \   00003A   F9           MOV     R1,A
+   \   00003B   E8           MOV     A,R0
+   \   00003C   C3           CLR     C
+   \   00003D   9E           SUBB    A,R6
+   \   00003E   F8           MOV     R0,A
+   \   00003F   E9           MOV     A,R1
+   \   000040   9F           SUBB    A,R7
+   \   000041   F9           MOV     R1,A
+   \   000042   E8           MOV     A,R0
+   \   000043   C3           CLR     C
+   \   000044   9405         SUBB    A,#0x5
+   \   000046   F8           MOV     R0,A
+   \   000047   E9           MOV     A,R1
+   \   000048   9400         SUBB    A,#0x0
+   \   00004A   F9           MOV     R1,A
+   \   00004B   C3           CLR     C
+   \   00004C   E8           MOV     A,R0
+   \   00004D   9400         SUBB    A,#0x0
+   \   00004F   E9           MOV     A,R1
+   \   000050   9400         SUBB    A,#0x0
+   \   000052   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000054   65D0         XRL     A,PSW
+   \   000056   33           RLC     A
+   \   000057   40CF         JC      ??transmit_1
+    271            }
+    272          
+    273            if(channel_clear() == CC2530_RF_CCA_BUSY) {
+   \                     ??transmit_0:
+   \   000059                ; Setup parameters for call to function channel_clear
+   \   000059   12....       LCALL   ??channel_clear?relay
+   \   00005C   8A..         MOV     ?V0 + 0,R2
+   \   00005E   8B..         MOV     ?V0 + 1,R3
+   \   000060   E5..         MOV     A,?V0 + 0
+   \   000062   45..         ORL     A,?V0 + 1
+   \   000064   7007         JNZ     ??transmit_2
+    274              RIMESTATS_ADD(contentiondrop);
+    275              return RADIO_TX_COLLISION;
+   \   000066   7A02         MOV     R2,#0x2
+   \   000068   7B00         MOV     R3,#0x0
+   \   00006A   02....       LJMP    ??transmit_3 & 0xFFFF
+    276            }
+    277          
+    278            /*
+    279             * prepare() double checked that TX_ACTIVE is low. If SFD is high we are
+    280             * receiving. Abort transmission and bail out with RADIO_TX_COLLISION
+    281             */
+    282            if(FSMSTAT1 & FSMSTAT1_SFD) {
+   \                     ??transmit_2:
+   \   00006D   906193       MOV     DPTR,#0x6193
+   \   000070   E0           MOVX    A,@DPTR
+   \   000071   A2E5         MOV     C,0xE0 /* A   */.5
+   \   000073   5007         JNC     ??transmit_4
+    283              RIMESTATS_ADD(contentiondrop);
+    284              return RADIO_TX_COLLISION;
+   \   000075   7A02         MOV     R2,#0x2
+   \   000077   7B00         MOV     R3,#0x0
+   \   000079   02....       LJMP    ??transmit_3 & 0xFFFF
+    285            }
+    286          
+    287            /* Start the transmission */
+    288            RF_TX_LED_ON();
+    289            ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+   \                     ??transmit_4:
+   \   00007C   90....       MOV     DPTR,#energest_current_mode + 7
+   \   00007F   E0           MOVX    A,@DPTR
+   \   000080   6037         JZ      ??transmit_5
+   \   000082   E5E2         MOV     A,0xe2
+   \   000084   FA           MOV     R2,A
+   \   000085   7B00         MOV     R3,#0x0
+   \   000087   E5E3         MOV     A,0xe3
+   \   000089   F8           MOV     R0,A
+   \   00008A   7900         MOV     R1,#0x0
+   \   00008C   E4           CLR     A
+   \   00008D   C8           XCH     A,R0
+   \   00008E   F9           MOV     R1,A
+   \   00008F   EA           MOV     A,R2
+   \   000090   28           ADD     A,R0
+   \   000091   FA           MOV     R2,A
+   \   000092   EB           MOV     A,R3
+   \   000093   39           ADDC    A,R1
+   \   000094   FB           MOV     R3,A
+   \   000095   90....       MOV     DPTR,#energest_current_time + 14
+   \   000098   E0           MOVX    A,@DPTR
+   \   000099   F8           MOV     R0,A
+   \   00009A   A3           INC     DPTR
+   \   00009B   E0           MOVX    A,@DPTR
+   \   00009C   F9           MOV     R1,A
+   \   00009D   EA           MOV     A,R2
+   \   00009E   C3           CLR     C
+   \   00009F   98           SUBB    A,R0
+   \   0000A0   F5..         MOV     ?V0 + 0,A
+   \   0000A2   EB           MOV     A,R3
+   \   0000A3   99           SUBB    A,R1
+   \   0000A4   F5..         MOV     ?V0 + 1,A
+   \   0000A6   E4           CLR     A
+   \   0000A7   F5..         MOV     ?V0 + 2,A
+   \   0000A9   F5..         MOV     ?V0 + 3,A
+   \   0000AB   90....       MOV     DPTR,#energest_total_time + 28
+   \   0000AE   78..         MOV     R0,#?V0 + 0
+   \   0000B0   12....       LCALL   ?L_ADD_TO_X
+   \   0000B3   90....       MOV     DPTR,#energest_current_mode + 7
+   \   0000B6   7400         MOV     A,#0x0
+   \   0000B8   F0           MOVX    @DPTR,A
+    290            ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
+   \                     ??transmit_5:
+   \   0000B9   E5E2         MOV     A,0xe2
+   \   0000BB   FA           MOV     R2,A
+   \   0000BC   7B00         MOV     R3,#0x0
+   \   0000BE   E5E3         MOV     A,0xe3
+   \   0000C0   F8           MOV     R0,A
+   \   0000C1   7900         MOV     R1,#0x0
+   \   0000C3   E4           CLR     A
+   \   0000C4   C8           XCH     A,R0
+   \   0000C5   F9           MOV     R1,A
+   \   0000C6   EA           MOV     A,R2
+   \   0000C7   28           ADD     A,R0
+   \   0000C8   F8           MOV     R0,A
+   \   0000C9   EB           MOV     A,R3
+   \   0000CA   39           ADDC    A,R1
+   \   0000CB   F9           MOV     R1,A
+   \   0000CC   90....       MOV     DPTR,#energest_current_time + 12
+   \   0000CF   E8           MOV     A,R0
+   \   0000D0   F0           MOVX    @DPTR,A
+   \   0000D1   A3           INC     DPTR
+   \   0000D2   E9           MOV     A,R1
+   \   0000D3   F0           MOVX    @DPTR,A
+   \   0000D4   90....       MOV     DPTR,#energest_current_mode + 6
+   \   0000D7   7401         MOV     A,#0x1
+   \   0000D9   F0           MOVX    @DPTR,A
+    291          
+    292            CC2530_CSP_ISTXON();
+   \   0000DA   75E1E9       MOV     0xe1,#-0x17
+    293          
+    294            counter = 0;
+   \   0000DD   7E00         MOV     R6,#0x0
+   \   0000DF   8007         SJMP    ??transmit_6
+    295            while(!(FSMSTAT1 & FSMSTAT1_TX_ACTIVE) && (counter++ < 3)) {
+    296              clock_delay_usec(6);
+   \                     ??transmit_7:
+   \   0000E1                ; Setup parameters for call to function clock_delay_usec
+   \   0000E1   7A06         MOV     R2,#0x6
+   \   0000E3   7B00         MOV     R3,#0x0
+   \   0000E5   12....       LCALL   ??clock_delay_usec?relay
+    297            }
+   \                     ??transmit_6:
+   \   0000E8   906193       MOV     DPTR,#0x6193
+   \   0000EB   E0           MOVX    A,@DPTR
+   \   0000EC   A2E1         MOV     C,0xE0 /* A   */.1
+   \   0000EE   400E         JC      ??transmit_8
+   \   0000F0   8E..         MOV     ?V0 + 4,R6
+   \   0000F2   7401         MOV     A,#0x1
+   \   0000F4   25..         ADD     A,?V0 + 4
+   \   0000F6   FE           MOV     R6,A
+   \   0000F7   E5..         MOV     A,?V0 + 4
+   \   0000F9   C3           CLR     C
+   \   0000FA   9403         SUBB    A,#0x3
+   \   0000FC   40E3         JC      ??transmit_7
+    298          
+    299            if(!(FSMSTAT1 & FSMSTAT1_TX_ACTIVE)) {
+   \                     ??transmit_8:
+   \   0000FE   906193       MOV     DPTR,#0x6193
+   \   000101   E0           MOVX    A,@DPTR
+   \   000102   A2E1         MOV     C,0xE0 /* A   */.1
+   \   000104   400C         JC      ??transmit_9
+    300              PUTSTRING("RF: TX never active.\n");
+    301              CC2530_CSP_ISFLUSHTX();
+   \   000106   75E1EE       MOV     0xe1,#-0x12
+   \   000109   75E1EE       MOV     0xe1,#-0x12
+    302              ret = RADIO_TX_ERR;
+   \   00010C   7E01         MOV     R6,#0x1
+   \   00010E   7F00         MOV     R7,#0x0
+   \   000110   800C         SJMP    ??transmit_10
+    303            } else {
+    304              /* Wait for the transmission to finish */
+    305              while(FSMSTAT1 & FSMSTAT1_TX_ACTIVE);
+   \                     ??transmit_9:
+   \   000112   906193       MOV     DPTR,#0x6193
+   \   000115   E0           MOVX    A,@DPTR
+   \   000116   A2E1         MOV     C,0xE0 /* A   */.1
+   \   000118   40F8         JC      ??transmit_9
+    306              ret = RADIO_TX_OK;
+   \   00011A   7E00         MOV     R6,#0x0
+   \   00011C   7F00         MOV     R7,#0x0
+    307            }
+    308            ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
+   \                     ??transmit_10:
+   \   00011E   90....       MOV     DPTR,#energest_current_mode + 6
+   \   000121   E0           MOVX    A,@DPTR
+   \   000122   6037         JZ      ??transmit_11
+   \   000124   E5E2         MOV     A,0xe2
+   \   000126   FA           MOV     R2,A
+   \   000127   7B00         MOV     R3,#0x0
+   \   000129   E5E3         MOV     A,0xe3
+   \   00012B   F8           MOV     R0,A
+   \   00012C   7900         MOV     R1,#0x0
+   \   00012E   E4           CLR     A
+   \   00012F   C8           XCH     A,R0
+   \   000130   F9           MOV     R1,A
+   \   000131   EA           MOV     A,R2
+   \   000132   28           ADD     A,R0
+   \   000133   FA           MOV     R2,A
+   \   000134   EB           MOV     A,R3
+   \   000135   39           ADDC    A,R1
+   \   000136   FB           MOV     R3,A
+   \   000137   90....       MOV     DPTR,#energest_current_time + 12
+   \   00013A   E0           MOVX    A,@DPTR
+   \   00013B   F8           MOV     R0,A
+   \   00013C   A3           INC     DPTR
+   \   00013D   E0           MOVX    A,@DPTR
+   \   00013E   F9           MOV     R1,A
+   \   00013F   EA           MOV     A,R2
+   \   000140   C3           CLR     C
+   \   000141   98           SUBB    A,R0
+   \   000142   F5..         MOV     ?V0 + 0,A
+   \   000144   EB           MOV     A,R3
+   \   000145   99           SUBB    A,R1
+   \   000146   F5..         MOV     ?V0 + 1,A
+   \   000148   E4           CLR     A
+   \   000149   F5..         MOV     ?V0 + 2,A
+   \   00014B   F5..         MOV     ?V0 + 3,A
+   \   00014D   90....       MOV     DPTR,#energest_total_time + 24
+   \   000150   78..         MOV     R0,#?V0 + 0
+   \   000152   12....       LCALL   ?L_ADD_TO_X
+   \   000155   90....       MOV     DPTR,#energest_current_mode + 6
+   \   000158   7400         MOV     A,#0x0
+   \   00015A   F0           MOVX    @DPTR,A
+    309            ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+   \                     ??transmit_11:
+   \   00015B   E5E2         MOV     A,0xe2
+   \   00015D   FA           MOV     R2,A
+   \   00015E   7B00         MOV     R3,#0x0
+   \   000160   E5E3         MOV     A,0xe3
+   \   000162   F8           MOV     R0,A
+   \   000163   7900         MOV     R1,#0x0
+   \   000165   E4           CLR     A
+   \   000166   C8           XCH     A,R0
+   \   000167   F9           MOV     R1,A
+   \   000168   EA           MOV     A,R2
+   \   000169   28           ADD     A,R0
+   \   00016A   F8           MOV     R0,A
+   \   00016B   EB           MOV     A,R3
+   \   00016C   39           ADDC    A,R1
+   \   00016D   F9           MOV     R1,A
+   \   00016E   90....       MOV     DPTR,#energest_current_time + 14
+   \   000171   E8           MOV     A,R0
+   \   000172   F0           MOVX    @DPTR,A
+   \   000173   A3           INC     DPTR
+   \   000174   E9           MOV     A,R1
+   \   000175   F0           MOVX    @DPTR,A
+   \   000176   90....       MOV     DPTR,#energest_current_mode + 7
+   \   000179   7401         MOV     A,#0x1
+   \   00017B   F0           MOVX    @DPTR,A
+    310          
+    311            if(rf_flags & WAS_OFF) {
+   \   00017C   E5..         MOV     A,rf_flags
+   \   00017E   A2E4         MOV     C,0xE0 /* A   */.4
+   \   000180   5003         JNC     ??transmit_12
+    312              off();
+   \   000182                ; Setup parameters for call to function off
+   \   000182   12....       LCALL   ??off?relay
+    313            }
+    314          
+    315            RIMESTATS_ADD(lltx);
+    316          
+    317            RF_TX_LED_OFF();
+    318          
+    319            /* OK, sent. We are now ready to send more */
+    320            return ret;
+   \                     ??transmit_12:
+   \   000185   EE           MOV     A,R6
+   \   000186   FA           MOV     R2,A
+   \   000187   EF           MOV     A,R7
+   \   000188   FB           MOV     R3,A
+   \                     ??transmit_3:
+   \   000189   7F05         MOV     R7,#0x5
+   \   00018B   02....       LJMP    ?BANKED_LEAVE_XDATA
+   \   00018E                REQUIRE T1CNTL
+   \   00018E                REQUIRE T1CNTH
+   \   00018E                REQUIRE RFST
+    321          }
+    322          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    323          static int
+    324          send(void *payload, unsigned short payload_len)
+   \                     send:
+    325          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   EC           MOV     A,R4
+   \   000006   FE           MOV     R6,A
+   \   000007   ED           MOV     A,R5
+   \   000008   FF           MOV     R7,A
+    326            prepare(payload, payload_len);
+   \   000009                ; Setup parameters for call to function prepare
+   \   000009   EE           MOV     A,R6
+   \   00000A   FC           MOV     R4,A
+   \   00000B   EF           MOV     A,R7
+   \   00000C   FD           MOV     R5,A
+   \   00000D   12....       LCALL   ??prepare?relay
+    327            return transmit(payload_len);
+   \   000010                ; Setup parameters for call to function transmit
+   \   000010   EE           MOV     A,R6
+   \   000011   FA           MOV     R2,A
+   \   000012   EF           MOV     A,R7
+   \   000013   FB           MOV     R3,A
+   \   000014   12....       LCALL   ??transmit?relay
+   \   000017   7F01         MOV     R7,#0x1
+   \   000019   02....       LJMP    ?BANKED_LEAVE_XDATA
+    328          }
+    329          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    330          static int
+    331          read(void *buf, unsigned short bufsize)
+   \                     `read`:
+    332          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    333            uint8_t i;
+    334            uint8_t len;
+    335            uint8_t crc_corr;
+    336            int8_t rssi;
+    337          
+    338            PUTSTRING("RF: Read\n");
+    339          
+    340            /* Check the length */
+    341            len = RFD;
+   \   000005   E5D9         MOV     A,0xd9
+   \   000007   FE           MOV     R6,A
+    342          
+    343            /* Check for validity */
+    344            if(len > CC2530_RF_MAX_PACKET_LEN) {
+   \   000008   EE           MOV     A,R6
+   \   000009   C3           CLR     C
+   \   00000A   9480         SUBB    A,#-0x80
+   \   00000C   400D         JC      ??read_0
+    345              /* Oops, we must be out of sync. */
+    346              PUTSTRING("RF: bad sync\n");
+    347          
+    348              RIMESTATS_ADD(badsynch);
+    349              CC2530_CSP_ISFLUSHRX();
+   \   00000E   75E1ED       MOV     0xe1,#-0x13
+   \   000011   75E1ED       MOV     0xe1,#-0x13
+    350              return 0;
+   \   000014   7A00         MOV     R2,#0x0
+   \   000016   7B00         MOV     R3,#0x0
+   \   000018   02....       LJMP    ??read_1 & 0xFFFF
+    351            }
+    352          
+    353            if(len <= CC2530_RF_MIN_PACKET_LEN) {
+   \                     ??read_0:
+   \   00001B   EE           MOV     A,R6
+   \   00001C   C3           CLR     C
+   \   00001D   9405         SUBB    A,#0x5
+   \   00001F   500D         JNC     ??read_2
+    354              PUTSTRING("RF: too short\n");
+    355          
+    356              RIMESTATS_ADD(tooshort);
+    357              CC2530_CSP_ISFLUSHRX();
+   \   000021   75E1ED       MOV     0xe1,#-0x13
+   \   000024   75E1ED       MOV     0xe1,#-0x13
+    358              return 0;
+   \   000027   7A00         MOV     R2,#0x0
+   \   000029   7B00         MOV     R3,#0x0
+   \   00002B   02....       LJMP    ??read_1 & 0xFFFF
+    359            }
+    360          
+    361            if(len - CHECKSUM_LEN > bufsize) {
+   \                     ??read_2:
+   \   00002E   8E..         MOV     ?V0 + 0,R6
+   \   000030   75..00       MOV     ?V0 + 1,#0x0
+   \   000033   E5..         MOV     A,?V0 + 0
+   \   000035   24FE         ADD     A,#-0x2
+   \   000037   F8           MOV     R0,A
+   \   000038   E5..         MOV     A,?V0 + 1
+   \   00003A   34FF         ADDC    A,#-0x1
+   \   00003C   F9           MOV     R1,A
+   \   00003D   C3           CLR     C
+   \   00003E   EC           MOV     A,R4
+   \   00003F   98           SUBB    A,R0
+   \   000040   ED           MOV     A,R5
+   \   000041   99           SUBB    A,R1
+   \   000042   500C         JNC     ??read_3
+    362              PUTSTRING("RF: too long\n");
+    363          
+    364              RIMESTATS_ADD(toolong);
+    365              CC2530_CSP_ISFLUSHRX();
+   \   000044   75E1ED       MOV     0xe1,#-0x13
+   \   000047   75E1ED       MOV     0xe1,#-0x13
+    366              return 0;
+   \   00004A   7A00         MOV     R2,#0x0
+   \   00004C   7B00         MOV     R3,#0x0
+   \   00004E   806F         SJMP    ??read_1
+    367            }
+    368          
+    369          #if CC2530_RF_CONF_HEXDUMP
+    370            /* If we reach here, chances are the FIFO is holding a valid frame */
+    371            io_arch_writeb(magic[0]);
+    372            io_arch_writeb(magic[1]);
+    373            io_arch_writeb(magic[2]);
+    374            io_arch_writeb(magic[3]);
+    375            io_arch_writeb(len);
+    376          #endif
+    377          
+    378            RF_RX_LED_ON();
+    379          
+    380            PUTSTRING("RF: read (0x");
+    381            PUTHEX(len);
+    382            PUTSTRING(" bytes) = ");
+    383            len -= CHECKSUM_LEN;
+   \                     ??read_3:
+   \   000050   74FE         MOV     A,#-0x2
+   \   000052   2E           ADD     A,R6
+   \   000053   FE           MOV     R6,A
+    384            for(i = 0; i < len; ++i) {
+   \   000054   7800         MOV     R0,#0x0
+   \   000056   8017         SJMP    ??read_4
+    385              ((unsigned char *)(buf))[i] = RFD;
+   \                     ??read_5:
+   \   000058   E5D9         MOV     A,0xd9
+   \   00005A   C0E0         PUSH    A
+   \   00005C   88..         MOV     ?V0 + 0,R0
+   \   00005E   75..00       MOV     ?V0 + 1,#0x0
+   \   000061   EA           MOV     A,R2
+   \   000062   25..         ADD     A,?V0 + 0
+   \   000064   F582         MOV     DPL,A
+   \   000066   EB           MOV     A,R3
+   \   000067   35..         ADDC    A,?V0 + 1
+   \   000069   F583         MOV     DPH,A
+   \   00006B   D0E0         POP     A
+   \   00006D   F0           MOVX    @DPTR,A
+    386          #if CC2530_RF_CONF_HEXDUMP
+    387              io_arch_writeb(((unsigned char *)(buf))[i]);
+    388          #endif
+    389              PUTHEX(((unsigned char *)(buf))[i]);
+    390            }
+   \   00006E   08           INC     R0
+   \                     ??read_4:
+   \   00006F   E8           MOV     A,R0
+   \   000070   C3           CLR     C
+   \   000071   9E           SUBB    A,R6
+   \   000072   40E4         JC      ??read_5
+    391            PUTSTRING("\n");
+    392          
+    393            /* Read the RSSI and CRC/Corr bytes */
+    394            rssi = ((int8_t) RFD) - RSSI_OFFSET;
+   \   000074   E5D9         MOV     A,0xd9
+   \   000076   24B7         ADD     A,#-0x49
+   \   000078   F8           MOV     R0,A
+    395            crc_corr = RFD;
+   \   000079   E5D9         MOV     A,0xd9
+   \   00007B   F5..         MOV     ?V0 + 0,A
+    396          
+    397          #if CC2530_RF_CONF_HEXDUMP
+    398            io_arch_writeb(rssi);
+    399            io_arch_writeb(crc_corr);
+    400            io_arch_flush();
+    401          #endif
+    402          
+    403            /* MS bit CRC OK/Not OK, 7 LS Bits, Correlation value */
+    404            if(crc_corr & CRC_BIT_MASK) {
+   \   00007D   E5..         MOV     A,?V0 + 0
+   \   00007F   A2E7         MOV     C,0xE0 /* A   */.7
+   \   000081   5041         JNC     ??read_6
+    405              packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
+   \   000083                ; Setup parameters for call to function packetbuf_set_attr
+   \   000083   E8           MOV     A,R0
+   \   000084   FA           MOV     R2,A
+   \   000085   33           RLC     A
+   \   000086   95E0         SUBB    A,0xE0 /* A   */
+   \   000088   FB           MOV     R3,A
+   \   000089   7904         MOV     R1,#0x4
+   \   00008B   12....       LCALL   ??packetbuf_set_attr?relay
+    406              packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, crc_corr & LQI_BIT_MASK);
+   \   00008E                ; Setup parameters for call to function packetbuf_set_attr
+   \   00008E   75..00       MOV     ?V0 + 1,#0x0
+   \   000091   E5..         MOV     A,?V0 + 0
+   \   000093   547F         ANL     A,#0x7f
+   \   000095   FA           MOV     R2,A
+   \   000096   E5..         MOV     A,?V0 + 1
+   \   000098   5400         ANL     A,#0x0
+   \   00009A   FB           MOV     R3,A
+   \   00009B   7903         MOV     R1,#0x3
+   \   00009D   12....       LCALL   ??packetbuf_set_attr?relay
+    407              RIMESTATS_ADD(llrx);
+    408            } else {
+    409              RIMESTATS_ADD(badcrc);
+    410              CC2530_CSP_ISFLUSHRX();
+    411              RF_RX_LED_OFF();
+    412              return 0;
+    413            }
+    414          
+    415            /* If FIFOP==1 and FIFO==0 then we had a FIFO overflow at some point. */
+    416            if((FSMSTAT1 & (FSMSTAT1_FIFO | FSMSTAT1_FIFOP)) == FSMSTAT1_FIFOP) {
+   \   0000A0   906193       MOV     DPTR,#0x6193
+   \   0000A3   E0           MOVX    A,@DPTR
+   \   0000A4   54C0         ANL     A,#0xc0
+   \   0000A6   6440         XRL     A,#0x40
+   \   0000A8   700C         JNZ     ??read_7
+    417              /*
+    418               * If we reach here means that there might be more intact packets in the
+    419               * FIFO despite the overflow. This can happen with bursts of small packets.
+    420               *
+    421               * Only flush if the FIFO is actually empty. If not, then next pass we will
+    422               * pick up one more packet or flush due to an error.
+    423               */
+    424              if(!RXFIFOCNT) {
+   \   0000AA   90619B       MOV     DPTR,#0x619b
+   \   0000AD   E0           MOVX    A,@DPTR
+   \   0000AE   7006         JNZ     ??read_7
+    425                CC2530_CSP_ISFLUSHRX();
+   \   0000B0   75E1ED       MOV     0xe1,#-0x13
+   \   0000B3   75E1ED       MOV     0xe1,#-0x13
+    426              }
+    427            }
+    428          
+    429            RF_RX_LED_OFF();
+    430          
+    431            return (len);
+   \                     ??read_7:
+   \   0000B6   8E..         MOV     ?V0 + 0,R6
+   \   0000B8   75..00       MOV     ?V0 + 1,#0x0
+   \   0000BB   AA..         MOV     R2,?V0 + 0
+   \   0000BD   AB..         MOV     R3,?V0 + 1
+   \                     ??read_1:
+   \   0000BF   7F02         MOV     R7,#0x2
+   \   0000C1   02....       LJMP    ?BANKED_LEAVE_XDATA
+   \                     ??read_6:
+   \   0000C4   75E1ED       MOV     0xe1,#-0x13
+   \   0000C7   75E1ED       MOV     0xe1,#-0x13
+   \   0000CA   7A00         MOV     R2,#0x0
+   \   0000CC   7B00         MOV     R3,#0x0
+   \   0000CE   80EF         SJMP    ??read_1
+   \   0000D0                REQUIRE RFD
+   \   0000D0                REQUIRE RFST
+    432          }
+    433          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    434          static int
+    435          channel_clear(void)
+   \                     channel_clear:
+    436          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    437            if(FSMSTAT1 & FSMSTAT1_CCA) {
+   \   000004   906193       MOV     DPTR,#0x6193
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   A2E4         MOV     C,0xE0 /* A   */.4
+   \   00000A   5006         JNC     ??channel_clear_0
+    438              return CC2530_RF_CCA_CLEAR;
+   \   00000C   7A01         MOV     R2,#0x1
+   \   00000E   7B00         MOV     R3,#0x0
+   \   000010   8004         SJMP    ??channel_clear_1
+    439            }
+    440            return CC2530_RF_CCA_BUSY;
+   \                     ??channel_clear_0:
+   \   000012   7A00         MOV     R2,#0x0
+   \   000014   7B00         MOV     R3,#0x0
+   \                     ??channel_clear_1:
+   \   000016   D083         POP     DPH
+   \   000018   D082         POP     DPL
+   \   00001A   02....       LJMP    ?BRET
+    441          }
+    442          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    443          static int
+    444          receiving_packet(void)
+   \                     receiving_packet:
+    445          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    446            PUTSTRING("RF: Receiving\n");
+    447          
+    448            /*
+    449             * SFD high while transmitting and receiving.
+    450             * TX_ACTIVE high only when transmitting
+    451             *
+    452             * FSMSTAT1 & (TX_ACTIVE | SFD) == SFD <=> receiving
+    453             */
+    454            return (FSMSTAT1 & (FSMSTAT1_TX_ACTIVE | FSMSTAT1_SFD) == FSMSTAT1_SFD);
+   \   000004   906193       MOV     DPTR,#0x6193
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   F8           MOV     R0,A
+   \   000009   7A00         MOV     R2,#0x0
+   \   00000B   7B00         MOV     R3,#0x0
+   \   00000D   D083         POP     DPH
+   \   00000F   D082         POP     DPL
+   \   000011   02....       LJMP    ?BRET
+    455          }
+    456          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    457          static int
+    458          pending_packet(void)
+   \                     pending_packet:
+    459          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    460            return (FSMSTAT1 & FSMSTAT1_FIFOP);
+   \   000004   906193       MOV     DPTR,#0x6193
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   F8           MOV     R0,A
+   \   000009   7900         MOV     R1,#0x0
+   \   00000B   5440         ANL     A,#0x40
+   \   00000D   FA           MOV     R2,A
+   \   00000E   E9           MOV     A,R1
+   \   00000F   5400         ANL     A,#0x0
+   \   000011   FB           MOV     R3,A
+   \   000012   D083         POP     DPH
+   \   000014   D082         POP     DPL
+   \   000016   02....       LJMP    ?BRET
+    461          }
+    462          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    463          static int
+    464          on(void)
+   \                     on:
+    465          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    466            if(!(rf_flags & RX_ACTIVE)) {
+   \   000004   E5..         MOV     A,rf_flags
+   \   000006   A2E7         MOV     C,0xE0 /* A   */.7
+   \   000008   400C         JC      ??on_0
+    467              CC2530_CSP_ISFLUSHRX();
+   \   00000A   75E1ED       MOV     0xe1,#-0x13
+   \   00000D   75E1ED       MOV     0xe1,#-0x13
+    468              CC2530_CSP_ISRXON();
+   \   000010   75E1E3       MOV     0xe1,#-0x1d
+    469          
+    470              rf_flags |= RX_ACTIVE;
+   \   000013   43..80       ORL     rf_flags,#0x80
+    471            }
+    472          
+    473            ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+   \                     ??on_0:
+   \   000016   E5E2         MOV     A,0xe2
+   \   000018   FA           MOV     R2,A
+   \   000019   7B00         MOV     R3,#0x0
+   \   00001B   E5E3         MOV     A,0xe3
+   \   00001D   F8           MOV     R0,A
+   \   00001E   7900         MOV     R1,#0x0
+   \   000020   E4           CLR     A
+   \   000021   C8           XCH     A,R0
+   \   000022   F9           MOV     R1,A
+   \   000023   EA           MOV     A,R2
+   \   000024   28           ADD     A,R0
+   \   000025   F8           MOV     R0,A
+   \   000026   EB           MOV     A,R3
+   \   000027   39           ADDC    A,R1
+   \   000028   F9           MOV     R1,A
+   \   000029   90....       MOV     DPTR,#energest_current_time + 14
+   \   00002C   E8           MOV     A,R0
+   \   00002D   F0           MOVX    @DPTR,A
+   \   00002E   A3           INC     DPTR
+   \   00002F   E9           MOV     A,R1
+   \   000030   F0           MOVX    @DPTR,A
+   \   000031   90....       MOV     DPTR,#energest_current_mode + 7
+   \   000034   7401         MOV     A,#0x1
+   \   000036   F0           MOVX    @DPTR,A
+    474            return 1;
+   \   000037   7A01         MOV     R2,#0x1
+   \   000039   7B00         MOV     R3,#0x0
+   \   00003B   D083         POP     DPH
+   \   00003D   D082         POP     DPL
+   \   00003F   02....       LJMP    ?BRET
+   \   000042                REQUIRE RFST
+   \   000042                REQUIRE T1CNTL
+   \   000042                REQUIRE T1CNTH
+    475          }
+    476          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    477          static int
+    478          off(void)
+   \                     off:
+    479          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+    480            CC2530_CSP_ISRFOFF();
+   \   000005   75E1EF       MOV     0xe1,#-0x11
+    481            CC2530_CSP_ISFLUSHRX();
+   \   000008   75E1ED       MOV     0xe1,#-0x13
+   \   00000B   75E1ED       MOV     0xe1,#-0x13
+    482          
+    483            rf_flags &= ~RX_ACTIVE;
+   \   00000E   53..7F       ANL     rf_flags,#0x7f
+    484          
+    485            ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+   \   000011   90....       MOV     DPTR,#energest_current_mode + 7
+   \   000014   E0           MOVX    A,@DPTR
+   \   000015   6037         JZ      ??off_0
+   \   000017   E5E2         MOV     A,0xe2
+   \   000019   FA           MOV     R2,A
+   \   00001A   7B00         MOV     R3,#0x0
+   \   00001C   E5E3         MOV     A,0xe3
+   \   00001E   F8           MOV     R0,A
+   \   00001F   7900         MOV     R1,#0x0
+   \   000021   E4           CLR     A
+   \   000022   C8           XCH     A,R0
+   \   000023   F9           MOV     R1,A
+   \   000024   EA           MOV     A,R2
+   \   000025   28           ADD     A,R0
+   \   000026   FA           MOV     R2,A
+   \   000027   EB           MOV     A,R3
+   \   000028   39           ADDC    A,R1
+   \   000029   FB           MOV     R3,A
+   \   00002A   90....       MOV     DPTR,#energest_current_time + 14
+   \   00002D   E0           MOVX    A,@DPTR
+   \   00002E   F8           MOV     R0,A
+   \   00002F   A3           INC     DPTR
+   \   000030   E0           MOVX    A,@DPTR
+   \   000031   F9           MOV     R1,A
+   \   000032   EA           MOV     A,R2
+   \   000033   C3           CLR     C
+   \   000034   98           SUBB    A,R0
+   \   000035   F5..         MOV     ?V0 + 0,A
+   \   000037   EB           MOV     A,R3
+   \   000038   99           SUBB    A,R1
+   \   000039   F5..         MOV     ?V0 + 1,A
+   \   00003B   E4           CLR     A
+   \   00003C   F5..         MOV     ?V0 + 2,A
+   \   00003E   F5..         MOV     ?V0 + 3,A
+   \   000040   90....       MOV     DPTR,#energest_total_time + 28
+   \   000043   78..         MOV     R0,#?V0 + 0
+   \   000045   12....       LCALL   ?L_ADD_TO_X
+   \   000048   90....       MOV     DPTR,#energest_current_mode + 7
+   \   00004B   7400         MOV     A,#0x0
+   \   00004D   F0           MOVX    @DPTR,A
+    486            return 1;
+   \                     ??off_0:
+   \   00004E   7A01         MOV     R2,#0x1
+   \   000050   7B00         MOV     R3,#0x0
+   \   000052   7F04         MOV     R7,#0x4
+   \   000054   02....       LJMP    ?BANKED_LEAVE_XDATA
+   \   000057                REQUIRE RFST
+   \   000057                REQUIRE T1CNTL
+   \   000057                REQUIRE T1CNTH
+    487          }
+    488          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+    489          const struct radio_driver cc2530_rf_driver = {
+   \                     cc2530_rf_driver:
+   \   000000                DS 20
+   \   000014                REQUIRE `?<Initializer for cc2530_rf_driver>`
+   \   000014                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for cc2530_rf_driver>`:
+   \   000000   ....         DW ??init?relay
+   \   000002   ....         DW ??prepare?relay
+   \   000004   ....         DW ??transmit?relay
+   \   000006   ....         DW ??send?relay
+   \   000008   ....         DW ??read?relay
+   \   00000A   ....         DW ??channel_clear?relay
+   \   00000C   ....         DW ??receiving_packet?relay
+   \   00000E   ....         DW ??pending_packet?relay
+   \   000010   ....         DW ??on?relay
+   \   000012   ....         DW ??off?relay
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??cc2530_rf_channel_set?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    cc2530_rf_channel_set
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??cc2530_rf_power_set?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    cc2530_rf_power_set
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??cc2530_rf_set_addr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    cc2530_rf_set_addr
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??prepare?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    prepare
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??transmit?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    transmit
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??send?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    send
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??read?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    `read`
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??channel_clear?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    channel_clear
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??receiving_packet?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    receiving_packet
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??pending_packet?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    pending_packet
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??on?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    on
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??off?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    off
+    490            init,
+    491            prepare,
+    492            transmit,
+    493            send,
+                   ^
+Warning[Pe144]: a value of type "int (*)(void *, unsigned short)" cannot be
+          used to initialize an entity of type
+          "int (*)(void const *, unsigned short)"
+    494            read,
+    495            channel_clear,
+    496            receiving_packet,
+    497            pending_packet,
+    498            on,
+    499            off,
+    500          };
+    501          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0      9  cc2530_rf_channel_set
+                          0 0  9 -> off
+                          0 0  9 -> on
+       2      0      0  cc2530_rf_power_set
+       2      0      0  cc2530_rf_set_addr
+       2      0     13  channel_clear
+       2      0      0  init
+                          2 0  0 -> cc2530_rf_channel_set
+                          2 0  0 -> cc2530_rf_power_set
+       0      0     25  off
+       2      0     13  on
+       2      0      0  pending_packet
+       0      0     21  prepare
+                          0 0 12 -> on
+       1      0     10  read
+                          0 0 10 -> packetbuf_set_attr
+       2      0      0  receiving_packet
+       0      0      9  send
+                          0 0  9 -> prepare
+                          0 0  9 -> transmit
+       0      0     22  transmit
+                          0 0 13 -> channel_clear
+                          0 0 13 -> clock_delay_usec
+                          0 0 13 -> off
+                          0 0 13 -> on
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+      20  ?<Initializer for cc2530_rf_driver>
+       6  ??cc2530_rf_channel_set?relay
+       6  ??cc2530_rf_power_set?relay
+       6  ??cc2530_rf_set_addr?relay
+       6  ??channel_clear?relay
+       6  ??init?relay
+       6  ??off?relay
+       6  ??on?relay
+       6  ??pending_packet?relay
+       6  ??prepare?relay
+       6  ??read?relay
+       6  ??receiving_packet?relay
+       6  ??send?relay
+       6  ??transmit?relay
+       1  RFD
+       1  RFST
+       1  T1CNTH
+       1  T1CNTL
+      44  cc2530_rf_channel_set
+      20  cc2530_rf_driver
+      22  cc2530_rf_power_set
+      39  cc2530_rf_set_addr
+      29  channel_clear
+     109  init
+      87  off
+      66  on
+      25  pending_packet
+      95  prepare
+     208  read
+      20  receiving_packet
+       1  rf_flags
+      28  send
+     398  transmit
+
+ 
+ 1 170 bytes in segment BANKED_CODE
+    78 bytes in segment BANK_RELAYS
+     1 byte  in segment DATA_Z
+     4 bytes in segment SFR_AN
+    20 bytes in segment XDATA_I
+    20 bytes in segment XDATA_ID
+ 
+ 1 268 bytes of CODE  memory
+     1 byte  of DATA  memory (+ 4 bytes shared)
+    20 bytes of XDATA memory
+
+Errors: none
+Warnings: 2

@@ -1,0 +1,654 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:45 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\platform\wsn2530dk\dev\button-sen #
+#                          sor.c                                              #
+#    Command line       =  D:\myWork\myWork\platform\wsn2530dk\dev\button-sen #
+#                          sor.c -D AUTOSTART_ENABLE -D PROJECT_CONF_H -lC    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\button-sensor.lst                           #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\button-sensor.r51                            #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
+   \                                 In  segment SFR_AN, at 0x80
+   \   union <unnamed> volatile __sfr _A_P0
+   \                     _A_P0:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xa8
+   \   union <unnamed> volatile __sfr _A_IEN0
+   \                     _A_IEN0:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xb8
+   \   union <unnamed> volatile __sfr _A_IEN1
+   \                     _A_IEN1:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xc0
+   \   union <unnamed> volatile __sfr _A_IRCON
+   \                     _A_IRCON:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0x89
+   \   unsigned char volatile __sfr P0IFG
+   \                     P0IFG:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0x8c
+   \   unsigned char volatile __sfr PICTL
+   \                     PICTL:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xab
+   \   unsigned char volatile __sfr P0IEN
+   \                     P0IEN:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0x8f
+   \   unsigned char volatile __sfr P0INP
+   \                     P0INP:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xf3
+   \   unsigned char volatile __sfr P0SEL
+   \                     P0SEL:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xfd
+   \   unsigned char volatile __sfr P0DIR
+   \                     P0DIR:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe2
+   \   unsigned char volatile __sfr T1CNTL
+   \                     T1CNTL:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe3
+   \   unsigned char volatile __sfr T1CNTH
+   \                     T1CNTH:
+   \   000000                DS 1
+D:\myWork\myWork\platform\wsn2530dk\dev\button-sensor.c
+      1          /*
+      2           * Copyright (c) 2005, Swedish Institute of Computer Science
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           */
+     31          
+     32          /*
+     33           * This file contains ISRs: Keep it in the HOME bank.
+     34           */
+     35          #include "dev/port.h"
+     36          #include "dev/button-sensor.h"
+     37          #include "dev/watchdog.h"
+     38          /*---------------------------------------------------------------------------*/
+     39          //static CC_AT_DATA struct timer debouncetimer;
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     40          static struct timer debouncetimer;
+   \                     debouncetimer:
+   \   000000                DS 4
+   \   000004                REQUIRE __INIT_XDATA_Z
+     41          /*---------------------------------------------------------------------------*/
+     42          /* Button 1 - SmartRF and cc2531 USB Dongle */
+     43          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     44          static int
+     45          value_b1(int type)
+   \                     value_b1:
+     46          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     47            type;
+                   ^
+Warning[Pe174]: expression has no effect
+     48            return BUTTON_READ(1) || !timer_expired(&debouncetimer);
+   \   000005   A281         MOV     C,0x80.1
+   \   000007   4011         JC      ??value_b1_0
+   \   000009                ; Setup parameters for call to function timer_expired
+   \   000009   7A..         MOV     R2,#debouncetimer & 0xff
+   \   00000B   7B..         MOV     R3,#(debouncetimer >> 8) & 0xff
+   \   00000D   12....       LCALL   ??timer_expired?relay
+   \   000010   8A..         MOV     ?V0 + 0,R2
+   \   000012   8B..         MOV     ?V0 + 1,R3
+   \   000014   E5..         MOV     A,?V0 + 0
+   \   000016   45..         ORL     A,?V0 + 1
+   \   000018   7004         JNZ     ??value_b1_1
+   \                     ??value_b1_0:
+   \   00001A   D2F0         SETB    B.0
+   \   00001C   8002         SJMP    ??value_b1_2
+   \                     ??value_b1_1:
+   \   00001E   C2F0         CLR     B.0
+   \                     ??value_b1_2:
+   \   000020   A2F0         MOV     C,B.0
+   \   000022   E4           CLR     A
+   \   000023   33           RLC     A
+   \   000024   FA           MOV     R2,A
+   \   000025   7B00         MOV     R3,#0x0
+   \   000027   7F02         MOV     R7,#0x2
+   \   000029   02....       LJMP    ?BANKED_LEAVE_XDATA
+   \   00002C                REQUIRE _A_P0
+     49          }
+     50          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     51          static int
+     52          status_b1(int type)
+   \                     status_b1:
+     53          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     54            switch(type) {
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   78..         MOV     R0,#?V0 + 0
+   \   00000B   12....       LCALL   ?US_SWITCH_DENSE
+   \                     `?<Jumptable for status_b1>_0`:
+   \   00000E   8100         DW        129
+   \   000010   01           DB        1
+   \   000011   ....         DW        ??status_b1_0
+   \   000013   ....         DW        ??status_b1_1
+   \   000015   ....         DW        ??status_b1_1
+     55            case SENSORS_ACTIVE:
+     56            case SENSORS_READY:
+     57              return BUTTON_IRQ_ENABLED(1);
+   \                     ??status_b1_1:
+   \   000017   E5AB         MOV     A,0xab
+   \   000019   F8           MOV     R0,A
+   \   00001A   7900         MOV     R1,#0x0
+   \   00001C   5402         ANL     A,#0x2
+   \   00001E   FA           MOV     R2,A
+   \   00001F   E9           MOV     A,R1
+   \   000020   5400         ANL     A,#0x0
+   \   000022   FB           MOV     R3,A
+   \   000023   8004         SJMP    ??status_b1_2
+     58            }
+     59            return 0;
+   \                     ??status_b1_0:
+   \   000025   7A00         MOV     R2,#0x0
+   \   000027   7B00         MOV     R3,#0x0
+   \                     ??status_b1_2:
+   \   000029   7F02         MOV     R7,#0x2
+   \   00002B   02....       LJMP    ?BANKED_LEAVE_XDATA
+   \   00002E                REQUIRE P0IEN
+     60          }
+     61          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     62          static int
+     63          configure_b1(int type, int value)
+   \                     configure_b1:
+     64          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     65            switch(type) {
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   78..         MOV     R0,#?V0 + 0
+   \   00000B   12....       LCALL   ?US_SWITCH_DENSE
+   \                     `?<Jumptable for configure_b1>_0`:
+   \   00000E   8000         DW        128
+   \   000010   01           DB        1
+   \   000011   ....         DW        ??configure_b1_0
+   \   000013   ....         DW        ??configure_b1_1
+   \   000015   ....         DW        ??configure_b1_2
+     66            case SENSORS_HW_INIT:
+     67          #if !MODELS_CONF_CC2531_USB_STICK
+     68              P0INP |= 2; /* Tri-state */
+   \                     ??configure_b1_1:
+   \   000017   438F02       ORL     0x8f,#0x2
+     69          #endif
+     70              BUTTON_IRQ_ON_PRESS(1);
+   \   00001A   538CFE       ANL     0x8c,#0xfe
+     71              BUTTON_FUNC_GPIO(1);
+   \   00001D   53F3FD       ANL     0xf3,#0xfd
+     72              BUTTON_DIR_INPUT(1);
+   \   000020   53FDFD       ANL     0xfd,#0xfd
+     73              return 1;
+   \   000023   7A01         MOV     R2,#0x1
+   \   000025   7B00         MOV     R3,#0x0
+   \   000027   8030         SJMP    ??configure_b1_3
+     74            case SENSORS_ACTIVE:
+     75              if(value) {
+   \                     ??configure_b1_2:
+   \   000029   EC           MOV     A,R4
+   \   00002A   4D           ORL     A,R5
+   \   00002B   601D         JZ      ??configure_b1_4
+     76                if(!BUTTON_IRQ_ENABLED(1)) {
+   \   00002D   E5AB         MOV     A,0xab
+   \   00002F   A2E1         MOV     C,0xE0 /* A   */.1
+   \   000031   401C         JC      ??configure_b1_5
+     77                  timer_set(&debouncetimer, 0);
+   \   000033                ; Setup parameters for call to function timer_set
+   \   000033   7C00         MOV     R4,#0x0
+   \   000035   7D00         MOV     R5,#0x0
+   \   000037   7A..         MOV     R2,#debouncetimer & 0xff
+   \   000039   7B..         MOV     R3,#(debouncetimer >> 8) & 0xff
+   \   00003B   12....       LCALL   ??timer_set?relay
+     78                  BUTTON_IRQ_FLAG_OFF(1);
+   \   00003E   5389FD       ANL     0x89,#0xfd
+   \   000041   C2C5         CLR     0xc0.5
+     79                  BUTTON_IRQ_ENABLE(1);
+   \   000043   43AB02       ORL     0xab,#0x2
+   \   000046   D2BD         SETB    0xb8.5
+   \   000048   8005         SJMP    ??configure_b1_5
+     80                }
+     81              } else {
+     82                BUTTON_IRQ_DISABLE(1);
+   \                     ??configure_b1_4:
+   \   00004A   53ABFD       ANL     0xab,#0xfd
+   \   00004D   C2BD         CLR     0xb8.5
+     83              }
+     84              return 1;
+   \                     ??configure_b1_5:
+   \   00004F   7A01         MOV     R2,#0x1
+   \   000051   7B00         MOV     R3,#0x0
+   \   000053   8004         SJMP    ??configure_b1_3
+     85            }
+     86            return 0;
+   \                     ??configure_b1_0:
+   \   000055   7A00         MOV     R2,#0x0
+   \   000057   7B00         MOV     R3,#0x0
+   \                     ??configure_b1_3:
+   \   000059   7F02         MOV     R7,#0x2
+   \   00005B   02....       LJMP    ?BANKED_LEAVE_XDATA
+   \   00005E                REQUIRE P0INP
+   \   00005E                REQUIRE PICTL
+   \   00005E                REQUIRE P0SEL
+   \   00005E                REQUIRE P0DIR
+   \   00005E                REQUIRE P0IEN
+   \   00005E                REQUIRE P0IFG
+   \   00005E                REQUIRE _A_IRCON
+   \   00005E                REQUIRE _A_IEN1
+     87          }
+     88          /*---------------------------------------------------------------------------*/
+     89          /* Button 2 - cc2531 USb Dongle only */
+     90          /*---------------------------------------------------------------------------*/
+     91          #if MODELS_CONF_CC2531_USB_STICK
+     92          static int
+     93          value_b2(int type)
+     94          {
+     95            type;
+     96            return BUTTON_READ(2) || !timer_expired(&debouncetimer);
+     97          }
+     98          /*---------------------------------------------------------------------------*/
+     99          static int
+    100          status_b2(int type)
+    101          {
+    102            switch(type) {
+    103            case SENSORS_ACTIVE:
+    104            case SENSORS_READY:
+    105              return BUTTON_IRQ_ENABLED(2);
+    106            }
+    107            return 0;
+    108          }
+    109          /*---------------------------------------------------------------------------*/
+    110          static int
+    111          configure_b2(int type, int value)
+    112          {
+    113            switch(type) {
+    114            case SENSORS_HW_INIT:
+    115              BUTTON_IRQ_ON_PRESS(2);
+    116              BUTTON_FUNC_GPIO(2);
+    117              BUTTON_DIR_INPUT(2);
+    118              return 1;
+    119            case SENSORS_ACTIVE:
+    120              if(value) {
+    121                if(!BUTTON_IRQ_ENABLED(2)) {
+    122                  timer_set(&debouncetimer, 0);
+    123                  BUTTON_IRQ_FLAG_OFF(2);
+    124                  BUTTON_IRQ_ENABLE(2);
+    125                }
+    126              } else {
+    127                BUTTON_IRQ_DISABLE(2);
+    128              }
+    129              return 1;
+    130            }
+    131            return 0;
+    132          }
+    133          #endif
+    134          /*---------------------------------------------------------------------------*/
+    135          /* ISRs */
+    136          /*---------------------------------------------------------------------------*/
+    137          /* avoid referencing bits, we don't call code which use them */
+    138          //#pragma save
+    139          //#if CC_CONF_OPTIMIZE_STACK_SIZE
+    140          //#pragma exclude bits
+    141          //#endif
+    142          #if MODELS_CONF_CC2531_USB_STICK
+    143          #pragma vector = P1INT_VECTOR
+    144          __interrupt void port_1_isr(void) 
+    145          {
+    146            EA = 0;
+    147            ENERGEST_ON(ENERGEST_TYPE_IRQ);
+    148          
+    149            /* This ISR is for the entire port. Check if the interrupt was caused by our
+    150             * button's pin. */
+    151            if(BUTTON_IRQ_CHECK(1)) {
+    152              if(timer_expired(&debouncetimer)) {
+    153                timer_set(&debouncetimer, CLOCK_SECOND / 8);
+    154                sensors_changed(&button_1_sensor);
+    155              }
+    156            }
+    157            if(BUTTON_IRQ_CHECK(2)) {
+    158              if(timer_expired(&debouncetimer)) {
+    159                timer_set(&debouncetimer, CLOCK_SECOND / 8);
+    160          #if CC2531_CONF_B2_REBOOTS
+    161                watchdog_reboot();
+    162          #else /* General Purpose */
+    163                sensors_changed(&button_2_sensor);
+    164          #endif
+    165              }
+    166            }
+    167          
+    168            BUTTON_IRQ_FLAG_OFF(1);
+    169            BUTTON_IRQ_FLAG_OFF(2);
+    170          
+    171            ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+    172            EA = 1;
+    173          }
+    174          #else
+    175          #pragma vector = P0INT_VECTOR
+
+   \                                 In  segment NEAR_CODE, align 1, keep-with-next
+    176          __interrupt void port_0_isr(void)
+   \                     port_0_isr:
+    177          {
+   \   000000   C0E0         PUSH    A
+   \   000002   74EF         MOV     A,#-0x11
+   \   000004   12....       LCALL   ?INTERRUPT_ENTER_XSP
+   \   000007                ; Saved register size: 17
+   \   000007                ; Auto size: 0
+    178            EA = 0;
+   \   000007   C2AF         CLR     0xa8.7
+    179            ENERGEST_ON(ENERGEST_TYPE_IRQ);
+   \   000009   E5E2         MOV     A,0xe2
+   \   00000B   FA           MOV     R2,A
+   \   00000C   7B00         MOV     R3,#0x0
+   \   00000E   E5E3         MOV     A,0xe3
+   \   000010   F8           MOV     R0,A
+   \   000011   7900         MOV     R1,#0x0
+   \   000013   E4           CLR     A
+   \   000014   C8           XCH     A,R0
+   \   000015   F9           MOV     R1,A
+   \   000016   EA           MOV     A,R2
+   \   000017   28           ADD     A,R0
+   \   000018   F8           MOV     R0,A
+   \   000019   EB           MOV     A,R3
+   \   00001A   39           ADDC    A,R1
+   \   00001B   F9           MOV     R1,A
+   \   00001C   90....       MOV     DPTR,#energest_current_time + 4
+   \   00001F   E8           MOV     A,R0
+   \   000020   F0           MOVX    @DPTR,A
+   \   000021   A3           INC     DPTR
+   \   000022   E9           MOV     A,R1
+   \   000023   F0           MOVX    @DPTR,A
+   \   000024   90....       MOV     DPTR,#energest_current_mode + 2
+   \   000027   7401         MOV     A,#0x1
+   \   000029   F0           MOVX    @DPTR,A
+    180          
+    181            /* This ISR is for the entire port. Check if the interrupt was caused by our
+    182             * button's pin. */
+    183            if(BUTTON_IRQ_CHECK(1)) {
+   \   00002A   E589         MOV     A,0x89
+   \   00002C   A2E1         MOV     C,0xE0 /* A   */.1
+   \   00002E   5023         JNC     ??port_0_isr_0
+    184              if(timer_expired(&debouncetimer)) {
+   \   000030                ; Setup parameters for call to function timer_expired
+   \   000030   7A..         MOV     R2,#debouncetimer & 0xff
+   \   000032   7B..         MOV     R3,#(debouncetimer >> 8) & 0xff
+   \   000034   12....       LCALL   ??timer_expired?relay
+   \   000037   8A..         MOV     ?V0 + 0,R2
+   \   000039   8B..         MOV     ?V0 + 1,R3
+   \   00003B   E5..         MOV     A,?V0 + 0
+   \   00003D   45..         ORL     A,?V0 + 1
+   \   00003F   6012         JZ      ??port_0_isr_0
+    185                timer_set(&debouncetimer, CLOCK_SECOND / 8);
+   \   000041                ; Setup parameters for call to function timer_set
+   \   000041   7C10         MOV     R4,#0x10
+   \   000043   7D00         MOV     R5,#0x0
+   \   000045   7A..         MOV     R2,#debouncetimer & 0xff
+   \   000047   7B..         MOV     R3,#(debouncetimer >> 8) & 0xff
+   \   000049   12....       LCALL   ??timer_set?relay
+    186                sensors_changed(&button_sensor);
+   \   00004C                ; Setup parameters for call to function sensors_changed
+   \   00004C   7A..         MOV     R2,#button_1_sensor & 0xff
+   \   00004E   7B..         MOV     R3,#(button_1_sensor >> 8) & 0xff
+   \   000050   12....       LCALL   ??sensors_changed?relay
+    187              }
+    188            }
+    189          
+    190            BUTTON_IRQ_FLAG_OFF(1);
+   \                     ??port_0_isr_0:
+   \   000053   5389FD       ANL     0x89,#0xfd
+   \   000056   C2C5         CLR     0xc0.5
+    191          
+    192            ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+   \   000058   90....       MOV     DPTR,#energest_current_mode + 2
+   \   00005B   E0           MOVX    A,@DPTR
+   \   00005C   6037         JZ      ??port_0_isr_1
+   \   00005E   E5E2         MOV     A,0xe2
+   \   000060   FA           MOV     R2,A
+   \   000061   7B00         MOV     R3,#0x0
+   \   000063   E5E3         MOV     A,0xe3
+   \   000065   F8           MOV     R0,A
+   \   000066   7900         MOV     R1,#0x0
+   \   000068   E4           CLR     A
+   \   000069   C8           XCH     A,R0
+   \   00006A   F9           MOV     R1,A
+   \   00006B   EA           MOV     A,R2
+   \   00006C   28           ADD     A,R0
+   \   00006D   FA           MOV     R2,A
+   \   00006E   EB           MOV     A,R3
+   \   00006F   39           ADDC    A,R1
+   \   000070   FB           MOV     R3,A
+   \   000071   90....       MOV     DPTR,#energest_current_time + 4
+   \   000074   E0           MOVX    A,@DPTR
+   \   000075   F8           MOV     R0,A
+   \   000076   A3           INC     DPTR
+   \   000077   E0           MOVX    A,@DPTR
+   \   000078   F9           MOV     R1,A
+   \   000079   EA           MOV     A,R2
+   \   00007A   C3           CLR     C
+   \   00007B   98           SUBB    A,R0
+   \   00007C   F5..         MOV     ?V0 + 0,A
+   \   00007E   EB           MOV     A,R3
+   \   00007F   99           SUBB    A,R1
+   \   000080   F5..         MOV     ?V0 + 1,A
+   \   000082   E4           CLR     A
+   \   000083   F5..         MOV     ?V0 + 2,A
+   \   000085   F5..         MOV     ?V0 + 3,A
+   \   000087   90....       MOV     DPTR,#energest_total_time + 8
+   \   00008A   78..         MOV     R0,#?V0 + 0
+   \   00008C   12....       LCALL   ?L_ADD_TO_X
+   \   00008F   90....       MOV     DPTR,#energest_current_mode + 2
+   \   000092   7400         MOV     A,#0x0
+   \   000094   F0           MOVX    @DPTR,A
+    193            EA = 1;
+   \                     ??port_0_isr_1:
+   \   000095   D2AF         SETB    0xa8.7
+    194          }
+   \   000097   7F04         MOV     R7,#0x4
+   \   000099   02....       LJMP    ?INTERRUPT_LEAVE_XSP
+   \   00009C                REQUIRE _A_IEN0
+   \   00009C                REQUIRE T1CNTL
+   \   00009C                REQUIRE T1CNTH
+   \   00009C                REQUIRE P0IFG
+   \   00009C                REQUIRE _A_IRCON
+    195          #endif
+    196          //#pragma restore
+    197          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+    198          SENSORS_SENSOR(button_1_sensor, BUTTON_SENSOR, value_b1, configure_b1, status_b1);
+   \                     button_1_sensor:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for button_1_sensor>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment INTVEC, offset 0x6b, root
+   \                     `??port_0_isr??INTVEC 107`:
+   \   00006B   02....       LJMP       (port_0_isr)
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "Button">>`:
+   \   000000   42757474     DB "Button"
+   \            6F6E00  
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for button_1_sensor>`:
+   \   000000   ....         DW `?<Constant "Button">`
+   \   000002   ....         DW ??value_b1?relay
+   \   000004   ....         DW ??configure_b1?relay
+   \   000006   ....         DW ??status_b1?relay
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??value_b1?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    value_b1
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??status_b1?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    status_b1
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??configure_b1?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    configure_b1
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "Button">`:
+   \   000000                DS 7
+   \   000007                REQUIRE `?<Initializer for <Constant "Button">>`
+   \   000007                REQUIRE __INIT_XDATA_I
+    199          #if MODELS_CONF_CC2531_USB_STICK
+    200          SENSORS_SENSOR(button_2_sensor, BUTTON_SENSOR, value_b2, configure_b2, status_b2);
+    201          #endif
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     10  configure_b1
+                          0 0 10 -> timer_set
+       0      0     17  port_0_isr
+                          0 0 17 -> sensors_changed
+                          0 0 17 -> timer_expired
+                          0 0 17 -> timer_set
+       0      0     10  status_b1
+       0      0     10  value_b1
+                          0 0 10 -> timer_expired
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       7  ?<Constant "Button">
+       7  ?<Initializer for <Constant "Button">>
+       8  ?<Initializer for button_1_sensor>
+       6  ??configure_b1?relay
+       3  ??port_0_isr??INTVEC 107
+       6  ??status_b1?relay
+       6  ??value_b1?relay
+       1  P0DIR
+       1  P0IEN
+       1  P0IFG
+       1  P0INP
+       1  P0SEL
+       1  PICTL
+       1  T1CNTH
+       1  T1CNTL
+       1  _A_IEN0
+       1  _A_IEN1
+       1  _A_IRCON
+       1  _A_P0
+       8  button_1_sensor
+      94  configure_b1
+       4  debouncetimer
+     156  port_0_isr
+      46  status_b1
+      44  value_b1
+
+ 
+ 184 bytes in segment BANKED_CODE
+  18 bytes in segment BANK_RELAYS
+   3 bytes in segment INTVEC
+ 156 bytes in segment NEAR_CODE
+  12 bytes in segment SFR_AN
+  15 bytes in segment XDATA_I
+  15 bytes in segment XDATA_ID
+   4 bytes in segment XDATA_Z
+ 
+ 373 bytes of CODE  memory (+  3 bytes shared)
+   0 bytes of DATA  memory (+ 12 bytes shared)
+  19 bytes of XDATA memory
+
+Errors: none
+Warnings: 1

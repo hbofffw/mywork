@@ -1,0 +1,1794 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:42 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\net\rpl\rpl-timers.c        /
+//    Command line       =  D:\myWork\myWork\core\net\rpl\rpl-timers.c -D     /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\rpl-timers.s51                            /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME `rpl-timers`
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?L_MOV_X
+        EXTERN ?L_MUL
+        EXTERN ?L_SHL
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?UL_DIV_MOD
+        EXTERN ?US_DIV_MOD
+        EXTERN ?V0
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??handle_dao_timer?relay,0203H
+        FUNCTION ??handle_dio_timer?relay,0203H
+        FUNCTION ??handle_periodic_timer?relay,0203H
+        FUNCTION ??new_dio_interval?relay,0203H
+        PUBLIC ??rpl_reset_dio_timer?relay
+        FUNCTION ??rpl_reset_dio_timer?relay,0203H
+        PUBLIC ??rpl_reset_periodic_timer?relay
+        FUNCTION ??rpl_reset_periodic_timer?relay,0203H
+        PUBLIC ??rpl_schedule_dao?relay
+        FUNCTION ??rpl_schedule_dao?relay,0203H
+        PUBWEAK __Constant_3c
+        PUBWEAK __Constant_3e8
+        PUBWEAK __Constant_80
+        PUBWEAK __Constant_ffff
+        FUNCTION handle_dao_timer,021603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        FUNCTION handle_dio_timer,021603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        FUNCTION handle_periodic_timer,021603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        FUNCTION new_dio_interval,021203H
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 22, STACK
+        PUBLIC rpl_reset_dio_timer
+        FUNCTION rpl_reset_dio_timer,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 3, STACK
+        PUBLIC rpl_reset_periodic_timer
+        FUNCTION rpl_reset_periodic_timer,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        PUBLIC rpl_schedule_dao
+        FUNCTION rpl_schedule_dao,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+ctimer_reset        SYMBOL "ctimer_reset"
+??ctimer_reset?relay SYMBOL "?relay", ctimer_reset
+ctimer_set          SYMBOL "ctimer_set"
+??ctimer_set?relay  SYMBOL "?relay", ctimer_set
+ctimer_stop         SYMBOL "ctimer_stop"
+??ctimer_stop?relay SYMBOL "?relay", ctimer_stop
+dao_output          SYMBOL "dao_output"
+??dao_output?relay  SYMBOL "?relay", dao_output
+dio_output          SYMBOL "dio_output"
+??dio_output?relay  SYMBOL "?relay", dio_output
+dis_output          SYMBOL "dis_output"
+??dis_output?relay  SYMBOL "?relay", dis_output
+etimer_expiration_time SYMBOL "etimer_expiration_time"
+??etimer_expiration_time?relay SYMBOL "?relay", etimer_expiration_time
+etimer_expired      SYMBOL "etimer_expired"
+??etimer_expired?relay SYMBOL "?relay", etimer_expired
+random_rand         SYMBOL "random_rand"
+??random_rand?relay SYMBOL "?relay", random_rand
+rpl_get_any_dag     SYMBOL "rpl_get_any_dag"
+??rpl_get_any_dag?relay SYMBOL "?relay", rpl_get_any_dag
+rpl_purge_routes    SYMBOL "rpl_purge_routes"
+??rpl_purge_routes?relay SYMBOL "?relay", rpl_purge_routes
+rpl_recalculate_ranks SYMBOL "rpl_recalculate_ranks"
+??rpl_recalculate_ranks?relay SYMBOL "?relay", rpl_recalculate_ranks
+uip_ds6_get_link_local SYMBOL "uip_ds6_get_link_local"
+??uip_ds6_get_link_local?relay SYMBOL "?relay", uip_ds6_get_link_local
+rpl_reset_dio_timer SYMBOL "rpl_reset_dio_timer"
+??rpl_reset_dio_timer?relay SYMBOL "?relay", rpl_reset_dio_timer
+rpl_reset_periodic_timer SYMBOL "rpl_reset_periodic_timer"
+??rpl_reset_periodic_timer?relay SYMBOL "?relay", rpl_reset_periodic_timer
+rpl_schedule_dao    SYMBOL "rpl_schedule_dao"
+??rpl_schedule_dao?relay SYMBOL "?relay", rpl_schedule_dao
+
+        EXTERN ??ctimer_reset?relay
+        FUNCTION ??ctimer_reset?relay,00H
+        EXTERN ??ctimer_set?relay
+        FUNCTION ??ctimer_set?relay,00H
+        EXTERN ??ctimer_stop?relay
+        FUNCTION ??ctimer_stop?relay,00H
+        EXTERN ??dao_output?relay
+        FUNCTION ??dao_output?relay,00H
+        EXTERN ??dio_output?relay
+        FUNCTION ??dio_output?relay,00H
+        EXTERN ??dis_output?relay
+        FUNCTION ??dis_output?relay,00H
+        EXTERN ??etimer_expiration_time?relay
+        FUNCTION ??etimer_expiration_time?relay,00H
+        EXTERN ??etimer_expired?relay
+        FUNCTION ??etimer_expired?relay,00H
+        EXTERN ??random_rand?relay
+        FUNCTION ??random_rand?relay,00H
+        EXTERN ??rpl_get_any_dag?relay
+        FUNCTION ??rpl_get_any_dag?relay,00H
+        EXTERN ??rpl_purge_routes?relay
+        FUNCTION ??rpl_purge_routes?relay,00H
+        EXTERN ??rpl_recalculate_ranks?relay
+        FUNCTION ??rpl_recalculate_ranks?relay,00H
+        EXTERN ??uip_ds6_get_link_local?relay
+        FUNCTION ??uip_ds6_get_link_local?relay,00H
+        EXTERN ctimer_reset
+        FUNCTION ctimer_reset,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN ctimer_set
+        FUNCTION ctimer_set,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN ctimer_stop
+        FUNCTION ctimer_stop,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN dao_output
+        FUNCTION dao_output,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN dio_output
+        FUNCTION dio_output,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN dis_output
+        FUNCTION dis_output,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN etimer_expiration_time
+        FUNCTION etimer_expiration_time,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN etimer_expired
+        FUNCTION etimer_expired,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN random_rand
+        FUNCTION random_rand,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN rpl_get_any_dag
+        FUNCTION rpl_get_any_dag,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN rpl_purge_routes
+        FUNCTION rpl_purge_routes,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN rpl_recalculate_ranks
+        FUNCTION rpl_recalculate_ranks,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_get_link_local
+        FUNCTION uip_ds6_get_link_local,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+// D:\myWork\myWork\core\net\rpl\rpl-timers.c
+//    1 /**
+//    2  * \addtogroup uip6
+//    3  * @{
+//    4  */
+//    5 /*
+//    6  * Copyright (c) 2010, Swedish Institute of Computer Science.
+//    7  * All rights reserved.
+//    8  *
+//    9  * Redistribution and use in source and binary forms, with or without
+//   10  * modification, are permitted provided that the following conditions
+//   11  * are met:
+//   12  * 1. Redistributions of source code must retain the above copyright
+//   13  *    notice, this list of conditions and the following disclaimer.
+//   14  * 2. Redistributions in binary form must reproduce the above copyright
+//   15  *    notice, this list of conditions and the following disclaimer in the
+//   16  *    documentation and/or other materials provided with the distribution.
+//   17  * 3. Neither the name of the Institute nor the names of its contributors
+//   18  *    may be used to endorse or promote products derived from this software
+//   19  *    without specific prior written permission.
+//   20  *
+//   21  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   22  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   23  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   24  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   25  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   26  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   27  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   28  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   29  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   30  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   31  * SUCH DAMAGE.
+//   32  *
+//   33  * This file is part of the Contiki operating system.
+//   34  */
+//   35 /**
+//   36  * \file
+//   37  *         RPL timer management.
+//   38  *
+//   39  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
+//   40  */
+//   41 
+//   42 #include "contiki-conf.h"
+//   43 #include "net/rpl/rpl-private.h"
+//   44 #include "lib/random.h"
+//   45 #include "sys/ctimer.h"
+//   46 
+//   47 #if UIP_CONF_IPV6
+//   48 
+//   49 #define DEBUG DEBUG_NONE
+//   50 #include "net/uip-debug.h"
+//   51 
+//   52 /*---------------------------------------------------------------------------*/
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   53 static struct ctimer periodic_timer;
+periodic_timer:
+        DS 16
+        REQUIRE __INIT_XDATA_Z
+//   54 
+//   55 static void handle_periodic_timer(void *ptr);
+//   56 static void new_dio_interval(rpl_instance_t *instance);
+//   57 static void handle_dio_timer(void *ptr);
+//   58 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   59 static uint16_t next_dis;
+next_dis:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//   60 
+//   61 /* dio_send_ok is true if the node is ready to send DIOs */
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   62 static uint8_t dio_send_ok;
+dio_send_ok:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+//   63 
+//   64 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   65 static void
+//   66 handle_periodic_timer(void *ptr)
+handle_periodic_timer:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function handle_periodic_timer
+        CODE
+//   67 {
+        FUNCALL handle_periodic_timer, rpl_purge_routes
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL handle_periodic_timer, rpl_recalculate_ranks
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL handle_periodic_timer, rpl_get_any_dag
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL handle_periodic_timer, dis_output
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL handle_periodic_timer, ctimer_reset
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//   68   rpl_purge_routes();
+        ; Setup parameters for call to function rpl_purge_routes
+        LCALL   ??rpl_purge_routes?relay
+//   69   rpl_recalculate_ranks();
+        ; Setup parameters for call to function rpl_recalculate_ranks
+        LCALL   ??rpl_recalculate_ranks?relay
+//   70 
+//   71   /* handle DIS */
+//   72 #ifdef RPL_DIS_SEND
+//   73   next_dis++;
+        MOV     DPTR,#next_dis
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOVX    @DPTR,A
+//   74   if(rpl_get_any_dag() == NULL && next_dis >= RPL_DIS_INTERVAL) {
+        ; Setup parameters for call to function rpl_get_any_dag
+        LCALL   ??rpl_get_any_dag?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     ??handle_periodic_timer_0
+        MOV     DPTR,#next_dis
+        CLR     C
+        MOVX    A,@DPTR
+        SUBB    A,#0x3c
+        INC     DPTR
+        MOVX    A,@DPTR
+        SUBB    A,#0x0
+        JC      ??handle_periodic_timer_0
+//   75     next_dis = 0;
+        MOV     DPTR,#next_dis
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   76     dis_output(NULL);
+        ; Setup parameters for call to function dis_output
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LCALL   ??dis_output?relay
+//   77   }
+//   78 #endif
+//   79   ctimer_reset(&periodic_timer);
+??handle_periodic_timer_0:
+        ; Setup parameters for call to function ctimer_reset
+        MOV     R2,#periodic_timer & 0xff
+        MOV     R3,#(periodic_timer >> 8) & 0xff
+        LCALL   ??ctimer_reset?relay
+//   80 }
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock0
+//   81 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   82 static void
+//   83 new_dio_interval(rpl_instance_t *instance)
+new_dio_interval:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function new_dio_interval
+        CODE
+//   84 {
+        FUNCALL new_dio_interval, random_rand
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL new_dio_interval, ctimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x12
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V9 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V8 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V7 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-16)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-17)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-18)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 18)
+        ; Saved register size: 18
+        ; Auto size: 0
+        MOV     ?V0 + 8,R2
+        MOV     ?V0 + 9,R3
+//   85   uint32_t time;
+//   86   clock_time_t ticks;
+//   87 
+//   88   /* TODO: too small timer intervals for many cases */
+//   89   time = 1UL << instance->dio_intcurrent;
+        MOV     ?V0 + 0,#0x1
+        MOV     ?V0 + 1,#0x0
+        MOV     ?V0 + 2,#0x0
+        MOV     ?V0 + 3,#0x0
+        MOV     A,?V0 + 8
+        ADD     A,#-0x7d
+        MOV     DPL,A
+        MOV     A,?V0 + 9
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,#?V0 + 0
+        LCALL   ?L_SHL
+//   90 
+//   91   /* Convert from milliseconds to CLOCK_TICKS. */
+//   92   ticks = (time * CLOCK_SECOND) / 1000;
+        MOV     DPTR,#__Constant_80
+        MOV     R0,#?V0 + 4
+        LCALL   ?L_MOV_X
+        MOV     R0,#?V0 + 0
+        MOV     R1,#?V0 + 4
+        LCALL   ?L_MUL
+        MOV     DPTR,#__Constant_3e8
+        MOV     R0,#?V0 + 4
+        LCALL   ?L_MOV_X
+        MOV     R0,#?V0 + 0
+        MOV     R1,#?V0 + 4
+        LCALL   ?UL_DIV_MOD
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+//   93   instance->dio_next_delay = ticks;
+        MOV     A,?V0 + 8
+        ADD     A,#-0x74
+        MOV     DPL,A
+        MOV     A,?V0 + 9
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,R4
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R5
+        MOVX    @DPTR,A
+//   94 
+//   95   /* random number between I/2 and I */
+//   96   ticks = ticks / 2 + (ticks / 2 * (uint32_t)random_rand()) / RANDOM_RAND_MAX;
+        MOV     A,R4
+        MOV     R6,A
+        MOV     A,R5
+        MOV     R7,A
+        CLR     C
+        RRC     A
+        MOV     R7,A
+        MOV     A,R6
+        RRC     A
+        MOV     R6,A
+        MOV     A,R5
+        CLR     C
+        RRC     A
+        MOV     R5,A
+        MOV     A,R4
+        RRC     A
+        MOV     R4,A
+        MOV     ?V0 + 0,R4
+        MOV     ?V0 + 1,R5
+        CLR     A
+        MOV     ?V0 + 2,A
+        MOV     ?V0 + 3,A
+        ; Setup parameters for call to function random_rand
+        LCALL   ??random_rand?relay
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        CLR     A
+        MOV     ?V0 + 6,A
+        MOV     ?V0 + 7,A
+        MOV     R0,#?V0 + 0
+        MOV     R1,#?V0 + 4
+        LCALL   ?L_MUL
+        MOV     DPTR,#__Constant_ffff
+        MOV     R0,#?V0 + 4
+        LCALL   ?L_MOV_X
+        MOV     R0,#?V0 + 0
+        MOV     R1,#?V0 + 4
+        LCALL   ?UL_DIV_MOD
+        MOV     A,R6
+        ADD     A,?V0 + 0
+        MOV     R4,A
+        MOV     A,R7
+        ADDC    A,?V0 + 1
+        MOV     R5,A
+//   97 
+//   98   /*
+//   99    * The intervals must be equally long among the nodes for Trickle to
+//  100    * operate efficiently. Therefore we need to calculate the delay between
+//  101    * the randomized time and the start time of the next interval.
+//  102    */
+//  103   instance->dio_next_delay -= ticks;
+        MOV     A,?V0 + 8
+        ADD     A,#-0x74
+        MOV     DPL,A
+        MOV     A,?V0 + 9
+        ADDC    A,#0x0
+        MOV     DPH,A
+        CLR     C
+        MOVX    A,@DPTR
+        SUBB    A,R4
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        SUBB    A,R5
+        MOVX    @DPTR,A
+//  104   instance->dio_send = 1;
+        MOV     A,?V0 + 8
+        ADD     A,#-0x7c
+        MOV     DPL,A
+        MOV     A,?V0 + 9
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  105 
+//  106 #if RPL_CONF_STATS
+//  107   /* keep some stats */
+//  108   instance->dio_totint++;
+//  109   instance->dio_totrecv += instance->dio_counter;
+//  110   ANNOTATE("#A rank=%u.%u(%u),stats=%d %d %d %d,color=%s\n",
+//  111 	   DAG_RANK(instance->current_dag->rank, instance),
+//  112            (10 * (instance->current_dag->rank % instance->min_hoprankinc)) / instance->min_hoprankinc,
+//  113            instance->current_dag->version,
+//  114            instance->dio_totint, instance->dio_totsend,
+//  115            instance->dio_totrecv,instance->dio_intcurrent,
+//  116 	   instance->current_dag->rank == ROOT_RANK(instance) ? "BLUE" : "ORANGE");
+//  117 #endif /* RPL_CONF_STATS */
+//  118 
+//  119   /* reset the redundancy counter */
+//  120   instance->dio_counter = 0;
+        MOV     A,?V0 + 8
+        ADD     A,#-0x7b
+        MOV     DPL,A
+        MOV     A,?V0 + 9
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  121 
+//  122   /* schedule the timer */
+//  123   PRINTF("RPL: Scheduling DIO timer %lu ticks in future (Interval)\n", ticks);
+//  124   ctimer_set(&instance->dio_timer, ticks, &handle_dio_timer, instance);
+        ; Setup parameters for call to function ctimer_set
+        MOV     R0,#?V0 + 8
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     ?V0 + 0,#??handle_dio_timer?relay & 0xff
+        MOV     ?V0 + 1,#(??handle_dio_timer?relay >> 8) & 0xff
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     A,?V0 + 8
+        ADD     A,#-0x72
+        MOV     R2,A
+        MOV     A,?V0 + 9
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??ctimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 18)
+//  125 }
+        MOV     R7,#0xa
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//  126 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  127 static void
+//  128 handle_dio_timer(void *ptr)
+handle_dio_timer:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function handle_dio_timer
+        CODE
+//  129 {
+        FUNCALL handle_dio_timer, uip_ds6_get_link_local
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL handle_dio_timer, dio_output
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL handle_dio_timer, ctimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL handle_dio_timer, ctimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL handle_dio_timer, new_dio_interval
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+//  130   rpl_instance_t *instance;
+//  131 
+//  132   instance = (rpl_instance_t *)ptr;
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+//  133 
+//  134   PRINTF("RPL: DIO Timer triggered\n");
+//  135   if(!dio_send_ok) {
+        MOV     DPTR,#dio_send_ok
+        MOVX    A,@DPTR
+        JNZ     ??handle_dio_timer_0
+//  136     if(uip_ds6_get_link_local(ADDR_PREFERRED) != NULL) {
+        ; Setup parameters for call to function uip_ds6_get_link_local
+        MOV     R1,#0x1
+        LCALL   ??uip_ds6_get_link_local?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JNZ     $+5
+        LJMP    ??handle_dio_timer_1 & 0xFFFF
+//  137       dio_send_ok = 1;
+        MOV     DPTR,#dio_send_ok
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  138     } else {
+//  139       PRINTF("RPL: Postponing DIO transmission since link local address is not ok\n");
+//  140       ctimer_set(&instance->dio_timer, CLOCK_SECOND, &handle_dio_timer, instance);
+//  141       return;
+//  142     }
+//  143   }
+//  144 
+//  145   if(instance->dio_send) {
+??handle_dio_timer_0:
+        MOV     A,?V0 + 0
+        ADD     A,#-0x7c
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        JNZ     $+5
+        LJMP    ??handle_dio_timer_2 & 0xFFFF
+//  146     /* send DIO if counter is less than desired redundancy */
+//  147     if(instance->dio_counter < instance->dio_redundancy) {
+        MOV     A,?V0 + 0
+        ADD     A,#-0x7f
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     A,?V0 + 0
+        ADD     A,#-0x7b
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        CLR     C
+        SUBB    A,R0
+        JNC     ??handle_dio_timer_3
+//  148 #if RPL_CONF_STATS
+//  149       instance->dio_totsend++;
+//  150 #endif /* RPL_CONF_STATS */
+//  151       dio_output(instance, NULL);
+        ; Setup parameters for call to function dio_output
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        LCALL   ??dio_output?relay
+//  152     } else {
+//  153       PRINTF("RPL: Supressing DIO transmission (%d >= %d)\n",
+//  154              instance->dio_counter, instance->dio_redundancy);
+//  155     }
+//  156     instance->dio_send = 0;
+??handle_dio_timer_3:
+        MOV     A,?V0 + 0
+        ADD     A,#-0x7c
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  157     PRINTF("RPL: Scheduling DIO timer %lu ticks in future (sent)\n",
+//  158            instance->dio_next_delay);
+//  159     ctimer_set(&instance->dio_timer, instance->dio_next_delay, handle_dio_timer, instance);
+        ; Setup parameters for call to function ctimer_set
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     ?V0 + 2,#??handle_dio_timer?relay & 0xff
+        MOV     ?V0 + 3,#(??handle_dio_timer?relay >> 8) & 0xff
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     A,?V0 + 0
+        ADD     A,#-0x74
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     A,?V0 + 0
+        ADD     A,#-0x72
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??ctimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+        LJMP    ??handle_dio_timer_4 & 0xFFFF
+//  160   } else {
+??handle_dio_timer_1:
+        ; Setup parameters for call to function ctimer_set
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     ?V0 + 2,#??handle_dio_timer?relay & 0xff
+        MOV     ?V0 + 3,#(??handle_dio_timer?relay >> 8) & 0xff
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     R4,#-0x80
+        MOV     R5,#0x0
+        MOV     A,?V0 + 0
+        ADD     A,#-0x72
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??ctimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+        SJMP    ??handle_dio_timer_4
+//  161     /* check if we need to double interval */
+//  162     if(instance->dio_intcurrent < instance->dio_intmin + instance->dio_intdoubl) {
+??handle_dio_timer_2:
+        MOV     A,?V0 + 0
+        ADD     A,#-0x7d
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,?V0 + 0
+        ADD     A,#-0x80
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,?V0 + 0
+        ADD     A,#0x7f
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R4,A
+        MOV     R5,#0x0
+        MOV     A,R0
+        ADD     A,R4
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R5
+        MOV     R1,A
+        CLR     C
+        MOV     A,R2
+        SUBB    A,R0
+        MOV     A,R3
+        SUBB    A,R1
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     ??handle_dio_timer_5
+//  163       instance->dio_intcurrent++;
+        MOV     A,?V0 + 0
+        ADD     A,#-0x7d
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+//  164       PRINTF("RPL: DIO Timer interval doubled %d\n", instance->dio_intcurrent);
+//  165     }
+//  166     new_dio_interval(instance);
+??handle_dio_timer_5:
+        ; Setup parameters for call to function new_dio_interval
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        LCALL   ??new_dio_interval?relay
+//  167   }
+//  168 }
+??handle_dio_timer_4:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//  169 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  170 void
+//  171 rpl_reset_periodic_timer(void)
+rpl_reset_periodic_timer:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function rpl_reset_periodic_timer
+        CODE
+//  172 {
+        FUNCALL rpl_reset_periodic_timer, random_rand
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL rpl_reset_periodic_timer, ctimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x10
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V7 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V6 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-16)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 16)
+        ; Saved register size: 16
+        ; Auto size: 0
+//  173   next_dis = RPL_DIS_INTERVAL / 2 +
+//  174     ((uint32_t)RPL_DIS_INTERVAL * (uint32_t)random_rand()) / RANDOM_RAND_MAX -
+//  175     RPL_DIS_START_DELAY;
+        ; Setup parameters for call to function random_rand
+        LCALL   ??random_rand?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        CLR     A
+        MOV     ?V0 + 2,A
+        MOV     ?V0 + 3,A
+        MOV     DPTR,#__Constant_3c
+        MOV     R0,#?V0 + 4
+        LCALL   ?L_MOV_X
+        MOV     R0,#?V0 + 0
+        MOV     R1,#?V0 + 4
+        LCALL   ?L_MUL
+        MOV     DPTR,#__Constant_ffff
+        MOV     R0,#?V0 + 4
+        LCALL   ?L_MOV_X
+        MOV     R0,#?V0 + 0
+        MOV     R1,#?V0 + 4
+        LCALL   ?UL_DIV_MOD
+        MOV     A,?V0 + 0
+        ADD     A,#0x19
+        MOV     R0,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R1,A
+        MOV     DPTR,#next_dis
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  176   ctimer_set(&periodic_timer, CLOCK_SECOND, handle_periodic_timer, NULL);
+        ; Setup parameters for call to function ctimer_set
+        CLR     A
+        MOV     ?V0 + 0,A
+        MOV     ?V0 + 1,A
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 18)
+        MOV     ?V0 + 0,#??handle_periodic_timer?relay & 0xff
+        MOV     ?V0 + 1,#(??handle_periodic_timer?relay >> 8) & 0xff
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     R4,#-0x80
+        MOV     R5,#0x0
+        MOV     R2,#periodic_timer & 0xff
+        MOV     R3,#(periodic_timer >> 8) & 0xff
+        LCALL   ??ctimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 16)
+//  177 }
+        MOV     R7,#0x8
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock3
+//  178 /*---------------------------------------------------------------------------*/
+//  179 /* Resets the DIO timer in the instance to its minimal interval. */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  180 void
+//  181 rpl_reset_dio_timer(rpl_instance_t *instance)
+rpl_reset_dio_timer:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function rpl_reset_dio_timer
+        CODE
+//  182 {
+        FUNCALL rpl_reset_dio_timer, new_dio_interval
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  183 #if !RPL_LEAF_ONLY
+//  184   /* Do not reset if we are already on the minimum interval,
+//  185      unless forced to do so. */
+//  186   if(instance->dio_intcurrent > instance->dio_intmin) {
+        MOV     A,R2
+        ADD     A,#-0x7d
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     A,R2
+        ADD     A,#-0x80
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        CLR     C
+        SUBB    A,R0
+        JNC     ??rpl_reset_dio_timer_0
+//  187     instance->dio_counter = 0;
+        MOV     A,R2
+        ADD     A,#-0x7b
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  188     instance->dio_intcurrent = instance->dio_intmin;
+        MOV     A,R2
+        ADD     A,#-0x80
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        PUSH    A
+          CFI CFA_SP SP+-6
+        MOV     A,R2
+        ADD     A,#-0x7d
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+-5
+        MOVX    @DPTR,A
+//  189     new_dio_interval(instance);
+        ; Setup parameters for call to function new_dio_interval
+        LCALL   ??new_dio_interval?relay
+//  190   }
+//  191 #if RPL_CONF_STATS
+//  192   rpl_stats.resets++;
+//  193 #endif /* RPL_CONF_STATS */
+//  194 #endif /* RPL_LEAF_ONLY */
+//  195 }
+??rpl_reset_dio_timer_0:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock4
+//  196 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  197 static void
+//  198 handle_dao_timer(void *ptr)
+handle_dao_timer:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function handle_dao_timer
+        CODE
+//  199 {
+        FUNCALL handle_dao_timer, uip_ds6_get_link_local
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL handle_dao_timer, ctimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL handle_dao_timer, dao_output
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL handle_dao_timer, ctimer_stop
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+//  200   rpl_instance_t *instance;
+//  201 
+//  202   instance = (rpl_instance_t *)ptr;
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+//  203 
+//  204   if(!dio_send_ok && uip_ds6_get_link_local(ADDR_PREFERRED) == NULL) {
+        MOV     DPTR,#dio_send_ok
+        MOVX    A,@DPTR
+        JNZ     ??handle_dao_timer_0
+        ; Setup parameters for call to function uip_ds6_get_link_local
+        MOV     R1,#0x1
+        LCALL   ??uip_ds6_get_link_local?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JNZ     ??handle_dao_timer_0
+//  205     PRINTF("RPL: Postpone DAO transmission\n");
+//  206     ctimer_set(&instance->dao_timer, CLOCK_SECOND, handle_dao_timer, instance);
+        ; Setup parameters for call to function ctimer_set
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     ?V0 + 2,#??handle_dao_timer?relay & 0xff
+        MOV     ?V0 + 3,#(??handle_dao_timer?relay >> 8) & 0xff
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     R4,#-0x80
+        MOV     R5,#0x0
+        MOV     A,?V0 + 0
+        ADD     A,#-0x62
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??ctimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+//  207     return;
+        SJMP    ??handle_dao_timer_1
+//  208   }
+//  209 
+//  210   /* Send the DAO to the DAO parent set -- the preferred parent in our case. */
+//  211   if(instance->current_dag->preferred_parent != NULL) {
+??handle_dao_timer_0:
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x17
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??handle_dao_timer_2
+//  212     PRINTF("RPL: handle_dao_timer - sending DAO\n");
+//  213     /* Set the route lifetime to the default value. */
+//  214     dao_output(instance->current_dag->preferred_parent, instance->default_lifetime);
+        ; Setup parameters for call to function dao_output
+        MOV     A,?V0 + 0
+        ADD     A,#-0x7e
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x17
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??dao_output?relay
+//  215   } else {
+//  216     PRINTF("RPL: No suitable DAO parent\n");
+//  217   }
+//  218   ctimer_stop(&instance->dao_timer);
+??handle_dao_timer_2:
+        ; Setup parameters for call to function ctimer_stop
+        MOV     A,?V0 + 0
+        ADD     A,#-0x62
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??ctimer_stop?relay
+//  219 }
+??handle_dao_timer_1:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock5
+//  220 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  221 void
+//  222 rpl_schedule_dao(rpl_instance_t *instance)
+rpl_schedule_dao:
+          CFI Block cfiBlock6 Using cfiCommon0
+          CFI Function rpl_schedule_dao
+        CODE
+//  223 {
+        FUNCALL rpl_schedule_dao, etimer_expiration_time
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL rpl_schedule_dao, etimer_expired
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL rpl_schedule_dao, random_rand
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL rpl_schedule_dao, ctimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+//  224   clock_time_t expiration_time;
+//  225 
+//  226   expiration_time = etimer_expiration_time(&instance->dao_timer.etimer);
+        ; Setup parameters for call to function etimer_expiration_time
+        MOV     A,?V0 + 0
+        ADD     A,#-0x60
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??etimer_expiration_time?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     R6,?V0 + 2
+        MOV     R7,?V0 + 3
+//  227 
+//  228   if(!etimer_expired(&instance->dao_timer.etimer)) {
+        ; Setup parameters for call to function etimer_expired
+        MOV     A,?V0 + 0
+        ADD     A,#-0x60
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??etimer_expired?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JZ      ??rpl_schedule_dao_0
+//  229     PRINTF("RPL: DAO timer already scheduled\n");
+//  230   } else {
+//  231     expiration_time = RPL_DAO_LATENCY / 2 +
+//  232       (random_rand() % (RPL_DAO_LATENCY));
+        ; Setup parameters for call to function random_rand
+        LCALL   ??random_rand?relay
+        MOV     A,R2
+        MOV     R0,A
+        MOV     A,R3
+        MOV     R1,A
+        MOV     R2,#0x0
+        MOV     R3,#0x2
+        LCALL   ?US_DIV_MOD
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ADD     A,#0x0
+        MOV     R6,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x1
+        MOV     R7,A
+//  233     PRINTF("RPL: Scheduling DAO timer %u ticks in the future\n",
+//  234            (unsigned)expiration_time);
+//  235     ctimer_set(&instance->dao_timer, expiration_time,
+//  236                handle_dao_timer, instance);
+        ; Setup parameters for call to function ctimer_set
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     ?V0 + 2,#??handle_dao_timer?relay & 0xff
+        MOV     ?V0 + 3,#(??handle_dao_timer?relay >> 8) & 0xff
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     A,?V0 + 0
+        ADD     A,#-0x62
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??ctimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+//  237   }
+//  238 }
+??rpl_schedule_dao_0:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock6
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA32
+__Constant_80:
+        DS 4
+        REQUIRE `?<Initializer for __Constant_80>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for __Constant_80>`:
+        DATA32
+        DD 128
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA32
+__Constant_3e8:
+        DS 4
+        REQUIRE `?<Initializer for __Constant_3e8>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for __Constant_3e8>`:
+        DATA32
+        DD 1000
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA32
+__Constant_ffff:
+        DS 4
+        REQUIRE `?<Initializer for __Constant_ffff>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for __Constant_ffff>`:
+        DATA32
+        DD 65535
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA32
+__Constant_3c:
+        DS 4
+        REQUIRE `?<Initializer for __Constant_3c>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for __Constant_3c>`:
+        DATA32
+        DD 60
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??handle_periodic_timer?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    handle_periodic_timer
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??new_dio_interval?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    new_dio_interval
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??handle_dio_timer?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    handle_dio_timer
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??rpl_reset_periodic_timer?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    rpl_reset_periodic_timer
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??rpl_reset_dio_timer?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    rpl_reset_dio_timer
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??handle_dao_timer?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    handle_dao_timer
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??rpl_schedule_dao?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    rpl_schedule_dao
+
+        END
+//  239 /*---------------------------------------------------------------------------*/
+//  240 #endif /* UIP_CONF_IPV6 */
+// 
+// 1 115 bytes in segment BANKED_CODE
+//    42 bytes in segment BANK_RELAYS
+//    16 bytes in segment XDATA_I
+//    16 bytes in segment XDATA_ID
+//    19 bytes in segment XDATA_Z
+// 
+// 1 157 bytes of CODE  memory (+ 16 bytes shared)
+//    19 bytes of XDATA memory (+ 16 bytes shared)
+//
+//Errors: none
+//Warnings: none

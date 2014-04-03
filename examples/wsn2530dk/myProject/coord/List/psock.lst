@@ -1,0 +1,2424 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:38 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\psock.c                  #
+#    Command line       =  D:\myWork\myWork\core\net\psock.c -D               #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\psock.lst                                   #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\psock.r51                                    #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\psock.c
+      1          /*
+      2           * Copyright (c) 2004, Swedish Institute of Computer Science.
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           * Author: Adam Dunkels <adam@sics.se>
+     32           *
+     33           */
+     34          
+     35          #include <string.h>
+     36          
+     37          #include "net/psock.h"
+     38          
+     39          #define STATE_NONE 0
+     40          #define STATE_ACKED 1
+     41          #define STATE_READ 2
+     42          #define STATE_BLOCKED_NEWDATA 3
+     43          #define STATE_BLOCKED_CLOSE 4
+     44          #define STATE_BLOCKED_SEND 5
+     45          #define STATE_DATA_SENT 6
+     46          
+     47          /*
+     48           * Return value of the buffering functions that indicates that a
+     49           * buffer was not filled by incoming data.
+     50           *
+     51           */
+     52          #define BUF_NOT_FULL 0
+     53          #define BUF_NOT_FOUND 0
+     54          
+     55          /*
+     56           * Return value of the buffering functions that indicates that a
+     57           * buffer was completely filled by incoming data.
+     58           *
+     59           */
+     60          #define BUF_FULL 1
+     61          
+     62          /*
+     63           * Return value of the buffering functions that indicates that an
+     64           * end-marker byte was found.
+     65           *
+     66           */
+     67          #define BUF_FOUND 2
+     68          
+     69          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     70          static void
+     71          buf_setup(struct psock_buf *buf,
+   \                     buf_setup:
+     72          	  uint8_t *bufptr, uint16_t bufsize)
+     73          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   7409         MOV     A,#0x9
+   \   000007   12....       LCALL   ?XSTACK_DISP0_8
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F8           MOV     R0,A
+   \   00000C   A3           INC     DPTR
+   \   00000D   E0           MOVX    A,@DPTR
+   \   00000E   F9           MOV     R1,A
+     74            buf->ptr = bufptr;
+   \   00000F   8A82         MOV     DPL,R2
+   \   000011   8B83         MOV     DPH,R3
+   \   000013   EC           MOV     A,R4
+   \   000014   F0           MOVX    @DPTR,A
+   \   000015   A3           INC     DPTR
+   \   000016   ED           MOV     A,R5
+   \   000017   F0           MOVX    @DPTR,A
+     75            buf->left = bufsize;
+   \   000018   8A82         MOV     DPL,R2
+   \   00001A   8B83         MOV     DPH,R3
+   \   00001C   A3           INC     DPTR
+   \   00001D   A3           INC     DPTR
+   \   00001E   E8           MOV     A,R0
+   \   00001F   F0           MOVX    @DPTR,A
+   \   000020   A3           INC     DPTR
+   \   000021   E9           MOV     A,R1
+   \   000022   F0           MOVX    @DPTR,A
+     76          }
+   \   000023   7F01         MOV     R7,#0x1
+   \   000025   02....       LJMP    ?BANKED_LEAVE_XDATA
+     77          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     78          static uint8_t
+     79          buf_bufdata(struct psock_buf *buf, uint16_t len,
+   \                     buf_bufdata:
+     80          	    uint8_t **dataptr, uint16_t *datalen)
+     81          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   740C         MOV     A,#0xc
+   \   00000B   12....       LCALL   ?XSTACK_DISP0_8
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   F5..         MOV     ?V0 + 2,A
+   \   000011   A3           INC     DPTR
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   F5..         MOV     ?V0 + 3,A
+   \   000015   740E         MOV     A,#0xe
+   \   000017   12....       LCALL   ?XSTACK_DISP0_8
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   F5..         MOV     ?V0 + 0,A
+   \   00001D   A3           INC     DPTR
+   \   00001E   E0           MOVX    A,@DPTR
+   \   00001F   F5..         MOV     ?V0 + 1,A
+     82            if(*datalen < buf->left) {
+   \   000021   85..82       MOV     DPL,?V0 + 0
+   \   000024   85..83       MOV     DPH,?V0 + 1
+   \   000027   C082         PUSH    DPL
+   \   000029   C083         PUSH    DPH
+   \   00002B   8E82         MOV     DPL,R6
+   \   00002D   8F83         MOV     DPH,R7
+   \   00002F   A3           INC     DPTR
+   \   000030   A3           INC     DPTR
+   \   000031   E0           MOVX    A,@DPTR
+   \   000032   F8           MOV     R0,A
+   \   000033   A3           INC     DPTR
+   \   000034   E0           MOVX    A,@DPTR
+   \   000035   F9           MOV     R1,A
+   \   000036   D083         POP     DPH
+   \   000038   D082         POP     DPL
+   \   00003A   C3           CLR     C
+   \   00003B   E0           MOVX    A,@DPTR
+   \   00003C   98           SUBB    A,R0
+   \   00003D   A3           INC     DPTR
+   \   00003E   E0           MOVX    A,@DPTR
+   \   00003F   99           SUBB    A,R1
+   \   000040   4003         JC      $+5
+   \   000042   02....       LJMP    ??buf_bufdata_0 & 0xFFFF
+     83              memcpy(buf->ptr, *dataptr, *datalen);
+   \   000045                ; Setup parameters for call to function memcpy
+   \   000045   85..82       MOV     DPL,?V0 + 0
+   \   000048   85..83       MOV     DPH,?V0 + 1
+   \   00004B   12....       LCALL   ?PUSH_XSTACK8_X_TWO
+   \   00004E   85..82       MOV     DPL,?V0 + 2
+   \   000051   85..83       MOV     DPH,?V0 + 3
+   \   000054   E0           MOVX    A,@DPTR
+   \   000055   FC           MOV     R4,A
+   \   000056   A3           INC     DPTR
+   \   000057   E0           MOVX    A,@DPTR
+   \   000058   FD           MOV     R5,A
+   \   000059   8E82         MOV     DPL,R6
+   \   00005B   8F83         MOV     DPH,R7
+   \   00005D   E0           MOVX    A,@DPTR
+   \   00005E   FA           MOV     R2,A
+   \   00005F   A3           INC     DPTR
+   \   000060   E0           MOVX    A,@DPTR
+   \   000061   FB           MOV     R3,A
+   \   000062   12....       LCALL   ??memcpy?relay
+   \   000065   7402         MOV     A,#0x2
+   \   000067   12....       LCALL   ?DEALLOC_XSTACK8
+     84              buf->ptr += *datalen;
+   \   00006A   85..82       MOV     DPL,?V0 + 0
+   \   00006D   85..83       MOV     DPH,?V0 + 1
+   \   000070   E0           MOVX    A,@DPTR
+   \   000071   F8           MOV     R0,A
+   \   000072   A3           INC     DPTR
+   \   000073   E0           MOVX    A,@DPTR
+   \   000074   F9           MOV     R1,A
+   \   000075   8E82         MOV     DPL,R6
+   \   000077   8F83         MOV     DPH,R7
+   \   000079   E0           MOVX    A,@DPTR
+   \   00007A   28           ADD     A,R0
+   \   00007B   F8           MOV     R0,A
+   \   00007C   A3           INC     DPTR
+   \   00007D   E0           MOVX    A,@DPTR
+   \   00007E   39           ADDC    A,R1
+   \   00007F   F9           MOV     R1,A
+   \   000080   8E82         MOV     DPL,R6
+   \   000082   8F83         MOV     DPH,R7
+   \   000084   E8           MOV     A,R0
+   \   000085   F0           MOVX    @DPTR,A
+   \   000086   A3           INC     DPTR
+   \   000087   E9           MOV     A,R1
+   \   000088   F0           MOVX    @DPTR,A
+     85              buf->left -= *datalen;
+   \   000089   85..82       MOV     DPL,?V0 + 0
+   \   00008C   85..83       MOV     DPH,?V0 + 1
+   \   00008F   E0           MOVX    A,@DPTR
+   \   000090   F8           MOV     R0,A
+   \   000091   A3           INC     DPTR
+   \   000092   E0           MOVX    A,@DPTR
+   \   000093   F9           MOV     R1,A
+   \   000094   8E82         MOV     DPL,R6
+   \   000096   8F83         MOV     DPH,R7
+   \   000098   A3           INC     DPTR
+   \   000099   A3           INC     DPTR
+   \   00009A   C3           CLR     C
+   \   00009B   E0           MOVX    A,@DPTR
+   \   00009C   98           SUBB    A,R0
+   \   00009D   F0           MOVX    @DPTR,A
+   \   00009E   A3           INC     DPTR
+   \   00009F   E0           MOVX    A,@DPTR
+   \   0000A0   99           SUBB    A,R1
+   \   0000A1   F0           MOVX    @DPTR,A
+     86              *dataptr += *datalen;
+   \   0000A2   85..82       MOV     DPL,?V0 + 0
+   \   0000A5   85..83       MOV     DPH,?V0 + 1
+   \   0000A8   E0           MOVX    A,@DPTR
+   \   0000A9   F8           MOV     R0,A
+   \   0000AA   A3           INC     DPTR
+   \   0000AB   E0           MOVX    A,@DPTR
+   \   0000AC   F9           MOV     R1,A
+   \   0000AD   85..82       MOV     DPL,?V0 + 2
+   \   0000B0   85..83       MOV     DPH,?V0 + 3
+   \   0000B3   E0           MOVX    A,@DPTR
+   \   0000B4   28           ADD     A,R0
+   \   0000B5   F8           MOV     R0,A
+   \   0000B6   A3           INC     DPTR
+   \   0000B7   E0           MOVX    A,@DPTR
+   \   0000B8   39           ADDC    A,R1
+   \   0000B9   F9           MOV     R1,A
+   \   0000BA   85..82       MOV     DPL,?V0 + 2
+   \   0000BD   85..83       MOV     DPH,?V0 + 3
+   \   0000C0   E8           MOV     A,R0
+   \   0000C1   F0           MOVX    @DPTR,A
+   \   0000C2   A3           INC     DPTR
+   \   0000C3   E9           MOV     A,R1
+   \   0000C4   F0           MOVX    @DPTR,A
+     87              *datalen = 0;
+   \   0000C5   85..82       MOV     DPL,?V0 + 0
+   \   0000C8   85..83       MOV     DPH,?V0 + 1
+   \   0000CB   7400         MOV     A,#0x0
+   \   0000CD   F0           MOVX    @DPTR,A
+   \   0000CE   A3           INC     DPTR
+   \   0000CF   7400         MOV     A,#0x0
+   \   0000D1   F0           MOVX    @DPTR,A
+     88              return BUF_NOT_FULL;
+   \   0000D2   7900         MOV     R1,#0x0
+   \   0000D4   02....       LJMP    ??buf_bufdata_1 & 0xFFFF
+     89            } else if(*datalen == buf->left) {
+   \                     ??buf_bufdata_0:
+   \   0000D7   85..82       MOV     DPL,?V0 + 0
+   \   0000DA   85..83       MOV     DPH,?V0 + 1
+   \   0000DD   E0           MOVX    A,@DPTR
+   \   0000DE   F8           MOV     R0,A
+   \   0000DF   A3           INC     DPTR
+   \   0000E0   E0           MOVX    A,@DPTR
+   \   0000E1   F9           MOV     R1,A
+   \   0000E2   8E82         MOV     DPL,R6
+   \   0000E4   8F83         MOV     DPH,R7
+   \   0000E6   A3           INC     DPTR
+   \   0000E7   A3           INC     DPTR
+   \   0000E8   E0           MOVX    A,@DPTR
+   \   0000E9   68           XRL     A,R0
+   \   0000EA   7003         JNZ     ??buf_bufdata_2
+   \   0000EC   A3           INC     DPTR
+   \   0000ED   E0           MOVX    A,@DPTR
+   \   0000EE   69           XRL     A,R1
+   \                     ??buf_bufdata_2:
+   \   0000EF   6003         JZ      $+5
+   \   0000F1   02....       LJMP    ??buf_bufdata_3 & 0xFFFF
+     90              memcpy(buf->ptr, *dataptr, *datalen);
+   \   0000F4                ; Setup parameters for call to function memcpy
+   \   0000F4   85..82       MOV     DPL,?V0 + 0
+   \   0000F7   85..83       MOV     DPH,?V0 + 1
+   \   0000FA   12....       LCALL   ?PUSH_XSTACK8_X_TWO
+   \   0000FD   85..82       MOV     DPL,?V0 + 2
+   \   000100   85..83       MOV     DPH,?V0 + 3
+   \   000103   E0           MOVX    A,@DPTR
+   \   000104   FC           MOV     R4,A
+   \   000105   A3           INC     DPTR
+   \   000106   E0           MOVX    A,@DPTR
+   \   000107   FD           MOV     R5,A
+   \   000108   8E82         MOV     DPL,R6
+   \   00010A   8F83         MOV     DPH,R7
+   \   00010C   E0           MOVX    A,@DPTR
+   \   00010D   FA           MOV     R2,A
+   \   00010E   A3           INC     DPTR
+   \   00010F   E0           MOVX    A,@DPTR
+   \   000110   FB           MOV     R3,A
+   \   000111   12....       LCALL   ??memcpy?relay
+   \   000114   7402         MOV     A,#0x2
+   \   000116   12....       LCALL   ?DEALLOC_XSTACK8
+     91              buf->ptr += *datalen;
+   \   000119   85..82       MOV     DPL,?V0 + 0
+   \   00011C   85..83       MOV     DPH,?V0 + 1
+   \   00011F   E0           MOVX    A,@DPTR
+   \   000120   F8           MOV     R0,A
+   \   000121   A3           INC     DPTR
+   \   000122   E0           MOVX    A,@DPTR
+   \   000123   F9           MOV     R1,A
+   \   000124   8E82         MOV     DPL,R6
+   \   000126   8F83         MOV     DPH,R7
+   \   000128   E0           MOVX    A,@DPTR
+   \   000129   28           ADD     A,R0
+   \   00012A   F8           MOV     R0,A
+   \   00012B   A3           INC     DPTR
+   \   00012C   E0           MOVX    A,@DPTR
+   \   00012D   39           ADDC    A,R1
+   \   00012E   F9           MOV     R1,A
+   \   00012F   8E82         MOV     DPL,R6
+   \   000131   8F83         MOV     DPH,R7
+   \   000133   E8           MOV     A,R0
+   \   000134   F0           MOVX    @DPTR,A
+   \   000135   A3           INC     DPTR
+   \   000136   E9           MOV     A,R1
+   \   000137   F0           MOVX    @DPTR,A
+     92              buf->left = 0;
+   \   000138   8E82         MOV     DPL,R6
+   \   00013A   8F83         MOV     DPH,R7
+   \   00013C   A3           INC     DPTR
+   \   00013D   A3           INC     DPTR
+   \   00013E   7400         MOV     A,#0x0
+   \   000140   F0           MOVX    @DPTR,A
+   \   000141   A3           INC     DPTR
+   \   000142   7400         MOV     A,#0x0
+   \   000144   F0           MOVX    @DPTR,A
+     93              *dataptr += *datalen;
+   \   000145   85..82       MOV     DPL,?V0 + 0
+   \   000148   85..83       MOV     DPH,?V0 + 1
+   \   00014B   E0           MOVX    A,@DPTR
+   \   00014C   F8           MOV     R0,A
+   \   00014D   A3           INC     DPTR
+   \   00014E   E0           MOVX    A,@DPTR
+   \   00014F   F9           MOV     R1,A
+   \   000150   85..82       MOV     DPL,?V0 + 2
+   \   000153   85..83       MOV     DPH,?V0 + 3
+   \   000156   E0           MOVX    A,@DPTR
+   \   000157   28           ADD     A,R0
+   \   000158   F8           MOV     R0,A
+   \   000159   A3           INC     DPTR
+   \   00015A   E0           MOVX    A,@DPTR
+   \   00015B   39           ADDC    A,R1
+   \   00015C   F9           MOV     R1,A
+   \   00015D   85..82       MOV     DPL,?V0 + 2
+   \   000160   85..83       MOV     DPH,?V0 + 3
+   \   000163   E8           MOV     A,R0
+   \   000164   F0           MOVX    @DPTR,A
+   \   000165   A3           INC     DPTR
+   \   000166   E9           MOV     A,R1
+   \   000167   F0           MOVX    @DPTR,A
+     94              *datalen = 0;
+   \   000168   85..82       MOV     DPL,?V0 + 0
+   \   00016B   85..83       MOV     DPH,?V0 + 1
+   \   00016E   7400         MOV     A,#0x0
+   \   000170   F0           MOVX    @DPTR,A
+   \   000171   A3           INC     DPTR
+   \   000172   7400         MOV     A,#0x0
+   \   000174   F0           MOVX    @DPTR,A
+     95              return BUF_FULL;
+   \   000175   7901         MOV     R1,#0x1
+   \   000177   02....       LJMP    ??buf_bufdata_1 & 0xFFFF
+     96            } else {
+     97              memcpy(buf->ptr, *dataptr, buf->left);
+   \                     ??buf_bufdata_3:
+   \   00017A                ; Setup parameters for call to function memcpy
+   \   00017A   8E82         MOV     DPL,R6
+   \   00017C   8F83         MOV     DPH,R7
+   \   00017E   A3           INC     DPTR
+   \   00017F   A3           INC     DPTR
+   \   000180   12....       LCALL   ?PUSH_XSTACK8_X_TWO
+   \   000183   85..82       MOV     DPL,?V0 + 2
+   \   000186   85..83       MOV     DPH,?V0 + 3
+   \   000189   E0           MOVX    A,@DPTR
+   \   00018A   FC           MOV     R4,A
+   \   00018B   A3           INC     DPTR
+   \   00018C   E0           MOVX    A,@DPTR
+   \   00018D   FD           MOV     R5,A
+   \   00018E   8E82         MOV     DPL,R6
+   \   000190   8F83         MOV     DPH,R7
+   \   000192   E0           MOVX    A,@DPTR
+   \   000193   FA           MOV     R2,A
+   \   000194   A3           INC     DPTR
+   \   000195   E0           MOVX    A,@DPTR
+   \   000196   FB           MOV     R3,A
+   \   000197   12....       LCALL   ??memcpy?relay
+   \   00019A   7402         MOV     A,#0x2
+   \   00019C   12....       LCALL   ?DEALLOC_XSTACK8
+     98              buf->ptr += buf->left;
+   \   00019F   8E82         MOV     DPL,R6
+   \   0001A1   8F83         MOV     DPH,R7
+   \   0001A3   A3           INC     DPTR
+   \   0001A4   A3           INC     DPTR
+   \   0001A5   E0           MOVX    A,@DPTR
+   \   0001A6   F8           MOV     R0,A
+   \   0001A7   A3           INC     DPTR
+   \   0001A8   E0           MOVX    A,@DPTR
+   \   0001A9   F9           MOV     R1,A
+   \   0001AA   8E82         MOV     DPL,R6
+   \   0001AC   8F83         MOV     DPH,R7
+   \   0001AE   E0           MOVX    A,@DPTR
+   \   0001AF   28           ADD     A,R0
+   \   0001B0   F8           MOV     R0,A
+   \   0001B1   A3           INC     DPTR
+   \   0001B2   E0           MOVX    A,@DPTR
+   \   0001B3   39           ADDC    A,R1
+   \   0001B4   F9           MOV     R1,A
+   \   0001B5   8E82         MOV     DPL,R6
+   \   0001B7   8F83         MOV     DPH,R7
+   \   0001B9   E8           MOV     A,R0
+   \   0001BA   F0           MOVX    @DPTR,A
+   \   0001BB   A3           INC     DPTR
+   \   0001BC   E9           MOV     A,R1
+   \   0001BD   F0           MOVX    @DPTR,A
+     99              *datalen -= buf->left;
+   \   0001BE   8E82         MOV     DPL,R6
+   \   0001C0   8F83         MOV     DPH,R7
+   \   0001C2   A3           INC     DPTR
+   \   0001C3   A3           INC     DPTR
+   \   0001C4   E0           MOVX    A,@DPTR
+   \   0001C5   F8           MOV     R0,A
+   \   0001C6   A3           INC     DPTR
+   \   0001C7   E0           MOVX    A,@DPTR
+   \   0001C8   F9           MOV     R1,A
+   \   0001C9   85..82       MOV     DPL,?V0 + 0
+   \   0001CC   85..83       MOV     DPH,?V0 + 1
+   \   0001CF   C3           CLR     C
+   \   0001D0   E0           MOVX    A,@DPTR
+   \   0001D1   98           SUBB    A,R0
+   \   0001D2   F0           MOVX    @DPTR,A
+   \   0001D3   A3           INC     DPTR
+   \   0001D4   E0           MOVX    A,@DPTR
+   \   0001D5   99           SUBB    A,R1
+   \   0001D6   F0           MOVX    @DPTR,A
+    100              *dataptr += buf->left;
+   \   0001D7   8E82         MOV     DPL,R6
+   \   0001D9   8F83         MOV     DPH,R7
+   \   0001DB   A3           INC     DPTR
+   \   0001DC   A3           INC     DPTR
+   \   0001DD   E0           MOVX    A,@DPTR
+   \   0001DE   F8           MOV     R0,A
+   \   0001DF   A3           INC     DPTR
+   \   0001E0   E0           MOVX    A,@DPTR
+   \   0001E1   F9           MOV     R1,A
+   \   0001E2   85..82       MOV     DPL,?V0 + 2
+   \   0001E5   85..83       MOV     DPH,?V0 + 3
+   \   0001E8   E0           MOVX    A,@DPTR
+   \   0001E9   28           ADD     A,R0
+   \   0001EA   F8           MOV     R0,A
+   \   0001EB   A3           INC     DPTR
+   \   0001EC   E0           MOVX    A,@DPTR
+   \   0001ED   39           ADDC    A,R1
+   \   0001EE   F9           MOV     R1,A
+   \   0001EF   85..82       MOV     DPL,?V0 + 2
+   \   0001F2   85..83       MOV     DPH,?V0 + 3
+   \   0001F5   E8           MOV     A,R0
+   \   0001F6   F0           MOVX    @DPTR,A
+   \   0001F7   A3           INC     DPTR
+   \   0001F8   E9           MOV     A,R1
+   \   0001F9   F0           MOVX    @DPTR,A
+    101              buf->left = 0;
+   \   0001FA   8E82         MOV     DPL,R6
+   \   0001FC   8F83         MOV     DPH,R7
+   \   0001FE   A3           INC     DPTR
+   \   0001FF   A3           INC     DPTR
+   \   000200   7400         MOV     A,#0x0
+   \   000202   F0           MOVX    @DPTR,A
+   \   000203   A3           INC     DPTR
+   \   000204   7400         MOV     A,#0x0
+   \   000206   F0           MOVX    @DPTR,A
+    102              return BUF_FULL;
+   \   000207   7901         MOV     R1,#0x1
+   \                     ??buf_bufdata_1:
+   \   000209   7F04         MOV     R7,#0x4
+   \   00020B   02....       LJMP    ?BANKED_LEAVE_XDATA
+    103            }
+    104          }
+    105          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    106          static uint8_t
+    107          buf_bufto(CC_REGISTER_ARG struct psock_buf *buf, uint8_t endmarker,
+   \                     buf_bufto:
+    108          	  CC_REGISTER_ARG uint8_t **dataptr, CC_REGISTER_ARG uint16_t *datalen)
+    109          {
+   \   000000   74F5         MOV     A,#-0xb
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 11
+   \   000005                ; Auto size: 0
+   \   000005   89..         MOV     ?V0 + 0,R1
+   \   000007   740B         MOV     A,#0xb
+   \   000009   12....       LCALL   ?XSTACK_DISP0_8
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   F8           MOV     R0,A
+   \   00000E   A3           INC     DPTR
+   \   00000F   E0           MOVX    A,@DPTR
+   \   000010   F9           MOV     R1,A
+    110            uint8_t c;
+    111            while(buf->left > 0 && *datalen > 0) {
+   \                     ??buf_bufto_0:
+   \   000011   8A82         MOV     DPL,R2
+   \   000013   8B83         MOV     DPH,R3
+   \   000015   A3           INC     DPTR
+   \   000016   A3           INC     DPTR
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   FE           MOV     R6,A
+   \   000019   A3           INC     DPTR
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   FF           MOV     R7,A
+   \   00001C   EE           MOV     A,R6
+   \   00001D   4F           ORL     A,R7
+   \   00001E   7003         JNZ     $+5
+   \   000020   02....       LJMP    ??buf_bufto_1 & 0xFFFF
+   \   000023   8882         MOV     DPL,R0
+   \   000025   8983         MOV     DPH,R1
+   \   000027   E0           MOVX    A,@DPTR
+   \   000028   FE           MOV     R6,A
+   \   000029   A3           INC     DPTR
+   \   00002A   E0           MOVX    A,@DPTR
+   \   00002B   FF           MOV     R7,A
+   \   00002C   EE           MOV     A,R6
+   \   00002D   4F           ORL     A,R7
+   \   00002E   6077         JZ      ??buf_bufto_1
+    112              c = *buf->ptr = **dataptr;
+   \   000030   8C82         MOV     DPL,R4
+   \   000032   8D83         MOV     DPH,R5
+   \   000034   E0           MOVX    A,@DPTR
+   \   000035   FE           MOV     R6,A
+   \   000036   A3           INC     DPTR
+   \   000037   E0           MOVX    A,@DPTR
+   \   000038   F583         MOV     DPH,A
+   \   00003A   8E82         MOV     DPL,R6
+   \   00003C   E0           MOVX    A,@DPTR
+   \   00003D   FF           MOV     R7,A
+   \   00003E   EF           MOV     A,R7
+   \   00003F   C0E0         PUSH    A
+   \   000041   8A82         MOV     DPL,R2
+   \   000043   8B83         MOV     DPH,R3
+   \   000045   E0           MOVX    A,@DPTR
+   \   000046   FE           MOV     R6,A
+   \   000047   A3           INC     DPTR
+   \   000048   E0           MOVX    A,@DPTR
+   \   000049   F583         MOV     DPH,A
+   \   00004B   8E82         MOV     DPL,R6
+   \   00004D   D0E0         POP     A
+   \   00004F   F0           MOVX    @DPTR,A
+   \   000050   8F..         MOV     ?V0 + 1,R7
+    113              ++*dataptr;
+   \   000052   8C82         MOV     DPL,R4
+   \   000054   8D83         MOV     DPH,R5
+   \   000056   E0           MOVX    A,@DPTR
+   \   000057   2401         ADD     A,#0x1
+   \   000059   FE           MOV     R6,A
+   \   00005A   A3           INC     DPTR
+   \   00005B   E0           MOVX    A,@DPTR
+   \   00005C   3400         ADDC    A,#0x0
+   \   00005E   FF           MOV     R7,A
+   \   00005F   8C82         MOV     DPL,R4
+   \   000061   8D83         MOV     DPH,R5
+   \   000063   EE           MOV     A,R6
+   \   000064   F0           MOVX    @DPTR,A
+   \   000065   A3           INC     DPTR
+   \   000066   EF           MOV     A,R7
+   \   000067   F0           MOVX    @DPTR,A
+    114              ++buf->ptr;
+   \   000068   8A82         MOV     DPL,R2
+   \   00006A   8B83         MOV     DPH,R3
+   \   00006C   E0           MOVX    A,@DPTR
+   \   00006D   2401         ADD     A,#0x1
+   \   00006F   FE           MOV     R6,A
+   \   000070   A3           INC     DPTR
+   \   000071   E0           MOVX    A,@DPTR
+   \   000072   3400         ADDC    A,#0x0
+   \   000074   FF           MOV     R7,A
+   \   000075   8A82         MOV     DPL,R2
+   \   000077   8B83         MOV     DPH,R3
+   \   000079   EE           MOV     A,R6
+   \   00007A   F0           MOVX    @DPTR,A
+   \   00007B   A3           INC     DPTR
+   \   00007C   EF           MOV     A,R7
+   \   00007D   F0           MOVX    @DPTR,A
+    115              --*datalen;
+   \   00007E   8882         MOV     DPL,R0
+   \   000080   8983         MOV     DPH,R1
+   \   000082   E0           MOVX    A,@DPTR
+   \   000083   24FF         ADD     A,#-0x1
+   \   000085   F0           MOVX    @DPTR,A
+   \   000086   A3           INC     DPTR
+   \   000087   E0           MOVX    A,@DPTR
+   \   000088   34FF         ADDC    A,#-0x1
+   \   00008A   F0           MOVX    @DPTR,A
+    116              --buf->left;
+   \   00008B   8A82         MOV     DPL,R2
+   \   00008D   8B83         MOV     DPH,R3
+   \   00008F   A3           INC     DPTR
+   \   000090   A3           INC     DPTR
+   \   000091   E0           MOVX    A,@DPTR
+   \   000092   24FF         ADD     A,#-0x1
+   \   000094   F0           MOVX    @DPTR,A
+   \   000095   A3           INC     DPTR
+   \   000096   E0           MOVX    A,@DPTR
+   \   000097   34FF         ADDC    A,#-0x1
+   \   000099   F0           MOVX    @DPTR,A
+    117              
+    118              if(c == endmarker) {
+   \   00009A   E5..         MOV     A,?V0 + 0
+   \   00009C   65..         XRL     A,?V0 + 1
+   \   00009E   6003         JZ      $+5
+   \   0000A0   02....       LJMP    ??buf_bufto_0 & 0xFFFF
+    119                return BUF_FOUND;
+   \   0000A3   7902         MOV     R1,#0x2
+   \   0000A5   8013         SJMP    ??buf_bufto_2
+    120              }
+    121            }
+    122          
+    123            if(*datalen == 0) {
+   \                     ??buf_bufto_1:
+   \   0000A7   8882         MOV     DPL,R0
+   \   0000A9   8983         MOV     DPH,R1
+   \   0000AB   E0           MOVX    A,@DPTR
+   \   0000AC   F8           MOV     R0,A
+   \   0000AD   A3           INC     DPTR
+   \   0000AE   E0           MOVX    A,@DPTR
+   \   0000AF   F9           MOV     R1,A
+   \   0000B0   E8           MOV     A,R0
+   \   0000B1   49           ORL     A,R1
+   \   0000B2   7004         JNZ     ??buf_bufto_3
+    124              return BUF_NOT_FOUND;
+   \   0000B4   7900         MOV     R1,#0x0
+   \   0000B6   8002         SJMP    ??buf_bufto_2
+    125            }
+    126          
+    127            return BUF_FULL;
+   \                     ??buf_bufto_3:
+   \   0000B8   7901         MOV     R1,#0x1
+   \                     ??buf_bufto_2:
+   \   0000BA   7F03         MOV     R7,#0x3
+   \   0000BC   02....       LJMP    ?BANKED_LEAVE_XDATA
+    128          }
+    129          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    130          static char
+    131          data_is_sent_and_acked(CC_REGISTER_ARG struct psock *s)
+   \                     data_is_sent_and_acked:
+    132          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    133            /* If data has previously been sent, and the data has been acked, we
+    134               increase the send pointer and call send_data() to send more
+    135               data. */
+    136            if(s->state != STATE_DATA_SENT || uip_rexmit()) {
+   \   000009   EE           MOV     A,R6
+   \   00000A   2414         ADD     A,#0x14
+   \   00000C   F582         MOV     DPL,A
+   \   00000E   EF           MOV     A,R7
+   \   00000F   3400         ADDC    A,#0x0
+   \   000011   F583         MOV     DPH,A
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   6406         XRL     A,#0x6
+   \   000016   700B         JNZ     ??data_is_sent_and_acked_0
+   \   000018   90....       MOV     DPTR,#uip_flags
+   \   00001B   E0           MOVX    A,@DPTR
+   \   00001C   A2E2         MOV     C,0xE0 /* A   */.2
+   \   00001E   4003         JC      $+5
+   \   000020   02....       LJMP    ??data_is_sent_and_acked_1 & 0xFFFF
+    137              if(s->sendlen > uip_mss()) {
+   \                     ??data_is_sent_and_acked_0:
+   \   000023   90....       MOV     DPTR,#uip_conn
+   \   000026   E0           MOVX    A,@DPTR
+   \   000027   F8           MOV     R0,A
+   \   000028   A3           INC     DPTR
+   \   000029   E0           MOVX    A,@DPTR
+   \   00002A   C8           XCH     A,R0
+   \   00002B   241E         ADD     A,#0x1e
+   \   00002D   F582         MOV     DPL,A
+   \   00002F   E8           MOV     A,R0
+   \   000030   3400         ADDC    A,#0x0
+   \   000032   F583         MOV     DPH,A
+   \   000034   C082         PUSH    DPL
+   \   000036   C083         PUSH    DPH
+   \   000038   8E82         MOV     DPL,R6
+   \   00003A   8F83         MOV     DPH,R7
+   \   00003C   A3           INC     DPTR
+   \   00003D   A3           INC     DPTR
+   \   00003E   A3           INC     DPTR
+   \   00003F   A3           INC     DPTR
+   \   000040   A3           INC     DPTR
+   \   000041   A3           INC     DPTR
+   \   000042   A3           INC     DPTR
+   \   000043   A3           INC     DPTR
+   \   000044   A3           INC     DPTR
+   \   000045   A3           INC     DPTR
+   \   000046   E0           MOVX    A,@DPTR
+   \   000047   F8           MOV     R0,A
+   \   000048   A3           INC     DPTR
+   \   000049   E0           MOVX    A,@DPTR
+   \   00004A   F9           MOV     R1,A
+   \   00004B   D083         POP     DPH
+   \   00004D   D082         POP     DPL
+   \   00004F   C3           CLR     C
+   \   000050   E0           MOVX    A,@DPTR
+   \   000051   98           SUBB    A,R0
+   \   000052   A3           INC     DPTR
+   \   000053   E0           MOVX    A,@DPTR
+   \   000054   99           SUBB    A,R1
+   \   000055   5028         JNC     ??data_is_sent_and_acked_2
+    138                uip_send(s->sendptr, uip_mss());
+   \   000057                ; Setup parameters for call to function uip_send
+   \   000057   90....       MOV     DPTR,#uip_conn
+   \   00005A   E0           MOVX    A,@DPTR
+   \   00005B   F8           MOV     R0,A
+   \   00005C   A3           INC     DPTR
+   \   00005D   E0           MOVX    A,@DPTR
+   \   00005E   C8           XCH     A,R0
+   \   00005F   241E         ADD     A,#0x1e
+   \   000061   F582         MOV     DPL,A
+   \   000063   E8           MOV     A,R0
+   \   000064   3400         ADDC    A,#0x0
+   \   000066   F583         MOV     DPH,A
+   \   000068   E0           MOVX    A,@DPTR
+   \   000069   FC           MOV     R4,A
+   \   00006A   A3           INC     DPTR
+   \   00006B   E0           MOVX    A,@DPTR
+   \   00006C   FD           MOV     R5,A
+   \   00006D   8E82         MOV     DPL,R6
+   \   00006F   8F83         MOV     DPH,R7
+   \   000071   A3           INC     DPTR
+   \   000072   A3           INC     DPTR
+   \   000073   A3           INC     DPTR
+   \   000074   A3           INC     DPTR
+   \   000075   E0           MOVX    A,@DPTR
+   \   000076   FA           MOV     R2,A
+   \   000077   A3           INC     DPTR
+   \   000078   E0           MOVX    A,@DPTR
+   \   000079   FB           MOV     R3,A
+   \   00007A   12....       LCALL   ??uip_send?relay
+   \   00007D   8023         SJMP    ??data_is_sent_and_acked_3
+    139              } else {
+    140                uip_send(s->sendptr, s->sendlen);
+   \                     ??data_is_sent_and_acked_2:
+   \   00007F                ; Setup parameters for call to function uip_send
+   \   00007F   8E82         MOV     DPL,R6
+   \   000081   8F83         MOV     DPH,R7
+   \   000083   A3           INC     DPTR
+   \   000084   A3           INC     DPTR
+   \   000085   A3           INC     DPTR
+   \   000086   A3           INC     DPTR
+   \   000087   A3           INC     DPTR
+   \   000088   A3           INC     DPTR
+   \   000089   A3           INC     DPTR
+   \   00008A   A3           INC     DPTR
+   \   00008B   A3           INC     DPTR
+   \   00008C   A3           INC     DPTR
+   \   00008D   E0           MOVX    A,@DPTR
+   \   00008E   FC           MOV     R4,A
+   \   00008F   A3           INC     DPTR
+   \   000090   E0           MOVX    A,@DPTR
+   \   000091   FD           MOV     R5,A
+   \   000092   8E82         MOV     DPL,R6
+   \   000094   8F83         MOV     DPH,R7
+   \   000096   A3           INC     DPTR
+   \   000097   A3           INC     DPTR
+   \   000098   A3           INC     DPTR
+   \   000099   A3           INC     DPTR
+   \   00009A   E0           MOVX    A,@DPTR
+   \   00009B   FA           MOV     R2,A
+   \   00009C   A3           INC     DPTR
+   \   00009D   E0           MOVX    A,@DPTR
+   \   00009E   FB           MOV     R3,A
+   \   00009F   12....       LCALL   ??uip_send?relay
+    141              }
+    142              s->state = STATE_DATA_SENT;
+   \                     ??data_is_sent_and_acked_3:
+   \   0000A2   EE           MOV     A,R6
+   \   0000A3   2414         ADD     A,#0x14
+   \   0000A5   F582         MOV     DPL,A
+   \   0000A7   EF           MOV     A,R7
+   \   0000A8   3400         ADDC    A,#0x0
+   \   0000AA   F583         MOV     DPH,A
+   \   0000AC   7406         MOV     A,#0x6
+   \   0000AE   F0           MOVX    @DPTR,A
+    143              return 0;
+   \   0000AF   7900         MOV     R1,#0x0
+   \   0000B1   02....       LJMP    ??data_is_sent_and_acked_4 & 0xFFFF
+    144            } else if(s->state == STATE_DATA_SENT && uip_acked()) {
+   \                     ??data_is_sent_and_acked_1:
+   \   0000B4   EE           MOV     A,R6
+   \   0000B5   2414         ADD     A,#0x14
+   \   0000B7   F582         MOV     DPL,A
+   \   0000B9   EF           MOV     A,R7
+   \   0000BA   3400         ADDC    A,#0x0
+   \   0000BC   F583         MOV     DPH,A
+   \   0000BE   E0           MOVX    A,@DPTR
+   \   0000BF   6406         XRL     A,#0x6
+   \   0000C1   6003         JZ      $+5
+   \   0000C3   02....       LJMP    ??data_is_sent_and_acked_5 & 0xFFFF
+   \   0000C6   90....       MOV     DPTR,#uip_flags
+   \   0000C9   E0           MOVX    A,@DPTR
+   \   0000CA   A2E0         MOV     C,0xE0 /* A   */.0
+   \   0000CC   4003         JC      $+5
+   \   0000CE   02....       LJMP    ??data_is_sent_and_acked_5 & 0xFFFF
+    145              if(s->sendlen > uip_mss()) {
+   \   0000D1   90....       MOV     DPTR,#uip_conn
+   \   0000D4   E0           MOVX    A,@DPTR
+   \   0000D5   F8           MOV     R0,A
+   \   0000D6   A3           INC     DPTR
+   \   0000D7   E0           MOVX    A,@DPTR
+   \   0000D8   C8           XCH     A,R0
+   \   0000D9   241E         ADD     A,#0x1e
+   \   0000DB   F582         MOV     DPL,A
+   \   0000DD   E8           MOV     A,R0
+   \   0000DE   3400         ADDC    A,#0x0
+   \   0000E0   F583         MOV     DPH,A
+   \   0000E2   C082         PUSH    DPL
+   \   0000E4   C083         PUSH    DPH
+   \   0000E6   8E82         MOV     DPL,R6
+   \   0000E8   8F83         MOV     DPH,R7
+   \   0000EA   A3           INC     DPTR
+   \   0000EB   A3           INC     DPTR
+   \   0000EC   A3           INC     DPTR
+   \   0000ED   A3           INC     DPTR
+   \   0000EE   A3           INC     DPTR
+   \   0000EF   A3           INC     DPTR
+   \   0000F0   A3           INC     DPTR
+   \   0000F1   A3           INC     DPTR
+   \   0000F2   A3           INC     DPTR
+   \   0000F3   A3           INC     DPTR
+   \   0000F4   E0           MOVX    A,@DPTR
+   \   0000F5   F8           MOV     R0,A
+   \   0000F6   A3           INC     DPTR
+   \   0000F7   E0           MOVX    A,@DPTR
+   \   0000F8   F9           MOV     R1,A
+   \   0000F9   D083         POP     DPH
+   \   0000FB   D082         POP     DPL
+   \   0000FD   C3           CLR     C
+   \   0000FE   E0           MOVX    A,@DPTR
+   \   0000FF   98           SUBB    A,R0
+   \   000100   A3           INC     DPTR
+   \   000101   E0           MOVX    A,@DPTR
+   \   000102   99           SUBB    A,R1
+   \   000103   5060         JNC     ??data_is_sent_and_acked_6
+    146                s->sendlen -= uip_mss();
+   \   000105   90....       MOV     DPTR,#uip_conn
+   \   000108   E0           MOVX    A,@DPTR
+   \   000109   F8           MOV     R0,A
+   \   00010A   A3           INC     DPTR
+   \   00010B   E0           MOVX    A,@DPTR
+   \   00010C   C8           XCH     A,R0
+   \   00010D   241E         ADD     A,#0x1e
+   \   00010F   F582         MOV     DPL,A
+   \   000111   E8           MOV     A,R0
+   \   000112   3400         ADDC    A,#0x0
+   \   000114   F583         MOV     DPH,A
+   \   000116   E0           MOVX    A,@DPTR
+   \   000117   F8           MOV     R0,A
+   \   000118   A3           INC     DPTR
+   \   000119   E0           MOVX    A,@DPTR
+   \   00011A   F9           MOV     R1,A
+   \   00011B   8E82         MOV     DPL,R6
+   \   00011D   8F83         MOV     DPH,R7
+   \   00011F   A3           INC     DPTR
+   \   000120   A3           INC     DPTR
+   \   000121   A3           INC     DPTR
+   \   000122   A3           INC     DPTR
+   \   000123   A3           INC     DPTR
+   \   000124   A3           INC     DPTR
+   \   000125   A3           INC     DPTR
+   \   000126   A3           INC     DPTR
+   \   000127   A3           INC     DPTR
+   \   000128   A3           INC     DPTR
+   \   000129   C3           CLR     C
+   \   00012A   E0           MOVX    A,@DPTR
+   \   00012B   98           SUBB    A,R0
+   \   00012C   F0           MOVX    @DPTR,A
+   \   00012D   A3           INC     DPTR
+   \   00012E   E0           MOVX    A,@DPTR
+   \   00012F   99           SUBB    A,R1
+   \   000130   F0           MOVX    @DPTR,A
+    147                s->sendptr += uip_mss();
+   \   000131   90....       MOV     DPTR,#uip_conn
+   \   000134   E0           MOVX    A,@DPTR
+   \   000135   F8           MOV     R0,A
+   \   000136   A3           INC     DPTR
+   \   000137   E0           MOVX    A,@DPTR
+   \   000138   C8           XCH     A,R0
+   \   000139   241E         ADD     A,#0x1e
+   \   00013B   F582         MOV     DPL,A
+   \   00013D   E8           MOV     A,R0
+   \   00013E   3400         ADDC    A,#0x0
+   \   000140   F583         MOV     DPH,A
+   \   000142   E0           MOVX    A,@DPTR
+   \   000143   F8           MOV     R0,A
+   \   000144   A3           INC     DPTR
+   \   000145   E0           MOVX    A,@DPTR
+   \   000146   F9           MOV     R1,A
+   \   000147   8E82         MOV     DPL,R6
+   \   000149   8F83         MOV     DPH,R7
+   \   00014B   A3           INC     DPTR
+   \   00014C   A3           INC     DPTR
+   \   00014D   A3           INC     DPTR
+   \   00014E   A3           INC     DPTR
+   \   00014F   E0           MOVX    A,@DPTR
+   \   000150   28           ADD     A,R0
+   \   000151   F8           MOV     R0,A
+   \   000152   A3           INC     DPTR
+   \   000153   E0           MOVX    A,@DPTR
+   \   000154   39           ADDC    A,R1
+   \   000155   F9           MOV     R1,A
+   \   000156   8E82         MOV     DPL,R6
+   \   000158   8F83         MOV     DPH,R7
+   \   00015A   A3           INC     DPTR
+   \   00015B   A3           INC     DPTR
+   \   00015C   A3           INC     DPTR
+   \   00015D   A3           INC     DPTR
+   \   00015E   E8           MOV     A,R0
+   \   00015F   F0           MOVX    @DPTR,A
+   \   000160   A3           INC     DPTR
+   \   000161   E9           MOV     A,R1
+   \   000162   F0           MOVX    @DPTR,A
+   \   000163   8044         SJMP    ??data_is_sent_and_acked_7
+    148              } else {
+    149                s->sendptr += s->sendlen;
+   \                     ??data_is_sent_and_acked_6:
+   \   000165   8E82         MOV     DPL,R6
+   \   000167   8F83         MOV     DPH,R7
+   \   000169   A3           INC     DPTR
+   \   00016A   A3           INC     DPTR
+   \   00016B   A3           INC     DPTR
+   \   00016C   A3           INC     DPTR
+   \   00016D   A3           INC     DPTR
+   \   00016E   A3           INC     DPTR
+   \   00016F   A3           INC     DPTR
+   \   000170   A3           INC     DPTR
+   \   000171   A3           INC     DPTR
+   \   000172   A3           INC     DPTR
+   \   000173   E0           MOVX    A,@DPTR
+   \   000174   F8           MOV     R0,A
+   \   000175   A3           INC     DPTR
+   \   000176   E0           MOVX    A,@DPTR
+   \   000177   F9           MOV     R1,A
+   \   000178   8E82         MOV     DPL,R6
+   \   00017A   8F83         MOV     DPH,R7
+   \   00017C   A3           INC     DPTR
+   \   00017D   A3           INC     DPTR
+   \   00017E   A3           INC     DPTR
+   \   00017F   A3           INC     DPTR
+   \   000180   E0           MOVX    A,@DPTR
+   \   000181   28           ADD     A,R0
+   \   000182   F8           MOV     R0,A
+   \   000183   A3           INC     DPTR
+   \   000184   E0           MOVX    A,@DPTR
+   \   000185   39           ADDC    A,R1
+   \   000186   F9           MOV     R1,A
+   \   000187   8E82         MOV     DPL,R6
+   \   000189   8F83         MOV     DPH,R7
+   \   00018B   A3           INC     DPTR
+   \   00018C   A3           INC     DPTR
+   \   00018D   A3           INC     DPTR
+   \   00018E   A3           INC     DPTR
+   \   00018F   E8           MOV     A,R0
+   \   000190   F0           MOVX    @DPTR,A
+   \   000191   A3           INC     DPTR
+   \   000192   E9           MOV     A,R1
+   \   000193   F0           MOVX    @DPTR,A
+    150                s->sendlen = 0;
+   \   000194   8E82         MOV     DPL,R6
+   \   000196   8F83         MOV     DPH,R7
+   \   000198   A3           INC     DPTR
+   \   000199   A3           INC     DPTR
+   \   00019A   A3           INC     DPTR
+   \   00019B   A3           INC     DPTR
+   \   00019C   A3           INC     DPTR
+   \   00019D   A3           INC     DPTR
+   \   00019E   A3           INC     DPTR
+   \   00019F   A3           INC     DPTR
+   \   0001A0   A3           INC     DPTR
+   \   0001A1   A3           INC     DPTR
+   \   0001A2   7400         MOV     A,#0x0
+   \   0001A4   F0           MOVX    @DPTR,A
+   \   0001A5   A3           INC     DPTR
+   \   0001A6   7400         MOV     A,#0x0
+   \   0001A8   F0           MOVX    @DPTR,A
+    151              }
+    152              s->state = STATE_ACKED;
+   \                     ??data_is_sent_and_acked_7:
+   \   0001A9   EE           MOV     A,R6
+   \   0001AA   2414         ADD     A,#0x14
+   \   0001AC   F582         MOV     DPL,A
+   \   0001AE   EF           MOV     A,R7
+   \   0001AF   3400         ADDC    A,#0x0
+   \   0001B1   F583         MOV     DPH,A
+   \   0001B3   7401         MOV     A,#0x1
+   \   0001B5   F0           MOVX    @DPTR,A
+    153              return 1;
+   \   0001B6   7901         MOV     R1,#0x1
+   \   0001B8   8002         SJMP    ??data_is_sent_and_acked_4
+    154            }
+    155            return 0;
+   \                     ??data_is_sent_and_acked_5:
+   \   0001BA   7900         MOV     R1,#0x0
+   \                     ??data_is_sent_and_acked_4:
+   \   0001BC   7F01         MOV     R7,#0x1
+   \   0001BE   02....       LJMP    ?BANKED_LEAVE_XDATA
+    156          }
+    157          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    158          PT_THREAD(psock_send(CC_REGISTER_ARG struct psock *s, const uint8_t *buf,
+    159          		     unsigned int len))
+   \                     psock_send:
+    160          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    161            PT_BEGIN(&s->psockpt);
+   \   000009   7A01         MOV     R2,#0x1
+   \   00000B   8E82         MOV     DPL,R6
+   \   00000D   8F83         MOV     DPH,R7
+   \   00000F   A3           INC     DPTR
+   \   000010   A3           INC     DPTR
+   \   000011   E0           MOVX    A,@DPTR
+   \   000012   F5..         MOV     ?V0 + 0,A
+   \   000014   A3           INC     DPTR
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   F5..         MOV     ?V0 + 1,A
+   \   000018   78..         MOV     R0,#?V0 + 0
+   \   00001A   12....       LCALL   ?US_SWITCH_SPARSE
+   \                     `?<Jumptable for psock_send>_0`:
+   \   00001D   0000         DW        0
+   \   00001F   0200         DW        2
+   \   000021   0000         DW        0
+   \   000023   ....         DW        ??psock_send_0
+   \   000025   B700         DW        183
+   \   000027   ....         DW        ??psock_send_1
+   \   000029   ....         DW        ??psock_send_2
+   \                     ??psock_send_0:
+   \   00002B   740A         MOV     A,#0xa
+   \   00002D   12....       LCALL   ?XSTACK_DISP0_8
+   \   000030   E0           MOVX    A,@DPTR
+   \   000031   F8           MOV     R0,A
+   \   000032   A3           INC     DPTR
+   \   000033   E0           MOVX    A,@DPTR
+   \   000034   F9           MOV     R1,A
+    162          
+    163            /* If there is no data to send, we exit immediately. */
+    164            if(len == 0) {
+   \   000035   E8           MOV     A,R0
+   \   000036   49           ORL     A,R1
+   \   000037   7011         JNZ     ??psock_send_3
+    165              PT_EXIT(&s->psockpt);
+   \   000039   8E82         MOV     DPL,R6
+   \   00003B   8F83         MOV     DPH,R7
+   \   00003D   A3           INC     DPTR
+   \   00003E   A3           INC     DPTR
+   \   00003F   7400         MOV     A,#0x0
+   \   000041   F0           MOVX    @DPTR,A
+   \   000042   A3           INC     DPTR
+   \   000043   7400         MOV     A,#0x0
+   \   000045   F0           MOVX    @DPTR,A
+   \   000046   7902         MOV     R1,#0x2
+   \   000048   807D         SJMP    ??psock_send_4
+    166            }
+    167          
+    168            /* Save the length of and a pointer to the data that is to be
+    169               sent. */
+    170            s->sendptr = buf;
+   \                     ??psock_send_3:
+   \   00004A   8E82         MOV     DPL,R6
+   \   00004C   8F83         MOV     DPH,R7
+   \   00004E   A3           INC     DPTR
+   \   00004F   A3           INC     DPTR
+   \   000050   A3           INC     DPTR
+   \   000051   A3           INC     DPTR
+   \   000052   EC           MOV     A,R4
+   \   000053   F0           MOVX    @DPTR,A
+   \   000054   A3           INC     DPTR
+   \   000055   ED           MOV     A,R5
+   \   000056   F0           MOVX    @DPTR,A
+    171            s->sendlen = len;
+   \   000057   8E82         MOV     DPL,R6
+   \   000059   8F83         MOV     DPH,R7
+   \   00005B   A3           INC     DPTR
+   \   00005C   A3           INC     DPTR
+   \   00005D   A3           INC     DPTR
+   \   00005E   A3           INC     DPTR
+   \   00005F   A3           INC     DPTR
+   \   000060   A3           INC     DPTR
+   \   000061   A3           INC     DPTR
+   \   000062   A3           INC     DPTR
+   \   000063   A3           INC     DPTR
+   \   000064   A3           INC     DPTR
+   \   000065   E8           MOV     A,R0
+   \   000066   F0           MOVX    @DPTR,A
+   \   000067   A3           INC     DPTR
+   \   000068   E9           MOV     A,R1
+   \   000069   F0           MOVX    @DPTR,A
+    172          
+    173            s->state = STATE_NONE;
+   \   00006A   EE           MOV     A,R6
+   \   00006B   2414         ADD     A,#0x14
+   \   00006D   F582         MOV     DPL,A
+   \   00006F   EF           MOV     A,R7
+   \   000070   3400         ADDC    A,#0x0
+   \   000072   F583         MOV     DPH,A
+   \   000074   7400         MOV     A,#0x0
+   \   000076   F0           MOVX    @DPTR,A
+    174          
+    175            /* We loop here until all data is sent. The s->sendlen variable is
+    176               updated by the data_sent() function. */
+    177            while(s->sendlen > 0) {
+   \                     ??psock_send_5:
+   \   000077   8E82         MOV     DPL,R6
+   \   000079   8F83         MOV     DPH,R7
+   \   00007B   A3           INC     DPTR
+   \   00007C   A3           INC     DPTR
+   \   00007D   A3           INC     DPTR
+   \   00007E   A3           INC     DPTR
+   \   00007F   A3           INC     DPTR
+   \   000080   A3           INC     DPTR
+   \   000081   A3           INC     DPTR
+   \   000082   A3           INC     DPTR
+   \   000083   A3           INC     DPTR
+   \   000084   A3           INC     DPTR
+   \   000085   E0           MOVX    A,@DPTR
+   \   000086   F8           MOV     R0,A
+   \   000087   A3           INC     DPTR
+   \   000088   E0           MOVX    A,@DPTR
+   \   000089   F9           MOV     R1,A
+   \   00008A   E8           MOV     A,R0
+   \   00008B   49           ORL     A,R1
+   \   00008C   601B         JZ      ??psock_send_6
+    178          
+    179              /*
+    180               * The protothread will wait here until all data has been
+    181               * acknowledged and sent (data_is_acked_and_send() returns 1).
+    182               */
+    183              PT_WAIT_UNTIL(&s->psockpt, data_is_sent_and_acked(s));
+   \   00008E   8E82         MOV     DPL,R6
+   \   000090   8F83         MOV     DPH,R7
+   \   000092   A3           INC     DPTR
+   \   000093   A3           INC     DPTR
+   \   000094   74B7         MOV     A,#-0x49
+   \   000096   F0           MOVX    @DPTR,A
+   \   000097   A3           INC     DPTR
+   \   000098   7400         MOV     A,#0x0
+   \   00009A   F0           MOVX    @DPTR,A
+   \                     ??psock_send_1:
+   \   00009B                ; Setup parameters for call to function data_is_sent_and_acked
+   \   00009B   EE           MOV     A,R6
+   \   00009C   FA           MOV     R2,A
+   \   00009D   EF           MOV     A,R7
+   \   00009E   FB           MOV     R3,A
+   \   00009F   12....       LCALL   ??data_is_sent_and_acked?relay
+   \   0000A2   E9           MOV     A,R1
+   \   0000A3   70D2         JNZ     ??psock_send_5
+   \   0000A5   7900         MOV     R1,#0x0
+   \   0000A7   801E         SJMP    ??psock_send_4
+    184            }
+    185          
+    186            s->state = STATE_NONE;
+   \                     ??psock_send_6:
+   \   0000A9   EE           MOV     A,R6
+   \   0000AA   2414         ADD     A,#0x14
+   \   0000AC   F582         MOV     DPL,A
+   \   0000AE   EF           MOV     A,R7
+   \   0000AF   3400         ADDC    A,#0x0
+   \   0000B1   F583         MOV     DPH,A
+   \   0000B3   7400         MOV     A,#0x0
+   \   0000B5   F0           MOVX    @DPTR,A
+    187            
+    188            PT_END(&s->psockpt);
+   \                     ??psock_send_2:
+   \   0000B6   7A00         MOV     R2,#0x0
+   \   0000B8   8E82         MOV     DPL,R6
+   \   0000BA   8F83         MOV     DPH,R7
+   \   0000BC   A3           INC     DPTR
+   \   0000BD   A3           INC     DPTR
+   \   0000BE   7400         MOV     A,#0x0
+   \   0000C0   F0           MOVX    @DPTR,A
+   \   0000C1   A3           INC     DPTR
+   \   0000C2   7400         MOV     A,#0x0
+   \   0000C4   F0           MOVX    @DPTR,A
+   \   0000C5   7903         MOV     R1,#0x3
+   \                     ??psock_send_4:
+   \   0000C7   7F02         MOV     R7,#0x2
+   \   0000C9   02....       LJMP    ?BANKED_LEAVE_XDATA
+    189          }
+    190          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    191          PT_THREAD(psock_generator_send(CC_REGISTER_ARG struct psock *s,
+    192          			       unsigned short (*generate)(void *), void *arg))
+   \                     psock_generator_send:
+    193          {
+   \   000000   74F2         MOV     A,#-0xe
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 14
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   8C..         MOV     ?V0 + 0,R4
+   \   00000B   8D..         MOV     ?V0 + 1,R5
+   \   00000D   740E         MOV     A,#0xe
+   \   00000F   12....       LCALL   ?XSTACK_DISP0_8
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   F5..         MOV     ?V0 + 2,A
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F5..         MOV     ?V0 + 3,A
+    194            PT_BEGIN(&s->psockpt);
+   \   000019   7A01         MOV     R2,#0x1
+   \   00001B   8E82         MOV     DPL,R6
+   \   00001D   8F83         MOV     DPH,R7
+   \   00001F   A3           INC     DPTR
+   \   000020   A3           INC     DPTR
+   \   000021   E0           MOVX    A,@DPTR
+   \   000022   F5..         MOV     ?V0 + 4,A
+   \   000024   A3           INC     DPTR
+   \   000025   E0           MOVX    A,@DPTR
+   \   000026   F5..         MOV     ?V0 + 5,A
+   \   000028   78..         MOV     R0,#?V0 + 4
+   \   00002A   12....       LCALL   ?US_SWITCH_SPARSE
+   \                     `?<Jumptable for psock_generator_send>_0`:
+   \   00002D   0000         DW        0
+   \   00002F   0200         DW        2
+   \   000031   0000         DW        0
+   \   000033   ....         DW        ??psock_generator_send_0
+   \   000035   D900         DW        217
+   \   000037   ....         DW        ??psock_generator_send_1
+   \   000039   ....         DW        ??psock_generator_send_2
+    195          
+    196            /* Ensure that there is a generator function to call. */
+    197            if(generate == NULL) {
+   \                     ??psock_generator_send_0:
+   \   00003B   E5..         MOV     A,?V0 + 0
+   \   00003D   45..         ORL     A,?V0 + 1
+   \   00003F   7012         JNZ     ??psock_generator_send_3
+    198              PT_EXIT(&s->psockpt);
+   \   000041   8E82         MOV     DPL,R6
+   \   000043   8F83         MOV     DPH,R7
+   \   000045   A3           INC     DPTR
+   \   000046   A3           INC     DPTR
+   \   000047   7400         MOV     A,#0x0
+   \   000049   F0           MOVX    @DPTR,A
+   \   00004A   A3           INC     DPTR
+   \   00004B   7400         MOV     A,#0x0
+   \   00004D   F0           MOVX    @DPTR,A
+   \   00004E   7902         MOV     R1,#0x2
+   \   000050   02....       LJMP    ??psock_generator_send_4 & 0xFFFF
+    199            }
+    200          
+    201            s->state = STATE_NONE;
+   \                     ??psock_generator_send_3:
+   \   000053   EE           MOV     A,R6
+   \   000054   2414         ADD     A,#0x14
+   \   000056   F582         MOV     DPL,A
+   \   000058   EF           MOV     A,R7
+   \   000059   3400         ADDC    A,#0x0
+   \   00005B   F583         MOV     DPH,A
+   \   00005D   7400         MOV     A,#0x0
+   \   00005F   F0           MOVX    @DPTR,A
+    202            do {
+    203              /* Call the generator function to generate the data in the
+    204               uip_appdata buffer. */
+    205              s->sendlen = generate(arg);
+   \                     ??psock_generator_send_5:
+   \   000060                ; Setup parameters for indirect call
+   \   000060   AA..         MOV     R2,?V0 + 2
+   \   000062   AB..         MOV     R3,?V0 + 3
+   \   000064   85..82       MOV     DPL,?V0 + 0
+   \   000067   85..83       MOV     DPH,?V0 + 1
+   \   00006A   12....       LCALL   ?CALL_IND
+   \   00006D   8E82         MOV     DPL,R6
+   \   00006F   8F83         MOV     DPH,R7
+   \   000071   A3           INC     DPTR
+   \   000072   A3           INC     DPTR
+   \   000073   A3           INC     DPTR
+   \   000074   A3           INC     DPTR
+   \   000075   A3           INC     DPTR
+   \   000076   A3           INC     DPTR
+   \   000077   A3           INC     DPTR
+   \   000078   A3           INC     DPTR
+   \   000079   A3           INC     DPTR
+   \   00007A   A3           INC     DPTR
+   \   00007B   EA           MOV     A,R2
+   \   00007C   F0           MOVX    @DPTR,A
+   \   00007D   A3           INC     DPTR
+   \   00007E   EB           MOV     A,R3
+   \   00007F   F0           MOVX    @DPTR,A
+    206              s->sendptr = uip_appdata;
+   \   000080   90....       MOV     DPTR,#uip_appdata
+   \   000083   E0           MOVX    A,@DPTR
+   \   000084   F8           MOV     R0,A
+   \   000085   A3           INC     DPTR
+   \   000086   E0           MOVX    A,@DPTR
+   \   000087   F9           MOV     R1,A
+   \   000088   8E82         MOV     DPL,R6
+   \   00008A   8F83         MOV     DPH,R7
+   \   00008C   A3           INC     DPTR
+   \   00008D   A3           INC     DPTR
+   \   00008E   A3           INC     DPTR
+   \   00008F   A3           INC     DPTR
+   \   000090   E8           MOV     A,R0
+   \   000091   F0           MOVX    @DPTR,A
+   \   000092   A3           INC     DPTR
+   \   000093   E9           MOV     A,R1
+   \   000094   F0           MOVX    @DPTR,A
+    207              
+    208              if(s->sendlen > uip_mss()) {
+   \   000095   90....       MOV     DPTR,#uip_conn
+   \   000098   E0           MOVX    A,@DPTR
+   \   000099   F8           MOV     R0,A
+   \   00009A   A3           INC     DPTR
+   \   00009B   E0           MOVX    A,@DPTR
+   \   00009C   C8           XCH     A,R0
+   \   00009D   241E         ADD     A,#0x1e
+   \   00009F   F582         MOV     DPL,A
+   \   0000A1   E8           MOV     A,R0
+   \   0000A2   3400         ADDC    A,#0x0
+   \   0000A4   F583         MOV     DPH,A
+   \   0000A6   C082         PUSH    DPL
+   \   0000A8   C083         PUSH    DPH
+   \   0000AA   8E82         MOV     DPL,R6
+   \   0000AC   8F83         MOV     DPH,R7
+   \   0000AE   A3           INC     DPTR
+   \   0000AF   A3           INC     DPTR
+   \   0000B0   A3           INC     DPTR
+   \   0000B1   A3           INC     DPTR
+   \   0000B2   A3           INC     DPTR
+   \   0000B3   A3           INC     DPTR
+   \   0000B4   A3           INC     DPTR
+   \   0000B5   A3           INC     DPTR
+   \   0000B6   A3           INC     DPTR
+   \   0000B7   A3           INC     DPTR
+   \   0000B8   E0           MOVX    A,@DPTR
+   \   0000B9   F8           MOV     R0,A
+   \   0000BA   A3           INC     DPTR
+   \   0000BB   E0           MOVX    A,@DPTR
+   \   0000BC   F9           MOV     R1,A
+   \   0000BD   D083         POP     DPH
+   \   0000BF   D082         POP     DPL
+   \   0000C1   C3           CLR     C
+   \   0000C2   E0           MOVX    A,@DPTR
+   \   0000C3   98           SUBB    A,R0
+   \   0000C4   A3           INC     DPTR
+   \   0000C5   E0           MOVX    A,@DPTR
+   \   0000C6   99           SUBB    A,R1
+   \   0000C7   5028         JNC     ??psock_generator_send_6
+    209                uip_send(s->sendptr, uip_mss());
+   \   0000C9                ; Setup parameters for call to function uip_send
+   \   0000C9   90....       MOV     DPTR,#uip_conn
+   \   0000CC   E0           MOVX    A,@DPTR
+   \   0000CD   F8           MOV     R0,A
+   \   0000CE   A3           INC     DPTR
+   \   0000CF   E0           MOVX    A,@DPTR
+   \   0000D0   C8           XCH     A,R0
+   \   0000D1   241E         ADD     A,#0x1e
+   \   0000D3   F582         MOV     DPL,A
+   \   0000D5   E8           MOV     A,R0
+   \   0000D6   3400         ADDC    A,#0x0
+   \   0000D8   F583         MOV     DPH,A
+   \   0000DA   E0           MOVX    A,@DPTR
+   \   0000DB   FC           MOV     R4,A
+   \   0000DC   A3           INC     DPTR
+   \   0000DD   E0           MOVX    A,@DPTR
+   \   0000DE   FD           MOV     R5,A
+   \   0000DF   8E82         MOV     DPL,R6
+   \   0000E1   8F83         MOV     DPH,R7
+   \   0000E3   A3           INC     DPTR
+   \   0000E4   A3           INC     DPTR
+   \   0000E5   A3           INC     DPTR
+   \   0000E6   A3           INC     DPTR
+   \   0000E7   E0           MOVX    A,@DPTR
+   \   0000E8   FA           MOV     R2,A
+   \   0000E9   A3           INC     DPTR
+   \   0000EA   E0           MOVX    A,@DPTR
+   \   0000EB   FB           MOV     R3,A
+   \   0000EC   12....       LCALL   ??uip_send?relay
+   \   0000EF   8023         SJMP    ??psock_generator_send_7
+    210              } else {
+    211                uip_send(s->sendptr, s->sendlen);
+   \                     ??psock_generator_send_6:
+   \   0000F1                ; Setup parameters for call to function uip_send
+   \   0000F1   8E82         MOV     DPL,R6
+   \   0000F3   8F83         MOV     DPH,R7
+   \   0000F5   A3           INC     DPTR
+   \   0000F6   A3           INC     DPTR
+   \   0000F7   A3           INC     DPTR
+   \   0000F8   A3           INC     DPTR
+   \   0000F9   A3           INC     DPTR
+   \   0000FA   A3           INC     DPTR
+   \   0000FB   A3           INC     DPTR
+   \   0000FC   A3           INC     DPTR
+   \   0000FD   A3           INC     DPTR
+   \   0000FE   A3           INC     DPTR
+   \   0000FF   E0           MOVX    A,@DPTR
+   \   000100   FC           MOV     R4,A
+   \   000101   A3           INC     DPTR
+   \   000102   E0           MOVX    A,@DPTR
+   \   000103   FD           MOV     R5,A
+   \   000104   8E82         MOV     DPL,R6
+   \   000106   8F83         MOV     DPH,R7
+   \   000108   A3           INC     DPTR
+   \   000109   A3           INC     DPTR
+   \   00010A   A3           INC     DPTR
+   \   00010B   A3           INC     DPTR
+   \   00010C   E0           MOVX    A,@DPTR
+   \   00010D   FA           MOV     R2,A
+   \   00010E   A3           INC     DPTR
+   \   00010F   E0           MOVX    A,@DPTR
+   \   000110   FB           MOV     R3,A
+   \   000111   12....       LCALL   ??uip_send?relay
+    212              }
+    213              s->state = STATE_DATA_SENT;
+   \                     ??psock_generator_send_7:
+   \   000114   EE           MOV     A,R6
+   \   000115   2414         ADD     A,#0x14
+   \   000117   F582         MOV     DPL,A
+   \   000119   EF           MOV     A,R7
+   \   00011A   3400         ADDC    A,#0x0
+   \   00011C   F583         MOV     DPH,A
+   \   00011E   7406         MOV     A,#0x6
+   \   000120   F0           MOVX    @DPTR,A
+    214          
+    215              /* Wait until all data is sent and acknowledged. */
+    216           // if (!s->sendlen) break;   //useful debugging aid
+    217              PT_YIELD_UNTIL(&s->psockpt, uip_acked() || uip_rexmit());
+   \   000121   7A00         MOV     R2,#0x0
+   \   000123   8E82         MOV     DPL,R6
+   \   000125   8F83         MOV     DPH,R7
+   \   000127   A3           INC     DPTR
+   \   000128   A3           INC     DPTR
+   \   000129   74D9         MOV     A,#-0x27
+   \   00012B   F0           MOVX    @DPTR,A
+   \   00012C   A3           INC     DPTR
+   \   00012D   7400         MOV     A,#0x0
+   \   00012F   F0           MOVX    @DPTR,A
+   \                     ??psock_generator_send_1:
+   \   000130   EA           MOV     A,R2
+   \   000131   6008         JZ      ??psock_generator_send_8
+   \   000133   90....       MOV     DPTR,#uip_flags
+   \   000136   E0           MOVX    A,@DPTR
+   \   000137   5405         ANL     A,#0x5
+   \   000139   7004         JNZ     ??psock_generator_send_9
+   \                     ??psock_generator_send_8:
+   \   00013B   7901         MOV     R1,#0x1
+   \   00013D   8029         SJMP    ??psock_generator_send_4
+    218            } while(!uip_acked());
+   \                     ??psock_generator_send_9:
+   \   00013F   90....       MOV     DPTR,#uip_flags
+   \   000142   E0           MOVX    A,@DPTR
+   \   000143   A2E0         MOV     C,0xE0 /* A   */.0
+   \   000145   4003         JC      $+5
+   \   000147   02....       LJMP    ??psock_generator_send_5 & 0xFFFF
+    219            
+    220            s->state = STATE_NONE;
+   \   00014A   EE           MOV     A,R6
+   \   00014B   2414         ADD     A,#0x14
+   \   00014D   F582         MOV     DPL,A
+   \   00014F   EF           MOV     A,R7
+   \   000150   3400         ADDC    A,#0x0
+   \   000152   F583         MOV     DPH,A
+   \   000154   7400         MOV     A,#0x0
+   \   000156   F0           MOVX    @DPTR,A
+    221            
+    222            PT_END(&s->psockpt);
+   \                     ??psock_generator_send_2:
+   \   000157   7A00         MOV     R2,#0x0
+   \   000159   8E82         MOV     DPL,R6
+   \   00015B   8F83         MOV     DPH,R7
+   \   00015D   A3           INC     DPTR
+   \   00015E   A3           INC     DPTR
+   \   00015F   7400         MOV     A,#0x0
+   \   000161   F0           MOVX    @DPTR,A
+   \   000162   A3           INC     DPTR
+   \   000163   7400         MOV     A,#0x0
+   \   000165   F0           MOVX    @DPTR,A
+   \   000166   7903         MOV     R1,#0x3
+   \                     ??psock_generator_send_4:
+   \   000168   7F06         MOV     R7,#0x6
+   \   00016A   02....       LJMP    ?BANKED_LEAVE_XDATA
+    223          }
+    224          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    225          uint16_t
+    226          psock_datalen(struct psock *psock)
+   \                     psock_datalen:
+    227          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    228            return psock->bufsize - psock->buf.left;
+   \   000004   EA           MOV     A,R2
+   \   000005   2412         ADD     A,#0x12
+   \   000007   F582         MOV     DPL,A
+   \   000009   EB           MOV     A,R3
+   \   00000A   3400         ADDC    A,#0x0
+   \   00000C   F583         MOV     DPH,A
+   \   00000E   C082         PUSH    DPL
+   \   000010   C083         PUSH    DPH
+   \   000012   EA           MOV     A,R2
+   \   000013   2410         ADD     A,#0x10
+   \   000015   F582         MOV     DPL,A
+   \   000017   EB           MOV     A,R3
+   \   000018   3400         ADDC    A,#0x0
+   \   00001A   F583         MOV     DPH,A
+   \   00001C   E0           MOVX    A,@DPTR
+   \   00001D   F8           MOV     R0,A
+   \   00001E   A3           INC     DPTR
+   \   00001F   E0           MOVX    A,@DPTR
+   \   000020   F9           MOV     R1,A
+   \   000021   D083         POP     DPH
+   \   000023   D082         POP     DPL
+   \   000025   E0           MOVX    A,@DPTR
+   \   000026   C3           CLR     C
+   \   000027   98           SUBB    A,R0
+   \   000028   FA           MOV     R2,A
+   \   000029   A3           INC     DPTR
+   \   00002A   E0           MOVX    A,@DPTR
+   \   00002B   99           SUBB    A,R1
+   \   00002C   FB           MOV     R3,A
+   \   00002D   D083         POP     DPH
+   \   00002F   D082         POP     DPL
+   \   000031   02....       LJMP    ?BRET
+    229          }
+    230          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    231          char
+    232          psock_newdata(struct psock *s)
+   \                     psock_newdata:
+    233          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    234            if(s->readlen > 0) {
+   \   000004   EA           MOV     A,R2
+   \   000005   240C         ADD     A,#0xc
+   \   000007   F582         MOV     DPL,A
+   \   000009   EB           MOV     A,R3
+   \   00000A   3400         ADDC    A,#0x0
+   \   00000C   F583         MOV     DPH,A
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   F8           MOV     R0,A
+   \   000010   A3           INC     DPTR
+   \   000011   E0           MOVX    A,@DPTR
+   \   000012   F9           MOV     R1,A
+   \   000013   E8           MOV     A,R0
+   \   000014   49           ORL     A,R1
+   \   000015   6004         JZ      ??psock_newdata_0
+    235              /* There is data in the uip_appdata buffer that has not yet been
+    236                 read with the PSOCK_READ functions. */
+    237              return 1;
+   \   000017   7901         MOV     R1,#0x1
+   \   000019   802E         SJMP    ??psock_newdata_1
+    238            } else if(s->state == STATE_READ) {
+   \                     ??psock_newdata_0:
+   \   00001B   EA           MOV     A,R2
+   \   00001C   2414         ADD     A,#0x14
+   \   00001E   F582         MOV     DPL,A
+   \   000020   EB           MOV     A,R3
+   \   000021   3400         ADDC    A,#0x0
+   \   000023   F583         MOV     DPH,A
+   \   000025   E0           MOVX    A,@DPTR
+   \   000026   6402         XRL     A,#0x2
+   \   000028   7011         JNZ     ??psock_newdata_2
+    239              /* All data in uip_appdata buffer already consumed. */
+    240              s->state = STATE_BLOCKED_NEWDATA;
+   \   00002A   EA           MOV     A,R2
+   \   00002B   2414         ADD     A,#0x14
+   \   00002D   F582         MOV     DPL,A
+   \   00002F   EB           MOV     A,R3
+   \   000030   3400         ADDC    A,#0x0
+   \   000032   F583         MOV     DPH,A
+   \   000034   7403         MOV     A,#0x3
+   \   000036   F0           MOVX    @DPTR,A
+    241              return 0;
+   \   000037   7900         MOV     R1,#0x0
+   \   000039   800E         SJMP    ??psock_newdata_1
+    242            } else if(uip_newdata()) {
+   \                     ??psock_newdata_2:
+   \   00003B   90....       MOV     DPTR,#uip_flags
+   \   00003E   E0           MOVX    A,@DPTR
+   \   00003F   A2E1         MOV     C,0xE0 /* A   */.1
+   \   000041   5004         JNC     ??psock_newdata_3
+    243              /* There is new data that has not been consumed. */
+    244              return 1;
+   \   000043   7901         MOV     R1,#0x1
+   \   000045   8002         SJMP    ??psock_newdata_1
+    245            } else {
+    246              /* There is no new data. */
+    247              return 0;
+   \                     ??psock_newdata_3:
+   \   000047   7900         MOV     R1,#0x0
+   \                     ??psock_newdata_1:
+   \   000049   D083         POP     DPH
+   \   00004B   D082         POP     DPL
+   \   00004D   02....       LJMP    ?BRET
+    248            }
+    249          }
+    250          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    251          PT_THREAD(psock_readto(CC_REGISTER_ARG struct psock *psock, unsigned char c))
+   \                     psock_readto:
+    252          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   89..         MOV     ?V0 + 0,R1
+    253            PT_BEGIN(&psock->psockpt);
+   \   00000B   7A01         MOV     R2,#0x1
+   \   00000D   8E82         MOV     DPL,R6
+   \   00000F   8F83         MOV     DPH,R7
+   \   000011   A3           INC     DPTR
+   \   000012   A3           INC     DPTR
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   F5..         MOV     ?V0 + 2,A
+   \   000016   A3           INC     DPTR
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   F5..         MOV     ?V0 + 3,A
+   \   00001A   78..         MOV     R0,#?V0 + 2
+   \   00001C   12....       LCALL   ?US_SWITCH_SPARSE
+   \                     `?<Jumptable for psock_readto>_0`:
+   \   00001F   0000         DW        0
+   \   000021   0200         DW        2
+   \   000023   0000         DW        0
+   \   000025   ....         DW        ??psock_readto_0
+   \   000027   0601         DW        262
+   \   000029   ....         DW        ??psock_readto_1
+   \   00002B   ....         DW        ??psock_readto_2
+    254          
+    255            buf_setup(&psock->buf, psock->bufptr, psock->bufsize);
+   \                     ??psock_readto_0:
+   \   00002D                ; Setup parameters for call to function buf_setup
+   \   00002D   EE           MOV     A,R6
+   \   00002E   2412         ADD     A,#0x12
+   \   000030   F582         MOV     DPL,A
+   \   000032   EF           MOV     A,R7
+   \   000033   3400         ADDC    A,#0x0
+   \   000035   F583         MOV     DPH,A
+   \   000037   12....       LCALL   ?PUSH_XSTACK8_X_TWO
+   \   00003A   8E82         MOV     DPL,R6
+   \   00003C   8F83         MOV     DPH,R7
+   \   00003E   A3           INC     DPTR
+   \   00003F   A3           INC     DPTR
+   \   000040   A3           INC     DPTR
+   \   000041   A3           INC     DPTR
+   \   000042   A3           INC     DPTR
+   \   000043   A3           INC     DPTR
+   \   000044   A3           INC     DPTR
+   \   000045   A3           INC     DPTR
+   \   000046   E0           MOVX    A,@DPTR
+   \   000047   FC           MOV     R4,A
+   \   000048   A3           INC     DPTR
+   \   000049   E0           MOVX    A,@DPTR
+   \   00004A   FD           MOV     R5,A
+   \   00004B   EE           MOV     A,R6
+   \   00004C   240E         ADD     A,#0xe
+   \   00004E   FA           MOV     R2,A
+   \   00004F   EF           MOV     A,R7
+   \   000050   3400         ADDC    A,#0x0
+   \   000052   FB           MOV     R3,A
+   \   000053   12....       LCALL   ??buf_setup?relay
+   \   000056   7402         MOV     A,#0x2
+   \   000058   12....       LCALL   ?DEALLOC_XSTACK8
+    256            
+    257            /* XXX: Should add buf_checkmarker() before do{} loop, if
+    258               incoming data has been handled while waiting for a write. */
+    259          
+    260            do {
+    261              if(psock->readlen == 0) {
+   \                     ??psock_readto_3:
+   \   00005B   EE           MOV     A,R6
+   \   00005C   240C         ADD     A,#0xc
+   \   00005E   F582         MOV     DPL,A
+   \   000060   EF           MOV     A,R7
+   \   000061   3400         ADDC    A,#0x0
+   \   000063   F583         MOV     DPH,A
+   \   000065   E0           MOVX    A,@DPTR
+   \   000066   F8           MOV     R0,A
+   \   000067   A3           INC     DPTR
+   \   000068   E0           MOVX    A,@DPTR
+   \   000069   F9           MOV     R1,A
+   \   00006A   E8           MOV     A,R0
+   \   00006B   49           ORL     A,R1
+   \   00006C   7057         JNZ     ??psock_readto_4
+    262                PT_WAIT_UNTIL(&psock->psockpt, psock_newdata(psock));
+   \   00006E   8E82         MOV     DPL,R6
+   \   000070   8F83         MOV     DPH,R7
+   \   000072   A3           INC     DPTR
+   \   000073   A3           INC     DPTR
+   \   000074   7406         MOV     A,#0x6
+   \   000076   F0           MOVX    @DPTR,A
+   \   000077   A3           INC     DPTR
+   \   000078   7401         MOV     A,#0x1
+   \   00007A   F0           MOVX    @DPTR,A
+   \                     ??psock_readto_1:
+   \   00007B                ; Setup parameters for call to function psock_newdata
+   \   00007B   EE           MOV     A,R6
+   \   00007C   FA           MOV     R2,A
+   \   00007D   EF           MOV     A,R7
+   \   00007E   FB           MOV     R3,A
+   \   00007F   12....       LCALL   ??psock_newdata?relay
+   \   000082   E9           MOV     A,R1
+   \   000083   7005         JNZ     ??psock_readto_5
+   \   000085   7900         MOV     R1,#0x0
+   \   000087   02....       LJMP    ??psock_readto_6 & 0xFFFF
+    263                psock->state = STATE_READ;
+   \                     ??psock_readto_5:
+   \   00008A   EE           MOV     A,R6
+   \   00008B   2414         ADD     A,#0x14
+   \   00008D   F582         MOV     DPL,A
+   \   00008F   EF           MOV     A,R7
+   \   000090   3400         ADDC    A,#0x0
+   \   000092   F583         MOV     DPH,A
+   \   000094   7402         MOV     A,#0x2
+   \   000096   F0           MOVX    @DPTR,A
+    264                psock->readptr = (uint8_t *)uip_appdata;
+   \   000097   90....       MOV     DPTR,#uip_appdata
+   \   00009A   E0           MOVX    A,@DPTR
+   \   00009B   F8           MOV     R0,A
+   \   00009C   A3           INC     DPTR
+   \   00009D   E0           MOVX    A,@DPTR
+   \   00009E   F9           MOV     R1,A
+   \   00009F   8E82         MOV     DPL,R6
+   \   0000A1   8F83         MOV     DPH,R7
+   \   0000A3   A3           INC     DPTR
+   \   0000A4   A3           INC     DPTR
+   \   0000A5   A3           INC     DPTR
+   \   0000A6   A3           INC     DPTR
+   \   0000A7   A3           INC     DPTR
+   \   0000A8   A3           INC     DPTR
+   \   0000A9   E8           MOV     A,R0
+   \   0000AA   F0           MOVX    @DPTR,A
+   \   0000AB   A3           INC     DPTR
+   \   0000AC   E9           MOV     A,R1
+   \   0000AD   F0           MOVX    @DPTR,A
+    265                psock->readlen = uip_datalen();
+   \   0000AE   90....       MOV     DPTR,#uip_len
+   \   0000B1   E0           MOVX    A,@DPTR
+   \   0000B2   F8           MOV     R0,A
+   \   0000B3   A3           INC     DPTR
+   \   0000B4   E0           MOVX    A,@DPTR
+   \   0000B5   F9           MOV     R1,A
+   \   0000B6   EE           MOV     A,R6
+   \   0000B7   240C         ADD     A,#0xc
+   \   0000B9   F582         MOV     DPL,A
+   \   0000BB   EF           MOV     A,R7
+   \   0000BC   3400         ADDC    A,#0x0
+   \   0000BE   F583         MOV     DPH,A
+   \   0000C0   E8           MOV     A,R0
+   \   0000C1   F0           MOVX    @DPTR,A
+   \   0000C2   A3           INC     DPTR
+   \   0000C3   E9           MOV     A,R1
+   \   0000C4   F0           MOVX    @DPTR,A
+    266              }
+    267            } while(buf_bufto(&psock->buf, c,
+    268          		    &psock->readptr,
+    269          		    &psock->readlen) == BUF_NOT_FOUND);
+   \                     ??psock_readto_4:
+   \   0000C5                ; Setup parameters for call to function buf_bufto
+   \   0000C5   EE           MOV     A,R6
+   \   0000C6   240C         ADD     A,#0xc
+   \   0000C8   F5..         MOV     ?V0 + 2,A
+   \   0000CA   EF           MOV     A,R7
+   \   0000CB   3400         ADDC    A,#0x0
+   \   0000CD   F5..         MOV     ?V0 + 3,A
+   \   0000CF   78..         MOV     R0,#?V0 + 2
+   \   0000D1   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000D4   EE           MOV     A,R6
+   \   0000D5   2406         ADD     A,#0x6
+   \   0000D7   FC           MOV     R4,A
+   \   0000D8   EF           MOV     A,R7
+   \   0000D9   3400         ADDC    A,#0x0
+   \   0000DB   FD           MOV     R5,A
+   \   0000DC   A9..         MOV     R1,?V0 + 0
+   \   0000DE   EE           MOV     A,R6
+   \   0000DF   240E         ADD     A,#0xe
+   \   0000E1   FA           MOV     R2,A
+   \   0000E2   EF           MOV     A,R7
+   \   0000E3   3400         ADDC    A,#0x0
+   \   0000E5   FB           MOV     R3,A
+   \   0000E6   12....       LCALL   ??buf_bufto?relay
+   \   0000E9   7402         MOV     A,#0x2
+   \   0000EB   12....       LCALL   ?DEALLOC_XSTACK8
+   \   0000EE   E9           MOV     A,R1
+   \   0000EF   7003         JNZ     $+5
+   \   0000F1   02....       LJMP    ??psock_readto_3 & 0xFFFF
+    270            
+    271            if(psock_datalen(psock) == 0) {
+   \   0000F4                ; Setup parameters for call to function psock_datalen
+   \   0000F4   EE           MOV     A,R6
+   \   0000F5   FA           MOV     R2,A
+   \   0000F6   EF           MOV     A,R7
+   \   0000F7   FB           MOV     R3,A
+   \   0000F8   12....       LCALL   ??psock_datalen?relay
+   \   0000FB   8A..         MOV     ?V0 + 2,R2
+   \   0000FD   8B..         MOV     ?V0 + 3,R3
+   \   0000FF   E5..         MOV     A,?V0 + 2
+   \   000101   45..         ORL     A,?V0 + 3
+   \   000103   701E         JNZ     ??psock_readto_2
+    272              psock->state = STATE_NONE;
+   \   000105   EE           MOV     A,R6
+   \   000106   2414         ADD     A,#0x14
+   \   000108   F582         MOV     DPL,A
+   \   00010A   EF           MOV     A,R7
+   \   00010B   3400         ADDC    A,#0x0
+   \   00010D   F583         MOV     DPH,A
+   \   00010F   7400         MOV     A,#0x0
+   \   000111   F0           MOVX    @DPTR,A
+    273              PT_RESTART(&psock->psockpt);
+   \   000112   8E82         MOV     DPL,R6
+   \   000114   8F83         MOV     DPH,R7
+   \   000116   A3           INC     DPTR
+   \   000117   A3           INC     DPTR
+   \   000118   7400         MOV     A,#0x0
+   \   00011A   F0           MOVX    @DPTR,A
+   \   00011B   A3           INC     DPTR
+   \   00011C   7400         MOV     A,#0x0
+   \   00011E   F0           MOVX    @DPTR,A
+   \   00011F   7900         MOV     R1,#0x0
+   \   000121   8011         SJMP    ??psock_readto_6
+    274            }
+    275            PT_END(&psock->psockpt);
+   \                     ??psock_readto_2:
+   \   000123   7A00         MOV     R2,#0x0
+   \   000125   8E82         MOV     DPL,R6
+   \   000127   8F83         MOV     DPH,R7
+   \   000129   A3           INC     DPTR
+   \   00012A   A3           INC     DPTR
+   \   00012B   7400         MOV     A,#0x0
+   \   00012D   F0           MOVX    @DPTR,A
+   \   00012E   A3           INC     DPTR
+   \   00012F   7400         MOV     A,#0x0
+   \   000131   F0           MOVX    @DPTR,A
+   \   000132   7903         MOV     R1,#0x3
+   \                     ??psock_readto_6:
+   \   000134   7F04         MOV     R7,#0x4
+   \   000136   02....       LJMP    ?BANKED_LEAVE_XDATA
+    276          }
+    277          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    278          PT_THREAD(psock_readbuf_len(CC_REGISTER_ARG struct psock *psock, uint16_t len))
+   \                     psock_readbuf_len:
+    279          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   8C..         MOV     ?V0 + 0,R4
+   \   00000B   8D..         MOV     ?V0 + 1,R5
+    280            PT_BEGIN(&psock->psockpt);
+   \   00000D   7A01         MOV     R2,#0x1
+   \   00000F   8E82         MOV     DPL,R6
+   \   000011   8F83         MOV     DPH,R7
+   \   000013   A3           INC     DPTR
+   \   000014   A3           INC     DPTR
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   F5..         MOV     ?V0 + 2,A
+   \   000018   A3           INC     DPTR
+   \   000019   E0           MOVX    A,@DPTR
+   \   00001A   F5..         MOV     ?V0 + 3,A
+   \   00001C   78..         MOV     R0,#?V0 + 2
+   \   00001E   12....       LCALL   ?US_SWITCH_SPARSE
+   \                     `?<Jumptable for psock_readbuf_len>_0`:
+   \   000021   0000         DW        0
+   \   000023   0200         DW        2
+   \   000025   0000         DW        0
+   \   000027   ....         DW        ??psock_readbuf_len_0
+   \   000029   2201         DW        290
+   \   00002B   ....         DW        ??psock_readbuf_len_1
+   \   00002D   ....         DW        ??psock_readbuf_len_2
+    281          
+    282            buf_setup(&psock->buf, psock->bufptr, psock->bufsize);
+   \                     ??psock_readbuf_len_0:
+   \   00002F                ; Setup parameters for call to function buf_setup
+   \   00002F   EE           MOV     A,R6
+   \   000030   2412         ADD     A,#0x12
+   \   000032   F582         MOV     DPL,A
+   \   000034   EF           MOV     A,R7
+   \   000035   3400         ADDC    A,#0x0
+   \   000037   F583         MOV     DPH,A
+   \   000039   12....       LCALL   ?PUSH_XSTACK8_X_TWO
+   \   00003C   8E82         MOV     DPL,R6
+   \   00003E   8F83         MOV     DPH,R7
+   \   000040   A3           INC     DPTR
+   \   000041   A3           INC     DPTR
+   \   000042   A3           INC     DPTR
+   \   000043   A3           INC     DPTR
+   \   000044   A3           INC     DPTR
+   \   000045   A3           INC     DPTR
+   \   000046   A3           INC     DPTR
+   \   000047   A3           INC     DPTR
+   \   000048   E0           MOVX    A,@DPTR
+   \   000049   FC           MOV     R4,A
+   \   00004A   A3           INC     DPTR
+   \   00004B   E0           MOVX    A,@DPTR
+   \   00004C   FD           MOV     R5,A
+   \   00004D   EE           MOV     A,R6
+   \   00004E   240E         ADD     A,#0xe
+   \   000050   FA           MOV     R2,A
+   \   000051   EF           MOV     A,R7
+   \   000052   3400         ADDC    A,#0x0
+   \   000054   FB           MOV     R3,A
+   \   000055   12....       LCALL   ??buf_setup?relay
+   \   000058   7402         MOV     A,#0x2
+   \   00005A   12....       LCALL   ?DEALLOC_XSTACK8
+    283          
+    284            /* XXX: Should add buf_checkmarker() before do{} loop, if
+    285               incoming data has been handled while waiting for a write. */
+    286            
+    287            /* read len bytes or to end of data */
+    288            do {
+    289              if(psock->readlen == 0) {
+   \                     ??psock_readbuf_len_3:
+   \   00005D   EE           MOV     A,R6
+   \   00005E   240C         ADD     A,#0xc
+   \   000060   F582         MOV     DPL,A
+   \   000062   EF           MOV     A,R7
+   \   000063   3400         ADDC    A,#0x0
+   \   000065   F583         MOV     DPH,A
+   \   000067   E0           MOVX    A,@DPTR
+   \   000068   F8           MOV     R0,A
+   \   000069   A3           INC     DPTR
+   \   00006A   E0           MOVX    A,@DPTR
+   \   00006B   F9           MOV     R1,A
+   \   00006C   E8           MOV     A,R0
+   \   00006D   49           ORL     A,R1
+   \   00006E   7057         JNZ     ??psock_readbuf_len_4
+    290                PT_WAIT_UNTIL(&psock->psockpt, psock_newdata(psock));
+   \   000070   8E82         MOV     DPL,R6
+   \   000072   8F83         MOV     DPH,R7
+   \   000074   A3           INC     DPTR
+   \   000075   A3           INC     DPTR
+   \   000076   7422         MOV     A,#0x22
+   \   000078   F0           MOVX    @DPTR,A
+   \   000079   A3           INC     DPTR
+   \   00007A   7401         MOV     A,#0x1
+   \   00007C   F0           MOVX    @DPTR,A
+   \                     ??psock_readbuf_len_1:
+   \   00007D                ; Setup parameters for call to function psock_newdata
+   \   00007D   EE           MOV     A,R6
+   \   00007E   FA           MOV     R2,A
+   \   00007F   EF           MOV     A,R7
+   \   000080   FB           MOV     R3,A
+   \   000081   12....       LCALL   ??psock_newdata?relay
+   \   000084   E9           MOV     A,R1
+   \   000085   7005         JNZ     ??psock_readbuf_len_5
+   \   000087   7900         MOV     R1,#0x0
+   \   000089   02....       LJMP    ??psock_readbuf_len_6 & 0xFFFF
+    291                psock->state = STATE_READ;
+   \                     ??psock_readbuf_len_5:
+   \   00008C   EE           MOV     A,R6
+   \   00008D   2414         ADD     A,#0x14
+   \   00008F   F582         MOV     DPL,A
+   \   000091   EF           MOV     A,R7
+   \   000092   3400         ADDC    A,#0x0
+   \   000094   F583         MOV     DPH,A
+   \   000096   7402         MOV     A,#0x2
+   \   000098   F0           MOVX    @DPTR,A
+    292                psock->readptr = (uint8_t *)uip_appdata;
+   \   000099   90....       MOV     DPTR,#uip_appdata
+   \   00009C   E0           MOVX    A,@DPTR
+   \   00009D   F8           MOV     R0,A
+   \   00009E   A3           INC     DPTR
+   \   00009F   E0           MOVX    A,@DPTR
+   \   0000A0   F9           MOV     R1,A
+   \   0000A1   8E82         MOV     DPL,R6
+   \   0000A3   8F83         MOV     DPH,R7
+   \   0000A5   A3           INC     DPTR
+   \   0000A6   A3           INC     DPTR
+   \   0000A7   A3           INC     DPTR
+   \   0000A8   A3           INC     DPTR
+   \   0000A9   A3           INC     DPTR
+   \   0000AA   A3           INC     DPTR
+   \   0000AB   E8           MOV     A,R0
+   \   0000AC   F0           MOVX    @DPTR,A
+   \   0000AD   A3           INC     DPTR
+   \   0000AE   E9           MOV     A,R1
+   \   0000AF   F0           MOVX    @DPTR,A
+    293                psock->readlen = uip_datalen();
+   \   0000B0   90....       MOV     DPTR,#uip_len
+   \   0000B3   E0           MOVX    A,@DPTR
+   \   0000B4   F8           MOV     R0,A
+   \   0000B5   A3           INC     DPTR
+   \   0000B6   E0           MOVX    A,@DPTR
+   \   0000B7   F9           MOV     R1,A
+   \   0000B8   EE           MOV     A,R6
+   \   0000B9   240C         ADD     A,#0xc
+   \   0000BB   F582         MOV     DPL,A
+   \   0000BD   EF           MOV     A,R7
+   \   0000BE   3400         ADDC    A,#0x0
+   \   0000C0   F583         MOV     DPH,A
+   \   0000C2   E8           MOV     A,R0
+   \   0000C3   F0           MOVX    @DPTR,A
+   \   0000C4   A3           INC     DPTR
+   \   0000C5   E9           MOV     A,R1
+   \   0000C6   F0           MOVX    @DPTR,A
+    294              }
+    295            } while(buf_bufdata(&psock->buf, psock->bufsize,
+    296          		      &psock->readptr, &psock->readlen) == BUF_NOT_FULL &&
+    297          	  psock_datalen(psock) < len);
+   \                     ??psock_readbuf_len_4:
+   \   0000C7                ; Setup parameters for call to function buf_bufdata
+   \   0000C7   EE           MOV     A,R6
+   \   0000C8   240C         ADD     A,#0xc
+   \   0000CA   F5..         MOV     ?V0 + 2,A
+   \   0000CC   EF           MOV     A,R7
+   \   0000CD   3400         ADDC    A,#0x0
+   \   0000CF   F5..         MOV     ?V0 + 3,A
+   \   0000D1   78..         MOV     R0,#?V0 + 2
+   \   0000D3   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000D6   EE           MOV     A,R6
+   \   0000D7   2406         ADD     A,#0x6
+   \   0000D9   F5..         MOV     ?V0 + 2,A
+   \   0000DB   EF           MOV     A,R7
+   \   0000DC   3400         ADDC    A,#0x0
+   \   0000DE   F5..         MOV     ?V0 + 3,A
+   \   0000E0   78..         MOV     R0,#?V0 + 2
+   \   0000E2   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000E5   EE           MOV     A,R6
+   \   0000E6   2412         ADD     A,#0x12
+   \   0000E8   F582         MOV     DPL,A
+   \   0000EA   EF           MOV     A,R7
+   \   0000EB   3400         ADDC    A,#0x0
+   \   0000ED   F583         MOV     DPH,A
+   \   0000EF   E0           MOVX    A,@DPTR
+   \   0000F0   FC           MOV     R4,A
+   \   0000F1   A3           INC     DPTR
+   \   0000F2   E0           MOVX    A,@DPTR
+   \   0000F3   FD           MOV     R5,A
+   \   0000F4   EE           MOV     A,R6
+   \   0000F5   240E         ADD     A,#0xe
+   \   0000F7   FA           MOV     R2,A
+   \   0000F8   EF           MOV     A,R7
+   \   0000F9   3400         ADDC    A,#0x0
+   \   0000FB   FB           MOV     R3,A
+   \   0000FC   12....       LCALL   ??buf_bufdata?relay
+   \   0000FF   7404         MOV     A,#0x4
+   \   000101   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000104   E9           MOV     A,R1
+   \   000105   7019         JNZ     ??psock_readbuf_len_7
+   \   000107                ; Setup parameters for call to function psock_datalen
+   \   000107   EE           MOV     A,R6
+   \   000108   FA           MOV     R2,A
+   \   000109   EF           MOV     A,R7
+   \   00010A   FB           MOV     R3,A
+   \   00010B   12....       LCALL   ??psock_datalen?relay
+   \   00010E   8A..         MOV     ?V0 + 2,R2
+   \   000110   8B..         MOV     ?V0 + 3,R3
+   \   000112   C3           CLR     C
+   \   000113   E5..         MOV     A,?V0 + 2
+   \   000115   95..         SUBB    A,?V0 + 0
+   \   000117   E5..         MOV     A,?V0 + 3
+   \   000119   95..         SUBB    A,?V0 + 1
+   \   00011B   5003         JNC     $+5
+   \   00011D   02....       LJMP    ??psock_readbuf_len_3 & 0xFFFF
+    298            
+    299            if(psock_datalen(psock) == 0) {
+   \                     ??psock_readbuf_len_7:
+   \   000120                ; Setup parameters for call to function psock_datalen
+   \   000120   EE           MOV     A,R6
+   \   000121   FA           MOV     R2,A
+   \   000122   EF           MOV     A,R7
+   \   000123   FB           MOV     R3,A
+   \   000124   12....       LCALL   ??psock_datalen?relay
+   \   000127   8A..         MOV     ?V0 + 0,R2
+   \   000129   8B..         MOV     ?V0 + 1,R3
+   \   00012B   E5..         MOV     A,?V0 + 0
+   \   00012D   45..         ORL     A,?V0 + 1
+   \   00012F   701E         JNZ     ??psock_readbuf_len_2
+    300              psock->state = STATE_NONE;
+   \   000131   EE           MOV     A,R6
+   \   000132   2414         ADD     A,#0x14
+   \   000134   F582         MOV     DPL,A
+   \   000136   EF           MOV     A,R7
+   \   000137   3400         ADDC    A,#0x0
+   \   000139   F583         MOV     DPH,A
+   \   00013B   7400         MOV     A,#0x0
+   \   00013D   F0           MOVX    @DPTR,A
+    301              PT_RESTART(&psock->psockpt);
+   \   00013E   8E82         MOV     DPL,R6
+   \   000140   8F83         MOV     DPH,R7
+   \   000142   A3           INC     DPTR
+   \   000143   A3           INC     DPTR
+   \   000144   7400         MOV     A,#0x0
+   \   000146   F0           MOVX    @DPTR,A
+   \   000147   A3           INC     DPTR
+   \   000148   7400         MOV     A,#0x0
+   \   00014A   F0           MOVX    @DPTR,A
+   \   00014B   7900         MOV     R1,#0x0
+   \   00014D   8011         SJMP    ??psock_readbuf_len_6
+    302            }
+    303            PT_END(&psock->psockpt);
+   \                     ??psock_readbuf_len_2:
+   \   00014F   7A00         MOV     R2,#0x0
+   \   000151   8E82         MOV     DPL,R6
+   \   000153   8F83         MOV     DPH,R7
+   \   000155   A3           INC     DPTR
+   \   000156   A3           INC     DPTR
+   \   000157   7400         MOV     A,#0x0
+   \   000159   F0           MOVX    @DPTR,A
+   \   00015A   A3           INC     DPTR
+   \   00015B   7400         MOV     A,#0x0
+   \   00015D   F0           MOVX    @DPTR,A
+   \   00015E   7903         MOV     R1,#0x3
+   \                     ??psock_readbuf_len_6:
+   \   000160   7F04         MOV     R7,#0x4
+   \   000162   02....       LJMP    ?BANKED_LEAVE_XDATA
+    304          }
+    305          
+    306          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    307          void
+    308          psock_init(CC_REGISTER_ARG struct psock *psock,
+   \                     psock_init:
+    309          	   uint8_t *buffer, unsigned int buffersize)
+    310          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    311            psock->state = STATE_NONE;
+   \   000009   EE           MOV     A,R6
+   \   00000A   2414         ADD     A,#0x14
+   \   00000C   F582         MOV     DPL,A
+   \   00000E   EF           MOV     A,R7
+   \   00000F   3400         ADDC    A,#0x0
+   \   000011   F583         MOV     DPH,A
+   \   000013   7400         MOV     A,#0x0
+   \   000015   F0           MOVX    @DPTR,A
+    312            psock->readlen = 0;
+   \   000016   EE           MOV     A,R6
+   \   000017   240C         ADD     A,#0xc
+   \   000019   F582         MOV     DPL,A
+   \   00001B   EF           MOV     A,R7
+   \   00001C   3400         ADDC    A,#0x0
+   \   00001E   F583         MOV     DPH,A
+   \   000020   7400         MOV     A,#0x0
+   \   000022   F0           MOVX    @DPTR,A
+   \   000023   A3           INC     DPTR
+   \   000024   7400         MOV     A,#0x0
+   \   000026   F0           MOVX    @DPTR,A
+    313            psock->bufptr = buffer;
+   \   000027   8E82         MOV     DPL,R6
+   \   000029   8F83         MOV     DPH,R7
+   \   00002B   A3           INC     DPTR
+   \   00002C   A3           INC     DPTR
+   \   00002D   A3           INC     DPTR
+   \   00002E   A3           INC     DPTR
+   \   00002F   A3           INC     DPTR
+   \   000030   A3           INC     DPTR
+   \   000031   A3           INC     DPTR
+   \   000032   A3           INC     DPTR
+   \   000033   EC           MOV     A,R4
+   \   000034   F0           MOVX    @DPTR,A
+   \   000035   A3           INC     DPTR
+   \   000036   ED           MOV     A,R5
+   \   000037   F0           MOVX    @DPTR,A
+   \   000038   740A         MOV     A,#0xa
+   \   00003A   12....       LCALL   ?XSTACK_DISP0_8
+   \   00003D   E0           MOVX    A,@DPTR
+   \   00003E   F5..         MOV     ?V0 + 0,A
+   \   000040   A3           INC     DPTR
+   \   000041   E0           MOVX    A,@DPTR
+   \   000042   F5..         MOV     ?V0 + 1,A
+    314            psock->bufsize = buffersize;
+   \   000044   EE           MOV     A,R6
+   \   000045   2412         ADD     A,#0x12
+   \   000047   F582         MOV     DPL,A
+   \   000049   EF           MOV     A,R7
+   \   00004A   3400         ADDC    A,#0x0
+   \   00004C   F583         MOV     DPH,A
+   \   00004E   E5..         MOV     A,?V0 + 0
+   \   000050   F0           MOVX    @DPTR,A
+   \   000051   A3           INC     DPTR
+   \   000052   E5..         MOV     A,?V0 + 1
+   \   000054   F0           MOVX    @DPTR,A
+    315            buf_setup(&psock->buf, buffer, buffersize);
+   \   000055                ; Setup parameters for call to function buf_setup
+   \   000055   78..         MOV     R0,#?V0 + 0
+   \   000057   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00005A   EE           MOV     A,R6
+   \   00005B   240E         ADD     A,#0xe
+   \   00005D   FA           MOV     R2,A
+   \   00005E   EF           MOV     A,R7
+   \   00005F   3400         ADDC    A,#0x0
+   \   000061   FB           MOV     R3,A
+   \   000062   12....       LCALL   ??buf_setup?relay
+   \   000065   7402         MOV     A,#0x2
+   \   000067   12....       LCALL   ?DEALLOC_XSTACK8
+    316            PT_INIT(&psock->pt);
+   \   00006A   8E82         MOV     DPL,R6
+   \   00006C   8F83         MOV     DPH,R7
+   \   00006E   7400         MOV     A,#0x0
+   \   000070   F0           MOVX    @DPTR,A
+   \   000071   A3           INC     DPTR
+   \   000072   7400         MOV     A,#0x0
+   \   000074   F0           MOVX    @DPTR,A
+    317            PT_INIT(&psock->psockpt);
+   \   000075   8E82         MOV     DPL,R6
+   \   000077   8F83         MOV     DPH,R7
+   \   000079   A3           INC     DPTR
+   \   00007A   A3           INC     DPTR
+   \   00007B   7400         MOV     A,#0x0
+   \   00007D   F0           MOVX    @DPTR,A
+   \   00007E   A3           INC     DPTR
+   \   00007F   7400         MOV     A,#0x0
+   \   000081   F0           MOVX    @DPTR,A
+    318          }
+   \   000082   7F02         MOV     R7,#0x2
+   \   000084   02....       LJMP    ?BANKED_LEAVE_XDATA
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??buf_setup?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    buf_setup
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??buf_bufdata?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    buf_bufdata
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??buf_bufto?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    buf_bufto
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??data_is_sent_and_acked?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    data_is_sent_and_acked
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??psock_send?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    psock_send
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??psock_generator_send?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    psock_generator_send
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??psock_datalen?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    psock_datalen
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??psock_newdata?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    psock_newdata
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??psock_readto?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    psock_readto
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??psock_readbuf_len?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    psock_readbuf_len
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??psock_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    psock_init
+    319          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       2      0     30  buf_bufdata
+                          0 0 14 -> memcpy
+       1      0     25  buf_bufto
+       0      0     23  buf_setup
+       2      0     19  data_is_sent_and_acked
+                          0 0  9 -> uip_send
+       4      0     12  psock_datalen
+       2      0     16  psock_generator_send
+                          0 0 14 -> uip_send
+       0      0     14  psock_init
+                          0 0 12 -> buf_setup
+       2      0     12  psock_newdata
+       0      0     16  psock_readbuf_len
+                          0 0 16 -> buf_bufdata
+                          0 0 14 -> buf_setup
+                          0 0 12 -> psock_datalen
+                          0 0 12 -> psock_newdata
+       0      0     14  psock_readto
+                          0 0 14 -> buf_bufto
+                          0 0 14 -> buf_setup
+                          0 0 12 -> psock_datalen
+                          0 0 12 -> psock_newdata
+       0      0     12  psock_send
+                          0 0 10 -> data_is_sent_and_acked
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??buf_bufdata?relay
+       6  ??buf_bufto?relay
+       6  ??buf_setup?relay
+       6  ??data_is_sent_and_acked?relay
+       6  ??psock_datalen?relay
+       6  ??psock_generator_send?relay
+       6  ??psock_init?relay
+       6  ??psock_newdata?relay
+       6  ??psock_readbuf_len?relay
+       6  ??psock_readto?relay
+       6  ??psock_send?relay
+     526  buf_bufdata
+     191  buf_bufto
+      40  buf_setup
+     449  data_is_sent_and_acked
+      52  psock_datalen
+     365  psock_generator_send
+     135  psock_init
+      80  psock_newdata
+     357  psock_readbuf_len
+     313  psock_readto
+     204  psock_send
+
+ 
+ 2 712 bytes in segment BANKED_CODE
+    66 bytes in segment BANK_RELAYS
+ 
+ 2 778 bytes of CODE memory
+
+Errors: none
+Warnings: none

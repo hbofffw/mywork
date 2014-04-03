@@ -1,0 +1,2279 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:39 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\net\queuebuf.c              /
+//    Command line       =  D:\myWork\myWork\core\net\queuebuf.c -D           /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\queuebuf.s51                              /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME queuebuf
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?V0
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        PUBLIC ??queuebuf_addr?relay
+        FUNCTION ??queuebuf_addr?relay,0203H
+        PUBLIC ??queuebuf_attr?relay
+        FUNCTION ??queuebuf_attr?relay,0203H
+        PUBLIC ??queuebuf_datalen?relay
+        FUNCTION ??queuebuf_datalen?relay,0203H
+        PUBLIC ??queuebuf_dataptr?relay
+        FUNCTION ??queuebuf_dataptr?relay,0203H
+        PUBLIC ??queuebuf_debug_print?relay
+        FUNCTION ??queuebuf_debug_print?relay,0203H
+        PUBLIC ??queuebuf_free?relay
+        FUNCTION ??queuebuf_free?relay,0203H
+        PUBLIC ??queuebuf_init?relay
+        FUNCTION ??queuebuf_init?relay,0203H
+        FUNCTION ??queuebuf_load_to_ram?relay,0203H
+        PUBLIC ??queuebuf_new_from_packetbuf?relay
+        FUNCTION ??queuebuf_new_from_packetbuf?relay,0203H
+        PUBLIC ??queuebuf_to_packetbuf?relay
+        FUNCTION ??queuebuf_to_packetbuf?relay,0203H
+        PUBLIC ??queuebuf_update_attr_from_packetbuf?relay
+        FUNCTION ??queuebuf_update_attr_from_packetbuf?relay,0203H
+        PUBLIC queuebuf_addr
+        FUNCTION queuebuf_addr,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC queuebuf_attr
+        FUNCTION queuebuf_attr,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC queuebuf_datalen
+        FUNCTION queuebuf_datalen,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC queuebuf_dataptr
+        FUNCTION queuebuf_dataptr,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC queuebuf_debug_print
+        FUNCTION queuebuf_debug_print,0203H
+        ARGFRAME XSTACK, 0, STACK
+        PUBLIC queuebuf_free
+        FUNCTION queuebuf_free,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC queuebuf_init
+        FUNCTION queuebuf_init,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        FUNCTION queuebuf_load_to_ram,0203H
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC queuebuf_new_from_packetbuf
+        FUNCTION queuebuf_new_from_packetbuf,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 12, STACK
+        PUBLIC queuebuf_to_packetbuf
+        FUNCTION queuebuf_to_packetbuf,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        PUBLIC queuebuf_update_attr_from_packetbuf
+        FUNCTION queuebuf_update_attr_from_packetbuf,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+memb_alloc          SYMBOL "memb_alloc"
+??memb_alloc?relay  SYMBOL "?relay", memb_alloc
+memb_free           SYMBOL "memb_free"
+??memb_free?relay   SYMBOL "?relay", memb_free
+memb_init           SYMBOL "memb_init"
+??memb_init?relay   SYMBOL "?relay", memb_init
+memb_inmemb         SYMBOL "memb_inmemb"
+??memb_inmemb?relay SYMBOL "?relay", memb_inmemb
+memcpy              SYMBOL "memcpy"
+??memcpy?relay      SYMBOL "?relay", memcpy
+packetbuf_attr_copyfrom SYMBOL "packetbuf_attr_copyfrom"
+??packetbuf_attr_copyfrom?relay SYMBOL "?relay", packetbuf_attr_copyfrom
+packetbuf_attr_copyto SYMBOL "packetbuf_attr_copyto"
+??packetbuf_attr_copyto?relay SYMBOL "?relay", packetbuf_attr_copyto
+packetbuf_clear     SYMBOL "packetbuf_clear"
+??packetbuf_clear?relay SYMBOL "?relay", packetbuf_clear
+packetbuf_copyfrom  SYMBOL "packetbuf_copyfrom"
+??packetbuf_copyfrom?relay SYMBOL "?relay", packetbuf_copyfrom
+packetbuf_copyto    SYMBOL "packetbuf_copyto"
+??packetbuf_copyto?relay SYMBOL "?relay", packetbuf_copyto
+packetbuf_copyto_hdr SYMBOL "packetbuf_copyto_hdr"
+??packetbuf_copyto_hdr?relay SYMBOL "?relay", packetbuf_copyto_hdr
+packetbuf_datalen   SYMBOL "packetbuf_datalen"
+??packetbuf_datalen?relay SYMBOL "?relay", packetbuf_datalen
+packetbuf_hdralloc  SYMBOL "packetbuf_hdralloc"
+??packetbuf_hdralloc?relay SYMBOL "?relay", packetbuf_hdralloc
+packetbuf_hdrptr    SYMBOL "packetbuf_hdrptr"
+??packetbuf_hdrptr?relay SYMBOL "?relay", packetbuf_hdrptr
+packetbuf_is_reference SYMBOL "packetbuf_is_reference"
+??packetbuf_is_reference?relay SYMBOL "?relay", packetbuf_is_reference
+packetbuf_reference_ptr SYMBOL "packetbuf_reference_ptr"
+??packetbuf_reference_ptr?relay SYMBOL "?relay", packetbuf_reference_ptr
+queuebuf_addr       SYMBOL "queuebuf_addr"
+??queuebuf_addr?relay SYMBOL "?relay", queuebuf_addr
+queuebuf_attr       SYMBOL "queuebuf_attr"
+??queuebuf_attr?relay SYMBOL "?relay", queuebuf_attr
+queuebuf_datalen    SYMBOL "queuebuf_datalen"
+??queuebuf_datalen?relay SYMBOL "?relay", queuebuf_datalen
+queuebuf_dataptr    SYMBOL "queuebuf_dataptr"
+??queuebuf_dataptr?relay SYMBOL "?relay", queuebuf_dataptr
+queuebuf_debug_print SYMBOL "queuebuf_debug_print"
+??queuebuf_debug_print?relay SYMBOL "?relay", queuebuf_debug_print
+queuebuf_free       SYMBOL "queuebuf_free"
+??queuebuf_free?relay SYMBOL "?relay", queuebuf_free
+queuebuf_init       SYMBOL "queuebuf_init"
+??queuebuf_init?relay SYMBOL "?relay", queuebuf_init
+queuebuf_new_from_packetbuf SYMBOL "queuebuf_new_from_packetbuf"
+??queuebuf_new_from_packetbuf?relay SYMBOL "?relay", queuebuf_new_from_packetbuf
+queuebuf_to_packetbuf SYMBOL "queuebuf_to_packetbuf"
+??queuebuf_to_packetbuf?relay SYMBOL "?relay", queuebuf_to_packetbuf
+queuebuf_update_attr_from_packetbuf SYMBOL "queuebuf_update_attr_from_packetbuf"
+??queuebuf_update_attr_from_packetbuf?relay SYMBOL "?relay", queuebuf_update_attr_from_packetbuf
+
+        EXTERN ??memb_alloc?relay
+        FUNCTION ??memb_alloc?relay,00H
+        EXTERN ??memb_free?relay
+        FUNCTION ??memb_free?relay,00H
+        EXTERN ??memb_init?relay
+        FUNCTION ??memb_init?relay,00H
+        EXTERN ??memb_inmemb?relay
+        FUNCTION ??memb_inmemb?relay,00H
+        EXTERN ??memcpy?relay
+        FUNCTION ??memcpy?relay,00H
+        EXTERN ??packetbuf_attr_copyfrom?relay
+        FUNCTION ??packetbuf_attr_copyfrom?relay,00H
+        EXTERN ??packetbuf_attr_copyto?relay
+        FUNCTION ??packetbuf_attr_copyto?relay,00H
+        EXTERN ??packetbuf_clear?relay
+        FUNCTION ??packetbuf_clear?relay,00H
+        EXTERN ??packetbuf_copyfrom?relay
+        FUNCTION ??packetbuf_copyfrom?relay,00H
+        EXTERN ??packetbuf_copyto?relay
+        FUNCTION ??packetbuf_copyto?relay,00H
+        EXTERN ??packetbuf_copyto_hdr?relay
+        FUNCTION ??packetbuf_copyto_hdr?relay,00H
+        EXTERN ??packetbuf_datalen?relay
+        FUNCTION ??packetbuf_datalen?relay,00H
+        EXTERN ??packetbuf_hdralloc?relay
+        FUNCTION ??packetbuf_hdralloc?relay,00H
+        EXTERN ??packetbuf_hdrptr?relay
+        FUNCTION ??packetbuf_hdrptr?relay,00H
+        EXTERN ??packetbuf_is_reference?relay
+        FUNCTION ??packetbuf_is_reference?relay,00H
+        EXTERN ??packetbuf_reference_ptr?relay
+        FUNCTION ??packetbuf_reference_ptr?relay,00H
+        EXTERN memb_alloc
+        FUNCTION memb_alloc,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memb_free
+        FUNCTION memb_free,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memb_init
+        FUNCTION memb_init,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memb_inmemb
+        FUNCTION memb_inmemb,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memcpy
+        FUNCTION memcpy,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_attr_copyfrom
+        FUNCTION packetbuf_attr_copyfrom,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_attr_copyto
+        FUNCTION packetbuf_attr_copyto,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_clear
+        FUNCTION packetbuf_clear,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_copyfrom
+        FUNCTION packetbuf_copyfrom,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_copyto
+        FUNCTION packetbuf_copyto,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_copyto_hdr
+        FUNCTION packetbuf_copyto_hdr,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_datalen
+        FUNCTION packetbuf_datalen,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_hdralloc
+        FUNCTION packetbuf_hdralloc,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_hdrptr
+        FUNCTION packetbuf_hdrptr,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_is_reference
+        FUNCTION packetbuf_is_reference,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_reference_ptr
+        FUNCTION packetbuf_reference_ptr,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+// D:\myWork\myWork\core\net\queuebuf.c
+//    1 /**
+//    2  * \addtogroup rimequeuebuf
+//    3  * @{
+//    4  */
+//    5 
+//    6 /*
+//    7  * Copyright (c) 2006, Swedish Institute of Computer Science.
+//    8  * All rights reserved.
+//    9  *
+//   10  * Redistribution and use in source and binary forms, with or without
+//   11  * modification, are permitted provided that the following conditions
+//   12  * are met:
+//   13  * 1. Redistributions of source code must retain the above copyright
+//   14  *    notice, this list of conditions and the following disclaimer.
+//   15  * 2. Redistributions in binary form must reproduce the above copyright
+//   16  *    notice, this list of conditions and the following disclaimer in the
+//   17  *    documentation and/or other materials provided with the distribution.
+//   18  * 3. Neither the name of the Institute nor the names of its contributors
+//   19  *    may be used to endorse or promote products derived from this software
+//   20  *    without specific prior written permission.
+//   21  *
+//   22  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   23  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   24  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   25  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   26  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   27  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   28  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   29  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   30  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   31  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   32  * SUCH DAMAGE.
+//   33  *
+//   34  * This file is part of the Contiki operating system.
+//   35  *
+//   36  */
+//   37 
+//   38 /**
+//   39  * \file
+//   40  *         Implementation of the Rime queue buffers
+//   41  * \author
+//   42  *         Adam Dunkels <adam@sics.se>
+//   43  */
+//   44 
+//   45 #include "contiki-net.h"
+//   46 #if WITH_SWAP
+//   47 #include "cfs/cfs.h"
+//   48 #endif
+//   49 
+//   50 #include <string.h> /* for memcpy() */
+//   51 
+//   52 #ifdef QUEUEBUF_CONF_REF_NUM
+//   53 #define QUEUEBUF_REF_NUM QUEUEBUF_CONF_REF_NUM
+//   54 #else
+//   55 #define QUEUEBUF_REF_NUM 2
+//   56 #endif
+//   57 
+//   58 /* Structure pointing to a buffer either stored
+//   59    in RAM or swapped in CFS */
+//   60 struct queuebuf {
+//   61 #if QUEUEBUF_DEBUG
+//   62   struct queuebuf *next;
+//   63   const char *file;
+//   64   int line;
+//   65   clock_time_t time;
+//   66 #endif /* QUEUEBUF_DEBUG */
+//   67 #if WITH_SWAP
+//   68   enum {IN_RAM, IN_CFS} location;
+//   69   union {
+//   70 #endif
+//   71     struct queuebuf_data *ram_ptr;
+//   72 #if WITH_SWAP
+//   73     int swap_id;
+//   74   };
+//   75 #endif
+//   76 };
+//   77 
+//   78 /* The actual queuebuf data */
+//   79 struct queuebuf_data {
+//   80   uint16_t len;
+//   81   uint8_t data[PACKETBUF_SIZE];
+//   82   struct packetbuf_attr attrs[PACKETBUF_NUM_ATTRS];
+//   83   struct packetbuf_addr addrs[PACKETBUF_NUM_ADDRS];
+//   84 };
+//   85 
+//   86 struct queuebuf_ref {
+//   87   uint16_t len;
+//   88   uint8_t *ref;
+//   89   uint8_t hdr[PACKETBUF_HDR_SIZE];
+//   90   uint8_t hdrlen;
+//   91 };
+//   92 
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+//   93 MEMB(bufmem, struct queuebuf, QUEUEBUF_NUM);
+bufmem:
+        DATA8
+        DS 8
+        REQUIRE `?<Initializer for bufmem>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+// static char bufmem_memb_count[6]
+bufmem_memb_count:
+        DS 6
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+// static struct queuebuf bufmem_memb_mem[6]
+bufmem_memb_mem:
+        DS 12
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+//   94 MEMB(refbufmem, struct queuebuf_ref, QUEUEBUF_REF_NUM);
+refbufmem:
+        DATA8
+        DS 8
+        REQUIRE `?<Initializer for refbufmem>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+// static char refbufmem_memb_count[2]
+refbufmem_memb_count:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+// static struct queuebuf_ref refbufmem_memb_mem[2]
+refbufmem_memb_mem:
+        DS 106
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+//   95 MEMB(buframmem, struct queuebuf_data, QUEUEBUFRAM_NUM);
+buframmem:
+        DATA8
+        DS 8
+        REQUIRE `?<Initializer for buframmem>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+// static char buframmem_memb_count[6]
+buframmem_memb_count:
+        DS 6
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+// static struct queuebuf_data buframmem_memb_mem[6]
+buframmem_memb_mem:
+        DS 1116
+        REQUIRE __INIT_XDATA_Z
+//   96 
+//   97 #if WITH_SWAP
+//   98 
+//   99 /* Swapping allows to store up to QUEUEBUF_NUM - QUEUEBUFRAM_NUM
+//  100    queuebufs in CFS. The swap is made of several large CFS files.
+//  101    Every buffer stored in CFS has a swap id, referring to a specific
+//  102    offset in one of these files. */
+//  103 #define NQBUF_FILES 4
+//  104 #define NQBUF_PER_FILE 256
+//  105 #define QBUF_FILE_SIZE (NQBUF_PER_FILE*sizeof(struct queuebuf_data))
+//  106 #define NQBUF_ID (NQBUF_PER_FILE * NQBUF_FILES)
+//  107 
+//  108 struct qbuf_file {
+//  109   int fd;
+//  110   int usage;
+//  111   int renewable;
+//  112 };
+//  113 
+//  114 /* A statically allocated queuebuf used as a cache for swapped qbufs */
+//  115 static struct queuebuf_data tmpdata;
+//  116 /* A pointer to the qbuf associated to the data in tmpdata */
+//  117 static struct queuebuf *tmpdata_qbuf = NULL;
+//  118 /* The swap id counter */
+//  119 static int next_swap_id = 0;
+//  120 /* The swap files */
+//  121 static struct qbuf_file qbuf_files[NQBUF_FILES];
+//  122 /* The timer used to renew files during inactivity periods */
+//  123 static struct ctimer renew_timer;
+//  124 
+//  125 #endif
+//  126 
+//  127 #if QUEUEBUF_DEBUG
+//  128 #include "lib/list.h"
+//  129 LIST(queuebuf_list);
+//  130 #endif /* QUEUEBUF_DEBUG */
+//  131 
+//  132 #define DEBUG 0
+//  133 #if DEBUG
+//  134 #include <stdio.h>
+//  135 #define PRINTF(...) printf(__VA_ARGS__)
+//  136 #else
+//  137 #define PRINTF(...)
+//  138 #endif
+//  139 
+//  140 #ifdef QUEUEBUF_CONF_STATS
+//  141 #define QUEUEBUF_STATS QUEUEBUF_CONF_STATS
+//  142 #else
+//  143 #define QUEUEBUF_STATS 0
+//  144 #endif /* QUEUEBUF_CONF_STATS */
+//  145 
+//  146 #if QUEUEBUF_STATS
+//  147 uint8_t queuebuf_len, queuebuf_ref_len, queuebuf_max_len;
+//  148 #endif /* QUEUEBUF_STATS */
+//  149 
+//  150 #if WITH_SWAP
+//  151 /*---------------------------------------------------------------------------*/
+//  152 static void
+//  153 qbuf_renew_file(int file)
+//  154 {
+//  155   int ret;
+//  156   char name[2];
+//  157   name[0] = 'a' + file;
+//  158   name[1] = '\0';
+//  159   if(qbuf_files[file].renewable == 1) {
+//  160     PRINTF("qbuf_renew_file: removing file %d\n", file);
+//  161     cfs_remove(name);
+//  162   }
+//  163   ret = cfs_open(name, CFS_READ | CFS_WRITE);
+//  164   if(ret == -1) {
+//  165     PRINTF("qbuf_renew_file: cfs open error\n");
+//  166   }
+//  167   qbuf_files[file].fd = ret;
+//  168   qbuf_files[file].usage = 0;
+//  169   qbuf_files[file].renewable = 0;
+//  170 }
+//  171 /*---------------------------------------------------------------------------*/
+//  172 /* Renews every file with renewable flag set */
+//  173 static void
+//  174 qbuf_renew_all(void *unused)
+//  175 {
+//  176   int i;
+//  177   for(i=0; i<NQBUF_FILES; i++) {
+//  178     if(qbuf_files[i].renewable == 1) {
+//  179       qbuf_renew_file(i);
+//  180     }
+//  181   }
+//  182 }
+//  183 /*---------------------------------------------------------------------------*/
+//  184 /* Removes a queuebuf from its swap file */
+//  185 static void
+//  186 queuebuf_remove_from_file(int swap_id)
+//  187 {
+//  188   int fileid;
+//  189   if(swap_id != -1) {
+//  190     fileid = swap_id / NQBUF_PER_FILE;
+//  191     qbuf_files[fileid].usage--;
+//  192 
+//  193     /* The file is full but doesn't contain any more queuebuf, mark it as renewable */
+//  194     if(qbuf_files[fileid].usage == 0 && fileid != next_swap_id / NQBUF_PER_FILE) {
+//  195       qbuf_files[fileid].renewable = 1;
+//  196       /* This file is renewable, set a timer to renew files */
+//  197       ctimer_set(&renew_timer, 0, qbuf_renew_all, NULL);
+//  198     }
+//  199 
+//  200     if(tmpdata_qbuf->swap_id == swap_id) {
+//  201       tmpdata_qbuf->swap_id = -1;
+//  202     }
+//  203   }
+//  204 }
+//  205 /*---------------------------------------------------------------------------*/
+//  206 static int
+//  207 get_new_swap_id(void)
+//  208 {
+//  209   int fileid;
+//  210   int swap_id = next_swap_id;
+//  211   fileid = swap_id / NQBUF_PER_FILE;
+//  212   if(swap_id % NQBUF_PER_FILE == 0) { /* This is the first id in the file */
+//  213     if(qbuf_files[fileid].renewable) {
+//  214       qbuf_renew_file(fileid);
+//  215     }
+//  216     if(qbuf_files[fileid].usage>0) {
+//  217       return -1;
+//  218     }
+//  219   }
+//  220   qbuf_files[fileid].usage++;
+//  221   next_swap_id = (next_swap_id+1) % NQBUF_ID;
+//  222   return swap_id;
+//  223 }
+//  224 /*---------------------------------------------------------------------------*/
+//  225 /* Flush tmpdata to CFS */
+//  226 static int
+//  227 queuebuf_flush_tmpdata(void)
+//  228 {
+//  229   int fileid, fd, ret;
+//  230   cfs_offset_t offset;
+//  231   if(tmpdata_qbuf) {
+//  232     queuebuf_remove_from_file(tmpdata_qbuf->swap_id);
+//  233     tmpdata_qbuf->swap_id = get_new_swap_id();
+//  234     if(tmpdata_qbuf->swap_id == -1) {
+//  235       return -1;
+//  236     }
+//  237     fileid = tmpdata_qbuf->swap_id / NQBUF_PER_FILE;
+//  238     offset = (tmpdata_qbuf->swap_id % NQBUF_PER_FILE) * sizeof(struct queuebuf_data);
+//  239     fd = qbuf_files[fileid].fd;
+//  240     ret = cfs_seek(fd, offset, CFS_SEEK_SET);
+//  241     if(ret == -1) {
+//  242       PRINTF("queuebuf_flush_tmpdata: cfs seek error\n");
+//  243       return -1;
+//  244     }
+//  245     ret = cfs_write(fd, &tmpdata, sizeof(struct queuebuf_data));
+//  246     if(ret == -1) {
+//  247       PRINTF("queuebuf_flush_tmpdata: cfs write error\n");
+//  248       return -1;
+//  249     }
+//  250   }
+//  251   return 0;
+//  252 }
+//  253 /*---------------------------------------------------------------------------*/
+//  254 /* If the queuebuf is in CFS, load it to tmpdata */
+//  255 static struct queuebuf_data *
+//  256 queuebuf_load_to_ram(struct queuebuf *b)
+//  257 {
+//  258   int fileid, fd, ret;
+//  259   cfs_offset_t offset;
+//  260   if(b->location == IN_RAM) { /* the qbuf is loacted in RAM */
+//  261     return b->ram_ptr;
+//  262   } else { /* the qbuf is located in CFS */
+//  263     if(tmpdata_qbuf && tmpdata_qbuf->swap_id == b->swap_id) { /* the qbuf is already in tmpdata */
+//  264       return &tmpdata;
+//  265     } else { /* the qbuf needs to be loaded from CFS */
+//  266       tmpdata_qbuf = b;
+//  267       /* read the qbuf from CFS */
+//  268       fileid = b->swap_id / NQBUF_PER_FILE;
+//  269       offset = (b->swap_id % NQBUF_PER_FILE) * sizeof(struct queuebuf_data);
+//  270       fd = qbuf_files[fileid].fd;
+//  271       ret = cfs_seek(fd, offset, CFS_SEEK_SET);
+//  272       if(ret == -1) {
+//  273         PRINTF("queuebuf_load_to_ram: cfs seek error\n");
+//  274       }
+//  275       ret = cfs_read(fd, &tmpdata, sizeof(struct queuebuf_data));
+//  276       if(ret == -1) {
+//  277         PRINTF("queuebuf_load_to_ram: cfs read error\n");
+//  278       }
+//  279       return &tmpdata;
+//  280     }
+//  281   }
+//  282 }
+//  283 #else /* WITH_SWAP */
+//  284 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  285 static struct queuebuf_data *
+//  286 queuebuf_load_to_ram(struct queuebuf *b)
+queuebuf_load_to_ram:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function queuebuf_load_to_ram
+        CODE
+//  287 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  288   return b->ram_ptr;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock0
+//  289 }
+//  290 #endif /* WITH_SWAP */
+//  291 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  292 void
+//  293 queuebuf_init(void)
+queuebuf_init:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function queuebuf_init
+        CODE
+//  294 {
+        FUNCALL queuebuf_init, memb_init
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_init, memb_init
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_init, memb_init
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  295 #if WITH_SWAP
+//  296   int i;
+//  297   for(i=0; i<NQBUF_FILES; i++) {
+//  298     qbuf_files[i].renewable = 1;
+//  299     qbuf_renew_file(i);
+//  300   }
+//  301 #endif
+//  302   memb_init(&buframmem);
+        ; Setup parameters for call to function memb_init
+        MOV     R2,#buframmem & 0xff
+        MOV     R3,#(buframmem >> 8) & 0xff
+        LCALL   ??memb_init?relay
+//  303   memb_init(&bufmem);
+        ; Setup parameters for call to function memb_init
+        MOV     R2,#bufmem & 0xff
+        MOV     R3,#(bufmem >> 8) & 0xff
+        LCALL   ??memb_init?relay
+//  304   memb_init(&refbufmem);
+        ; Setup parameters for call to function memb_init
+        MOV     R2,#refbufmem & 0xff
+        MOV     R3,#(refbufmem >> 8) & 0xff
+        LCALL   ??memb_init?relay
+//  305 #if QUEUEBUF_STATS
+//  306   queuebuf_max_len = QUEUEBUF_NUM;
+//  307 #endif /* QUEUEBUF_STATS */
+//  308 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock1
+//  309 /*---------------------------------------------------------------------------*/
+//  310 #if QUEUEBUF_DEBUG
+//  311 struct queuebuf *
+//  312 queuebuf_new_from_packetbuf_debug(const char *file, int line)
+//  313 #else /* QUEUEBUF_DEBUG */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  314 struct queuebuf *
+//  315 queuebuf_new_from_packetbuf(void)
+queuebuf_new_from_packetbuf:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function queuebuf_new_from_packetbuf
+        CODE
+//  316 #endif /* QUEUEBUF_DEBUG */
+//  317 {
+        FUNCALL queuebuf_new_from_packetbuf, packetbuf_is_reference
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_new_from_packetbuf, memb_alloc
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_new_from_packetbuf, packetbuf_datalen
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_new_from_packetbuf, packetbuf_reference_ptr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_new_from_packetbuf, packetbuf_copyto_hdr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_new_from_packetbuf, memb_alloc
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_new_from_packetbuf, memb_alloc
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_new_from_packetbuf, packetbuf_copyto
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_new_from_packetbuf, packetbuf_attr_copyto
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+//  318   struct queuebuf *buf;
+//  319   struct queuebuf_ref *rbuf;
+//  320 
+//  321   if(packetbuf_is_reference()) {
+        ; Setup parameters for call to function packetbuf_is_reference
+        LCALL   ??packetbuf_is_reference?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??queuebuf_new_from_packetbuf_0
+//  322     rbuf = memb_alloc(&refbufmem);
+        ; Setup parameters for call to function memb_alloc
+        MOV     R2,#refbufmem & 0xff
+        MOV     R3,#(refbufmem >> 8) & 0xff
+        LCALL   ??memb_alloc?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R6,?V0 + 0
+        MOV     R7,?V0 + 1
+//  323     if(rbuf != NULL) {
+        MOV     A,R6
+        ORL     A,R7
+        JZ      ??queuebuf_new_from_packetbuf_1
+//  324 #if QUEUEBUF_STATS
+//  325       ++queuebuf_ref_len;
+//  326 #endif /* QUEUEBUF_STATS */
+//  327       rbuf->len = packetbuf_datalen();
+        ; Setup parameters for call to function packetbuf_datalen
+        LCALL   ??packetbuf_datalen?relay
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  328       rbuf->ref = packetbuf_reference_ptr();
+        ; Setup parameters for call to function packetbuf_reference_ptr
+        LCALL   ??packetbuf_reference_ptr?relay
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  329       rbuf->hdrlen = packetbuf_copyto_hdr(rbuf->hdr);
+        ; Setup parameters for call to function packetbuf_copyto_hdr
+        MOV     A,R6
+        ADD     A,#0x4
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??packetbuf_copyto_hdr?relay
+        MOV     A,R2
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,R6
+        ADD     A,#0x34
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  330     } else {
+//  331       PRINTF("queuebuf_new_from_packetbuf: could not allocate a reference queuebuf\n");
+//  332     }
+//  333     return (struct queuebuf *)rbuf;
+??queuebuf_new_from_packetbuf_1:
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        SJMP    ??queuebuf_new_from_packetbuf_2
+//  334   } else {
+//  335     struct queuebuf_data *buframptr;
+//  336     buf = memb_alloc(&bufmem);
+??queuebuf_new_from_packetbuf_0:
+        ; Setup parameters for call to function memb_alloc
+        MOV     R2,#bufmem & 0xff
+        MOV     R3,#(bufmem >> 8) & 0xff
+        LCALL   ??memb_alloc?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,?V0 + 3
+//  337     if(buf != NULL) {
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??queuebuf_new_from_packetbuf_3
+//  338 #if QUEUEBUF_DEBUG
+//  339       list_add(queuebuf_list, buf);
+//  340       buf->file = file;
+//  341       buf->line = line;
+//  342       buf->time = clock_time();
+//  343 #endif /* QUEUEBUF_DEBUG */
+//  344       buf->ram_ptr = memb_alloc(&buframmem);
+        ; Setup parameters for call to function memb_alloc
+        MOV     R2,#buframmem & 0xff
+        MOV     R3,#(buframmem >> 8) & 0xff
+        LCALL   ??memb_alloc?relay
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  345 #if WITH_SWAP
+//  346       /* If the allocation failed, store the qbuf in swap files */
+//  347       if(buf->ram_ptr != NULL) {
+//  348         buf->location = IN_RAM;
+//  349         buframptr = buf->ram_ptr;
+//  350       } else {
+//  351         buf->location = IN_CFS;
+//  352         buf->swap_id = -1;
+//  353         tmpdata_qbuf = buf;
+//  354         buframptr = &tmpdata;
+//  355       }
+//  356 #else
+//  357       if(buf->ram_ptr == NULL) {
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??queuebuf_new_from_packetbuf_4
+//  358         PRINTF("queuebuf_new_from_packetbuf: could not queuebuf data\n");
+//  359         return NULL;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??queuebuf_new_from_packetbuf_2
+//  360       }
+//  361       buframptr = buf->ram_ptr;
+??queuebuf_new_from_packetbuf_4:
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+//  362 #endif
+//  363 
+//  364       buframptr->len = packetbuf_copyto(buframptr->data);
+        ; Setup parameters for call to function packetbuf_copyto
+        MOV     A,R6
+        ADD     A,#0x2
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??packetbuf_copyto?relay
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  365       packetbuf_attr_copyto(buframptr->attrs, buframptr->addrs);
+        ; Setup parameters for call to function packetbuf_attr_copyto
+        MOV     A,R6
+        ADD     A,#-0x4e
+        MOV     R4,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     A,R6
+        ADD     A,#-0x7e
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??packetbuf_attr_copyto?relay
+//  366 
+//  367 #if WITH_SWAP
+//  368       if(buf->location == IN_CFS) {
+//  369         if(queuebuf_flush_tmpdata() == -1) {
+//  370           /* We were unable to write the data in the swap */
+//  371           memb_free(&bufmem, buf);
+//  372           return NULL;
+//  373         }
+//  374       }
+//  375 #endif
+//  376 
+//  377 #if QUEUEBUF_STATS
+//  378       ++queuebuf_len;
+//  379       PRINTF("queuebuf len %d\n", queuebuf_len);
+//  380       printf("#A q=%d\n", queuebuf_len);
+//  381       if(queuebuf_len == queuebuf_max_len + 1) {
+//  382   memb_free(&bufmem, buf);
+//  383   queuebuf_len--;
+//  384   return NULL;
+//  385       }
+//  386 #endif /* QUEUEBUF_STATS */
+//  387 
+//  388     } else {
+//  389       PRINTF("queuebuf_new_from_packetbuf: could not allocate a queuebuf\n");
+//  390     }
+//  391     return buf;
+??queuebuf_new_from_packetbuf_3:
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+??queuebuf_new_from_packetbuf_2:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//  392   }
+//  393 }
+//  394 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  395 void
+//  396 queuebuf_update_attr_from_packetbuf(struct queuebuf *buf)
+queuebuf_update_attr_from_packetbuf:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function queuebuf_update_attr_from_packetbuf
+        CODE
+//  397 {
+        FUNCALL queuebuf_update_attr_from_packetbuf, queuebuf_load_to_ram
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_update_attr_from_packetbuf, packetbuf_attr_copyto
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  398   struct queuebuf_data *buframptr = queuebuf_load_to_ram(buf);
+        ; Setup parameters for call to function queuebuf_load_to_ram
+        LCALL   ??queuebuf_load_to_ram?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R0,?V0 + 0
+        MOV     R1,?V0 + 1
+//  399   packetbuf_attr_copyto(buframptr->attrs, buframptr->addrs);
+        ; Setup parameters for call to function packetbuf_attr_copyto
+        MOV     A,R0
+        ADD     A,#-0x4e
+        MOV     R4,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     A,R0
+        ADD     A,#-0x7e
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??packetbuf_attr_copyto?relay
+//  400 #if WITH_SWAP
+//  401   if(buf->location == IN_CFS) {
+//  402     queuebuf_flush_tmpdata();
+//  403   }
+//  404 #endif
+//  405 }
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock3
+//  406 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  407 void
+//  408 queuebuf_free(struct queuebuf *buf)
+queuebuf_free:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function queuebuf_free
+        CODE
+//  409 {
+        FUNCALL queuebuf_free, memb_inmemb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_free, memb_free
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_free, memb_free
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_free, memb_inmemb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_free, memb_free
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  410   if(memb_inmemb(&bufmem, buf)) {
+        ; Setup parameters for call to function memb_inmemb
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R2,#bufmem & 0xff
+        MOV     R3,#(bufmem >> 8) & 0xff
+        LCALL   ??memb_inmemb?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??queuebuf_free_0
+//  411 #if WITH_SWAP
+//  412     if(buf->location == IN_RAM) {
+//  413       memb_free(&buframmem, buf->ram_ptr);
+//  414     } else {
+//  415       queuebuf_remove_from_file(buf->swap_id);
+//  416     }
+//  417 #else
+//  418     memb_free(&buframmem, buf->ram_ptr);
+        ; Setup parameters for call to function memb_free
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     R2,#buframmem & 0xff
+        MOV     R3,#(buframmem >> 8) & 0xff
+        LCALL   ??memb_free?relay
+        MOV     A,R1
+//  419 #endif
+//  420     memb_free(&bufmem, buf);
+        ; Setup parameters for call to function memb_free
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R2,#bufmem & 0xff
+        MOV     R3,#(bufmem >> 8) & 0xff
+        LCALL   ??memb_free?relay
+        MOV     A,R1
+        SJMP    ??queuebuf_free_1
+//  421 #if QUEUEBUF_STATS
+//  422     --queuebuf_len;
+//  423     printf("#A q=%d\n", queuebuf_len);
+//  424 #endif /* QUEUEBUF_STATS */
+//  425 #if QUEUEBUF_DEBUG
+//  426     list_remove(queuebuf_list, buf);
+//  427 #endif /* QUEUEBUF_DEBUG */
+//  428   } else if(memb_inmemb(&refbufmem, buf)) {
+??queuebuf_free_0:
+        ; Setup parameters for call to function memb_inmemb
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R2,#refbufmem & 0xff
+        MOV     R3,#(refbufmem >> 8) & 0xff
+        LCALL   ??memb_inmemb?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??queuebuf_free_1
+//  429     memb_free(&refbufmem, buf);
+        ; Setup parameters for call to function memb_free
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R2,#refbufmem & 0xff
+        MOV     R3,#(refbufmem >> 8) & 0xff
+        LCALL   ??memb_free?relay
+        MOV     A,R1
+//  430 #if QUEUEBUF_STATS
+//  431     --queuebuf_ref_len;
+//  432 #endif /* QUEUEBUF_STATS */
+//  433   }
+//  434 }
+??queuebuf_free_1:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock4
+//  435 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  436 void
+//  437 queuebuf_to_packetbuf(struct queuebuf *b)
+queuebuf_to_packetbuf:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function queuebuf_to_packetbuf
+        CODE
+//  438 {
+        FUNCALL queuebuf_to_packetbuf, memb_inmemb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_to_packetbuf, queuebuf_load_to_ram
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_to_packetbuf, packetbuf_copyfrom
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_to_packetbuf, packetbuf_attr_copyfrom
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_to_packetbuf, memb_inmemb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_to_packetbuf, packetbuf_clear
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_to_packetbuf, packetbuf_copyfrom
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_to_packetbuf, packetbuf_hdralloc
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_to_packetbuf, packetbuf_hdrptr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_to_packetbuf, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  439   struct queuebuf_ref *r;
+//  440   if(memb_inmemb(&bufmem, b)) {
+        ; Setup parameters for call to function memb_inmemb
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R2,#bufmem & 0xff
+        MOV     R3,#(bufmem >> 8) & 0xff
+        LCALL   ??memb_inmemb?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??queuebuf_to_packetbuf_0
+//  441     struct queuebuf_data *buframptr = queuebuf_load_to_ram(b);
+        ; Setup parameters for call to function queuebuf_load_to_ram
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??queuebuf_load_to_ram?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R6,?V0 + 0
+        MOV     R7,?V0 + 1
+//  442     packetbuf_copyfrom(buframptr->data, buframptr->len);
+        ; Setup parameters for call to function packetbuf_copyfrom
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     A,R6
+        ADD     A,#0x2
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??packetbuf_copyfrom?relay
+//  443     packetbuf_attr_copyfrom(buframptr->attrs, buframptr->addrs);
+        ; Setup parameters for call to function packetbuf_attr_copyfrom
+        MOV     A,R6
+        ADD     A,#-0x4e
+        MOV     R4,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     A,R6
+        ADD     A,#-0x7e
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??packetbuf_attr_copyfrom?relay
+        SJMP    ??queuebuf_to_packetbuf_1
+//  444   } else if(memb_inmemb(&refbufmem, b)) {
+??queuebuf_to_packetbuf_0:
+        ; Setup parameters for call to function memb_inmemb
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R2,#refbufmem & 0xff
+        MOV     R3,#(refbufmem >> 8) & 0xff
+        LCALL   ??memb_inmemb?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??queuebuf_to_packetbuf_1
+//  445     r = (struct queuebuf_ref *)b;
+//  446     packetbuf_clear();
+        ; Setup parameters for call to function packetbuf_clear
+        LCALL   ??packetbuf_clear?relay
+//  447     packetbuf_copyfrom(r->ref, r->len);
+        ; Setup parameters for call to function packetbuf_copyfrom
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??packetbuf_copyfrom?relay
+//  448     packetbuf_hdralloc(r->hdrlen);
+        ; Setup parameters for call to function packetbuf_hdralloc
+        MOV     A,R6
+        ADD     A,#0x34
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        LCALL   ??packetbuf_hdralloc?relay
+//  449     memcpy(packetbuf_hdrptr(), r->hdr, r->hdrlen);
+        ; Setup parameters for call to function memcpy
+        MOV     A,R6
+        ADD     A,#0x34
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     ?V0 + 0,A
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     A,R6
+        ADD     A,#0x4
+        MOV     R4,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     R7,A
+        MOV     A,R4
+        MOV     R6,A
+        MOV     A,R5
+        MOV     R7,A
+        ; Setup parameters for call to function packetbuf_hdrptr
+        LCALL   ??packetbuf_hdrptr?relay
+        MOV     R5,A
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+//  450   }
+//  451 }
+??queuebuf_to_packetbuf_1:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock5
+//  452 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  453 void *
+//  454 queuebuf_dataptr(struct queuebuf *b)
+queuebuf_dataptr:
+          CFI Block cfiBlock6 Using cfiCommon0
+          CFI Function queuebuf_dataptr
+        CODE
+//  455 {
+        FUNCALL queuebuf_dataptr, memb_inmemb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_dataptr, queuebuf_load_to_ram
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL queuebuf_dataptr, memb_inmemb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  456   struct queuebuf_ref *r;
+//  457 
+//  458   if(memb_inmemb(&bufmem, b)) {
+        ; Setup parameters for call to function memb_inmemb
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R2,#bufmem & 0xff
+        MOV     R3,#(bufmem >> 8) & 0xff
+        LCALL   ??memb_inmemb?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??queuebuf_dataptr_0
+//  459     struct queuebuf_data *buframptr = queuebuf_load_to_ram(b);
+        ; Setup parameters for call to function queuebuf_load_to_ram
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??queuebuf_load_to_ram?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R0,?V0 + 0
+        MOV     R1,?V0 + 1
+//  460     return buframptr->data;
+        MOV     A,?V0 + 0
+        ADD     A,#0x2
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        SJMP    ??queuebuf_dataptr_1
+//  461   } else if(memb_inmemb(&refbufmem, b)) {
+??queuebuf_dataptr_0:
+        ; Setup parameters for call to function memb_inmemb
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R2,#refbufmem & 0xff
+        MOV     R3,#(refbufmem >> 8) & 0xff
+        LCALL   ??memb_inmemb?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??queuebuf_dataptr_2
+//  462     r = (struct queuebuf_ref *)b;
+        MOV     DPL,R6
+        MOV     DPH,R7
+//  463     return r->ref;
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        SJMP    ??queuebuf_dataptr_1
+//  464   }
+//  465   return NULL;
+??queuebuf_dataptr_2:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??queuebuf_dataptr_1:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock6
+//  466 }
+//  467 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  468 int
+//  469 queuebuf_datalen(struct queuebuf *b)
+queuebuf_datalen:
+          CFI Block cfiBlock7 Using cfiCommon0
+          CFI Function queuebuf_datalen
+        CODE
+//  470 {
+        FUNCALL queuebuf_datalen, queuebuf_load_to_ram
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  471   struct queuebuf_data *buframptr = queuebuf_load_to_ram(b);
+        ; Setup parameters for call to function queuebuf_load_to_ram
+        LCALL   ??queuebuf_load_to_ram?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+//  472   return buframptr->len;
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock7
+//  473 }
+//  474 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  475 rimeaddr_t *
+//  476 queuebuf_addr(struct queuebuf *b, uint8_t type)
+queuebuf_addr:
+          CFI Block cfiBlock8 Using cfiCommon0
+          CFI Function queuebuf_addr
+        CODE
+//  477 {
+        FUNCALL queuebuf_addr, queuebuf_load_to_ram
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R6,A
+//  478   struct queuebuf_data *buframptr = queuebuf_load_to_ram(b);
+        ; Setup parameters for call to function queuebuf_load_to_ram
+        LCALL   ??queuebuf_load_to_ram?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+//  479   return &buframptr->addrs[type - PACKETBUF_ADDR_FIRST].addr;
+        MOV     A,R6
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,R0
+        MOV     B,#0x2
+        MUL     AB
+        XCH     A,R0
+        MOV     R4,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R4
+        MOV     R4,A
+        MOV     B,#0x2
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R4
+        MOV     R1,A
+        MOV     A,?V0 + 0
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,?V0 + 1
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#-0x7e
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R3,A
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock8
+//  480 }
+//  481 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  482 packetbuf_attr_t
+//  483 queuebuf_attr(struct queuebuf *b, uint8_t type)
+queuebuf_attr:
+          CFI Block cfiBlock9 Using cfiCommon0
+          CFI Function queuebuf_attr
+        CODE
+//  484 {
+        FUNCALL queuebuf_attr, queuebuf_load_to_ram
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R6,A
+//  485   struct queuebuf_data *buframptr = queuebuf_load_to_ram(b);
+        ; Setup parameters for call to function queuebuf_load_to_ram
+        LCALL   ??queuebuf_load_to_ram?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+//  486   return buframptr->attrs[type].val;
+        MOV     A,R6
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,R0
+        MOV     B,#0x2
+        MUL     AB
+        XCH     A,R0
+        MOV     R4,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R4
+        MOV     R4,A
+        MOV     B,#0x2
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R4
+        MOV     R1,A
+        MOV     A,?V0 + 0
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,?V0 + 1
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#-0x7e
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock9
+//  487 }
+//  488 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  489 void
+//  490 queuebuf_debug_print(void)
+queuebuf_debug_print:
+          CFI Block cfiBlock10 Using cfiCommon0
+          CFI Function queuebuf_debug_print
+        CODE
+//  491 {
+        ; Saved register size: 0
+        ; Auto size: 0
+//  492 #if QUEUEBUF_DEBUG
+//  493   struct queuebuf *q;
+//  494   printf("queuebuf_list: ");
+//  495   for(q = list_head(queuebuf_list); q != NULL;
+//  496       q = list_item_next(q)) {
+//  497     printf("%s,%d,%lu ", q->file, q->line, q->time);
+//  498   }
+//  499   printf("\n");
+//  500 #endif /* QUEUEBUF_DEBUG */
+//  501 }
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock10
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for bufmem>`:
+        DATA16
+        DW 2
+        DW 6
+        DW bufmem_memb_count
+        DW bufmem_memb_mem
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for refbufmem>`:
+        DATA16
+        DW 53
+        DW 2
+        DW refbufmem_memb_count
+        DW refbufmem_memb_mem
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for buframmem>`:
+        DATA16
+        DW 186
+        DW 6
+        DW buframmem_memb_count
+        DW buframmem_memb_mem
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??queuebuf_load_to_ram?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    queuebuf_load_to_ram
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??queuebuf_init?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    queuebuf_init
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??queuebuf_new_from_packetbuf?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    queuebuf_new_from_packetbuf
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??queuebuf_update_attr_from_packetbuf?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    queuebuf_update_attr_from_packetbuf
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??queuebuf_free?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    queuebuf_free
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??queuebuf_to_packetbuf?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    queuebuf_to_packetbuf
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??queuebuf_dataptr?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    queuebuf_dataptr
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??queuebuf_datalen?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    queuebuf_datalen
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??queuebuf_addr?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    queuebuf_addr
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??queuebuf_attr?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    queuebuf_attr
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??queuebuf_debug_print?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    queuebuf_debug_print
+
+        END
+//  502 /*---------------------------------------------------------------------------*/
+//  503 /** @} */
+// 
+//   879 bytes in segment BANKED_CODE
+//    66 bytes in segment BANK_RELAYS
+//    24 bytes in segment XDATA_I
+//    24 bytes in segment XDATA_ID
+// 1 248 bytes in segment XDATA_Z
+// 
+//   969 bytes of CODE  memory
+// 1 272 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

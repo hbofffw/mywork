@@ -1,0 +1,315 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:52 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\cpu\cc253x\dev\uart-intr.c        #
+#    Command line       =  D:\myWork\myWork\cpu\cc253x\dev\uart-intr.c -D     #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\uart-intr.lst                               #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\uart-intr.r51                                #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
+   \                                 In  segment SFR_AN, at 0x88
+   \   union <unnamed> volatile __sfr _A_TCON
+   \                     _A_TCON:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe2
+   \   unsigned char volatile __sfr T1CNTL
+   \                     T1CNTL:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe3
+   \   unsigned char volatile __sfr T1CNTH
+   \                     T1CNTH:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xc1
+   \   unsigned char volatile __sfr U0DBUF
+   \                     U0DBUF:
+   \   000000                DS 1
+D:\myWork\myWork\cpu\cc253x\dev\uart-intr.c
+      1          /**
+      2           * \file
+      3           *
+      4           *   uart write routines
+      5           *
+      6           * \author
+      7           *
+      8           *   Anthony "Asterisk" Ambuehl
+      9           *
+     10           *   interrupt routines which must be in HOME bank.  handles received data from UART.
+     11           *
+     12           */
+     13          #include "cc253x.h"
+     14          
+     15          #include "dev/uart0.h"
+     16          #include "dev/uart1.h"
+     17          #include "sys/energest.h"
+     18          
+     19          #if UART0_ENABLE
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     20          static int (* uart0_input_handler)(unsigned char c);
+   \                     uart0_input_handler:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     21          #endif
+     22          #if UART1_ENABLE
+     23          static int (* uart1_input_handler)(unsigned char c);
+     24          #endif
+     25          
+     26          #if UART0_ENABLE
+     27          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     28          void
+     29          uart0_set_input(int (* input)(unsigned char c))
+   \                     uart0_set_input:
+     30          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     31            uart0_input_handler = input;
+   \   000004   90....       MOV     DPTR,#uart0_input_handler
+   \   000007   EA           MOV     A,R2
+   \   000008   F0           MOVX    @DPTR,A
+   \   000009   A3           INC     DPTR
+   \   00000A   EB           MOV     A,R3
+   \   00000B   F0           MOVX    @DPTR,A
+     32          }
+   \   00000C   D083         POP     DPH
+   \   00000E   D082         POP     DPL
+   \   000010   02....       LJMP    ?BRET
+     33          /*---------------------------------------------------------------------------*/
+     34          #if UART0_CONF_WITH_INPUT
+     35          /* avoid referencing bits since we're not using them */
+     36          #pragma save
+                         ^
+Warning[Pe161]: unrecognized #pragma
+     37          #if CC_CONF_OPTIMIZE_STACK_SIZE
+     38          #pragma exclude bits
+     39          #endif
+     40          #pragma vector = URX0_VECTOR
+
+   \                                 In  segment NEAR_CODE, align 1, keep-with-next
+     41          __interrupt void uart0_rx_isr(void)
+   \                     uart0_rx_isr:
+     42          {
+   \   000000   C0E0         PUSH    A
+   \   000002   74EF         MOV     A,#-0x11
+   \   000004   12....       LCALL   ?INTERRUPT_ENTER_XSP
+   \   000007                ; Saved register size: 17
+   \   000007                ; Auto size: 0
+     43            ENERGEST_ON(ENERGEST_TYPE_IRQ);
+   \   000007   E5E2         MOV     A,0xe2
+   \   000009   FA           MOV     R2,A
+   \   00000A   7B00         MOV     R3,#0x0
+   \   00000C   E5E3         MOV     A,0xe3
+   \   00000E   F8           MOV     R0,A
+   \   00000F   7900         MOV     R1,#0x0
+   \   000011   E4           CLR     A
+   \   000012   C8           XCH     A,R0
+   \   000013   F9           MOV     R1,A
+   \   000014   EA           MOV     A,R2
+   \   000015   28           ADD     A,R0
+   \   000016   F8           MOV     R0,A
+   \   000017   EB           MOV     A,R3
+   \   000018   39           ADDC    A,R1
+   \   000019   F9           MOV     R1,A
+   \   00001A   90....       MOV     DPTR,#energest_current_time + 4
+   \   00001D   E8           MOV     A,R0
+   \   00001E   F0           MOVX    @DPTR,A
+   \   00001F   A3           INC     DPTR
+   \   000020   E9           MOV     A,R1
+   \   000021   F0           MOVX    @DPTR,A
+   \   000022   90....       MOV     DPTR,#energest_current_mode + 2
+   \   000025   7401         MOV     A,#0x1
+   \   000027   F0           MOVX    @DPTR,A
+     44            URX0IF = 0;
+   \   000028   C28B         CLR     0x88.3
+     45            if(uart0_input_handler != NULL) {
+   \   00002A   90....       MOV     DPTR,#uart0_input_handler
+   \   00002D   E0           MOVX    A,@DPTR
+   \   00002E   F8           MOV     R0,A
+   \   00002F   A3           INC     DPTR
+   \   000030   E0           MOVX    A,@DPTR
+   \   000031   F9           MOV     R1,A
+   \   000032   E8           MOV     A,R0
+   \   000033   49           ORL     A,R1
+   \   000034   6011         JZ      ??uart0_rx_isr_0
+     46              uart0_input_handler(U0DBUF);
+   \   000036                ; Setup parameters for indirect call
+   \   000036   E5C1         MOV     A,0xc1
+   \   000038   F9           MOV     R1,A
+   \   000039   90....       MOV     DPTR,#uart0_input_handler
+   \   00003C   E0           MOVX    A,@DPTR
+   \   00003D   F8           MOV     R0,A
+   \   00003E   A3           INC     DPTR
+   \   00003F   E0           MOVX    A,@DPTR
+   \   000040   F583         MOV     DPH,A
+   \   000042   8882         MOV     DPL,R0
+   \   000044   12....       LCALL   ?CALL_IND
+     47            }
+     48            ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+   \                     ??uart0_rx_isr_0:
+   \   000047   90....       MOV     DPTR,#energest_current_mode + 2
+   \   00004A   E0           MOVX    A,@DPTR
+   \   00004B   6037         JZ      ??uart0_rx_isr_1
+   \   00004D   E5E2         MOV     A,0xe2
+   \   00004F   FA           MOV     R2,A
+   \   000050   7B00         MOV     R3,#0x0
+   \   000052   E5E3         MOV     A,0xe3
+   \   000054   F8           MOV     R0,A
+   \   000055   7900         MOV     R1,#0x0
+   \   000057   E4           CLR     A
+   \   000058   C8           XCH     A,R0
+   \   000059   F9           MOV     R1,A
+   \   00005A   EA           MOV     A,R2
+   \   00005B   28           ADD     A,R0
+   \   00005C   FA           MOV     R2,A
+   \   00005D   EB           MOV     A,R3
+   \   00005E   39           ADDC    A,R1
+   \   00005F   FB           MOV     R3,A
+   \   000060   90....       MOV     DPTR,#energest_current_time + 4
+   \   000063   E0           MOVX    A,@DPTR
+   \   000064   F8           MOV     R0,A
+   \   000065   A3           INC     DPTR
+   \   000066   E0           MOVX    A,@DPTR
+   \   000067   F9           MOV     R1,A
+   \   000068   EA           MOV     A,R2
+   \   000069   C3           CLR     C
+   \   00006A   98           SUBB    A,R0
+   \   00006B   F5..         MOV     ?V0 + 0,A
+   \   00006D   EB           MOV     A,R3
+   \   00006E   99           SUBB    A,R1
+   \   00006F   F5..         MOV     ?V0 + 1,A
+   \   000071   E4           CLR     A
+   \   000072   F5..         MOV     ?V0 + 2,A
+   \   000074   F5..         MOV     ?V0 + 3,A
+   \   000076   90....       MOV     DPTR,#energest_total_time + 8
+   \   000079   78..         MOV     R0,#?V0 + 0
+   \   00007B   12....       LCALL   ?L_ADD_TO_X
+   \   00007E   90....       MOV     DPTR,#energest_current_mode + 2
+   \   000081   7400         MOV     A,#0x0
+   \   000083   F0           MOVX    @DPTR,A
+     49          }
+   \                     ??uart0_rx_isr_1:
+   \   000084   7F04         MOV     R7,#0x4
+   \   000086   02....       LJMP    ?INTERRUPT_LEAVE_XSP
+   \   000089                REQUIRE T1CNTL
+   \   000089                REQUIRE T1CNTH
+   \   000089                REQUIRE _A_TCON
+   \   000089                REQUIRE U0DBUF
+
+   \                                 In  segment INTVEC, offset 0x13, root
+   \                     `??uart0_rx_isr??INTVEC 19`:
+   \   000013   02....       LJMP       (uart0_rx_isr)
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uart0_set_input?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uart0_set_input
+     50          #pragma restore
+                         ^
+Warning[Pe161]: unrecognized #pragma
+     51          #endif
+     52          #endif /* UART0_ENABLE */
+     53          #if UART1_ENABLE
+     54          /*---------------------------------------------------------------------------*/
+     55          void
+     56          uart1_set_input(int (* input)(unsigned char c))
+     57          {
+     58            uart1_input_handler = input;
+     59          }
+     60          /*---------------------------------------------------------------------------*/
+     61          #if UART_ONE_CONF_WITH_INPUT
+     62          /* avoid referencing bits since we're not using them */
+     63          #pragma save
+     64          #if CC_CONF_OPTIMIZE_STACK_SIZE
+     65          #pragma exclude bits
+     66          #endif
+     67          #pragma vector = URX1_VECTOR
+     68          __interrupt void uart1_rx_isr(void)
+     69          {
+     70            ENERGEST_ON(ENERGEST_TYPE_IRQ);
+     71            URX1IF = 0;
+     72            if(uart1_input_handler != NULL) {
+     73              uart1_input_handler(U1DBUF);
+     74            }
+     75            ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+     76          }
+     77          #pragma restore
+     78          /*---------------------------------------------------------------------------*/
+     79          #endif /* UART_ONE_CONF_WITH_INPUT */
+     80          #endif /* UART1_ENABLE */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     17  uart0_rx_isr
+       2      0      0  uart0_set_input
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       3  ??uart0_rx_isr??INTVEC 19
+       6  ??uart0_set_input?relay
+       1  T1CNTH
+       1  T1CNTL
+       1  U0DBUF
+       1  _A_TCON
+       2  uart0_input_handler
+     137  uart0_rx_isr
+      19  uart0_set_input
+
+ 
+  19 bytes in segment BANKED_CODE
+   6 bytes in segment BANK_RELAYS
+   3 bytes in segment INTVEC
+ 137 bytes in segment NEAR_CODE
+   4 bytes in segment SFR_AN
+   2 bytes in segment XDATA_Z
+ 
+ 162 bytes of CODE  memory (+ 3 bytes shared)
+   0 bytes of DATA  memory (+ 4 bytes shared)
+   2 bytes of XDATA memory
+
+Errors: none
+Warnings: 2

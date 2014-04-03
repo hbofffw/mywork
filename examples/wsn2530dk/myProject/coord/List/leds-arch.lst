@@ -1,0 +1,246 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:49 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\platform\wsn2530dk\dev\leds-arch. #
+#                          c                                                  #
+#    Command line       =  D:\myWork\myWork\platform\wsn2530dk\dev\leds-arch. #
+#                          c -D AUTOSTART_ENABLE -D PROJECT_CONF_H -lC        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\leds-arch.lst                               #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\leds-arch.r51                                #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
+   \                                 In  segment SFR_AN, at 0x90
+   \   union <unnamed> volatile __sfr _A_P1
+   \                     _A_P1:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xf4
+   \   unsigned char volatile __sfr P1SEL
+   \                     P1SEL:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xfe
+   \   unsigned char volatile __sfr P1DIR
+   \                     P1DIR:
+   \   000000                DS 1
+D:\myWork\myWork\platform\wsn2530dk\dev\leds-arch.c
+      1          /*
+      2           * Copyright (c) 2011, George Oikonomou - <oikonomou@users.sourceforge.net>
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           */
+     31          
+     32          /**
+     33           * \file
+     34           *         Platform-specific led driver for the TI SmartRF05 and WSN2530DK Eval. Board.
+     35           *
+     36           * \author
+     37           *         George Oikonomou - <oikonomou@users.sourceforge.net>
+     38           *         YoCiHou - <www.iotdev.net>
+     39           */
+     40          #include "contiki-conf.h"
+     41          #include "dev/leds.h"
+     42          #include "dev/leds-arch.h"
+     43          #include "cc253x.h"
+     44          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     45          void
+     46          leds_arch_init(void)
+   \                     leds_arch_init:
+     47          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+     48          #if MODELS_CONF_CC2531_USB_STICK
+     49            P1SEL &= ~LED1_MASK;
+     50            P1DIR |= LED1_MASK;
+     51            P0SEL &= ~LED2_MASK;
+     52            P0DIR |= LED2_MASK;
+     53          #elif MODEL_WSN2530
+     54            P1SEL &= ~(LED1_MASK | LED2_MASK);
+   \   000000   53F4FC       ANL     0xf4,#0xfc
+     55            P1DIR |= (LED1_MASK | LED2_MASK);
+   \   000003   43FE03       ORL     0xfe,#0x3
+     56          #else
+     57            P1SEL &= ~(LED1_MASK | LED2_MASK | LED3_MASK);
+     58            P1DIR |= (LED1_MASK | LED2_MASK | LED3_MASK);
+     59          #endif
+     60          }
+   \   000006   02....       LJMP    ?BRET
+   \   000009                REQUIRE P1SEL
+   \   000009                REQUIRE P1DIR
+     61          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     62          unsigned char
+     63          leds_arch_get(void)
+   \                     leds_arch_get:
+     64          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+     65          #if MODELS_CONF_CC2531_USB_STICK
+     66            return (unsigned char)(LED1_PIN | ((LED2_PIN ^ 0x01) << 1));
+     67          #elif MODEL_WSN2530
+     68            return (unsigned char)(LED1_PIN | (LED2_PIN << 1));
+   \   000000   A291         MOV     C,0x90.1
+   \   000002   E4           CLR     A
+   \   000003   33           RLC     A
+   \   000004   C3           CLR     C
+   \   000005   33           RLC     A
+   \   000006   F8           MOV     R0,A
+   \   000007   A290         MOV     C,0x90.0
+   \   000009   E4           CLR     A
+   \   00000A   33           RLC     A
+   \   00000B   48           ORL     A,R0
+   \   00000C   F9           MOV     R1,A
+   \   00000D   02....       LJMP    ?BRET
+   \   000010                REQUIRE _A_P1
+     69          #else
+     70            return (unsigned char)(LED1_PIN | (LED2_PIN << 1) | (LED3_PIN << 2));
+     71          #endif
+     72          }
+     73          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     74          void
+     75          leds_arch_set(unsigned char leds)
+   \                     leds_arch_set:
+     76          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+     77            LED1_PIN = leds & 0x01;
+   \   000000   E9           MOV     A,R1
+   \   000001   A2E0         MOV     C,0xE0 /* A   */.0
+   \   000003   E4           CLR     A
+   \   000004   33           RLC     A
+   \   000005   F8           MOV     R0,A
+   \   000006   E9           MOV     A,R1
+   \   000007   A2E0         MOV     C,0xE0 /* A   */.0
+   \   000009   9290         MOV     0x90.0,C
+     78          #if MODELS_CONF_CC2531_USB_STICK
+     79            LED2_PIN = ((leds & 0x02) >> 1) ^ 0x01;
+     80          #elif MODEL_WSN2530
+     81            LED2_PIN = (leds & 0x02) >> 1;
+   \   00000B   E9           MOV     A,R1
+   \   00000C   A2E1         MOV     C,0xE0 /* A   */.1
+   \   00000E   E4           CLR     A
+   \   00000F   33           RLC     A
+   \   000010   FA           MOV     R2,A
+   \   000011   E9           MOV     A,R1
+   \   000012   A2E1         MOV     C,0xE0 /* A   */.1
+   \   000014   9291         MOV     0x90.1,C
+     82          #else
+     83            LED2_PIN = (leds & 0x02) >> 1;
+     84            LED3_PIN = (leds & 0x04) >> 2;
+     85          #endif
+     86          }
+   \   000016   02....       LJMP    ?BRET
+   \   000019                REQUIRE _A_P1
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??leds_arch_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    leds_arch_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??leds_arch_get?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    leds_arch_get
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??leds_arch_set?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    leds_arch_set
+     87          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0      0  leds_arch_get
+       0      0      0  leds_arch_init
+       0      0      0  leds_arch_set
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??leds_arch_get?relay
+       6  ??leds_arch_init?relay
+       6  ??leds_arch_set?relay
+       1  P1DIR
+       1  P1SEL
+       1  _A_P1
+      16  leds_arch_get
+       9  leds_arch_init
+      25  leds_arch_set
+
+ 
+ 50 bytes in segment BANKED_CODE
+ 18 bytes in segment BANK_RELAYS
+  3 bytes in segment SFR_AN
+ 
+ 68 bytes of CODE memory
+  0 bytes of DATA memory (+ 3 bytes shared)
+
+Errors: none
+Warnings: none

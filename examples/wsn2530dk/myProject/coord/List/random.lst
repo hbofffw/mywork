@@ -1,0 +1,332 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:39 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\cpu\cc253x\dev\random.c           #
+#    Command line       =  D:\myWork\myWork\cpu\cc253x\dev\random.c -D        #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\random.lst                                  #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\random.r51                                   #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
+   \                                 In  segment SFR_AN, at 0xb4
+   \   unsigned char volatile __sfr ADCCON1
+   \                     ADCCON1:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xbc
+   \   unsigned char volatile __sfr RNDL
+   \                     RNDL:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xbd
+   \   unsigned char volatile __sfr RNDH
+   \                     RNDH:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe1
+   \   unsigned char volatile __sfr RFST
+   \                     RFST:
+   \   000000                DS 1
+D:\myWork\myWork\cpu\cc253x\dev\random.c
+      1          /*
+      2           * Copyright (c) 2011, George Oikonomou - <oikonomou@users.sourceforge.net>
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           */
+     31          
+     32          /**
+     33           * \file
+     34           *         Random number generator routines exploiting the cc2530 hardware
+     35           *         capabilities.
+     36           *
+     37           *         This file overrides core/lib/random.c.
+     38           *
+     39           * \author
+     40           *         George Oikonomou - <oikonomou@users.sourceforge.net>
+     41           */
+     42          #include "cc253x.h"
+     43          #include "sfr-bits.h"
+     44          #include "dev/cc2530-rf.h"
+     45          /*---------------------------------------------------------------------------*/
+     46          /**
+     47           * \brief      Generates a new random number using the cc253x RNG.
+     48           * \return     The random number.
+     49           */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     50          unsigned short
+     51          random_rand(void)
+   \                     random_rand:
+     52          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+     53            /* Clock the RNG LSFR once */
+     54            ADCCON1 |= ADCCON1_RCTRL0;
+   \   000000   43B404       ORL     0xb4,#0x4
+     55          
+     56            return (RNDL | (RNDH << 8));
+   \   000003   E5BC         MOV     A,0xbc
+   \   000005   FA           MOV     R2,A
+   \   000006   7B00         MOV     R3,#0x0
+   \   000008   E5BD         MOV     A,0xbd
+   \   00000A   F8           MOV     R0,A
+   \   00000B   7900         MOV     R1,#0x0
+   \   00000D   E4           CLR     A
+   \   00000E   C8           XCH     A,R0
+   \   00000F   F9           MOV     R1,A
+   \   000010   EA           MOV     A,R2
+   \   000011   48           ORL     A,R0
+   \   000012   FA           MOV     R2,A
+   \   000013   EB           MOV     A,R3
+   \   000014   49           ORL     A,R1
+   \   000015   FB           MOV     R3,A
+   \   000016   02....       LJMP    ?BRET
+   \   000019                REQUIRE ADCCON1
+   \   000019                REQUIRE RNDL
+   \   000019                REQUIRE RNDH
+     57          }
+     58          /*---------------------------------------------------------------------------*/
+     59          /**
+     60           * \brief      Seed the cc253x random number generator.
+     61           * \param seed Ignored. It's here because the function prototype is in core.
+     62           *
+     63           *             We form a seed for the RNG by sampling IF_ADC as
+     64           *             discussed in the user guide.
+     65           *             Seeding with this method should not be done during
+     66           *             normal radio operation. Thus, use this function before
+     67           *             initialising the network.
+     68           */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     69          void
+     70          random_init(unsigned short seed)
+   \                     random_init:
+     71          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     72            int i;
+     73          
+     74            /* Make sure the RNG is on */
+     75            ADCCON1 &= ~(ADCCON1_RCTRL1 | ADCCON1_RCTRL0);
+   \   000004   53B4F3       ANL     0xb4,#0xf3
+     76          
+     77            /* Infinite RX */
+     78            FRMCTRL0 = FRMCTRL0_RX_MODE1;
+   \   000007   906189       MOV     DPTR,#0x6189
+   \   00000A   7408         MOV     A,#0x8
+   \   00000C   F0           MOVX    @DPTR,A
+     79          
+     80            /* Turn RF on */
+     81            CC2530_CSP_ISRXON();
+   \   00000D   75E1E3       MOV     0xe1,#-0x1d
+     82          
+     83            /* Wait until (user guide sec. 23.12, p 239) "the chip has been in RX long
+     84             * enough for the transients to have died out. A convenient way to do this is
+     85             * to wait for the RSSI-valid signal to go high." */
+     86            while(!(RSSISTAT & RSSISTAT_RSSI_VALID));
+   \                     ??random_init_0:
+   \   000010   906199       MOV     DPTR,#0x6199
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   A2E0         MOV     C,0xE0 /* A   */.0
+   \   000016   50F8         JNC     ??random_init_0
+     87          
+     88            /*
+     89             * Form the seed by concatenating bits from IF_ADC in the RF receive path.
+     90             * Keep sampling until we have read at least 16 bits AND the seed is valid
+     91             *
+     92             * Invalid seeds are 0x0000 and 0x8003 - User Guide (sec. 14.2.2 p. 146):
+     93             * "Note that a seed value of 0x0000 or 0x8003 always leads to an unchanged
+     94             * value in the LFSR after clocking, as no values are pushed in via in_bit
+     95             * (see Figure 14-1); hence, neither of these seed values should not be used
+     96             * for random-number generation."
+     97             */
+     98            i = 0;
+   \   000018   7800         MOV     R0,#0x0
+   \   00001A   7900         MOV     R1,#0x0
+   \   00001C   8027         SJMP    ??random_init_1
+     99            while(i < 16 || (seed == 0x0000 || seed == 0x8003)) {
+    100              seed = (seed << 1) | (RFRND & RFRND_IRND);
+   \                     ??random_init_2:
+   \   00001E   EA           MOV     A,R2
+   \   00001F   C3           CLR     C
+   \   000020   33           RLC     A
+   \   000021   FA           MOV     R2,A
+   \   000022   EB           MOV     A,R3
+   \   000023   33           RLC     A
+   \   000024   FB           MOV     R3,A
+   \   000025   9061A7       MOV     DPTR,#0x61a7
+   \   000028   E0           MOVX    A,@DPTR
+   \   000029   A2E0         MOV     C,0xE0 /* A   */.0
+   \   00002B   E4           CLR     A
+   \   00002C   33           RLC     A
+   \   00002D   FC           MOV     R4,A
+   \   00002E   7D00         MOV     R5,#0x0
+   \   000030   EA           MOV     A,R2
+   \   000031   4C           ORL     A,R4
+   \   000032   FA           MOV     R2,A
+   \   000033   EB           MOV     A,R3
+   \   000034   4D           ORL     A,R5
+   \   000035   FB           MOV     R3,A
+    101              seed <<= 1;
+   \   000036   EA           MOV     A,R2
+   \   000037   C3           CLR     C
+   \   000038   33           RLC     A
+   \   000039   FA           MOV     R2,A
+   \   00003A   EB           MOV     A,R3
+   \   00003B   33           RLC     A
+   \   00003C   FB           MOV     R3,A
+    102              i++;
+   \   00003D   E8           MOV     A,R0
+   \   00003E   2401         ADD     A,#0x1
+   \   000040   F8           MOV     R0,A
+   \   000041   E9           MOV     A,R1
+   \   000042   3400         ADDC    A,#0x0
+   \   000044   F9           MOV     R1,A
+    103            }
+   \                     ??random_init_1:
+   \   000045   C3           CLR     C
+   \   000046   E8           MOV     A,R0
+   \   000047   9410         SUBB    A,#0x10
+   \   000049   E9           MOV     A,R1
+   \   00004A   9400         SUBB    A,#0x0
+   \   00004C   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   00004E   65D0         XRL     A,PSW
+   \   000050   33           RLC     A
+   \   000051   40CB         JC      ??random_init_2
+   \   000053   EA           MOV     A,R2
+   \   000054   4B           ORL     A,R3
+   \   000055   60C7         JZ      ??random_init_2
+   \   000057   7403         MOV     A,#0x3
+   \   000059   6A           XRL     A,R2
+   \   00005A   7003         JNZ     ??random_init_3
+   \   00005C   7480         MOV     A,#-0x80
+   \   00005E   6B           XRL     A,R3
+   \                     ??random_init_3:
+   \   00005F   60BD         JZ      ??random_init_2
+    104          
+    105            /* High byte first */
+    106            RNDL = seed >> 8;
+   \   000061   EA           MOV     A,R2
+   \   000062   F8           MOV     R0,A
+   \   000063   EB           MOV     A,R3
+   \   000064   F9           MOV     R1,A
+   \   000065   E4           CLR     A
+   \   000066   E9           MOV     A,R1
+   \   000067   F8           MOV     R0,A
+   \   000068   F5BC         MOV     0xbc,A
+    107            RNDL = seed & 0xFF;
+   \   00006A   EA           MOV     A,R2
+   \   00006B   F5BC         MOV     0xbc,A
+    108          
+    109            /* RF Off. NETSTACK_RADIO.init() will sort out normal RF operation */
+    110            CC2530_CSP_ISRFOFF();
+   \   00006D   75E1EF       MOV     0xe1,#-0x11
+    111          }
+   \   000070   D083         POP     DPH
+   \   000072   D082         POP     DPL
+   \   000074   02....       LJMP    ?BRET
+   \   000077                REQUIRE ADCCON1
+   \   000077                REQUIRE RFST
+   \   000077                REQUIRE RNDL
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??random_rand?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    random_rand
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??random_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    random_init
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       2      0      0  random_init
+       0      0      0  random_rand
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??random_init?relay
+       6  ??random_rand?relay
+       1  ADCCON1
+       1  RFST
+       1  RNDH
+       1  RNDL
+     119  random_init
+      25  random_rand
+
+ 
+ 144 bytes in segment BANKED_CODE
+  12 bytes in segment BANK_RELAYS
+   4 bytes in segment SFR_AN
+ 
+ 156 bytes of CODE memory
+   0 bytes of DATA memory (+ 4 bytes shared)
+
+Errors: none
+Warnings: none

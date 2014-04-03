@@ -1,0 +1,14 @@
+---- reverse Matches (13 in 8 files) ----
+Ctk-vncserver.c (e:\cc2530\wsn2530dk\experiments\codes\contiki-wsn2530dk\core\ctk): * \param reversedflag Determines if the character should be reversed or not.
+Ctk-vncserver.c (e:\cc2530\wsn2530dk\experiments\codes\contiki-wsn2530dk\core\ctk):		   unsigned char reversedflag,
+Ctk-vncserver.c (e:\cc2530\wsn2530dk\experiments\codes\contiki-wsn2530dk\core\ctk):      (reversedflag? 0x80: 0));*/
+Ds2411.c (e:\cc2530\wsn2530dk\experiments\codes\contiki-wsn2530dk\core\dev):    /* We receive 6 bytes in the reverse order, LSbyte first. */
+Lanc111.c (e:\cc2530\wsn2530dk\experiments\codes\contiki-wsn2530dk\cpu\avr\dev):#define PHYSOR_RPOL     0x0200  /*!< \ref NIC_PHYSOR bit mask, reverse polarity detected. */
+Libconio.c (e:\cc2530\wsn2530dk\experiments\codes\contiki-wsn2530dk\core\lib):static unsigned char reversed;
+Libconio.c (e:\cc2530\wsn2530dk\experiments\codes\contiki-wsn2530dk\core\lib):  reversed = c;
+Libconio.c (e:\cc2530\wsn2530dk\experiments\codes\contiki-wsn2530dk\core\lib):  ctk_arch_draw_char(c, cursx, cursy, reversed, color);
+Libconio.h (e:\cc2530\wsn2530dk\experiments\codes\contiki-wsn2530dk\core\lib):			unsigned char reversedflag,
+Rndis_task.c (e:\cc2530\wsn2530dk\experiments\codes\contiki-wsn2530dk\cpu\avr\dev\usb\rndis):			//Failed - BUT we are using "reverse logic", hence we force device
+Rndis_task.c (e:\cc2530\wsn2530dk\experiments\codes\contiki-wsn2530dk\cpu\avr\dev\usb\rndis):		//OR the user had their finger on the device, indicating a reverse of logic
+Sht11.c (e:\cc2530\wsn2530dk\experiments\codes\contiki-wsn2530dk\core\dev):/* BEWARE: Bit reversed CRC8 using polynomial ^8 + ^5 + ^4 + 1 */
+Uaodv.c (e:\cc2530\wsn2530dk\experiments\codes\contiki-wsn2530dk\core\net):  /* New reverse route? */

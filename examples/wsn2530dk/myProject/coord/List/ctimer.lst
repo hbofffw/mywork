@@ -1,0 +1,1025 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:47 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\sys\ctimer.c                 #
+#    Command line       =  D:\myWork\myWork\core\sys\ctimer.c -D              #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ctimer.lst                                  #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ctimer.r51                                   #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\sys\ctimer.c
+      1          /**
+      2           * \addtogroup ctimer
+      3           * @{
+      4           */
+      5          
+      6          /*
+      7           * Copyright (c) 2006, Swedish Institute of Computer Science.
+      8           * All rights reserved.
+      9           *
+     10           * Redistribution and use in source and binary forms, with or without
+     11           * modification, are permitted provided that the following conditions
+     12           * are met:
+     13           * 1. Redistributions of source code must retain the above copyright
+     14           *    notice, this list of conditions and the following disclaimer.
+     15           * 2. Redistributions in binary form must reproduce the above copyright
+     16           *    notice, this list of conditions and the following disclaimer in the
+     17           *    documentation and/or other materials provided with the distribution.
+     18           * 3. Neither the name of the Institute nor the names of its contributors
+     19           *    may be used to endorse or promote products derived from this software
+     20           *    without specific prior written permission.
+     21           *
+     22           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     23           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     24           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     25           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     26           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     27           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     28           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     29           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     30           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     31           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     32           * SUCH DAMAGE.
+     33           *
+     34           * This file is part of the Contiki operating system.
+     35           *
+     36           */
+     37          
+     38          /**
+     39           * \file
+     40           *         Callback timer implementation
+     41           * \author
+     42           *         Adam Dunkels <adam@sics.se>
+     43           */
+     44          
+     45          #include "sys/ctimer.h"
+     46          #include "contiki.h"
+     47          #include "lib/list.h"
+     48          
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     49          LIST(ctimer_list);
+   \                     ctimer_list:
+   \   000000                DS 2
+   \   000002                REQUIRE `?<Initializer for ctimer_list>`
+   \   000002                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static void *__xdata ctimer_list_list
+   \                     ctimer_list_list:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     50          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     51          static char initialized;
+   \                     initialized:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+     52          
+     53          #define DEBUG 0
+     54          #if DEBUG
+     55          #include <stdio.h>
+     56          #define PRINTF(...) printf(__VA_ARGS__)
+     57          #else
+     58          #define PRINTF(...)
+     59          #endif
+     60          
+     61          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     62          PROCESS(ctimer_process, "Ctimer process");
+   \                     ctimer_process:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for ctimer_process>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     63          PROCESS_THREAD(ctimer_process, ev, data)
+   \                     process_thread_ctimer_process:
+     64          {
+   \   000000   74F0         MOV     A,#-0x10
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 16
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   89..         MOV     ?V0 + 4,R1
+   \   00000B   8C..         MOV     ?V0 + 6,R4
+   \   00000D   8D..         MOV     ?V0 + 7,R5
+     65            struct ctimer *c;
+     66            PROCESS_BEGIN();
+   \   00000F   7A01         MOV     R2,#0x1
+   \   000011   85..82       MOV     DPL,?V0 + 0
+   \   000014   85..83       MOV     DPH,?V0 + 1
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   F5..         MOV     ?V0 + 2,A
+   \   00001A   A3           INC     DPTR
+   \   00001B   E0           MOVX    A,@DPTR
+   \   00001C   F5..         MOV     ?V0 + 3,A
+   \   00001E   78..         MOV     R0,#?V0 + 2
+   \   000020   12....       LCALL   ?US_SWITCH_SPARSE
+   \                     `?<Jumptable for process_thread_ctimer_process>_0`:
+   \   000023   0000         DW        0
+   \   000025   0200         DW        2
+   \   000027   0000         DW        0
+   \   000029   ....         DW        ??process_thread_ctimer_process_0
+   \   00002B   4A00         DW        74
+   \   00002D   ....         DW        ??process_thread_ctimer_process_1
+   \   00002F   ....         DW        ??process_thread_ctimer_process_2
+     67          
+     68            for(c = list_head(ctimer_list); c != NULL; c = c->next) {
+   \                     ??process_thread_ctimer_process_0:
+   \   000031                ; Setup parameters for call to function list_head
+   \   000031   90....       MOV     DPTR,#ctimer_list
+   \   000034   E0           MOVX    A,@DPTR
+   \   000035   FA           MOV     R2,A
+   \   000036   A3           INC     DPTR
+   \   000037   E0           MOVX    A,@DPTR
+   \   000038   FB           MOV     R3,A
+   \   000039   12....       LCALL   ??list_head?relay
+   \   00003C   8A..         MOV     ?V0 + 2,R2
+   \   00003E   8B..         MOV     ?V0 + 3,R3
+   \   000040   AE..         MOV     R6,?V0 + 2
+   \   000042   AF..         MOV     R7,?V0 + 3
+   \   000044   8021         SJMP    ??process_thread_ctimer_process_3
+     69              etimer_set(&c->etimer, c->etimer.timer.interval);
+   \                     ??process_thread_ctimer_process_4:
+   \   000046                ; Setup parameters for call to function etimer_set
+   \   000046   8E82         MOV     DPL,R6
+   \   000048   8F83         MOV     DPH,R7
+   \   00004A   A3           INC     DPTR
+   \   00004B   A3           INC     DPTR
+   \   00004C   A3           INC     DPTR
+   \   00004D   A3           INC     DPTR
+   \   00004E   E0           MOVX    A,@DPTR
+   \   00004F   FC           MOV     R4,A
+   \   000050   A3           INC     DPTR
+   \   000051   E0           MOVX    A,@DPTR
+   \   000052   FD           MOV     R5,A
+   \   000053   EE           MOV     A,R6
+   \   000054   2402         ADD     A,#0x2
+   \   000056   FA           MOV     R2,A
+   \   000057   EF           MOV     A,R7
+   \   000058   3400         ADDC    A,#0x0
+   \   00005A   FB           MOV     R3,A
+   \   00005B   12....       LCALL   ??etimer_set?relay
+     70            }
+   \   00005E   8E82         MOV     DPL,R6
+   \   000060   8F83         MOV     DPH,R7
+   \   000062   E0           MOVX    A,@DPTR
+   \   000063   FE           MOV     R6,A
+   \   000064   A3           INC     DPTR
+   \   000065   E0           MOVX    A,@DPTR
+   \   000066   FF           MOV     R7,A
+   \                     ??process_thread_ctimer_process_3:
+   \   000067   EE           MOV     A,R6
+   \   000068   4F           ORL     A,R7
+   \   000069   70DB         JNZ     ??process_thread_ctimer_process_4
+     71            initialized = 1;
+   \   00006B   90....       MOV     DPTR,#initialized
+   \   00006E   7401         MOV     A,#0x1
+   \   000070   F0           MOVX    @DPTR,A
+     72          
+     73            while(1) {
+     74              PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_TIMER);
+   \                     ??process_thread_ctimer_process_5:
+   \   000071   7A00         MOV     R2,#0x0
+   \   000073   85..82       MOV     DPL,?V0 + 0
+   \   000076   85..83       MOV     DPH,?V0 + 1
+   \   000079   744A         MOV     A,#0x4a
+   \   00007B   F0           MOVX    @DPTR,A
+   \   00007C   A3           INC     DPTR
+   \   00007D   7400         MOV     A,#0x0
+   \   00007F   F0           MOVX    @DPTR,A
+   \                     ??process_thread_ctimer_process_1:
+   \   000080   EA           MOV     A,R2
+   \   000081   6006         JZ      ??process_thread_ctimer_process_6
+   \   000083   7488         MOV     A,#-0x78
+   \   000085   65..         XRL     A,?V0 + 4
+   \   000087   6005         JZ      ??process_thread_ctimer_process_7
+   \                     ??process_thread_ctimer_process_6:
+   \   000089   7901         MOV     R1,#0x1
+   \   00008B   02....       LJMP    ??process_thread_ctimer_process_8 & 0xFFFF
+     75              for(c = list_head(ctimer_list); c != NULL; c = c->next) {
+   \                     ??process_thread_ctimer_process_7:
+   \   00008E                ; Setup parameters for call to function list_head
+   \   00008E   90....       MOV     DPTR,#ctimer_list
+   \   000091   E0           MOVX    A,@DPTR
+   \   000092   FA           MOV     R2,A
+   \   000093   A3           INC     DPTR
+   \   000094   E0           MOVX    A,@DPTR
+   \   000095   FB           MOV     R3,A
+   \   000096   12....       LCALL   ??list_head?relay
+   \   000099   8A..         MOV     ?V0 + 2,R2
+   \   00009B   8B..         MOV     ?V0 + 3,R3
+   \   00009D   AE..         MOV     R6,?V0 + 2
+   \   00009F   AF..         MOV     R7,?V0 + 3
+   \   0000A1   8009         SJMP    ??process_thread_ctimer_process_9
+   \                     ??process_thread_ctimer_process_10:
+   \   0000A3   8E82         MOV     DPL,R6
+   \   0000A5   8F83         MOV     DPH,R7
+   \   0000A7   E0           MOVX    A,@DPTR
+   \   0000A8   FE           MOV     R6,A
+   \   0000A9   A3           INC     DPTR
+   \   0000AA   E0           MOVX    A,@DPTR
+   \   0000AB   FF           MOV     R7,A
+   \                     ??process_thread_ctimer_process_9:
+   \   0000AC   EE           MOV     A,R6
+   \   0000AD   4F           ORL     A,R7
+   \   0000AE   60C1         JZ      ??process_thread_ctimer_process_5
+     76                if(&c->etimer == data) {
+   \   0000B0   EE           MOV     A,R6
+   \   0000B1   2402         ADD     A,#0x2
+   \   0000B3   F8           MOV     R0,A
+   \   0000B4   EF           MOV     A,R7
+   \   0000B5   3400         ADDC    A,#0x0
+   \   0000B7   F9           MOV     R1,A
+   \   0000B8   E5..         MOV     A,?V0 + 6
+   \   0000BA   68           XRL     A,R0
+   \   0000BB   7003         JNZ     ??process_thread_ctimer_process_11
+   \   0000BD   E5..         MOV     A,?V0 + 7
+   \   0000BF   69           XRL     A,R1
+   \                     ??process_thread_ctimer_process_11:
+   \   0000C0   70E1         JNZ     ??process_thread_ctimer_process_10
+     77          	list_remove(ctimer_list, c);
+   \   0000C2                ; Setup parameters for call to function list_remove
+   \   0000C2   EE           MOV     A,R6
+   \   0000C3   FC           MOV     R4,A
+   \   0000C4   EF           MOV     A,R7
+   \   0000C5   FD           MOV     R5,A
+   \   0000C6   90....       MOV     DPTR,#ctimer_list
+   \   0000C9   E0           MOVX    A,@DPTR
+   \   0000CA   FA           MOV     R2,A
+   \   0000CB   A3           INC     DPTR
+   \   0000CC   E0           MOVX    A,@DPTR
+   \   0000CD   FB           MOV     R3,A
+   \   0000CE   12....       LCALL   ??list_remove?relay
+     78          	PROCESS_CONTEXT_BEGIN(c->p);
+   \   0000D1   90....       MOV     DPTR,#process_current
+   \   0000D4   E0           MOVX    A,@DPTR
+   \   0000D5   F5..         MOV     ?V0 + 2,A
+   \   0000D7   A3           INC     DPTR
+   \   0000D8   E0           MOVX    A,@DPTR
+   \   0000D9   F5..         MOV     ?V0 + 3,A
+   \   0000DB   8E82         MOV     DPL,R6
+   \   0000DD   8F83         MOV     DPH,R7
+   \   0000DF   A3           INC     DPTR
+   \   0000E0   A3           INC     DPTR
+   \   0000E1   A3           INC     DPTR
+   \   0000E2   A3           INC     DPTR
+   \   0000E3   A3           INC     DPTR
+   \   0000E4   A3           INC     DPTR
+   \   0000E5   A3           INC     DPTR
+   \   0000E6   A3           INC     DPTR
+   \   0000E7   A3           INC     DPTR
+   \   0000E8   A3           INC     DPTR
+   \   0000E9   E0           MOVX    A,@DPTR
+   \   0000EA   F8           MOV     R0,A
+   \   0000EB   A3           INC     DPTR
+   \   0000EC   E0           MOVX    A,@DPTR
+   \   0000ED   F9           MOV     R1,A
+   \   0000EE   90....       MOV     DPTR,#process_current
+   \   0000F1   E8           MOV     A,R0
+   \   0000F2   F0           MOVX    @DPTR,A
+   \   0000F3   A3           INC     DPTR
+   \   0000F4   E9           MOV     A,R1
+   \   0000F5   F0           MOVX    @DPTR,A
+     79          	if(c->f != NULL) {
+   \   0000F6   EE           MOV     A,R6
+   \   0000F7   240C         ADD     A,#0xc
+   \   0000F9   F582         MOV     DPL,A
+   \   0000FB   EF           MOV     A,R7
+   \   0000FC   3400         ADDC    A,#0x0
+   \   0000FE   F583         MOV     DPH,A
+   \   000100   E0           MOVX    A,@DPTR
+   \   000101   F8           MOV     R0,A
+   \   000102   A3           INC     DPTR
+   \   000103   E0           MOVX    A,@DPTR
+   \   000104   F9           MOV     R1,A
+   \   000105   E8           MOV     A,R0
+   \   000106   49           ORL     A,R1
+   \   000107   6024         JZ      ??process_thread_ctimer_process_12
+     80          	  c->f(c->ptr);
+   \   000109                ; Setup parameters for indirect call
+   \   000109   EE           MOV     A,R6
+   \   00010A   240E         ADD     A,#0xe
+   \   00010C   F582         MOV     DPL,A
+   \   00010E   EF           MOV     A,R7
+   \   00010F   3400         ADDC    A,#0x0
+   \   000111   F583         MOV     DPH,A
+   \   000113   E0           MOVX    A,@DPTR
+   \   000114   FA           MOV     R2,A
+   \   000115   A3           INC     DPTR
+   \   000116   E0           MOVX    A,@DPTR
+   \   000117   FB           MOV     R3,A
+   \   000118   EE           MOV     A,R6
+   \   000119   240C         ADD     A,#0xc
+   \   00011B   F582         MOV     DPL,A
+   \   00011D   EF           MOV     A,R7
+   \   00011E   3400         ADDC    A,#0x0
+   \   000120   F583         MOV     DPH,A
+   \   000122   E0           MOVX    A,@DPTR
+   \   000123   F8           MOV     R0,A
+   \   000124   A3           INC     DPTR
+   \   000125   E0           MOVX    A,@DPTR
+   \   000126   F583         MOV     DPH,A
+   \   000128   8882         MOV     DPL,R0
+   \   00012A   12....       LCALL   ?CALL_IND
+     81          	}
+     82          	PROCESS_CONTEXT_END(c->p);
+   \                     ??process_thread_ctimer_process_12:
+   \   00012D   90....       MOV     DPTR,#process_current
+   \   000130   E5..         MOV     A,?V0 + 2
+   \   000132   F0           MOVX    @DPTR,A
+   \   000133   A3           INC     DPTR
+   \   000134   E5..         MOV     A,?V0 + 3
+   \   000136   F0           MOVX    @DPTR,A
+     83          	break;
+   \   000137   02....       LJMP    ??process_thread_ctimer_process_5 & 0xFFFF
+     84                }
+     85              }
+     86            }
+     87            PROCESS_END();
+   \                     ??process_thread_ctimer_process_2:
+   \   00013A   7A00         MOV     R2,#0x0
+   \   00013C   85..82       MOV     DPL,?V0 + 0
+   \   00013F   85..83       MOV     DPH,?V0 + 1
+   \   000142   7400         MOV     A,#0x0
+   \   000144   F0           MOVX    @DPTR,A
+   \   000145   A3           INC     DPTR
+   \   000146   7400         MOV     A,#0x0
+   \   000148   F0           MOVX    @DPTR,A
+   \   000149   7903         MOV     R1,#0x3
+   \                     ??process_thread_ctimer_process_8:
+   \   00014B   7F08         MOV     R7,#0x8
+   \   00014D   02....       LJMP    ?BANKED_LEAVE_XDATA
+     88          }
+     89          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     90          void
+     91          ctimer_init(void)
+   \                     ctimer_init:
+     92          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     93            initialized = 0;
+   \   000004   90....       MOV     DPTR,#initialized
+   \   000007   7400         MOV     A,#0x0
+   \   000009   F0           MOVX    @DPTR,A
+     94            list_init(ctimer_list);
+   \   00000A                ; Setup parameters for call to function list_init
+   \   00000A   90....       MOV     DPTR,#ctimer_list
+   \   00000D   E0           MOVX    A,@DPTR
+   \   00000E   FA           MOV     R2,A
+   \   00000F   A3           INC     DPTR
+   \   000010   E0           MOVX    A,@DPTR
+   \   000011   FB           MOV     R3,A
+   \   000012   12....       LCALL   ??list_init?relay
+     95            process_start(&ctimer_process, NULL);
+   \   000015                ; Setup parameters for call to function process_start
+   \   000015   7C00         MOV     R4,#0x0
+   \   000017   7D00         MOV     R5,#0x0
+   \   000019   7A..         MOV     R2,#ctimer_process & 0xff
+   \   00001B   7B..         MOV     R3,#(ctimer_process >> 8) & 0xff
+   \   00001D   12....       LCALL   ??process_start?relay
+     96          }
+   \   000020   D083         POP     DPH
+   \   000022   D082         POP     DPL
+   \   000024   02....       LJMP    ?BRET
+     97          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     98          void
+     99          ctimer_set(struct ctimer *c, clock_time_t t,
+   \                     ctimer_set:
+    100          	   void (*f)(void *), void *ptr)
+    101          {
+   \   000000   74F5         MOV     A,#-0xb
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 11
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   740B         MOV     A,#0xb
+   \   00000B   12....       LCALL   ?XSTACK_DISP0_8
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   FA           MOV     R2,A
+   \   000010   A3           INC     DPTR
+   \   000011   E0           MOVX    A,@DPTR
+   \   000012   FB           MOV     R3,A
+   \   000013   740D         MOV     A,#0xd
+   \   000015   12....       LCALL   ?XSTACK_DISP0_8
+   \   000018   E0           MOVX    A,@DPTR
+   \   000019   F8           MOV     R0,A
+   \   00001A   A3           INC     DPTR
+   \   00001B   E0           MOVX    A,@DPTR
+   \   00001C   F9           MOV     R1,A
+    102            PRINTF("ctimer_set %p %u\n", c, (unsigned)t);
+    103            c->p = PROCESS_CURRENT();
+   \   00001D   90....       MOV     DPTR,#process_current
+   \   000020   E0           MOVX    A,@DPTR
+   \   000021   F5..         MOV     ?V0 + 0,A
+   \   000023   A3           INC     DPTR
+   \   000024   E0           MOVX    A,@DPTR
+   \   000025   F5..         MOV     ?V0 + 1,A
+   \   000027   8E82         MOV     DPL,R6
+   \   000029   8F83         MOV     DPH,R7
+   \   00002B   A3           INC     DPTR
+   \   00002C   A3           INC     DPTR
+   \   00002D   A3           INC     DPTR
+   \   00002E   A3           INC     DPTR
+   \   00002F   A3           INC     DPTR
+   \   000030   A3           INC     DPTR
+   \   000031   A3           INC     DPTR
+   \   000032   A3           INC     DPTR
+   \   000033   A3           INC     DPTR
+   \   000034   A3           INC     DPTR
+   \   000035   E5..         MOV     A,?V0 + 0
+   \   000037   F0           MOVX    @DPTR,A
+   \   000038   A3           INC     DPTR
+   \   000039   E5..         MOV     A,?V0 + 1
+   \   00003B   F0           MOVX    @DPTR,A
+    104            c->f = f;
+   \   00003C   EE           MOV     A,R6
+   \   00003D   240C         ADD     A,#0xc
+   \   00003F   F582         MOV     DPL,A
+   \   000041   EF           MOV     A,R7
+   \   000042   3400         ADDC    A,#0x0
+   \   000044   F583         MOV     DPH,A
+   \   000046   EA           MOV     A,R2
+   \   000047   F0           MOVX    @DPTR,A
+   \   000048   A3           INC     DPTR
+   \   000049   EB           MOV     A,R3
+   \   00004A   F0           MOVX    @DPTR,A
+    105            c->ptr = ptr;
+   \   00004B   EE           MOV     A,R6
+   \   00004C   240E         ADD     A,#0xe
+   \   00004E   F582         MOV     DPL,A
+   \   000050   EF           MOV     A,R7
+   \   000051   3400         ADDC    A,#0x0
+   \   000053   F583         MOV     DPH,A
+   \   000055   E8           MOV     A,R0
+   \   000056   F0           MOVX    @DPTR,A
+   \   000057   A3           INC     DPTR
+   \   000058   E9           MOV     A,R1
+   \   000059   F0           MOVX    @DPTR,A
+    106            if(initialized) {
+   \   00005A   90....       MOV     DPTR,#initialized
+   \   00005D   E0           MOVX    A,@DPTR
+   \   00005E   602F         JZ      ??ctimer_set_0
+    107              PROCESS_CONTEXT_BEGIN(&ctimer_process);
+   \   000060   90....       MOV     DPTR,#process_current
+   \   000063   E0           MOVX    A,@DPTR
+   \   000064   F5..         MOV     ?V0 + 0,A
+   \   000066   A3           INC     DPTR
+   \   000067   E0           MOVX    A,@DPTR
+   \   000068   F5..         MOV     ?V0 + 1,A
+   \   00006A   90....       MOV     DPTR,#process_current
+   \   00006D   74..         MOV     A,#ctimer_process & 0xff
+   \   00006F   F0           MOVX    @DPTR,A
+   \   000070   A3           INC     DPTR
+   \   000071   74..         MOV     A,#(ctimer_process >> 8) & 0xff
+   \   000073   F0           MOVX    @DPTR,A
+    108              etimer_set(&c->etimer, t);
+   \   000074                ; Setup parameters for call to function etimer_set
+   \   000074   EE           MOV     A,R6
+   \   000075   2402         ADD     A,#0x2
+   \   000077   FA           MOV     R2,A
+   \   000078   EF           MOV     A,R7
+   \   000079   3400         ADDC    A,#0x0
+   \   00007B   FB           MOV     R3,A
+   \   00007C   12....       LCALL   ??etimer_set?relay
+    109              PROCESS_CONTEXT_END(&ctimer_process);
+   \   00007F   A8..         MOV     R0,?V0 + 0
+   \   000081   A9..         MOV     R1,?V0 + 1
+   \   000083   90....       MOV     DPTR,#process_current
+   \   000086   E5..         MOV     A,?V0 + 0
+   \   000088   F0           MOVX    @DPTR,A
+   \   000089   A3           INC     DPTR
+   \   00008A   E5..         MOV     A,?V0 + 1
+   \   00008C   F0           MOVX    @DPTR,A
+   \   00008D   800D         SJMP    ??ctimer_set_1
+    110            } else {
+    111              c->etimer.timer.interval = t;
+   \                     ??ctimer_set_0:
+   \   00008F   8E82         MOV     DPL,R6
+   \   000091   8F83         MOV     DPH,R7
+   \   000093   A3           INC     DPTR
+   \   000094   A3           INC     DPTR
+   \   000095   A3           INC     DPTR
+   \   000096   A3           INC     DPTR
+   \   000097   EC           MOV     A,R4
+   \   000098   F0           MOVX    @DPTR,A
+   \   000099   A3           INC     DPTR
+   \   00009A   ED           MOV     A,R5
+   \   00009B   F0           MOVX    @DPTR,A
+    112            }
+    113          
+    114            list_remove(ctimer_list, c);
+   \                     ??ctimer_set_1:
+   \   00009C                ; Setup parameters for call to function list_remove
+   \   00009C   EE           MOV     A,R6
+   \   00009D   FC           MOV     R4,A
+   \   00009E   EF           MOV     A,R7
+   \   00009F   FD           MOV     R5,A
+   \   0000A0   90....       MOV     DPTR,#ctimer_list
+   \   0000A3   E0           MOVX    A,@DPTR
+   \   0000A4   FA           MOV     R2,A
+   \   0000A5   A3           INC     DPTR
+   \   0000A6   E0           MOVX    A,@DPTR
+   \   0000A7   FB           MOV     R3,A
+   \   0000A8   12....       LCALL   ??list_remove?relay
+    115            list_add(ctimer_list, c);
+   \   0000AB                ; Setup parameters for call to function list_add
+   \   0000AB   EE           MOV     A,R6
+   \   0000AC   FC           MOV     R4,A
+   \   0000AD   EF           MOV     A,R7
+   \   0000AE   FD           MOV     R5,A
+   \   0000AF   90....       MOV     DPTR,#ctimer_list
+   \   0000B2   E0           MOVX    A,@DPTR
+   \   0000B3   FA           MOV     R2,A
+   \   0000B4   A3           INC     DPTR
+   \   0000B5   E0           MOVX    A,@DPTR
+   \   0000B6   FB           MOV     R3,A
+   \   0000B7   12....       LCALL   ??list_add?relay
+    116          }
+   \   0000BA   7F03         MOV     R7,#0x3
+   \   0000BC   02....       LJMP    ?BANKED_LEAVE_XDATA
+    117          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    118          void
+    119          ctimer_reset(struct ctimer *c)
+   \                     ctimer_reset:
+    120          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    121            if(initialized) {
+   \   000009   90....       MOV     DPTR,#initialized
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   602D         JZ      ??ctimer_reset_0
+    122              PROCESS_CONTEXT_BEGIN(&ctimer_process);
+   \   00000F   90....       MOV     DPTR,#process_current
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   F5..         MOV     ?V0 + 0,A
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F5..         MOV     ?V0 + 1,A
+   \   000019   90....       MOV     DPTR,#process_current
+   \   00001C   74..         MOV     A,#ctimer_process & 0xff
+   \   00001E   F0           MOVX    @DPTR,A
+   \   00001F   A3           INC     DPTR
+   \   000020   74..         MOV     A,#(ctimer_process >> 8) & 0xff
+   \   000022   F0           MOVX    @DPTR,A
+    123              etimer_reset(&c->etimer);
+   \   000023                ; Setup parameters for call to function etimer_reset
+   \   000023   EE           MOV     A,R6
+   \   000024   2402         ADD     A,#0x2
+   \   000026   FA           MOV     R2,A
+   \   000027   EF           MOV     A,R7
+   \   000028   3400         ADDC    A,#0x0
+   \   00002A   FB           MOV     R3,A
+   \   00002B   12....       LCALL   ??etimer_reset?relay
+    124              PROCESS_CONTEXT_END(&ctimer_process);
+   \   00002E   A8..         MOV     R0,?V0 + 0
+   \   000030   A9..         MOV     R1,?V0 + 1
+   \   000032   90....       MOV     DPTR,#process_current
+   \   000035   E5..         MOV     A,?V0 + 0
+   \   000037   F0           MOVX    @DPTR,A
+   \   000038   A3           INC     DPTR
+   \   000039   E5..         MOV     A,?V0 + 1
+   \   00003B   F0           MOVX    @DPTR,A
+    125            }
+    126          
+    127            list_remove(ctimer_list, c);
+   \                     ??ctimer_reset_0:
+   \   00003C                ; Setup parameters for call to function list_remove
+   \   00003C   EE           MOV     A,R6
+   \   00003D   FC           MOV     R4,A
+   \   00003E   EF           MOV     A,R7
+   \   00003F   FD           MOV     R5,A
+   \   000040   90....       MOV     DPTR,#ctimer_list
+   \   000043   E0           MOVX    A,@DPTR
+   \   000044   FA           MOV     R2,A
+   \   000045   A3           INC     DPTR
+   \   000046   E0           MOVX    A,@DPTR
+   \   000047   FB           MOV     R3,A
+   \   000048   12....       LCALL   ??list_remove?relay
+    128            list_add(ctimer_list, c);
+   \   00004B                ; Setup parameters for call to function list_add
+   \   00004B   EE           MOV     A,R6
+   \   00004C   FC           MOV     R4,A
+   \   00004D   EF           MOV     A,R7
+   \   00004E   FD           MOV     R5,A
+   \   00004F   90....       MOV     DPTR,#ctimer_list
+   \   000052   E0           MOVX    A,@DPTR
+   \   000053   FA           MOV     R2,A
+   \   000054   A3           INC     DPTR
+   \   000055   E0           MOVX    A,@DPTR
+   \   000056   FB           MOV     R3,A
+   \   000057   12....       LCALL   ??list_add?relay
+    129          }
+   \   00005A   7F02         MOV     R7,#0x2
+   \   00005C   02....       LJMP    ?BANKED_LEAVE_XDATA
+    130          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    131          void
+    132          ctimer_restart(struct ctimer *c)
+   \                     ctimer_restart:
+    133          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    134            if(initialized) {
+   \   000009   90....       MOV     DPTR,#initialized
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   602D         JZ      ??ctimer_restart_0
+    135              PROCESS_CONTEXT_BEGIN(&ctimer_process);
+   \   00000F   90....       MOV     DPTR,#process_current
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   F5..         MOV     ?V0 + 0,A
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F5..         MOV     ?V0 + 1,A
+   \   000019   90....       MOV     DPTR,#process_current
+   \   00001C   74..         MOV     A,#ctimer_process & 0xff
+   \   00001E   F0           MOVX    @DPTR,A
+   \   00001F   A3           INC     DPTR
+   \   000020   74..         MOV     A,#(ctimer_process >> 8) & 0xff
+   \   000022   F0           MOVX    @DPTR,A
+    136              etimer_restart(&c->etimer);
+   \   000023                ; Setup parameters for call to function etimer_restart
+   \   000023   EE           MOV     A,R6
+   \   000024   2402         ADD     A,#0x2
+   \   000026   FA           MOV     R2,A
+   \   000027   EF           MOV     A,R7
+   \   000028   3400         ADDC    A,#0x0
+   \   00002A   FB           MOV     R3,A
+   \   00002B   12....       LCALL   ??etimer_restart?relay
+    137              PROCESS_CONTEXT_END(&ctimer_process);
+   \   00002E   A8..         MOV     R0,?V0 + 0
+   \   000030   A9..         MOV     R1,?V0 + 1
+   \   000032   90....       MOV     DPTR,#process_current
+   \   000035   E5..         MOV     A,?V0 + 0
+   \   000037   F0           MOVX    @DPTR,A
+   \   000038   A3           INC     DPTR
+   \   000039   E5..         MOV     A,?V0 + 1
+   \   00003B   F0           MOVX    @DPTR,A
+    138            }
+    139          
+    140            list_remove(ctimer_list, c);
+   \                     ??ctimer_restart_0:
+   \   00003C                ; Setup parameters for call to function list_remove
+   \   00003C   EE           MOV     A,R6
+   \   00003D   FC           MOV     R4,A
+   \   00003E   EF           MOV     A,R7
+   \   00003F   FD           MOV     R5,A
+   \   000040   90....       MOV     DPTR,#ctimer_list
+   \   000043   E0           MOVX    A,@DPTR
+   \   000044   FA           MOV     R2,A
+   \   000045   A3           INC     DPTR
+   \   000046   E0           MOVX    A,@DPTR
+   \   000047   FB           MOV     R3,A
+   \   000048   12....       LCALL   ??list_remove?relay
+    141            list_add(ctimer_list, c);
+   \   00004B                ; Setup parameters for call to function list_add
+   \   00004B   EE           MOV     A,R6
+   \   00004C   FC           MOV     R4,A
+   \   00004D   EF           MOV     A,R7
+   \   00004E   FD           MOV     R5,A
+   \   00004F   90....       MOV     DPTR,#ctimer_list
+   \   000052   E0           MOVX    A,@DPTR
+   \   000053   FA           MOV     R2,A
+   \   000054   A3           INC     DPTR
+   \   000055   E0           MOVX    A,@DPTR
+   \   000056   FB           MOV     R3,A
+   \   000057   12....       LCALL   ??list_add?relay
+    142          }
+   \   00005A   7F02         MOV     R7,#0x2
+   \   00005C   02....       LJMP    ?BANKED_LEAVE_XDATA
+    143          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    144          void
+    145          ctimer_stop(struct ctimer *c)
+   \                     ctimer_stop:
+    146          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    147            if(initialized) {
+   \   000009   90....       MOV     DPTR,#initialized
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   600D         JZ      ??ctimer_stop_0
+    148              etimer_stop(&c->etimer);
+   \   00000F                ; Setup parameters for call to function etimer_stop
+   \   00000F   EE           MOV     A,R6
+   \   000010   2402         ADD     A,#0x2
+   \   000012   FA           MOV     R2,A
+   \   000013   EF           MOV     A,R7
+   \   000014   3400         ADDC    A,#0x0
+   \   000016   FB           MOV     R3,A
+   \   000017   12....       LCALL   ??etimer_stop?relay
+   \   00001A   8024         SJMP    ??ctimer_stop_1
+    149            } else {
+    150              c->etimer.next = NULL;
+   \                     ??ctimer_stop_0:
+   \   00001C   8E82         MOV     DPL,R6
+   \   00001E   8F83         MOV     DPH,R7
+   \   000020   A3           INC     DPTR
+   \   000021   A3           INC     DPTR
+   \   000022   A3           INC     DPTR
+   \   000023   A3           INC     DPTR
+   \   000024   A3           INC     DPTR
+   \   000025   A3           INC     DPTR
+   \   000026   7400         MOV     A,#0x0
+   \   000028   F0           MOVX    @DPTR,A
+   \   000029   A3           INC     DPTR
+   \   00002A   7400         MOV     A,#0x0
+   \   00002C   F0           MOVX    @DPTR,A
+    151              c->etimer.p = PROCESS_NONE;
+   \   00002D   8E82         MOV     DPL,R6
+   \   00002F   8F83         MOV     DPH,R7
+   \   000031   A3           INC     DPTR
+   \   000032   A3           INC     DPTR
+   \   000033   A3           INC     DPTR
+   \   000034   A3           INC     DPTR
+   \   000035   A3           INC     DPTR
+   \   000036   A3           INC     DPTR
+   \   000037   A3           INC     DPTR
+   \   000038   A3           INC     DPTR
+   \   000039   7400         MOV     A,#0x0
+   \   00003B   F0           MOVX    @DPTR,A
+   \   00003C   A3           INC     DPTR
+   \   00003D   7400         MOV     A,#0x0
+   \   00003F   F0           MOVX    @DPTR,A
+    152            }
+    153            list_remove(ctimer_list, c);
+   \                     ??ctimer_stop_1:
+   \   000040                ; Setup parameters for call to function list_remove
+   \   000040   EE           MOV     A,R6
+   \   000041   FC           MOV     R4,A
+   \   000042   EF           MOV     A,R7
+   \   000043   FD           MOV     R5,A
+   \   000044   90....       MOV     DPTR,#ctimer_list
+   \   000047   E0           MOVX    A,@DPTR
+   \   000048   FA           MOV     R2,A
+   \   000049   A3           INC     DPTR
+   \   00004A   E0           MOVX    A,@DPTR
+   \   00004B   FB           MOV     R3,A
+   \   00004C   12....       LCALL   ??list_remove?relay
+    154          }
+   \   00004F   7F01         MOV     R7,#0x1
+   \   000051   02....       LJMP    ?BANKED_LEAVE_XDATA
+    155          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    156          int
+    157          ctimer_expired(struct ctimer *c)
+   \                     ctimer_expired:
+    158          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    159            struct ctimer *t;
+    160            if(initialized) {
+   \   000009   90....       MOV     DPTR,#initialized
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   600D         JZ      ??ctimer_expired_0
+    161              return etimer_expired(&c->etimer);
+   \   00000F                ; Setup parameters for call to function etimer_expired
+   \   00000F   EE           MOV     A,R6
+   \   000010   2402         ADD     A,#0x2
+   \   000012   FA           MOV     R2,A
+   \   000013   EF           MOV     A,R7
+   \   000014   3400         ADDC    A,#0x0
+   \   000016   FB           MOV     R3,A
+   \   000017   12....       LCALL   ??etimer_expired?relay
+   \   00001A   803A         SJMP    ??ctimer_expired_1
+    162            }
+    163            for(t = list_head(ctimer_list); t != NULL; t = t->next) {
+   \                     ??ctimer_expired_0:
+   \   00001C                ; Setup parameters for call to function list_head
+   \   00001C   90....       MOV     DPTR,#ctimer_list
+   \   00001F   E0           MOVX    A,@DPTR
+   \   000020   FA           MOV     R2,A
+   \   000021   A3           INC     DPTR
+   \   000022   E0           MOVX    A,@DPTR
+   \   000023   FB           MOV     R3,A
+   \   000024   12....       LCALL   ??list_head?relay
+   \   000027   8A..         MOV     ?V0 + 0,R2
+   \   000029   8B..         MOV     ?V0 + 1,R3
+   \   00002B   85..82       MOV     DPL,?V0 + 0
+   \   00002E   85..83       MOV     DPH,?V0 + 1
+   \   000031   8009         SJMP    ??ctimer_expired_2
+   \                     ??ctimer_expired_3:
+   \   000033   E0           MOVX    A,@DPTR
+   \   000034   F8           MOV     R0,A
+   \   000035   A3           INC     DPTR
+   \   000036   E0           MOVX    A,@DPTR
+   \   000037   F9           MOV     R1,A
+   \   000038   8882         MOV     DPL,R0
+   \   00003A   8983         MOV     DPH,R1
+   \                     ??ctimer_expired_2:
+   \   00003C   E582         MOV     A,DPL
+   \   00003E   4583         ORL     A,DPH
+   \   000040   6010         JZ      ??ctimer_expired_4
+    164              if(t == c) {
+   \   000042   EE           MOV     A,R6
+   \   000043   6582         XRL     A,DPL
+   \   000045   7003         JNZ     ??ctimer_expired_5
+   \   000047   EF           MOV     A,R7
+   \   000048   6583         XRL     A,DPH
+   \                     ??ctimer_expired_5:
+   \   00004A   70E7         JNZ     ??ctimer_expired_3
+    165                return 0;
+   \   00004C   7A00         MOV     R2,#0x0
+   \   00004E   7B00         MOV     R3,#0x0
+   \   000050   8004         SJMP    ??ctimer_expired_1
+    166              }
+    167            }
+    168            return 1;
+   \                     ??ctimer_expired_4:
+   \   000052   7A01         MOV     R2,#0x1
+   \   000054   7B00         MOV     R3,#0x0
+   \                     ??ctimer_expired_1:
+   \   000056   7F02         MOV     R7,#0x2
+   \   000058   02....       LJMP    ?BANKED_LEAVE_XDATA
+    169          }
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for ctimer_list>`:
+   \   000000   ....         DW ctimer_list_list
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for ctimer_process>`:
+   \   000000   0000         DW 0H
+   \   000002   ....         DW ??process_thread_ctimer_process?relay
+   \   000004   00000000     DB 0, 0, 0, 0
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_thread_ctimer_process?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_thread_ctimer_process
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??ctimer_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    ctimer_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??ctimer_set?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    ctimer_set
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??ctimer_reset?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    ctimer_reset
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??ctimer_restart?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    ctimer_restart
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??ctimer_stop?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    ctimer_stop
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??ctimer_expired?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    ctimer_expired
+    170          /*---------------------------------------------------------------------------*/
+    171          /** @} */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     10  ctimer_expired
+                          0 0 10 -> etimer_expired
+                          0 0 10 -> list_head
+       2      0      0  ctimer_init
+                          2 0  0 -> list_init
+                          2 0  0 -> process_start
+       0      0     10  ctimer_reset
+                          0 0 10 -> etimer_reset
+                          0 0 10 -> list_add
+                          0 0 10 -> list_remove
+       0      0     10  ctimer_restart
+                          0 0 10 -> etimer_restart
+                          0 0 10 -> list_add
+                          0 0 10 -> list_remove
+       0      0     15  ctimer_set
+                          0 0 11 -> etimer_set
+                          0 0 11 -> list_add
+                          0 0 11 -> list_remove
+       0      0      9  ctimer_stop
+                          0 0  9 -> etimer_stop
+                          0 0  9 -> list_remove
+       0      0     16  process_thread_ctimer_process
+                          0 0 16 -> etimer_set
+                          0 0 16 -> list_head
+                          0 0 16 -> list_remove
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       2  ?<Initializer for ctimer_list>
+       8  ?<Initializer for ctimer_process>
+       6  ??ctimer_expired?relay
+       6  ??ctimer_init?relay
+       6  ??ctimer_reset?relay
+       6  ??ctimer_restart?relay
+       6  ??ctimer_set?relay
+       6  ??ctimer_stop?relay
+       6  ??process_thread_ctimer_process?relay
+      91  ctimer_expired
+      39  ctimer_init
+       2  ctimer_list
+       2  ctimer_list_list
+       8  ctimer_process
+      95  ctimer_reset
+      95  ctimer_restart
+     191  ctimer_set
+      84  ctimer_stop
+       1  initialized
+     336  process_thread_ctimer_process
+
+ 
+ 931 bytes in segment BANKED_CODE
+  42 bytes in segment BANK_RELAYS
+  10 bytes in segment XDATA_I
+  10 bytes in segment XDATA_ID
+   3 bytes in segment XDATA_Z
+ 
+ 983 bytes of CODE  memory
+  13 bytes of XDATA memory
+
+Errors: none
+Warnings: none

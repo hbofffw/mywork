@@ -1,0 +1,832 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:54 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\uip-neighbor.c           #
+#    Command line       =  D:\myWork\myWork\core\net\uip-neighbor.c -D        #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\uip-neighbor.lst                            #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\uip-neighbor.r51                             #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\uip-neighbor.c
+      1          /*
+      2           * Copyright (c) 2006, Swedish Institute of Computer Science.
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           */
+     32          
+     33          /**
+     34           * \file
+     35           *         Database of link-local neighbors, used by IPv6 code and
+     36           *         to be used by a future ARP code rewrite.
+     37           * \author
+     38           *         Adam Dunkels <adam@sics.se>
+     39           */
+     40          
+     41          #include "net/uip-neighbor.h"
+     42          
+     43          #include <string.h>
+     44          #include <stdio.h>
+     45          
+     46          #define MAX_TIME 128
+     47          
+     48          #ifdef UIP_NEIGHBOR_CONF_ENTRIES
+     49          #define ENTRIES UIP_NEIGHBOR_CONF_ENTRIES
+     50          #else /* UIP_NEIGHBOR_CONF_ENTRIES */
+     51          #define ENTRIES 8
+     52          #endif /* UIP_NEIGHBOR_CONF_ENTRIES */
+     53          
+     54          struct neighbor_entry {
+     55            uip_ipaddr_t ipaddr;
+     56            struct uip_neighbor_addr addr;
+     57            uint8_t time;
+     58          };
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     59          static struct neighbor_entry entries[ENTRIES];
+   \                     entries:
+   \   000000                DS 184
+   \   0000B8                REQUIRE __INIT_XDATA_Z
+     60          
+     61          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     62          void
+     63          uip_neighbor_init(void)
+   \                     uip_neighbor_init:
+     64          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     65            int i;
+     66          
+     67            for(i = 0; i < ENTRIES; ++i) {
+   \   000004   7800         MOV     R0,#0x0
+   \   000006   7900         MOV     R1,#0x0
+   \   000008   802E         SJMP    ??uip_neighbor_init_0
+     68              entries[i].time = MAX_TIME;
+   \                     ??uip_neighbor_init_1:
+   \   00000A   E8           MOV     A,R0
+   \   00000B   FA           MOV     R2,A
+   \   00000C   E9           MOV     A,R1
+   \   00000D   FB           MOV     R3,A
+   \   00000E   EA           MOV     A,R2
+   \   00000F   75F017       MOV     B,#0x17
+   \   000012   A4           MUL     AB
+   \   000013   CA           XCH     A,R2
+   \   000014   ACF0         MOV     R4,B
+   \   000016   75F000       MOV     B,#0x0
+   \   000019   A4           MUL     AB
+   \   00001A   2C           ADD     A,R4
+   \   00001B   FC           MOV     R4,A
+   \   00001C   75F017       MOV     B,#0x17
+   \   00001F   EB           MOV     A,R3
+   \   000020   A4           MUL     AB
+   \   000021   2C           ADD     A,R4
+   \   000022   FB           MOV     R3,A
+   \   000023   74..         MOV     A,#(entries + 22) & 0xff
+   \   000025   2A           ADD     A,R2
+   \   000026   F582         MOV     DPL,A
+   \   000028   74..         MOV     A,#((entries + 22) >> 8) & 0xff
+   \   00002A   3B           ADDC    A,R3
+   \   00002B   F583         MOV     DPH,A
+   \   00002D   7480         MOV     A,#-0x80
+   \   00002F   F0           MOVX    @DPTR,A
+     69            }
+   \   000030   E8           MOV     A,R0
+   \   000031   2401         ADD     A,#0x1
+   \   000033   F8           MOV     R0,A
+   \   000034   E9           MOV     A,R1
+   \   000035   3400         ADDC    A,#0x0
+   \   000037   F9           MOV     R1,A
+   \                     ??uip_neighbor_init_0:
+   \   000038   C3           CLR     C
+   \   000039   E8           MOV     A,R0
+   \   00003A   9408         SUBB    A,#0x8
+   \   00003C   E9           MOV     A,R1
+   \   00003D   9400         SUBB    A,#0x0
+   \   00003F   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000041   65D0         XRL     A,PSW
+   \   000043   33           RLC     A
+   \   000044   40C4         JC      ??uip_neighbor_init_1
+     70          }
+   \   000046   D083         POP     DPH
+   \   000048   D082         POP     DPL
+   \   00004A   02....       LJMP    ?BRET
+     71          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     72          void
+     73          uip_neighbor_periodic(void)
+   \                     uip_neighbor_periodic:
+     74          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     75            int i;
+     76          
+     77            for(i = 0; i < ENTRIES; ++i) {
+   \   000004   7800         MOV     R0,#0x0
+   \   000006   7900         MOV     R1,#0x0
+   \   000008   8058         SJMP    ??uip_neighbor_periodic_0
+     78              if(entries[i].time < MAX_TIME) {
+   \                     ??uip_neighbor_periodic_1:
+   \   00000A   E8           MOV     A,R0
+   \   00000B   FA           MOV     R2,A
+   \   00000C   E9           MOV     A,R1
+   \   00000D   FB           MOV     R3,A
+   \   00000E   EA           MOV     A,R2
+   \   00000F   75F017       MOV     B,#0x17
+   \   000012   A4           MUL     AB
+   \   000013   CA           XCH     A,R2
+   \   000014   ACF0         MOV     R4,B
+   \   000016   75F000       MOV     B,#0x0
+   \   000019   A4           MUL     AB
+   \   00001A   2C           ADD     A,R4
+   \   00001B   FC           MOV     R4,A
+   \   00001C   75F017       MOV     B,#0x17
+   \   00001F   EB           MOV     A,R3
+   \   000020   A4           MUL     AB
+   \   000021   2C           ADD     A,R4
+   \   000022   FB           MOV     R3,A
+   \   000023   74..         MOV     A,#(entries + 22) & 0xff
+   \   000025   2A           ADD     A,R2
+   \   000026   F582         MOV     DPL,A
+   \   000028   74..         MOV     A,#((entries + 22) >> 8) & 0xff
+   \   00002A   3B           ADDC    A,R3
+   \   00002B   F583         MOV     DPH,A
+   \   00002D   E0           MOVX    A,@DPTR
+   \   00002E   C3           CLR     C
+   \   00002F   9480         SUBB    A,#-0x80
+   \   000031   5027         JNC     ??uip_neighbor_periodic_2
+     79                entries[i].time++;
+   \   000033   E8           MOV     A,R0
+   \   000034   FA           MOV     R2,A
+   \   000035   E9           MOV     A,R1
+   \   000036   FB           MOV     R3,A
+   \   000037   EA           MOV     A,R2
+   \   000038   75F017       MOV     B,#0x17
+   \   00003B   A4           MUL     AB
+   \   00003C   CA           XCH     A,R2
+   \   00003D   ACF0         MOV     R4,B
+   \   00003F   75F000       MOV     B,#0x0
+   \   000042   A4           MUL     AB
+   \   000043   2C           ADD     A,R4
+   \   000044   FC           MOV     R4,A
+   \   000045   75F017       MOV     B,#0x17
+   \   000048   EB           MOV     A,R3
+   \   000049   A4           MUL     AB
+   \   00004A   2C           ADD     A,R4
+   \   00004B   FB           MOV     R3,A
+   \   00004C   74..         MOV     A,#(entries + 22) & 0xff
+   \   00004E   2A           ADD     A,R2
+   \   00004F   F582         MOV     DPL,A
+   \   000051   74..         MOV     A,#((entries + 22) >> 8) & 0xff
+   \   000053   3B           ADDC    A,R3
+   \   000054   F583         MOV     DPH,A
+   \   000056   E0           MOVX    A,@DPTR
+   \   000057   2401         ADD     A,#0x1
+   \   000059   F0           MOVX    @DPTR,A
+     80              }
+     81            }
+   \                     ??uip_neighbor_periodic_2:
+   \   00005A   E8           MOV     A,R0
+   \   00005B   2401         ADD     A,#0x1
+   \   00005D   F8           MOV     R0,A
+   \   00005E   E9           MOV     A,R1
+   \   00005F   3400         ADDC    A,#0x0
+   \   000061   F9           MOV     R1,A
+   \                     ??uip_neighbor_periodic_0:
+   \   000062   C3           CLR     C
+   \   000063   E8           MOV     A,R0
+   \   000064   9408         SUBB    A,#0x8
+   \   000066   E9           MOV     A,R1
+   \   000067   9400         SUBB    A,#0x0
+   \   000069   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   00006B   65D0         XRL     A,PSW
+   \   00006D   33           RLC     A
+   \   00006E   409A         JC      ??uip_neighbor_periodic_1
+     82          }
+   \   000070   D083         POP     DPH
+   \   000072   D082         POP     DPL
+   \   000074   02....       LJMP    ?BRET
+     83          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     84          void
+     85          uip_neighbor_add(uip_ipaddr_t *ipaddr, struct uip_neighbor_addr *addr)
+   \                     uip_neighbor_add:
+     86          {
+   \   000000   74EE         MOV     A,#-0x12
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 18
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   8C..         MOV     ?V0 + 4,R4
+   \   00000B   8D..         MOV     ?V0 + 5,R5
+     87            int i, oldest;
+     88            uint8_t oldest_time;
+     89          
+     90            /*  printf("Adding neighbor with link address %02x:%02x:%02x:%02x:%02x:%02x\n",
+     91          	 addr->addr.addr[0], addr->addr.addr[1], addr->addr.addr[2], addr->addr.addr[3],
+     92          	 addr->addr.addr[4], addr->addr.addr[5]);*/
+     93            
+     94            /* Find the first unused entry or the oldest used entry. */
+     95            oldest_time = 0;
+   \   00000D   75..00       MOV     ?V0 + 6,#0x0
+     96            oldest = 0;
+   \   000010   75..00       MOV     ?V0 + 2,#0x0
+   \   000013   75..00       MOV     ?V0 + 3,#0x0
+     97            for(i = 0; i < ENTRIES; ++i) {
+   \   000016   7E00         MOV     R6,#0x0
+   \   000018   7F00         MOV     R7,#0x0
+   \   00001A   805D         SJMP    ??uip_neighbor_add_0
+     98              if(entries[i].time == MAX_TIME) {
+     99                oldest = i;
+    100                break;
+    101              }
+    102              if(uip_ipaddr_cmp(&entries[i].ipaddr, ipaddr)) {
+    103                oldest = i;
+    104                break;
+    105              }
+    106              if(entries[i].time > oldest_time) {
+   \                     ??uip_neighbor_add_1:
+   \   00001C   EE           MOV     A,R6
+   \   00001D   F8           MOV     R0,A
+   \   00001E   EF           MOV     A,R7
+   \   00001F   F9           MOV     R1,A
+   \   000020   E8           MOV     A,R0
+   \   000021   75F017       MOV     B,#0x17
+   \   000024   A4           MUL     AB
+   \   000025   C8           XCH     A,R0
+   \   000026   AAF0         MOV     R2,B
+   \   000028   75F000       MOV     B,#0x0
+   \   00002B   A4           MUL     AB
+   \   00002C   2A           ADD     A,R2
+   \   00002D   FA           MOV     R2,A
+   \   00002E   75F017       MOV     B,#0x17
+   \   000031   E9           MOV     A,R1
+   \   000032   A4           MUL     AB
+   \   000033   2A           ADD     A,R2
+   \   000034   F9           MOV     R1,A
+   \   000035   74..         MOV     A,#(entries + 22) & 0xff
+   \   000037   28           ADD     A,R0
+   \   000038   F582         MOV     DPL,A
+   \   00003A   74..         MOV     A,#((entries + 22) >> 8) & 0xff
+   \   00003C   39           ADDC    A,R1
+   \   00003D   F583         MOV     DPH,A
+   \   00003F   E0           MOVX    A,@DPTR
+   \   000040   F8           MOV     R0,A
+   \   000041   E5..         MOV     A,?V0 + 6
+   \   000043   C3           CLR     C
+   \   000044   98           SUBB    A,R0
+   \   000045   502A         JNC     ??uip_neighbor_add_2
+    107                oldest = i;
+   \   000047   8E..         MOV     ?V0 + 2,R6
+   \   000049   8F..         MOV     ?V0 + 3,R7
+    108                oldest_time = entries[i].time;
+   \   00004B   EE           MOV     A,R6
+   \   00004C   F8           MOV     R0,A
+   \   00004D   EF           MOV     A,R7
+   \   00004E   F9           MOV     R1,A
+   \   00004F   E8           MOV     A,R0
+   \   000050   75F017       MOV     B,#0x17
+   \   000053   A4           MUL     AB
+   \   000054   C8           XCH     A,R0
+   \   000055   AAF0         MOV     R2,B
+   \   000057   75F000       MOV     B,#0x0
+   \   00005A   A4           MUL     AB
+   \   00005B   2A           ADD     A,R2
+   \   00005C   FA           MOV     R2,A
+   \   00005D   75F017       MOV     B,#0x17
+   \   000060   E9           MOV     A,R1
+   \   000061   A4           MUL     AB
+   \   000062   2A           ADD     A,R2
+   \   000063   F9           MOV     R1,A
+   \   000064   74..         MOV     A,#(entries + 22) & 0xff
+   \   000066   28           ADD     A,R0
+   \   000067   F582         MOV     DPL,A
+   \   000069   74..         MOV     A,#((entries + 22) >> 8) & 0xff
+   \   00006B   39           ADDC    A,R1
+   \   00006C   F583         MOV     DPH,A
+   \   00006E   E0           MOVX    A,@DPTR
+   \   00006F   F5..         MOV     ?V0 + 6,A
+    109              }
+   \                     ??uip_neighbor_add_2:
+   \   000071   EE           MOV     A,R6
+   \   000072   2401         ADD     A,#0x1
+   \   000074   FE           MOV     R6,A
+   \   000075   EF           MOV     A,R7
+   \   000076   3400         ADDC    A,#0x0
+   \   000078   FF           MOV     R7,A
+   \                     ??uip_neighbor_add_0:
+   \   000079   C3           CLR     C
+   \   00007A   EE           MOV     A,R6
+   \   00007B   9408         SUBB    A,#0x8
+   \   00007D   EF           MOV     A,R7
+   \   00007E   9400         SUBB    A,#0x0
+   \   000080   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000082   65D0         XRL     A,PSW
+   \   000084   33           RLC     A
+   \   000085   5077         JNC     ??uip_neighbor_add_3
+   \   000087   EE           MOV     A,R6
+   \   000088   F8           MOV     R0,A
+   \   000089   EF           MOV     A,R7
+   \   00008A   F9           MOV     R1,A
+   \   00008B   E8           MOV     A,R0
+   \   00008C   75F017       MOV     B,#0x17
+   \   00008F   A4           MUL     AB
+   \   000090   C8           XCH     A,R0
+   \   000091   AAF0         MOV     R2,B
+   \   000093   75F000       MOV     B,#0x0
+   \   000096   A4           MUL     AB
+   \   000097   2A           ADD     A,R2
+   \   000098   FA           MOV     R2,A
+   \   000099   75F017       MOV     B,#0x17
+   \   00009C   E9           MOV     A,R1
+   \   00009D   A4           MUL     AB
+   \   00009E   2A           ADD     A,R2
+   \   00009F   F9           MOV     R1,A
+   \   0000A0   74..         MOV     A,#(entries + 22) & 0xff
+   \   0000A2   28           ADD     A,R0
+   \   0000A3   F582         MOV     DPL,A
+   \   0000A5   74..         MOV     A,#((entries + 22) >> 8) & 0xff
+   \   0000A7   39           ADDC    A,R1
+   \   0000A8   F583         MOV     DPH,A
+   \   0000AA   E0           MOVX    A,@DPTR
+   \   0000AB   6480         XRL     A,#0x80
+   \   0000AD   7006         JNZ     ??uip_neighbor_add_4
+   \   0000AF   8E..         MOV     ?V0 + 2,R6
+   \   0000B1   8F..         MOV     ?V0 + 3,R7
+   \   0000B3   8049         SJMP    ??uip_neighbor_add_3
+   \                     ??uip_neighbor_add_4:
+   \   0000B5                ; Setup parameters for call to function memcmp
+   \   0000B5   75..10       MOV     ?V0 + 8,#0x10
+   \   0000B8   75..00       MOV     ?V0 + 9,#0x0
+   \   0000BB   78..         MOV     R0,#?V0 + 8
+   \   0000BD   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000C0   AC..         MOV     R4,?V0 + 0
+   \   0000C2   AD..         MOV     R5,?V0 + 1
+   \   0000C4   EE           MOV     A,R6
+   \   0000C5   F8           MOV     R0,A
+   \   0000C6   EF           MOV     A,R7
+   \   0000C7   F9           MOV     R1,A
+   \   0000C8   E8           MOV     A,R0
+   \   0000C9   75F017       MOV     B,#0x17
+   \   0000CC   A4           MUL     AB
+   \   0000CD   C8           XCH     A,R0
+   \   0000CE   AAF0         MOV     R2,B
+   \   0000D0   75F000       MOV     B,#0x0
+   \   0000D3   A4           MUL     AB
+   \   0000D4   2A           ADD     A,R2
+   \   0000D5   FA           MOV     R2,A
+   \   0000D6   75F017       MOV     B,#0x17
+   \   0000D9   E9           MOV     A,R1
+   \   0000DA   A4           MUL     AB
+   \   0000DB   2A           ADD     A,R2
+   \   0000DC   F9           MOV     R1,A
+   \   0000DD   74..         MOV     A,#entries & 0xff
+   \   0000DF   28           ADD     A,R0
+   \   0000E0   FA           MOV     R2,A
+   \   0000E1   74..         MOV     A,#(entries >> 8) & 0xff
+   \   0000E3   39           ADDC    A,R1
+   \   0000E4   FB           MOV     R3,A
+   \   0000E5   12....       LCALL   ??memcmp?relay
+   \   0000E8   7402         MOV     A,#0x2
+   \   0000EA   12....       LCALL   ?DEALLOC_XSTACK8
+   \   0000ED   8A..         MOV     ?V0 + 8,R2
+   \   0000EF   8B..         MOV     ?V0 + 9,R3
+   \   0000F1   E5..         MOV     A,?V0 + 8
+   \   0000F3   45..         ORL     A,?V0 + 9
+   \   0000F5   6003         JZ      $+5
+   \   0000F7   02....       LJMP    ??uip_neighbor_add_1 & 0xFFFF
+   \   0000FA   8E..         MOV     ?V0 + 2,R6
+   \   0000FC   8F..         MOV     ?V0 + 3,R7
+    110            }
+    111          
+    112            /* Use the oldest or first free entry (either pointed to by the
+    113               "oldest" variable). */
+    114            entries[oldest].time = 0;
+   \                     ??uip_neighbor_add_3:
+   \   0000FE   A8..         MOV     R0,?V0 + 2
+   \   000100   A9..         MOV     R1,?V0 + 3
+   \   000102   E8           MOV     A,R0
+   \   000103   75F017       MOV     B,#0x17
+   \   000106   A4           MUL     AB
+   \   000107   C8           XCH     A,R0
+   \   000108   AAF0         MOV     R2,B
+   \   00010A   75F000       MOV     B,#0x0
+   \   00010D   A4           MUL     AB
+   \   00010E   2A           ADD     A,R2
+   \   00010F   FA           MOV     R2,A
+   \   000110   75F017       MOV     B,#0x17
+   \   000113   E5..         MOV     A,?V0 + 3
+   \   000115   A4           MUL     AB
+   \   000116   2A           ADD     A,R2
+   \   000117   F9           MOV     R1,A
+   \   000118   74..         MOV     A,#(entries + 22) & 0xff
+   \   00011A   28           ADD     A,R0
+   \   00011B   F582         MOV     DPL,A
+   \   00011D   74..         MOV     A,#((entries + 22) >> 8) & 0xff
+   \   00011F   39           ADDC    A,R1
+   \   000120   F583         MOV     DPH,A
+   \   000122   7400         MOV     A,#0x0
+   \   000124   F0           MOVX    @DPTR,A
+    115            uip_ipaddr_copy(&entries[oldest].ipaddr, ipaddr);
+   \   000125                ; Setup parameters for call to function memcpy
+   \   000125   75..10       MOV     ?V0 + 6,#0x10
+   \   000128   75..00       MOV     ?V0 + 7,#0x0
+   \   00012B   78..         MOV     R0,#?V0 + 6
+   \   00012D   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000130   AC..         MOV     R4,?V0 + 0
+   \   000132   AD..         MOV     R5,?V0 + 1
+   \   000134   A8..         MOV     R0,?V0 + 2
+   \   000136   A9..         MOV     R1,?V0 + 3
+   \   000138   E8           MOV     A,R0
+   \   000139   75F017       MOV     B,#0x17
+   \   00013C   A4           MUL     AB
+   \   00013D   C8           XCH     A,R0
+   \   00013E   AAF0         MOV     R2,B
+   \   000140   75F000       MOV     B,#0x0
+   \   000143   A4           MUL     AB
+   \   000144   2A           ADD     A,R2
+   \   000145   FA           MOV     R2,A
+   \   000146   75F017       MOV     B,#0x17
+   \   000149   E5..         MOV     A,?V0 + 3
+   \   00014B   A4           MUL     AB
+   \   00014C   2A           ADD     A,R2
+   \   00014D   F9           MOV     R1,A
+   \   00014E   74..         MOV     A,#entries & 0xff
+   \   000150   28           ADD     A,R0
+   \   000151   FA           MOV     R2,A
+   \   000152   74..         MOV     A,#(entries >> 8) & 0xff
+   \   000154   39           ADDC    A,R1
+   \   000155   FB           MOV     R3,A
+   \   000156   12....       LCALL   ??memcpy?relay
+   \   000159   7402         MOV     A,#0x2
+   \   00015B   12....       LCALL   ?DEALLOC_XSTACK8
+    116            memcpy(&entries[oldest].addr, addr, sizeof(struct uip_neighbor_addr));
+   \   00015E                ; Setup parameters for call to function memcpy
+   \   00015E   75..06       MOV     ?V0 + 0,#0x6
+   \   000161   75..00       MOV     ?V0 + 1,#0x0
+   \   000164   78..         MOV     R0,#?V0 + 0
+   \   000166   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000169   AC..         MOV     R4,?V0 + 4
+   \   00016B   AD..         MOV     R5,?V0 + 5
+   \   00016D   E5..         MOV     A,?V0 + 2
+   \   00016F   75F017       MOV     B,#0x17
+   \   000172   A4           MUL     AB
+   \   000173   C5..         XCH     A,?V0 + 2
+   \   000175   A8F0         MOV     R0,B
+   \   000177   75F000       MOV     B,#0x0
+   \   00017A   A4           MUL     AB
+   \   00017B   28           ADD     A,R0
+   \   00017C   F8           MOV     R0,A
+   \   00017D   75F017       MOV     B,#0x17
+   \   000180   E5..         MOV     A,?V0 + 3
+   \   000182   A4           MUL     AB
+   \   000183   28           ADD     A,R0
+   \   000184   F5..         MOV     ?V0 + 3,A
+   \   000186   74..         MOV     A,#(entries + 16) & 0xff
+   \   000188   25..         ADD     A,?V0 + 2
+   \   00018A   FA           MOV     R2,A
+   \   00018B   74..         MOV     A,#((entries + 16) >> 8) & 0xff
+   \   00018D   35..         ADDC    A,?V0 + 3
+   \   00018F   FB           MOV     R3,A
+   \   000190   12....       LCALL   ??memcpy?relay
+   \   000193   7402         MOV     A,#0x2
+   \   000195   12....       LCALL   ?DEALLOC_XSTACK8
+    117          }
+   \   000198   7F0A         MOV     R7,#0xa
+   \   00019A   02....       LJMP    ?BANKED_LEAVE_XDATA
+    118          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    119          static struct neighbor_entry *
+    120          find_entry(uip_ipaddr_t *ipaddr)
+   \                     find_entry:
+    121          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    122            int i;
+    123            
+    124            for(i = 0; i < ENTRIES; ++i) {
+   \   000009   75..00       MOV     ?V0 + 0,#0x0
+   \   00000C   75..00       MOV     ?V0 + 1,#0x0
+   \   00000F   800C         SJMP    ??find_entry_0
+   \                     ??find_entry_1:
+   \   000011   E5..         MOV     A,?V0 + 0
+   \   000013   2401         ADD     A,#0x1
+   \   000015   F5..         MOV     ?V0 + 0,A
+   \   000017   E5..         MOV     A,?V0 + 1
+   \   000019   3400         ADDC    A,#0x0
+   \   00001B   F5..         MOV     ?V0 + 1,A
+   \                     ??find_entry_0:
+   \   00001D   C3           CLR     C
+   \   00001E   E5..         MOV     A,?V0 + 0
+   \   000020   9408         SUBB    A,#0x8
+   \   000022   E5..         MOV     A,?V0 + 1
+   \   000024   9400         SUBB    A,#0x0
+   \   000026   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000028   65D0         XRL     A,PSW
+   \   00002A   33           RLC     A
+   \   00002B   5068         JNC     ??find_entry_2
+    125              if(uip_ipaddr_cmp(&entries[i].ipaddr, ipaddr)) {
+   \   00002D                ; Setup parameters for call to function memcmp
+   \   00002D   75..10       MOV     ?V0 + 2,#0x10
+   \   000030   75..00       MOV     ?V0 + 3,#0x0
+   \   000033   78..         MOV     R0,#?V0 + 2
+   \   000035   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000038   EE           MOV     A,R6
+   \   000039   FC           MOV     R4,A
+   \   00003A   EF           MOV     A,R7
+   \   00003B   FD           MOV     R5,A
+   \   00003C   A8..         MOV     R0,?V0 + 0
+   \   00003E   A9..         MOV     R1,?V0 + 1
+   \   000040   E8           MOV     A,R0
+   \   000041   75F017       MOV     B,#0x17
+   \   000044   A4           MUL     AB
+   \   000045   C8           XCH     A,R0
+   \   000046   AAF0         MOV     R2,B
+   \   000048   75F000       MOV     B,#0x0
+   \   00004B   A4           MUL     AB
+   \   00004C   2A           ADD     A,R2
+   \   00004D   FA           MOV     R2,A
+   \   00004E   75F017       MOV     B,#0x17
+   \   000051   E5..         MOV     A,?V0 + 1
+   \   000053   A4           MUL     AB
+   \   000054   2A           ADD     A,R2
+   \   000055   F9           MOV     R1,A
+   \   000056   74..         MOV     A,#entries & 0xff
+   \   000058   28           ADD     A,R0
+   \   000059   FA           MOV     R2,A
+   \   00005A   74..         MOV     A,#(entries >> 8) & 0xff
+   \   00005C   39           ADDC    A,R1
+   \   00005D   FB           MOV     R3,A
+   \   00005E   12....       LCALL   ??memcmp?relay
+   \   000061   7402         MOV     A,#0x2
+   \   000063   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000066   8A..         MOV     ?V0 + 2,R2
+   \   000068   8B..         MOV     ?V0 + 3,R3
+   \   00006A   E5..         MOV     A,?V0 + 2
+   \   00006C   45..         ORL     A,?V0 + 3
+   \   00006E   70A1         JNZ     ??find_entry_1
+    126                return &entries[i];
+   \   000070   E5..         MOV     A,?V0 + 0
+   \   000072   75F017       MOV     B,#0x17
+   \   000075   A4           MUL     AB
+   \   000076   C5..         XCH     A,?V0 + 0
+   \   000078   A8F0         MOV     R0,B
+   \   00007A   75F000       MOV     B,#0x0
+   \   00007D   A4           MUL     AB
+   \   00007E   28           ADD     A,R0
+   \   00007F   F8           MOV     R0,A
+   \   000080   75F017       MOV     B,#0x17
+   \   000083   E5..         MOV     A,?V0 + 1
+   \   000085   A4           MUL     AB
+   \   000086   28           ADD     A,R0
+   \   000087   F5..         MOV     ?V0 + 1,A
+   \   000089   74..         MOV     A,#entries & 0xff
+   \   00008B   25..         ADD     A,?V0 + 0
+   \   00008D   FA           MOV     R2,A
+   \   00008E   74..         MOV     A,#(entries >> 8) & 0xff
+   \   000090   35..         ADDC    A,?V0 + 1
+   \   000092   FB           MOV     R3,A
+   \   000093   8004         SJMP    ??find_entry_3
+    127              }
+    128            }
+    129            return NULL;
+   \                     ??find_entry_2:
+   \   000095   7A00         MOV     R2,#0x0
+   \   000097   7B00         MOV     R3,#0x0
+   \                     ??find_entry_3:
+   \   000099   7F04         MOV     R7,#0x4
+   \   00009B   02....       LJMP    ?BANKED_LEAVE_XDATA
+    130          }
+    131          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    132          void
+    133          uip_neighbor_update(uip_ipaddr_t *ipaddr)
+   \                     uip_neighbor_update:
+    134          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    135            struct neighbor_entry *e;
+    136          
+    137            e = find_entry(ipaddr);
+   \   000005                ; Setup parameters for call to function find_entry
+   \   000005   12....       LCALL   ??find_entry?relay
+   \   000008   8A..         MOV     ?V0 + 0,R2
+   \   00000A   8B..         MOV     ?V0 + 1,R3
+   \   00000C   A8..         MOV     R0,?V0 + 0
+   \   00000E   A9..         MOV     R1,?V0 + 1
+    138            if(e != NULL) {
+   \   000010   E8           MOV     A,R0
+   \   000011   49           ORL     A,R1
+   \   000012   600D         JZ      ??uip_neighbor_update_0
+    139              e->time = 0;
+   \   000014   E8           MOV     A,R0
+   \   000015   2416         ADD     A,#0x16
+   \   000017   F582         MOV     DPL,A
+   \   000019   E9           MOV     A,R1
+   \   00001A   3400         ADDC    A,#0x0
+   \   00001C   F583         MOV     DPH,A
+   \   00001E   7400         MOV     A,#0x0
+   \   000020   F0           MOVX    @DPTR,A
+    140            }
+    141          }
+   \                     ??uip_neighbor_update_0:
+   \   000021   7F02         MOV     R7,#0x2
+   \   000023   02....       LJMP    ?BANKED_LEAVE_XDATA
+    142          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    143          struct uip_neighbor_addr *
+    144          uip_neighbor_lookup(uip_ipaddr_t *ipaddr)
+   \                     uip_neighbor_lookup:
+    145          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    146            struct neighbor_entry *e;
+    147          
+    148            e = find_entry(ipaddr);
+   \   000005                ; Setup parameters for call to function find_entry
+   \   000005   12....       LCALL   ??find_entry?relay
+   \   000008   8A..         MOV     ?V0 + 0,R2
+   \   00000A   8B..         MOV     ?V0 + 1,R3
+   \   00000C   A8..         MOV     R0,?V0 + 0
+   \   00000E   A9..         MOV     R1,?V0 + 1
+    149            if(e != NULL) {
+   \   000010   E8           MOV     A,R0
+   \   000011   49           ORL     A,R1
+   \   000012   600A         JZ      ??uip_neighbor_lookup_0
+    150              /*    printf("Lookup neighbor with link address %02x:%02x:%02x:%02x:%02x:%02x\n",
+    151          	   e->addr.addr.addr[0], e->addr.addr.addr[1], e->addr.addr.addr[2], e->addr.addr.addr[3],
+    152          	   e->addr.addr.addr[4], e->addr.addr.addr[5]);*/
+    153          
+    154              return &e->addr;
+   \   000014   E8           MOV     A,R0
+   \   000015   2410         ADD     A,#0x10
+   \   000017   FA           MOV     R2,A
+   \   000018   E9           MOV     A,R1
+   \   000019   3400         ADDC    A,#0x0
+   \   00001B   FB           MOV     R3,A
+   \   00001C   8004         SJMP    ??uip_neighbor_lookup_1
+    155            }
+    156            return NULL;
+   \                     ??uip_neighbor_lookup_0:
+   \   00001E   7A00         MOV     R2,#0x0
+   \   000020   7B00         MOV     R3,#0x0
+   \                     ??uip_neighbor_lookup_1:
+   \   000022   7F02         MOV     R7,#0x2
+   \   000024   02....       LJMP    ?BANKED_LEAVE_XDATA
+    157          }
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_neighbor_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_neighbor_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_neighbor_periodic?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_neighbor_periodic
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_neighbor_add?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_neighbor_add
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??find_entry?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    find_entry
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_neighbor_update?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_neighbor_update
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_neighbor_lookup?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_neighbor_lookup
+    158          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     24  find_entry
+                          0 0 14 -> memcmp
+       0      0     20  uip_neighbor_add
+                          0 0 20 -> memcmp
+                          0 0 20 -> memcpy
+       2      0      0  uip_neighbor_init
+       0      0     10  uip_neighbor_lookup
+                          0 0 10 -> find_entry
+       2      0      0  uip_neighbor_periodic
+       0      0     10  uip_neighbor_update
+                          0 0 10 -> find_entry
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??find_entry?relay
+       6  ??uip_neighbor_add?relay
+       6  ??uip_neighbor_init?relay
+       6  ??uip_neighbor_lookup?relay
+       6  ??uip_neighbor_periodic?relay
+       6  ??uip_neighbor_update?relay
+     184  entries
+     158  find_entry
+     413  uip_neighbor_add
+      77  uip_neighbor_init
+      39  uip_neighbor_lookup
+     119  uip_neighbor_periodic
+      38  uip_neighbor_update
+
+ 
+ 844 bytes in segment BANKED_CODE
+  36 bytes in segment BANK_RELAYS
+ 184 bytes in segment XDATA_Z
+ 
+ 880 bytes of CODE  memory
+ 184 bytes of XDATA memory
+
+Errors: none
+Warnings: none

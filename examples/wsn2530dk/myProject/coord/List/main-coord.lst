@@ -1,0 +1,1244 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:49 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\main #
+#                          -coord.c                                           #
+#    Command line       =  D:\myWork\myWork\examples\wsn2530dk\myProject\main #
+#                          -coord.c -D AUTOSTART_ENABLE -D PROJECT_CONF_H     #
+#                          -lC D:\myWork\myWork\examples\wsn2530dk\myProject\ #
+#                          coord\List\ -lA D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\coord\List\ --diag_suppress            #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\main-coord.lst                              #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\main-coord.r51                               #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
+   \                                 In  segment SFR_AN, at 0xe2
+   \   unsigned char volatile __sfr T1CNTL
+   \                     T1CNTL:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe3
+   \   unsigned char volatile __sfr T1CNTH
+   \                     T1CNTH:
+   \   000000                DS 1
+D:\myWork\myWork\examples\wsn2530dk\myProject\main-coord.c
+      1          #include "contiki.h"
+      2          #include "soc.h"
+      3          #include "stack.h"
+      4          #include "sys/clock.h"
+      5          #include "sys/autostart.h"
+      6          #include "dev/serial-line.h"
+      7          #include "dev/slip.h"
+      8          #include "dev/leds.h"
+      9          #include "dev/io-arch.h"
+     10          #include "dev/dma.h"
+     11          #include "dev/cc2530-rf.h"
+     12          #include "dev/watchdog.h"
+     13          #include "dev/clock-isr.h"
+     14          #include "dev/port2.h"
+     15          #include "dev/lpm.h"
+     16          #include "dev/button-sensor.h"
+     17          #include "dev/adc-sensor.h"
+     18          #include "dev/leds-arch.h"
+     19          #include "net/rime.h"
+     20          #include "net/netstack.h"
+     21          #include "net/mac/frame802154.h"
+     22          #include "debug.h"
+     23          #include "cc253x.h"
+     24          #include "sfr-bits.h"
+     25          #include "contiki-lib.h"
+     26          #include "contiki-net.h"
+     27          #include "dataformat/dataformat.h"
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \   static list_t packetbuf_list
+   \                     packetbuf_list:
+   \   000000                DS 2
+   \   000002                REQUIRE `?<Initializer for packetbuf_list>`
+   \   000002                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static void *__xdata packetbuf_list_list
+   \                     packetbuf_list_list:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     28          
+     29          
+     30          /*---------------------------------------------------------------------------*/
+     31          #if VIZTOOL_CONF_ON
+     32          PROCESS_NAME(viztool_process);
+     33          #endif
+     34          /*---------------------------------------------------------------------------*/
+     35          #if STARTUP_CONF_VERBOSE
+     36          #define PUTSTRING(...) putstring(__VA_ARGS__)
+     37          #define PUTHEX(...) puthex(__VA_ARGS__)
+     38          #define PUTBIN(...) putbin(__VA_ARGS__)
+     39          #define PUTCHAR(...) putchar(__VA_ARGS__)
+     40          #else
+     41          #define PUTSTRING(...)
+     42          #define PUTHEX(...)
+     43          #define PUTBIN(...)
+     44          #define PUTCHAR(...)
+     45          #endif
+     46          /*---------------------------------------------------------------------------*/
+     47          #if CLOCK_CONF_STACK_FRIENDLY
+     48          extern volatile uint8_t sleep_flag;
+     49          #endif
+     50          /*---------------------------------------------------------------------------*/
+     51          extern rimeaddr_t rimeaddr_node_addr;
+     52          //static CC_AT_DATA uint16_t len;
+     53          /*---------------------------------------------------------------------------*/
+     54          #if ENERGEST_CONF_ON
+     55          static unsigned long irq_energest = 0;
+     56          #define ENERGEST_IRQ_SAVE(a) do { \
+     57              a = energest_type_time(ENERGEST_TYPE_IRQ); } while(0)
+     58          #define ENERGEST_IRQ_RESTORE(a) do { \
+     59              energest_type_set(ENERGEST_TYPE_IRQ, a); } while(0)
+     60          #else
+     61          #define ENERGEST_IRQ_SAVE(a) do {} while(0)
+     62          #define ENERGEST_IRQ_RESTORE(a) do {} while(0)
+     63          #endif
+     64          /*---------------------------------------------------------------------------*/
+     65          
+     66          
+     67          
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     68              static void
+     69          fade(int l)
+   \                     fade:
+     70          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 4
+   \   000005   74FC         MOV     A,#-0x4
+   \   000007   12....       LCALL   ?ALLOC_XSTACK8
+   \   00000A   EA           MOV     A,R2
+   \   00000B   FE           MOV     R6,A
+   \   00000C   EB           MOV     A,R3
+   \   00000D   FF           MOV     R7,A
+     71              volatile int i, a;
+     72              int k, j;
+     73              for(k = 0; k < 400; ++k) {
+   \   00000E   75..00       MOV     ?V0 + 0,#0x0
+   \   000011   75..00       MOV     ?V0 + 1,#0x0
+   \   000014   804E         SJMP    ??fade_0
+     74                  j = k > 200 ? 400 - k : k;
+     75          
+     76                  leds_on(l);
+     77                  for(i = 0; i < j; ++i) {
+     78                      a = i;
+     79                  }
+     80                  leds_off(l);
+     81                  for(i = 0; i < 200 - j; ++i) {
+     82                      a = i;
+   \                     ??fade_1:
+   \   000016   85..82       MOV     DPL,?XSP + 0
+   \   000019   85..83       MOV     DPH,?XSP + 1
+   \   00001C   E0           MOVX    A,@DPTR
+   \   00001D   F8           MOV     R0,A
+   \   00001E   A3           INC     DPTR
+   \   00001F   E0           MOVX    A,@DPTR
+   \   000020   F9           MOV     R1,A
+   \   000021   7402         MOV     A,#0x2
+   \   000023   12....       LCALL   ?XSTACK_DISP0_8
+   \   000026   E8           MOV     A,R0
+   \   000027   F0           MOVX    @DPTR,A
+   \   000028   A3           INC     DPTR
+   \   000029   E9           MOV     A,R1
+   \   00002A   F0           MOVX    @DPTR,A
+     83                  }
+   \   00002B   85..82       MOV     DPL,?XSP + 0
+   \   00002E   85..83       MOV     DPH,?XSP + 1
+   \   000031   E0           MOVX    A,@DPTR
+   \   000032   2401         ADD     A,#0x1
+   \   000034   F0           MOVX    @DPTR,A
+   \   000035   A3           INC     DPTR
+   \   000036   E0           MOVX    A,@DPTR
+   \   000037   3400         ADDC    A,#0x0
+   \   000039   F0           MOVX    @DPTR,A
+   \                     ??fade_2:
+   \   00003A   85..82       MOV     DPL,?XSP + 0
+   \   00003D   85..83       MOV     DPH,?XSP + 1
+   \   000040   74C8         MOV     A,#-0x38
+   \   000042   C3           CLR     C
+   \   000043   95..         SUBB    A,?V0 + 2
+   \   000045   F8           MOV     R0,A
+   \   000046   7400         MOV     A,#0x0
+   \   000048   95..         SUBB    A,?V0 + 3
+   \   00004A   F9           MOV     R1,A
+   \   00004B   C3           CLR     C
+   \   00004C   E0           MOVX    A,@DPTR
+   \   00004D   98           SUBB    A,R0
+   \   00004E   A3           INC     DPTR
+   \   00004F   E0           MOVX    A,@DPTR
+   \   000050   99           SUBB    A,R1
+   \   000051   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000053   65D0         XRL     A,PSW
+   \   000055   33           RLC     A
+   \   000056   40BE         JC      ??fade_1
+   \   000058   E5..         MOV     A,?V0 + 0
+   \   00005A   2401         ADD     A,#0x1
+   \   00005C   F5..         MOV     ?V0 + 0,A
+   \   00005E   E5..         MOV     A,?V0 + 1
+   \   000060   3400         ADDC    A,#0x0
+   \   000062   F5..         MOV     ?V0 + 1,A
+   \                     ??fade_0:
+   \   000064   C3           CLR     C
+   \   000065   E5..         MOV     A,?V0 + 0
+   \   000067   9490         SUBB    A,#-0x70
+   \   000069   E5..         MOV     A,?V0 + 1
+   \   00006B   9401         SUBB    A,#0x1
+   \   00006D   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   00006F   65D0         XRL     A,PSW
+   \   000071   33           RLC     A
+   \   000072   4003         JC      $+5
+   \   000074   02....       LJMP    ??fade_3 & 0xFFFF
+   \   000077   C3           CLR     C
+   \   000078   E5..         MOV     A,?V0 + 0
+   \   00007A   94C9         SUBB    A,#-0x37
+   \   00007C   E5..         MOV     A,?V0 + 1
+   \   00007E   9400         SUBB    A,#0x0
+   \   000080   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000082   65D0         XRL     A,PSW
+   \   000084   33           RLC     A
+   \   000085   400F         JC      ??fade_4
+   \   000087   7490         MOV     A,#-0x70
+   \   000089   C3           CLR     C
+   \   00008A   95..         SUBB    A,?V0 + 0
+   \   00008C   F5..         MOV     ?V0 + 2,A
+   \   00008E   7401         MOV     A,#0x1
+   \   000090   95..         SUBB    A,?V0 + 1
+   \   000092   F5..         MOV     ?V0 + 3,A
+   \   000094   8006         SJMP    ??fade_5
+   \                     ??fade_4:
+   \   000096   85....       MOV     ?V0 + 2,?V0 + 0
+   \   000099   85....       MOV     ?V0 + 3,?V0 + 1
+   \                     ??fade_5:
+   \   00009C                ; Setup parameters for call to function leds_on
+   \   00009C   EE           MOV     A,R6
+   \   00009D   F9           MOV     R1,A
+   \   00009E   12....       LCALL   ??leds_on?relay
+   \   0000A1   85..82       MOV     DPL,?XSP + 0
+   \   0000A4   85..83       MOV     DPH,?XSP + 1
+   \   0000A7   7400         MOV     A,#0x0
+   \   0000A9   F0           MOVX    @DPTR,A
+   \   0000AA   A3           INC     DPTR
+   \   0000AB   7400         MOV     A,#0x0
+   \   0000AD   F0           MOVX    @DPTR,A
+   \   0000AE   8024         SJMP    ??fade_6
+   \                     ??fade_7:
+   \   0000B0   85..82       MOV     DPL,?XSP + 0
+   \   0000B3   85..83       MOV     DPH,?XSP + 1
+   \   0000B6   E0           MOVX    A,@DPTR
+   \   0000B7   F8           MOV     R0,A
+   \   0000B8   A3           INC     DPTR
+   \   0000B9   E0           MOVX    A,@DPTR
+   \   0000BA   F9           MOV     R1,A
+   \   0000BB   7402         MOV     A,#0x2
+   \   0000BD   12....       LCALL   ?XSTACK_DISP0_8
+   \   0000C0   E8           MOV     A,R0
+   \   0000C1   F0           MOVX    @DPTR,A
+   \   0000C2   A3           INC     DPTR
+   \   0000C3   E9           MOV     A,R1
+   \   0000C4   F0           MOVX    @DPTR,A
+   \   0000C5   85..82       MOV     DPL,?XSP + 0
+   \   0000C8   85..83       MOV     DPH,?XSP + 1
+   \   0000CB   E0           MOVX    A,@DPTR
+   \   0000CC   2401         ADD     A,#0x1
+   \   0000CE   F0           MOVX    @DPTR,A
+   \   0000CF   A3           INC     DPTR
+   \   0000D0   E0           MOVX    A,@DPTR
+   \   0000D1   3400         ADDC    A,#0x0
+   \   0000D3   F0           MOVX    @DPTR,A
+   \                     ??fade_6:
+   \   0000D4   85..82       MOV     DPL,?XSP + 0
+   \   0000D7   85..83       MOV     DPH,?XSP + 1
+   \   0000DA   C3           CLR     C
+   \   0000DB   E0           MOVX    A,@DPTR
+   \   0000DC   95..         SUBB    A,?V0 + 2
+   \   0000DE   A3           INC     DPTR
+   \   0000DF   E0           MOVX    A,@DPTR
+   \   0000E0   95..         SUBB    A,?V0 + 3
+   \   0000E2   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   0000E4   65D0         XRL     A,PSW
+   \   0000E6   33           RLC     A
+   \   0000E7   40C7         JC      ??fade_7
+   \   0000E9                ; Setup parameters for call to function leds_off
+   \   0000E9   EE           MOV     A,R6
+   \   0000EA   F9           MOV     R1,A
+   \   0000EB   12....       LCALL   ??leds_off?relay
+   \   0000EE   85..82       MOV     DPL,?XSP + 0
+   \   0000F1   85..83       MOV     DPH,?XSP + 1
+   \   0000F4   7400         MOV     A,#0x0
+   \   0000F6   F0           MOVX    @DPTR,A
+   \   0000F7   A3           INC     DPTR
+   \   0000F8   7400         MOV     A,#0x0
+   \   0000FA   F0           MOVX    @DPTR,A
+   \   0000FB   02....       LJMP    ??fade_2 & 0xFFFF
+     84              }
+     85          }
+   \                     ??fade_3:
+   \   0000FE   7404         MOV     A,#0x4
+   \   000100   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000103   7F04         MOV     R7,#0x4
+   \   000105   02....       LJMP    ?BANKED_LEAVE_XDATA
+     86          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     87              static void
+     88          set_rime_addr(void)
+   \                     set_rime_addr:
+     89          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+     90              signed char i;
+     91          
+     92          #if CC2530_CONF_MAC_FROM_PRIMARY
+     93              unsigned char __xdata *macp = &X_IEEE_ADDR;
+                                                   ^
+Warning[Pe144]: a value of type "unsigned char volatile *" cannot be used to
+          initialize an entity of type "unsigned char *"
+
+  static unsigned long irq_energest = 0;
+                       ^
+"D:\myWork\myWork\examples\wsn2530dk\myProject\main-coord.c",55  Warning[Pe177]: 
+          variable "irq_energest" was declared but never referenced
+   \   000005   7E0C         MOV     R6,#0xc
+   \   000007   7F78         MOV     R7,#0x78
+     94          #else
+     95              unsigned char __code *macp = (__code unsigned char *)0xFFE8;
+     96          #endif
+     97          
+     98              PUTSTRING("Rime is 0x");
+   \   000009                ; Setup parameters for call to function putstring
+   \   000009   7A..         MOV     R2,#`?<Constant "Rime is 0x">` & 0xff
+   \   00000B   7B..         MOV     R3,#(`?<Constant "Rime is 0x">` >> 8) & 0xff
+   \   00000D   12....       LCALL   ??putstring?relay
+     99              PUTHEX(sizeof(rimeaddr_t));
+   \   000010                ; Setup parameters for call to function puthex
+   \   000010   7902         MOV     R1,#0x2
+   \   000012   12....       LCALL   ??puthex?relay
+    100              PUTSTRING(" bytes long\r\n");
+   \   000015                ; Setup parameters for call to function putstring
+   \   000015   7A..         MOV     R2,#`?<Constant " bytes long\\r\\n">` & 0xff
+   \   000017   7B..         MOV     R3,#(`?<Constant " bytes long\\r\\n">` >> 8) & 0xff
+   \   000019   12....       LCALL   ??putstring?relay
+    101          
+    102          #if CC2530_CONF_MAC_FROM_PRIMARY
+    103              PUTSTRING("Reading MAC from Info Page\r\n");
+   \   00001C                ; Setup parameters for call to function putstring
+   \   00001C   7A..         MOV     R2,#`?<Constant "Reading MAC from Info...">` & 0xff
+   \   00001E   7B..         MOV     R3,#(`?<Constant "Reading MAC from Info...">` >> 8) & 0xff
+   \   000020   12....       LCALL   ??putstring?relay
+    104          #else
+    105              PUTSTRING("Reading MAC from flash\r\n");
+    106          
+    107              /*
+    108               * The MAC is always stored in 0xFFE8 of the highest BANK of our flash. This
+    109               * maps to address 0xFFF8 of our CODE segment, when this BANK is selected.
+    110               * Load the bank, read 8 bytes starting at 0xFFE8 and restore last BANK.
+    111               * Since we are called from main(), this MUST be BANK1 or something is very
+    112               * wrong. This code can be used even without a bankable firmware.
+    113               */
+    114          
+    115              /* Don't interrupt us to make sure no BANK switching happens while working */
+    116              DISABLE_INTERRUPTS();
+    117          
+    118              /* Switch to the BANKn,
+    119               * map CODE: 0x8000 - 0xFFFF to FLASH: 0xn8000 - 0xnFFFF */
+    120              FMAP = CC2530_LAST_FLASH_BANK;
+    121          #endif
+    122          
+    123              for(i = (RIMEADDR_SIZE - 1); i >= 0; --i) {
+   \   000023   75..01       MOV     ?V0 + 0,#0x1
+   \   000026   802A         SJMP    ??set_rime_addr_0
+    124                  rimeaddr_node_addr.u8[i] = *macp;
+   \                     ??set_rime_addr_1:
+   \   000028   8E82         MOV     DPL,R6
+   \   00002A   8F83         MOV     DPH,R7
+   \   00002C   E0           MOVX    A,@DPTR
+   \   00002D   C0E0         PUSH    A
+   \   00002F   E5..         MOV     A,?V0 + 0
+   \   000031   F8           MOV     R0,A
+   \   000032   33           RLC     A
+   \   000033   95E0         SUBB    A,0xE0 /* A   */
+   \   000035   F9           MOV     R1,A
+   \   000036   74..         MOV     A,#rimeaddr_node_addr & 0xff
+   \   000038   28           ADD     A,R0
+   \   000039   F582         MOV     DPL,A
+   \   00003B   74..         MOV     A,#(rimeaddr_node_addr >> 8) & 0xff
+   \   00003D   39           ADDC    A,R1
+   \   00003E   F583         MOV     DPH,A
+   \   000040   D0E0         POP     A
+   \   000042   F0           MOVX    @DPTR,A
+    125                  macp++;
+   \   000043   8E82         MOV     DPL,R6
+   \   000045   8F83         MOV     DPH,R7
+   \   000047   A3           INC     DPTR
+   \   000048   AE82         MOV     R6,DPL
+   \   00004A   AF83         MOV     R7,DPH
+    126              }
+   \   00004C   74FF         MOV     A,#-0x1
+   \   00004E   25..         ADD     A,?V0 + 0
+   \   000050   F5..         MOV     ?V0 + 0,A
+   \                     ??set_rime_addr_0:
+   \   000052   E5..         MOV     A,?V0 + 0
+   \   000054   C3           CLR     C
+   \   000055   9400         SUBB    A,#0x0
+   \   000057   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000059   65D0         XRL     A,PSW
+   \   00005B   33           RLC     A
+   \   00005C   50CA         JNC     ??set_rime_addr_1
+    127          #if !CC2530_CONF_MAC_FROM_PRIMARY
+    128          
+    129              FMAP = 1;
+    130              ENABLE_INTERRUPTS();
+    131          #endif
+    132          
+    133          
+    134          #if STARTUP_CONF_VERBOSE
+    135              putstring("configured with address ");
+   \   00005E                ; Setup parameters for call to function putstring
+   \   00005E   7A..         MOV     R2,#`?<Constant "configured with address ">` & 0xff
+   \   000060   7B..         MOV     R3,#(`?<Constant "configured with address ">` >> 8) & 0xff
+   \   000062   12....       LCALL   ??putstring?relay
+    136              for(i = 0; i < RIMEADDR_SIZE - 1; i++) {
+   \   000065   75..00       MOV     ?V0 + 0,#0x0
+   \   000068   8018         SJMP    ??set_rime_addr_2
+    137                  puthex(rimeaddr_node_addr.u8[i]);
+   \                     ??set_rime_addr_3:
+   \   00006A                ; Setup parameters for call to function puthex
+   \   00006A   E5..         MOV     A,?V0 + 0
+   \   00006C   F8           MOV     R0,A
+   \   00006D   33           RLC     A
+   \   00006E   95E0         SUBB    A,0xE0 /* A   */
+   \   000070   F9           MOV     R1,A
+   \   000071   74..         MOV     A,#rimeaddr_node_addr & 0xff
+   \   000073   28           ADD     A,R0
+   \   000074   F582         MOV     DPL,A
+   \   000076   74..         MOV     A,#(rimeaddr_node_addr >> 8) & 0xff
+   \   000078   39           ADDC    A,R1
+   \   000079   F583         MOV     DPH,A
+   \   00007B   E0           MOVX    A,@DPTR
+   \   00007C   F9           MOV     R1,A
+   \   00007D   12....       LCALL   ??puthex?relay
+    138              }
+   \   000080   05..         INC     ?V0 + 0
+   \                     ??set_rime_addr_2:
+   \   000082   E5..         MOV     A,?V0 + 0
+   \   000084   C3           CLR     C
+   \   000085   9401         SUBB    A,#0x1
+   \   000087   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000089   65D0         XRL     A,PSW
+   \   00008B   33           RLC     A
+   \   00008C   40DC         JC      ??set_rime_addr_3
+    139              puthex(rimeaddr_node_addr.u8[i]);
+   \   00008E                ; Setup parameters for call to function puthex
+   \   00008E   E5..         MOV     A,?V0 + 0
+   \   000090   F8           MOV     R0,A
+   \   000091   33           RLC     A
+   \   000092   95E0         SUBB    A,0xE0 /* A   */
+   \   000094   F9           MOV     R1,A
+   \   000095   74..         MOV     A,#rimeaddr_node_addr & 0xff
+   \   000097   28           ADD     A,R0
+   \   000098   F582         MOV     DPL,A
+   \   00009A   74..         MOV     A,#(rimeaddr_node_addr >> 8) & 0xff
+   \   00009C   39           ADDC    A,R1
+   \   00009D   F583         MOV     DPH,A
+   \   00009F   E0           MOVX    A,@DPTR
+   \   0000A0   F9           MOV     R1,A
+   \   0000A1   12....       LCALL   ??puthex?relay
+    140              putstring("\r\n");
+   \   0000A4                ; Setup parameters for call to function putstring
+   \   0000A4   7A..         MOV     R2,#`?<Constant "\\r\\n">` & 0xff
+   \   0000A6   7B..         MOV     R3,#(`?<Constant "\\r\\n">` >> 8) & 0xff
+   \   0000A8   12....       LCALL   ??putstring?relay
+    141          #endif
+    142              cc2530_rf_set_addr(IEEE802154_PANID);
+   \   0000AB                ; Setup parameters for call to function cc2530_rf_set_addr
+   \   0000AB   7A49         MOV     R2,#0x49
+   \   0000AD   7B54         MOV     R3,#0x54
+   \   0000AF   12....       LCALL   ??cc2530_rf_set_addr?relay
+    143          }
+   \   0000B2   7F01         MOV     R7,#0x1
+   \   0000B4   02....       LJMP    ?BANKED_LEAVE_XDATA
+    144          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    145              int
+    146          main(void)
+   \                     main:
+    147          {
+   \   000000                ; Auto size: 0
+    148              /* Hardware initialization */
+    149              clock_init();
+   \   000000                ; Setup parameters for call to function clock_init
+   \   000000   12....       LCALL   ??clock_init?relay
+    150              soc_init();
+   \   000003                ; Setup parameters for call to function soc_init
+   \   000003   12....       LCALL   ??soc_init?relay
+    151              rtimer_init();
+   \   000006                ; Setup parameters for call to function rtimer_init
+   \   000006   12....       LCALL   ??rtimer_init?relay
+    152              stack_poison();
+    153              /* Init LEDs here */
+    154              leds_init();
+   \   000009                ; Setup parameters for call to function leds_init
+   \   000009   12....       LCALL   ??leds_init?relay
+    155              //------------------edited by dongbo huang---------------//
+    156              leds_off(LEDS_ALL);
+   \   00000C                ; Setup parameters for call to function leds_off
+   \   00000C   7903         MOV     R1,#0x3
+   \   00000E   12....       LCALL   ??leds_off?relay
+    157              /*leds_on(LEDS_GREEN);*/
+    158              fade(LEDS_GREEN);
+   \   000011                ; Setup parameters for call to function fade
+   \   000011   7A02         MOV     R2,#0x2
+   \   000013   7B00         MOV     R3,#0x0
+   \   000015   12....       LCALL   ??fade?relay
+    159              //-----------------end-------------------------------//
+    160          
+    161              /* initialize process manager. */
+    162              process_init();
+   \   000018                ; Setup parameters for call to function process_init
+   \   000018   12....       LCALL   ??process_init?relay
+    163          
+    164          #if DMA_ON
+    165              dma_init();
+    166          #endif
+    167          
+    168              io_arch_init();
+   \   00001B                ; Setup parameters for call to function uart0_init
+   \   00001B   12....       LCALL   ??uart0_init?relay
+    169          
+    170          #if SLIP_ARCH_CONF_ENABLE
+    171              slip_arch_init(0);
+    172          #else
+    173              io_arch_set_input(serial_line_input_byte);
+   \   00001E                ; Setup parameters for call to function uart0_set_input
+   \   00001E   7A..         MOV     R2,#??serial_line_input_byte?relay & 0xff
+   \   000020   7B..         MOV     R3,#(??serial_line_input_byte?relay >> 8) & 0xff
+   \   000022   12....       LCALL   ??uart0_set_input?relay
+    174              serial_line_init();
+   \   000025                ; Setup parameters for call to function serial_line_init
+   \   000025   12....       LCALL   ??serial_line_init?relay
+    175          #endif
+    176              fade(LEDS_RED);
+   \   000028                ; Setup parameters for call to function fade
+   \   000028   7A01         MOV     R2,#0x1
+   \   00002A   7B00         MOV     R3,#0x0
+   \   00002C   12....       LCALL   ??fade?relay
+    177          
+    178          #if STARTUP_CONF_VERBOSE
+    179              PUTSTRING("**********************************\r\n");
+   \   00002F                ; Setup parameters for call to function putstring
+   \   00002F   7A..         MOV     R2,#`?<Constant "*********************...">` & 0xff
+   \   000031   7B..         MOV     R3,#(`?<Constant "*********************...">` >> 8) & 0xff
+   \   000033   12....       LCALL   ??putstring?relay
+    180              putstring(CONTIKI_VERSION_STRING "\r\n");
+   \   000036                ; Setup parameters for call to function putstring
+   \   000036   7A..         MOV     R2,#`?<Constant "Contiki 2.6\\r\\n">` & 0xff
+   \   000038   7B..         MOV     R3,#(`?<Constant "Contiki 2.6\\r\\n">` >> 8) & 0xff
+   \   00003A   12....       LCALL   ??putstring?relay
+    181              putstring(MODEL_STRING "\r\n");
+   \   00003D                ; Setup parameters for call to function putstring
+   \   00003D   7A..         MOV     R2,#`?<Constant "WSN2530 for Contiki/6...">` & 0xff
+   \   00003F   7B..         MOV     R3,#(`?<Constant "WSN2530 for Contiki/6...">` >> 8) & 0xff
+   \   000041   12....       LCALL   ??putstring?relay
+    182              switch(CHIPID) {
+   \   000044   90624A       MOV     DPTR,#0x624a
+   \   000047   E0           MOVX    A,@DPTR
+   \   000048   2473         ADD     A,#0x73
+   \   00004A   6029         JZ      ??main_0
+   \   00004C   24F8         ADD     A,#-0x8
+   \   00004E   601C         JZ      ??main_1
+   \   000050   24F0         ADD     A,#-0x10
+   \   000052   6006         JZ      ??main_2
+   \   000054   24F0         ADD     A,#-0x10
+   \   000056   600B         JZ      ??main_3
+   \   000058   8022         SJMP    ??main_4
+    183                  case 0xA5:
+    184                      putstring("cc2530");
+   \                     ??main_2:
+   \   00005A                ; Setup parameters for call to function putstring
+   \   00005A   7A..         MOV     R2,#`?<Constant "cc2530">` & 0xff
+   \   00005C   7B..         MOV     R3,#(`?<Constant "cc2530">` >> 8) & 0xff
+   \   00005E   12....       LCALL   ??putstring?relay
+    185                      break;
+   \   000061   8019         SJMP    ??main_4
+    186                  case 0xB5:
+    187                      putstring("cc2531");
+   \                     ??main_3:
+   \   000063                ; Setup parameters for call to function putstring
+   \   000063   7A..         MOV     R2,#`?<Constant "cc2531">` & 0xff
+   \   000065   7B..         MOV     R3,#(`?<Constant "cc2531">` >> 8) & 0xff
+   \   000067   12....       LCALL   ??putstring?relay
+    188                      break;
+   \   00006A   8010         SJMP    ??main_4
+    189                  case 0x95:
+    190                      putstring("cc2533");
+   \                     ??main_1:
+   \   00006C                ; Setup parameters for call to function putstring
+   \   00006C   7A..         MOV     R2,#`?<Constant "cc2533">` & 0xff
+   \   00006E   7B..         MOV     R3,#(`?<Constant "cc2533">` >> 8) & 0xff
+   \   000070   12....       LCALL   ??putstring?relay
+    191                      break;
+   \   000073   8007         SJMP    ??main_4
+    192                  case 0x8D:
+    193                      putstring("cc2540");
+   \                     ??main_0:
+   \   000075                ; Setup parameters for call to function putstring
+   \   000075   7A..         MOV     R2,#`?<Constant "cc2540">` & 0xff
+   \   000077   7B..         MOV     R3,#(`?<Constant "cc2540">` >> 8) & 0xff
+   \   000079   12....       LCALL   ??putstring?relay
+    194                      break;
+    195              }
+    196          
+    197              putstring("-" CC2530_FLAVOR_STRING ", ");
+   \                     ??main_4:
+   \   00007C                ; Setup parameters for call to function putstring
+   \   00007C   7A..         MOV     R2,#`?<Constant "-F256, ">` & 0xff
+   \   00007E   7B..         MOV     R3,#(`?<Constant "-F256, ">` >> 8) & 0xff
+   \   000080   12....       LCALL   ??putstring?relay
+    198              puthex(CHIPINFO1 + 1);
+   \   000083                ; Setup parameters for call to function puthex
+   \   000083   906277       MOV     DPTR,#0x6277
+   \   000086   E0           MOVX    A,@DPTR
+   \   000087   2401         ADD     A,#0x1
+   \   000089   F9           MOV     R1,A
+   \   00008A   12....       LCALL   ??puthex?relay
+    199              putstring("KB SRAM\r\n");
+   \   00008D                ; Setup parameters for call to function putstring
+   \   00008D   7A..         MOV     R2,#`?<Constant "KB SRAM\\r\\n">` & 0xff
+   \   00008F   7B..         MOV     R3,#(`?<Constant "KB SRAM\\r\\n">` >> 8) & 0xff
+   \   000091   12....       LCALL   ??putstring?relay
+    200          
+    201          
+    202              PUTSTRING("***********    cumt    **********\r\n");
+   \   000094                ; Setup parameters for call to function putstring
+   \   000094   7A..         MOV     R2,#`?<Constant "***********    cumt  ...">` & 0xff
+   \   000096   7B..         MOV     R3,#(`?<Constant "***********    cumt  ...">` >> 8) & 0xff
+   \   000098   12....       LCALL   ??putstring?relay
+    203              PUTSTRING("***********Dongbo Huang**********\r\n");
+   \   00009B                ; Setup parameters for call to function putstring
+   \   00009B   7A..         MOV     R2,#`?<Constant "***********Dongbo Hua...">` & 0xff
+   \   00009D   7B..         MOV     R3,#(`?<Constant "***********Dongbo Hua...">` >> 8) & 0xff
+   \   00009F   12....       LCALL   ??putstring?relay
+    204              PUTSTRING("*********************************\r\n");
+   \   0000A2                ; Setup parameters for call to function putstring
+   \   0000A2   7A..         MOV     R2,#`?<Constant "*********************...">_1` & 0xff
+   \   0000A4   7B..         MOV     R3,#(`?<Constant "*********************...">_1` >> 8) & 0xff
+   \   0000A6   12....       LCALL   ??putstring?relay
+    205          #endif
+    206          
+    207              watchdog_init();
+   \   0000A9                ; Setup parameters for call to function watchdog_init
+   \   0000A9   12....       LCALL   ??watchdog_init?relay
+    208          
+    209              /* Initialise the H/W RNG engine. */
+    210              random_init(0);
+   \   0000AC                ; Setup parameters for call to function random_init
+   \   0000AC   7A00         MOV     R2,#0x0
+   \   0000AE   7B00         MOV     R3,#0x0
+   \   0000B0   12....       LCALL   ??random_init?relay
+    211          
+    212              /* start services */
+    213              process_start(&etimer_process, NULL);
+   \   0000B3                ; Setup parameters for call to function process_start
+   \   0000B3   7C00         MOV     R4,#0x0
+   \   0000B5   7D00         MOV     R5,#0x0
+   \   0000B7   7A..         MOV     R2,#etimer_process & 0xff
+   \   0000B9   7B..         MOV     R3,#(etimer_process >> 8) & 0xff
+   \   0000BB   12....       LCALL   ??process_start?relay
+    214              ctimer_init();
+   \   0000BE                ; Setup parameters for call to function ctimer_init
+   \   0000BE   12....       LCALL   ??ctimer_init?relay
+    215          
+    216              /* initialize the netstack */
+    217              //netstack_init();                       //edited by dongbo huang
+    218          
+    219              NETSTACK_RADIO.init();       //added by dongbo huang
+   \   0000C1                ; Setup parameters for indirect call
+   \   0000C1   90....       MOV     DPTR,#cc2530_rf_driver
+   \   0000C4   E0           MOVX    A,@DPTR
+   \   0000C5   F8           MOV     R0,A
+   \   0000C6   A3           INC     DPTR
+   \   0000C7   E0           MOVX    A,@DPTR
+   \   0000C8   F583         MOV     DPH,A
+   \   0000CA   8882         MOV     DPL,R0
+   \   0000CC   12....       LCALL   ?CALL_IND
+    220              set_rime_addr();  //edited by dongbo huang
+   \   0000CF                ; Setup parameters for call to function set_rime_addr
+   \   0000CF   12....       LCALL   ??set_rime_addr?relay
+    221          #if BUTTON_SENSOR_ON || ADC_SENSOR_ON
+    222              process_start(&sensors_process, NULL);
+   \   0000D2                ; Setup parameters for call to function process_start
+   \   0000D2   7C00         MOV     R4,#0x0
+   \   0000D4   7D00         MOV     R5,#0x0
+   \   0000D6   7A..         MOV     R2,#sensors_process & 0xff
+   \   0000D8   7B..         MOV     R3,#(sensors_process >> 8) & 0xff
+   \   0000DA   12....       LCALL   ??process_start?relay
+    223              //BUTTON_SENSOR_ACTIVATE();
+    224              ADC_SENSOR_ACTIVATE();
+   \   0000DD                ; Setup parameters for indirect call
+   \   0000DD   7C01         MOV     R4,#0x1
+   \   0000DF   7D00         MOV     R5,#0x0
+   \   0000E1   7A81         MOV     R2,#-0x7f
+   \   0000E3   7B00         MOV     R3,#0x0
+   \   0000E5   90....       MOV     DPTR,#adc_sensor + 4
+   \   0000E8   E0           MOVX    A,@DPTR
+   \   0000E9   F8           MOV     R0,A
+   \   0000EA   A3           INC     DPTR
+   \   0000EB   E0           MOVX    A,@DPTR
+   \   0000EC   F583         MOV     DPH,A
+   \   0000EE   8882         MOV     DPL,R0
+   \   0000F0   12....       LCALL   ?CALL_IND
+    225          #endif
+    226          
+    227          #if UIP_CONF_IPV6
+    228          
+    229              //edited by dongbo huang
+    230              //  memcpy(&uip_lladdr.addr, &rimeaddr_node_addr, sizeof(uip_lladdr.addr));
+    231              //queuebuf_init();
+    232              //process_start(&tcpip_process, NULL);
+    233          #endif /* UIP_CONF_IPV6 */
+    234          
+    235          #if VIZTOOL_CONF_ON
+    236              //process_start(&viztool_process, NULL);
+    237          #endif
+    238          
+    239              energest_init();
+   \   0000F3                ; Setup parameters for call to function energest_init
+   \   0000F3   12....       LCALL   ??energest_init?relay
+    240              ENERGEST_ON(ENERGEST_TYPE_CPU);
+   \   0000F6   E5E2         MOV     A,0xe2
+   \   0000F8   FA           MOV     R2,A
+   \   0000F9   7B00         MOV     R3,#0x0
+   \   0000FB   E5E3         MOV     A,0xe3
+   \   0000FD   F8           MOV     R0,A
+   \   0000FE   7900         MOV     R1,#0x0
+   \   000100   E4           CLR     A
+   \   000101   C8           XCH     A,R0
+   \   000102   F9           MOV     R1,A
+   \   000103   EA           MOV     A,R2
+   \   000104   28           ADD     A,R0
+   \   000105   F8           MOV     R0,A
+   \   000106   EB           MOV     A,R3
+   \   000107   39           ADDC    A,R1
+   \   000108   F9           MOV     R1,A
+   \   000109   90....       MOV     DPTR,#energest_current_time
+   \   00010C   E8           MOV     A,R0
+   \   00010D   F0           MOVX    @DPTR,A
+   \   00010E   A3           INC     DPTR
+   \   00010F   E9           MOV     A,R1
+   \   000110   F0           MOVX    @DPTR,A
+   \   000111   90....       MOV     DPTR,#energest_current_mode
+   \   000114   7401         MOV     A,#0x1
+   \   000116   F0           MOVX    @DPTR,A
+    241          	//----------for list initializing------
+    242          	list_init(packetbuf_list);
+   \   000117                ; Setup parameters for call to function list_init
+   \   000117   90....       MOV     DPTR,#packetbuf_list
+   \   00011A   E0           MOVX    A,@DPTR
+   \   00011B   FA           MOV     R2,A
+   \   00011C   A3           INC     DPTR
+   \   00011D   E0           MOVX    A,@DPTR
+   \   00011E   FB           MOV     R3,A
+   \   00011F   12....       LCALL   ??list_init?relay
+    243          	//
+    244          
+    245              autostart_start(autostart_processes);  
+   \   000122                ; Setup parameters for call to function autostart_start
+   \   000122   7A..         MOV     R2,#autostart_processes & 0xff
+   \   000124   7B..         MOV     R3,#(autostart_processes >> 8) & 0xff
+   \   000126   12....       LCALL   ??autostart_start?relay
+    246          
+    247              watchdog_start();
+   \   000129                ; Setup parameters for call to function watchdog_start
+   \   000129   12....       LCALL   ??watchdog_start?relay
+    248          
+    249              while(1) 
+    250              {
+    251                  //---------------edited by dongbo huang------------------
+    252                  sink_incomingPacketProcessing();
+   \                     ??main_5:
+   \   00012C                ; Setup parameters for call to function sink_incomingPacketProcessing
+   \   00012C   12....       LCALL   ??sink_incomingPacketProcessing?relay
+    253                  //---------------------------------------------------------
+    254                  uint8_t r;
+    255                  do 
+    256                  {
+    257                      /* Reset watchdog and handle polls and events */
+    258                      watchdog_periodic();
+   \                     ??main_6:
+   \   00012F                ; Setup parameters for call to function watchdog_periodic
+   \   00012F   12....       LCALL   ??watchdog_periodic?relay
+    259          
+    260          #if CLOCK_CONF_STACK_FRIENDLY
+    261                      if(sleep_flag) {
+   \   000132   90....       MOV     DPTR,#sleep_flag
+   \   000135   E0           MOVX    A,@DPTR
+   \   000136   6042         JZ      ??main_7
+    262                          if(etimer_pending() &&
+    263                                  (etimer_next_expiration_time() - clock_time() - 1) > MAX_TICKS) {
+   \   000138                ; Setup parameters for call to function etimer_pending
+   \   000138   12....       LCALL   ??etimer_pending?relay
+   \   00013B   8A..         MOV     ?V0 + 0,R2
+   \   00013D   8B..         MOV     ?V0 + 1,R3
+   \   00013F   E5..         MOV     A,?V0 + 0
+   \   000141   45..         ORL     A,?V0 + 1
+   \   000143   602F         JZ      ??main_8
+   \   000145                ; Setup parameters for call to function etimer_next_expiration_time
+   \   000145   12....       LCALL   ??etimer_next_expiration_time?relay
+   \   000148   8A..         MOV     ?V0 + 0,R2
+   \   00014A   8B..         MOV     ?V0 + 1,R3
+   \   00014C   AE..         MOV     R6,?V0 + 0
+   \   00014E   AF..         MOV     R7,?V0 + 1
+   \   000150                ; Setup parameters for call to function clock_time
+   \   000150   12....       LCALL   ??clock_time?relay
+   \   000153   8A..         MOV     ?V0 + 0,R2
+   \   000155   8B..         MOV     ?V0 + 1,R3
+   \   000157   EE           MOV     A,R6
+   \   000158   C3           CLR     C
+   \   000159   95..         SUBB    A,?V0 + 0
+   \   00015B   F8           MOV     R0,A
+   \   00015C   EF           MOV     A,R7
+   \   00015D   95..         SUBB    A,?V0 + 1
+   \   00015F   F9           MOV     R1,A
+   \   000160   E8           MOV     A,R0
+   \   000161   24FF         ADD     A,#-0x1
+   \   000163   F8           MOV     R0,A
+   \   000164   E9           MOV     A,R1
+   \   000165   34FF         ADDC    A,#-0x1
+   \   000167   F9           MOV     R1,A
+   \   000168   C3           CLR     C
+   \   000169   E8           MOV     A,R0
+   \   00016A   9400         SUBB    A,#0x0
+   \   00016C   E9           MOV     A,R1
+   \   00016D   9480         SUBB    A,#-0x80
+   \   00016F   4003         JC      ??main_8
+    264                              etimer_request_poll();
+   \   000171                ; Setup parameters for call to function etimer_request_poll
+   \   000171   12....       LCALL   ??etimer_request_poll?relay
+    265                          }
+    266                          sleep_flag = 0;
+   \                     ??main_8:
+   \   000174   90....       MOV     DPTR,#sleep_flag
+   \   000177   7400         MOV     A,#0x0
+   \   000179   F0           MOVX    @DPTR,A
+    267                      }
+    268          #endif
+    269                      r = process_run();
+   \                     ??main_7:
+   \   00017A                ; Setup parameters for call to function process_run
+   \   00017A   12....       LCALL   ??process_run?relay
+   \   00017D   EA           MOV     A,R2
+    270                  } while(r > 0);
+   \   00017E   C3           CLR     C
+   \   00017F   9401         SUBB    A,#0x1
+   \   000181   50AC         JNC     ??main_6
+   \   000183   80A7         SJMP    ??main_5
+   \   000185                REQUIRE T1CNTL
+   \   000185                REQUIRE T1CNTH
+    271              }
+    272          }
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "Rime is 0x">>`:
+   \   000000   52696D65     DB "Rime is 0x"
+   \            20697320
+   \            307800  
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant " bytes long\\r\\n">`:
+   \   000000   20627974     DB " bytes long\015\012"
+   \            6573206C
+   \            6F6E670D
+   \            0A00    
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "Reading MAC from `:
+   \   000000   52656164     DB "Reading MAC from Info Page\015\012"
+   \            696E6720
+   \            4D414320
+   \            66726F6D
+   \            20496E66
+   \            6F205061
+   \            67650D0A
+   \            00      
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "configured with a`:
+   \   000000   636F6E66     DB "configured with address "
+   \            69677572
+   \            65642077
+   \            69746820
+   \            61646472
+   \            65737320
+   \            00      
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "\\r\\n">>`:
+   \   000000   0D0A00       DB "\015\012"
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "*****************`:
+   \   000000   2A2A2A2A     DB "**********************************\015\012"
+   \            2A2A2A2A
+   \            2A2A2A2A
+   \            2A2A2A2A
+   \            2A2A2A2A
+   \            2A2A2A2A
+   \            2A2A2A2A
+   \            2A2A2A2A
+   \            2A2A0D0A
+   \            00      
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "Contiki 2.6\\r\\n">`:
+   \   000000   436F6E74     DB "Contiki 2.6\015\012"
+   \            696B6920
+   \            322E360D
+   \            0A00    
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "WSN2530 for Conti`:
+   \   000000   57534E32     DB "WSN2530 for Contiki/6Lowpan\012\015\012"
+   \            35333020
+   \            666F7220
+   \            436F6E74
+   \            696B692F
+   \            364C6F77
+   \            70616E0A
+   \            0D0A00  
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "cc2530">>`:
+   \   000000   63633235     DB "cc2530"
+   \            333000  
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "cc2531">>`:
+   \   000000   63633235     DB "cc2531"
+   \            333100  
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "cc2533">>`:
+   \   000000   63633235     DB "cc2533"
+   \            333300  
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "cc2540">>`:
+   \   000000   63633235     DB "cc2540"
+   \            343000  
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "-F256, ">>`:
+   \   000000   2D463235     DB "-F256, "
+   \            362C2000
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "KB SRAM\\r\\n">>`:
+   \   000000   4B422053     DB "KB SRAM\015\012"
+   \            52414D0D
+   \            0A00    
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "***********    cu`:
+   \   000000   2A2A2A2A     DB "***********    cumt    **********\015\012"
+   \            2A2A2A2A
+   \            2A2A2A20
+   \            20202063
+   \            756D7420
+   \            2020202A
+   \            2A2A2A2A
+   \            2A2A2A2A
+   \            2A0D0A00
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "***********Dongbo`:
+   \   000000   2A2A2A2A     DB "***********Dongbo Huang**********\015\012"
+   \            2A2A2A2A
+   \            2A2A2A44
+   \            6F6E6762
+   \            6F204875
+   \            616E672A
+   \            2A2A2A2A
+   \            2A2A2A2A
+   \            2A0D0A00
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "*****************_1`:
+   \   000000   2A2A2A2A     DB "*********************************\015\012"
+   \            2A2A2A2A
+   \            2A2A2A2A
+   \            2A2A2A2A
+   \            2A2A2A2A
+   \            2A2A2A2A
+   \            2A2A2A2A
+   \            2A2A2A2A
+   \            2A0D0A00
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for packetbuf_list>`:
+   \   000000   ....         DW packetbuf_list_list
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??fade?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    fade
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??set_rime_addr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    set_rime_addr
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??main?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    main
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "Rime is 0x">`:
+   \   000000                DS 11
+   \   00000B                REQUIRE `?<Initializer for <Constant "Rime is 0x">>`
+   \   00000B                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant " bytes long\\r\\n">`:
+   \   000000                DS 14
+   \   00000E                REQUIRE `?<Initializer for <Constant " bytes long\\r\\n">`
+   \   00000E                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "Reading MAC from Info...">`:
+   \   000000                DS 29
+   \   00001D                REQUIRE `?<Initializer for <Constant "Reading MAC from `
+   \   00001D                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "configured with address ">`:
+   \   000000                DS 25
+   \   000019                REQUIRE `?<Initializer for <Constant "configured with a`
+   \   000019                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "\\r\\n">`:
+   \   000000                DS 3
+   \   000003                REQUIRE `?<Initializer for <Constant "\\r\\n">>`
+   \   000003                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "*********************...">`:
+   \   000000                DS 37
+   \   000025                REQUIRE `?<Initializer for <Constant "*****************`
+   \   000025                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "Contiki 2.6\\r\\n">`:
+   \   000000                DS 14
+   \   00000E                REQUIRE `?<Initializer for <Constant "Contiki 2.6\\r\\n">`
+   \   00000E                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "WSN2530 for Contiki/6...">`:
+   \   000000                DS 31
+   \   00001F                REQUIRE `?<Initializer for <Constant "WSN2530 for Conti`
+   \   00001F                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "cc2530">`:
+   \   000000                DS 7
+   \   000007                REQUIRE `?<Initializer for <Constant "cc2530">>`
+   \   000007                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "cc2531">`:
+   \   000000                DS 7
+   \   000007                REQUIRE `?<Initializer for <Constant "cc2531">>`
+   \   000007                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "cc2533">`:
+   \   000000                DS 7
+   \   000007                REQUIRE `?<Initializer for <Constant "cc2533">>`
+   \   000007                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "cc2540">`:
+   \   000000                DS 7
+   \   000007                REQUIRE `?<Initializer for <Constant "cc2540">>`
+   \   000007                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "-F256, ">`:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for <Constant "-F256, ">>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "KB SRAM\\r\\n">`:
+   \   000000                DS 10
+   \   00000A                REQUIRE `?<Initializer for <Constant "KB SRAM\\r\\n">>`
+   \   00000A                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "***********    cumt  ...">`:
+   \   000000                DS 36
+   \   000024                REQUIRE `?<Initializer for <Constant "***********    cu`
+   \   000024                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "***********Dongbo Hua...">`:
+   \   000000                DS 36
+   \   000024                REQUIRE `?<Initializer for <Constant "***********Dongbo`
+   \   000024                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "*********************...">_1`:
+   \   000000                DS 36
+   \   000024                REQUIRE `?<Initializer for <Constant "*****************_1`
+   \   000024                REQUIRE __INIT_XDATA_I
+    273          
+    274          
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     16  fade
+                          0 0 16 -> leds_off
+                          0 0 16 -> leds_on
+       0      0      0  main
+                          0 0  0 -> autostart_start
+                          0 0  0 -> clock_init
+                          0 0  0 -> clock_time
+                          0 0  0 -> ctimer_init
+                          0 0  0 -> energest_init
+                          0 0  0 -> etimer_next_expiration_time
+                          0 0  0 -> etimer_pending
+                          0 0  0 -> etimer_request_poll
+                          0 0  0 -> fade
+                          0 0  0 -> leds_init
+                          0 0  0 -> leds_off
+                          0 0  0 -> list_init
+                          0 0  0 -> process_init
+                          0 0  0 -> process_run
+                          0 0  0 -> process_start
+                          0 0  0 -> puthex
+                          0 0  0 -> putstring
+                          0 0  0 -> random_init
+                          0 0  0 -> rtimer_init
+                          0 0  0 -> serial_line_init
+                          0 0  0 -> set_rime_addr
+                          0 0  0 -> sink_incomingPacketProcessing
+                          0 0  0 -> soc_init
+                          0 0  0 -> uart0_init
+                          0 0  0 -> uart0_set_input
+                          0 0  0 -> watchdog_init
+                          0 0  0 -> watchdog_periodic
+                          0 0  0 -> watchdog_start
+       1      0      9  set_rime_addr
+                          0 0  9 -> cc2530_rf_set_addr
+                          0 0  9 -> puthex
+                          0 0  9 -> putstring
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+      14  ?<Constant " bytes long\r\n">
+      36  ?<Constant "***********    cumt  ...">
+      37  ?<Constant "*********************...">
+      36  ?<Constant "*********************...">_1
+      36  ?<Constant "***********Dongbo Hua...">
+       8  ?<Constant "-F256, ">
+      14  ?<Constant "Contiki 2.6\r\n">
+      10  ?<Constant "KB SRAM\r\n">
+      29  ?<Constant "Reading MAC from Info...">
+      11  ?<Constant "Rime is 0x">
+      31  ?<Constant "WSN2530 for Contiki/6...">
+       3  ?<Constant "\r\n">
+       7  ?<Constant "cc2530">
+       7  ?<Constant "cc2531">
+       7  ?<Constant "cc2533">
+       7  ?<Constant "cc2540">
+      25  ?<Constant "configured with address ">
+      14  ?<Initializer for <Constant " bytes long\r\n">
+      36  ?<Initializer for <Constant "***********    cu
+      37  ?<Initializer for <Constant "*****************
+      36  ?<Initializer for <Constant "*****************_1
+      36  ?<Initializer for <Constant "***********Dongbo
+       8  ?<Initializer for <Constant "-F256, ">>
+      14  ?<Initializer for <Constant "Contiki 2.6\r\n">
+      10  ?<Initializer for <Constant "KB SRAM\r\n">>
+      29  ?<Initializer for <Constant "Reading MAC from
+      11  ?<Initializer for <Constant "Rime is 0x">>
+      31  ?<Initializer for <Constant "WSN2530 for Conti
+       3  ?<Initializer for <Constant "\r\n">>
+       7  ?<Initializer for <Constant "cc2530">>
+       7  ?<Initializer for <Constant "cc2531">>
+       7  ?<Initializer for <Constant "cc2533">>
+       7  ?<Initializer for <Constant "cc2540">>
+      25  ?<Initializer for <Constant "configured with a
+       2  ?<Initializer for packetbuf_list>
+       6  ??fade?relay
+       6  ??main?relay
+       6  ??set_rime_addr?relay
+       1  T1CNTH
+       1  T1CNTL
+     264  fade
+     389  main
+       2  packetbuf_list
+       2  packetbuf_list_list
+     183  set_rime_addr
+
+ 
+ 836 bytes in segment BANKED_CODE
+  18 bytes in segment BANK_RELAYS
+   2 bytes in segment SFR_AN
+ 320 bytes in segment XDATA_I
+ 320 bytes in segment XDATA_ID
+   2 bytes in segment XDATA_Z
+ 
+ 1 174 bytes of CODE  memory
+     0 bytes of DATA  memory (+ 2 bytes shared)
+   322 bytes of XDATA memory
+
+Errors: none
+Warnings: 2

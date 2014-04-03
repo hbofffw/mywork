@@ -1,0 +1,190 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:45 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\cpu\cc253x\dev\port2-intr.c       #
+#    Command line       =  D:\myWork\myWork\cpu\cc253x\dev\port2-intr.c -D    #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\port2-intr.lst                              #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\port2-intr.r51                               #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
+   \                                 In  segment SFR_AN, at 0xe8
+   \   union <unnamed> volatile __sfr _A_IRCON2
+   \                     _A_IRCON2:
+   \   000000                DS 1
+D:\myWork\myWork\cpu\cc253x\dev\port2-intr.c
+      1          /*
+      2          Copyright (c) 2012, Philippe Retornaz
+      3          Copyright (c) 2012, EPFL STI IMT LSRO1 -- Mobots group
+      4          All rights reserved.
+      5          
+      6          Redistribution and use in source and binary forms, with or without
+      7          modification, are permitted provided that the following conditions
+      8          are met:
+      9          1. Redistributions of source code must retain the above copyright
+     10             notice, this list of conditions and the following disclaimer.
+     11          2. Redistributions in binary form must reproduce the above copyright
+     12             notice, this list of conditions and the following disclaimer in the
+     13             documentation and/or other materials provided with the distribution.
+     14          3. The name of the author may not be used to endorse or promote
+     15             products derived from this software without specific prior
+     16             written permission.
+     17          
+     18          THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+     19          OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+     20          WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     21          ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+     22          DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     23          DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+     24          GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+     25          INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+     26          WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+     27          NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+     28          SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+     29          */
+     30          
+     31          #include "cc253x.h"
+     32          #include "port2.h"
+     33          
+     34          extern struct cc253x_p2_handler *handlers;
+     35          
+     36          /* avoid referencing bits, we don't call code which use them */
+     37          #pragma save
+                         ^
+Warning[Pe161]: unrecognized #pragma
+     38          #if CC_CONF_OPTIMIZE_STACK_SIZE
+     39          #pragma exclude bits
+     40          #endif
+     41          #pragma vector = P2INT_VECTOR
+
+   \                                 In  segment NEAR_CODE, align 1, keep-with-next
+     42          __interrupt void port_2_isr(void)
+   \                     port_2_isr:
+     43          {
+   \   000000   C0E0         PUSH    A
+   \   000002   74F2         MOV     A,#-0xe
+   \   000004   12....       LCALL   ?INTERRUPT_ENTER_XSP
+   \   000007                ; Saved register size: 14
+   \   000007                ; Auto size: 0
+     44            struct cc253x_p2_handler *h;
+     45            uint8_t handled = 0;
+   \   000007   75..00       MOV     ?V0 + 0,#0x0
+     46          
+     47            for(h = handlers; h != NULL; h = h->next) {
+   \   00000A   90....       MOV     DPTR,#handlers
+   \   00000D   E0           MOVX    A,@DPTR
+   \   00000E   FE           MOV     R6,A
+   \   00000F   A3           INC     DPTR
+   \   000010   E0           MOVX    A,@DPTR
+   \   000011   FF           MOV     R7,A
+   \   000012   8021         SJMP    ??port_2_isr_0
+     48              handled |= h->cb();
+   \                     ??port_2_isr_1:
+   \   000014                ; Setup parameters for indirect call
+   \   000014   8E82         MOV     DPL,R6
+   \   000016   8F83         MOV     DPH,R7
+   \   000018   A3           INC     DPTR
+   \   000019   A3           INC     DPTR
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   F8           MOV     R0,A
+   \   00001C   A3           INC     DPTR
+   \   00001D   E0           MOVX    A,@DPTR
+   \   00001E   F583         MOV     DPH,A
+   \   000020   8882         MOV     DPL,R0
+   \   000022   12....       LCALL   ?CALL_IND
+   \   000025   E9           MOV     A,R1
+   \   000026   42..         ORL     ?V0 + 0,A
+     49            }
+   \   000028   8E82         MOV     DPL,R6
+   \   00002A   8F83         MOV     DPH,R7
+   \   00002C   E0           MOVX    A,@DPTR
+   \   00002D   F8           MOV     R0,A
+   \   00002E   A3           INC     DPTR
+   \   00002F   E0           MOVX    A,@DPTR
+   \   000030   F9           MOV     R1,A
+   \   000031   E8           MOV     A,R0
+   \   000032   FE           MOV     R6,A
+   \   000033   E9           MOV     A,R1
+   \   000034   FF           MOV     R7,A
+   \                     ??port_2_isr_0:
+   \   000035   EE           MOV     A,R6
+   \   000036   4F           ORL     A,R7
+   \   000037   70DB         JNZ     ??port_2_isr_1
+     50          
+     51            if(handled) {
+   \   000039   E5..         MOV     A,?V0 + 0
+   \   00003B   6002         JZ      ??port_2_isr_2
+     52              P2IF = 0;
+   \   00003D   C2E8         CLR     0xe8.0
+     53            }
+     54          }
+   \                     ??port_2_isr_2:
+   \   00003F   7F01         MOV     R7,#0x1
+   \   000041   02....       LJMP    ?INTERRUPT_LEAVE_XSP
+   \   000044                REQUIRE _A_IRCON2
+
+   \                                 In  segment INTVEC, offset 0x33, root
+   \                     `??port_2_isr??INTVEC 51`:
+   \   000033   02....       LJMP       (port_2_isr)
+     55          #pragma restore
+                         ^
+Warning[Pe161]: unrecognized #pragma
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     14  port_2_isr
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       3  ??port_2_isr??INTVEC 51
+       1  _A_IRCON2
+      68  port_2_isr
+
+ 
+  3 bytes in segment INTVEC
+ 68 bytes in segment NEAR_CODE
+  1 byte  in segment SFR_AN
+ 
+ 68 bytes of CODE memory (+ 3 bytes shared)
+  0 bytes of DATA memory (+ 1 byte  shared)
+
+Errors: none
+Warnings: 2

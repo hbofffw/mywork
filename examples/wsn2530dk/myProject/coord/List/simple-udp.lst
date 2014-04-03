@@ -1,0 +1,1116 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:43 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\simple-udp.c             #
+#    Command line       =  D:\myWork\myWork\core\net\simple-udp.c -D          #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\simple-udp.lst                              #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\simple-udp.r51                               #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\simple-udp.c
+      1          /**
+      2           * \addtogroup simple-udp
+      3           * @{
+      4           */
+      5          
+      6          
+      7          /*
+      8           * Copyright (c) 2011, Swedish Institute of Computer Science.
+      9           * All rights reserved.
+     10           *
+     11           * Redistribution and use in source and binary forms, with or without
+     12           * modification, are permitted provided that the following conditions
+     13           * are met:
+     14           * 1. Redistributions of source code must retain the above copyright
+     15           *    notice, this list of conditions and the following disclaimer.
+     16           * 2. Redistributions in binary form must reproduce the above copyright
+     17           *    notice, this list of conditions and the following disclaimer in the
+     18           *    documentation and/or other materials provided with the distribution.
+     19           * 3. Neither the name of the Institute nor the names of its contributors
+     20           *    may be used to endorse or promote products derived from this software
+     21           *    without specific prior written permission.
+     22           *
+     23           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     24           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     25           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     26           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     27           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     28           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     29           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     30           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     31           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     32           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     33           * SUCH DAMAGE.
+     34           *
+     35           * This file is part of the Contiki operating system.
+     36           *
+     37           * \file
+     38           *         Header file for the simple-udp module.
+     39           * \author
+     40           *         Adam Dunkels <adam@sics.se>
+     41           *
+     42           */
+     43          
+     44          #include "contiki-net.h"
+     45          #include "net/simple-udp.h"
+     46          
+     47          #include <string.h>
+     48          
+     49          
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     50          PROCESS(simple_udp_process, "Simple UDP process");
+   \                     simple_udp_process:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for simple_udp_process>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     51          static uint8_t started = 0;
+   \                     started:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     52          static uint8_t databuffer[UIP_BUFSIZE];
+   \                     databuffer:
+   \   000000                DS 240
+   \   0000F0                REQUIRE __INIT_XDATA_Z
+     53          
+     54          #define UIP_IP_BUF   ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
+     55          
+     56          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     57          static void
+     58          init_simple_udp(void)
+   \                     init_simple_udp:
+     59          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     60            if(started == 0) {
+   \   000004   90....       MOV     DPTR,#started
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   7011         JNZ     ??init_simple_udp_0
+     61              process_start(&simple_udp_process, NULL);
+   \   00000A                ; Setup parameters for call to function process_start
+   \   00000A   7C00         MOV     R4,#0x0
+   \   00000C   7D00         MOV     R5,#0x0
+   \   00000E   7A..         MOV     R2,#simple_udp_process & 0xff
+   \   000010   7B..         MOV     R3,#(simple_udp_process >> 8) & 0xff
+   \   000012   12....       LCALL   ??process_start?relay
+     62              started = 1;
+   \   000015   90....       MOV     DPTR,#started
+   \   000018   7401         MOV     A,#0x1
+   \   00001A   F0           MOVX    @DPTR,A
+     63            }
+     64          }
+   \                     ??init_simple_udp_0:
+   \   00001B   D083         POP     DPH
+   \   00001D   D082         POP     DPL
+   \   00001F   02....       LJMP    ?BRET
+     65          /*---------------------------------------------------------------------------*/
+     66          /**
+     67           * \brief      Send a UDP packet
+     68           * \param c    A pointer to a struct simple_udp_connection
+     69           * \param data A pointer to the data to be sent
+     70           * \param datalen The length of the data
+     71           *
+     72           *             This function sends a UDP packet. The packet will be
+     73           *             sent to the IP address and with the UDP ports that were
+     74           *             specified when the connection wa registered with
+     75           *             simple_udp_register().
+     76           *
+     77           * \sa simple_udp_sendto()
+     78           */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     79          int
+     80          simple_udp_send(struct simple_udp_connection *c,
+   \                     simple_udp_send:
+     81                          const void *data, uint16_t datalen)
+     82          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   740C         MOV     A,#0xc
+   \   000007   12....       LCALL   ?XSTACK_DISP0_8
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F5..         MOV     ?V0 + 0,A
+   \   00000D   A3           INC     DPTR
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   F5..         MOV     ?V0 + 1,A
+     83            if(c->udp_conn != NULL) {
+   \   000011   EA           MOV     A,R2
+   \   000012   2418         ADD     A,#0x18
+   \   000014   F582         MOV     DPL,A
+   \   000016   EB           MOV     A,R3
+   \   000017   3400         ADDC    A,#0x0
+   \   000019   F583         MOV     DPH,A
+   \   00001B   E0           MOVX    A,@DPTR
+   \   00001C   F8           MOV     R0,A
+   \   00001D   A3           INC     DPTR
+   \   00001E   E0           MOVX    A,@DPTR
+   \   00001F   F9           MOV     R1,A
+   \   000020   E8           MOV     A,R0
+   \   000021   49           ORL     A,R1
+   \   000022   605C         JZ      ??simple_udp_send_0
+     84              uip_udp_packet_sendto(c->udp_conn, data, datalen,
+     85                                    &c->remote_addr, UIP_HTONS(c->remote_port));
+   \   000024                ; Setup parameters for call to function uip_udp_packet_sendto
+   \   000024   EA           MOV     A,R2
+   \   000025   2412         ADD     A,#0x12
+   \   000027   F582         MOV     DPL,A
+   \   000029   EB           MOV     A,R3
+   \   00002A   3400         ADDC    A,#0x0
+   \   00002C   F583         MOV     DPH,A
+   \   00002E   E0           MOVX    A,@DPTR
+   \   00002F   FE           MOV     R6,A
+   \   000030   A3           INC     DPTR
+   \   000031   E0           MOVX    A,@DPTR
+   \   000032   FF           MOV     R7,A
+   \   000033   E4           CLR     A
+   \   000034   CE           XCH     A,R6
+   \   000035   FF           MOV     R7,A
+   \   000036   EA           MOV     A,R2
+   \   000037   2412         ADD     A,#0x12
+   \   000039   F582         MOV     DPL,A
+   \   00003B   EB           MOV     A,R3
+   \   00003C   3400         ADDC    A,#0x0
+   \   00003E   F583         MOV     DPH,A
+   \   000040   E0           MOVX    A,@DPTR
+   \   000041   F8           MOV     R0,A
+   \   000042   A3           INC     DPTR
+   \   000043   E0           MOVX    A,@DPTR
+   \   000044   F9           MOV     R1,A
+   \   000045   E4           CLR     A
+   \   000046   C9           XCH     A,R1
+   \   000047   F8           MOV     R0,A
+   \   000048   EE           MOV     A,R6
+   \   000049   48           ORL     A,R0
+   \   00004A   F5..         MOV     ?V0 + 2,A
+   \   00004C   EF           MOV     A,R7
+   \   00004D   49           ORL     A,R1
+   \   00004E   F5..         MOV     ?V0 + 3,A
+   \   000050   78..         MOV     R0,#?V0 + 2
+   \   000052   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000055   EA           MOV     A,R2
+   \   000056   2402         ADD     A,#0x2
+   \   000058   F5..         MOV     ?V0 + 2,A
+   \   00005A   EB           MOV     A,R3
+   \   00005B   3400         ADDC    A,#0x0
+   \   00005D   F5..         MOV     ?V0 + 3,A
+   \   00005F   78..         MOV     R0,#?V0 + 2
+   \   000061   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000064   78..         MOV     R0,#?V0 + 0
+   \   000066   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000069   EA           MOV     A,R2
+   \   00006A   2418         ADD     A,#0x18
+   \   00006C   F582         MOV     DPL,A
+   \   00006E   EB           MOV     A,R3
+   \   00006F   3400         ADDC    A,#0x0
+   \   000071   F583         MOV     DPH,A
+   \   000073   E0           MOVX    A,@DPTR
+   \   000074   FA           MOV     R2,A
+   \   000075   A3           INC     DPTR
+   \   000076   E0           MOVX    A,@DPTR
+   \   000077   FB           MOV     R3,A
+   \   000078   12....       LCALL   ??uip_udp_packet_sendto?relay
+   \   00007B   7406         MOV     A,#0x6
+   \   00007D   12....       LCALL   ?DEALLOC_XSTACK8
+     86            }
+     87            return 0;
+   \                     ??simple_udp_send_0:
+   \   000080   7A00         MOV     R2,#0x0
+   \   000082   7B00         MOV     R3,#0x0
+   \   000084   7F04         MOV     R7,#0x4
+   \   000086   02....       LJMP    ?BANKED_LEAVE_XDATA
+     88          }
+     89          /*---------------------------------------------------------------------------*/
+     90          /**
+     91           * \brief      Send a UDP packet to a specified IP address
+     92           * \param c    A pointer to a struct simple_udp_connection
+     93           * \param data A pointer to the data to be sent
+     94           * \param datalen The length of the data
+     95           * \param to   The IP address of the receiver
+     96           *
+     97           *             This function sends a UDP packet to a specified IP
+     98           *             address. The packet will be sent with the UDP ports
+     99           *             that were specified when the connection wa registered
+    100           *             with simple_udp_register().
+    101           *
+    102           * \sa simple_udp_send()
+    103           */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    104          int
+    105          simple_udp_sendto(struct simple_udp_connection *c,
+   \                     simple_udp_sendto:
+    106                            const void *data, uint16_t datalen,
+    107                            const uip_ipaddr_t *to)
+    108          {
+   \   000000   74F2         MOV     A,#-0xe
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 14
+   \   000005                ; Auto size: 0
+   \   000005   740E         MOV     A,#0xe
+   \   000007   12....       LCALL   ?XSTACK_DISP0_8
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F5..         MOV     ?V0 + 0,A
+   \   00000D   A3           INC     DPTR
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   F5..         MOV     ?V0 + 1,A
+   \   000011   7410         MOV     A,#0x10
+   \   000013   12....       LCALL   ?XSTACK_DISP0_8
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F5..         MOV     ?V0 + 2,A
+   \   000019   A3           INC     DPTR
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   F5..         MOV     ?V0 + 3,A
+    109            if(c->udp_conn != NULL) {
+   \   00001D   EA           MOV     A,R2
+   \   00001E   2418         ADD     A,#0x18
+   \   000020   F582         MOV     DPL,A
+   \   000022   EB           MOV     A,R3
+   \   000023   3400         ADDC    A,#0x0
+   \   000025   F583         MOV     DPH,A
+   \   000027   E0           MOVX    A,@DPTR
+   \   000028   F8           MOV     R0,A
+   \   000029   A3           INC     DPTR
+   \   00002A   E0           MOVX    A,@DPTR
+   \   00002B   F9           MOV     R1,A
+   \   00002C   E8           MOV     A,R0
+   \   00002D   49           ORL     A,R1
+   \   00002E   6052         JZ      ??simple_udp_sendto_0
+    110              uip_udp_packet_sendto(c->udp_conn, data, datalen,
+    111                                    to, UIP_HTONS(c->remote_port));
+   \   000030                ; Setup parameters for call to function uip_udp_packet_sendto
+   \   000030   EA           MOV     A,R2
+   \   000031   2412         ADD     A,#0x12
+   \   000033   F582         MOV     DPL,A
+   \   000035   EB           MOV     A,R3
+   \   000036   3400         ADDC    A,#0x0
+   \   000038   F583         MOV     DPH,A
+   \   00003A   E0           MOVX    A,@DPTR
+   \   00003B   FE           MOV     R6,A
+   \   00003C   A3           INC     DPTR
+   \   00003D   E0           MOVX    A,@DPTR
+   \   00003E   FF           MOV     R7,A
+   \   00003F   E4           CLR     A
+   \   000040   CE           XCH     A,R6
+   \   000041   FF           MOV     R7,A
+   \   000042   EA           MOV     A,R2
+   \   000043   2412         ADD     A,#0x12
+   \   000045   F582         MOV     DPL,A
+   \   000047   EB           MOV     A,R3
+   \   000048   3400         ADDC    A,#0x0
+   \   00004A   F583         MOV     DPH,A
+   \   00004C   E0           MOVX    A,@DPTR
+   \   00004D   F8           MOV     R0,A
+   \   00004E   A3           INC     DPTR
+   \   00004F   E0           MOVX    A,@DPTR
+   \   000050   F9           MOV     R1,A
+   \   000051   E4           CLR     A
+   \   000052   C9           XCH     A,R1
+   \   000053   F8           MOV     R0,A
+   \   000054   EE           MOV     A,R6
+   \   000055   48           ORL     A,R0
+   \   000056   F5..         MOV     ?V0 + 4,A
+   \   000058   EF           MOV     A,R7
+   \   000059   49           ORL     A,R1
+   \   00005A   F5..         MOV     ?V0 + 5,A
+   \   00005C   78..         MOV     R0,#?V0 + 4
+   \   00005E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000061   78..         MOV     R0,#?V0 + 2
+   \   000063   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000066   78..         MOV     R0,#?V0 + 0
+   \   000068   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00006B   EA           MOV     A,R2
+   \   00006C   2418         ADD     A,#0x18
+   \   00006E   F582         MOV     DPL,A
+   \   000070   EB           MOV     A,R3
+   \   000071   3400         ADDC    A,#0x0
+   \   000073   F583         MOV     DPH,A
+   \   000075   E0           MOVX    A,@DPTR
+   \   000076   FA           MOV     R2,A
+   \   000077   A3           INC     DPTR
+   \   000078   E0           MOVX    A,@DPTR
+   \   000079   FB           MOV     R3,A
+   \   00007A   12....       LCALL   ??uip_udp_packet_sendto?relay
+   \   00007D   7406         MOV     A,#0x6
+   \   00007F   12....       LCALL   ?DEALLOC_XSTACK8
+    112            }
+    113            return 0;
+   \                     ??simple_udp_sendto_0:
+   \   000082   7A00         MOV     R2,#0x0
+   \   000084   7B00         MOV     R3,#0x0
+   \   000086   7F06         MOV     R7,#0x6
+   \   000088   02....       LJMP    ?BANKED_LEAVE_XDATA
+    114          }
+    115          /*---------------------------------------------------------------------------*/
+    116          /**
+    117           * \brief      Send a UDP packet to a specified IP address and UDP port
+    118           * \param c    A pointer to a struct simple_udp_connection
+    119           * \param data A pointer to the data to be sent
+    120           * \param datalen The length of the data
+    121           * \param to   The IP address of the receiver
+    122           * \param port   The UDP port of the receiver, in host byte order
+    123           *
+    124           *             This function sends a UDP packet to a specified IP
+    125           *             address and UDP port. The packet will be sent with the
+    126           *             UDP ports that were specified when the connection wa
+    127           *             registered with simple_udp_register().
+    128           *
+    129           * \sa simple_udp_sendto()
+    130           */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    131          int
+    132          simple_udp_sendto_port(struct simple_udp_connection *c,
+   \                     simple_udp_sendto_port:
+    133          		       const void *data, uint16_t datalen,
+    134          		       const uip_ipaddr_t *to,
+    135          		       uint16_t port)
+    136          {
+   \   000000   74F2         MOV     A,#-0xe
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 14
+   \   000005                ; Auto size: 0
+   \   000005   740E         MOV     A,#0xe
+   \   000007   12....       LCALL   ?XSTACK_DISP0_8
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F5..         MOV     ?V0 + 0,A
+   \   00000D   A3           INC     DPTR
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   F5..         MOV     ?V0 + 1,A
+   \   000011   7410         MOV     A,#0x10
+   \   000013   12....       LCALL   ?XSTACK_DISP0_8
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F5..         MOV     ?V0 + 2,A
+   \   000019   A3           INC     DPTR
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   F5..         MOV     ?V0 + 3,A
+    137            if(c->udp_conn != NULL) {
+   \   00001D   EA           MOV     A,R2
+   \   00001E   2418         ADD     A,#0x18
+   \   000020   F582         MOV     DPL,A
+   \   000022   EB           MOV     A,R3
+   \   000023   3400         ADDC    A,#0x0
+   \   000025   F583         MOV     DPH,A
+   \   000027   E0           MOVX    A,@DPTR
+   \   000028   F8           MOV     R0,A
+   \   000029   A3           INC     DPTR
+   \   00002A   E0           MOVX    A,@DPTR
+   \   00002B   F9           MOV     R1,A
+   \   00002C   E8           MOV     A,R0
+   \   00002D   49           ORL     A,R1
+   \   00002E   6042         JZ      ??simple_udp_sendto_port_0
+   \   000030   7412         MOV     A,#0x12
+   \   000032   12....       LCALL   ?XSTACK_DISP0_8
+   \   000035   E0           MOVX    A,@DPTR
+   \   000036   F8           MOV     R0,A
+   \   000037   A3           INC     DPTR
+   \   000038   E0           MOVX    A,@DPTR
+   \   000039   F9           MOV     R1,A
+    138              uip_udp_packet_sendto(c->udp_conn, data, datalen,
+    139                                    to, UIP_HTONS(port));
+   \   00003A                ; Setup parameters for call to function uip_udp_packet_sendto
+   \   00003A   E8           MOV     A,R0
+   \   00003B   FE           MOV     R6,A
+   \   00003C   E9           MOV     A,R1
+   \   00003D   FF           MOV     R7,A
+   \   00003E   E4           CLR     A
+   \   00003F   CE           XCH     A,R6
+   \   000040   FF           MOV     R7,A
+   \   000041   E4           CLR     A
+   \   000042   C9           XCH     A,R1
+   \   000043   F8           MOV     R0,A
+   \   000044   EE           MOV     A,R6
+   \   000045   48           ORL     A,R0
+   \   000046   F5..         MOV     ?V0 + 4,A
+   \   000048   EF           MOV     A,R7
+   \   000049   49           ORL     A,R1
+   \   00004A   F5..         MOV     ?V0 + 5,A
+   \   00004C   78..         MOV     R0,#?V0 + 4
+   \   00004E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000051   78..         MOV     R0,#?V0 + 2
+   \   000053   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000056   78..         MOV     R0,#?V0 + 0
+   \   000058   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00005B   EA           MOV     A,R2
+   \   00005C   2418         ADD     A,#0x18
+   \   00005E   F582         MOV     DPL,A
+   \   000060   EB           MOV     A,R3
+   \   000061   3400         ADDC    A,#0x0
+   \   000063   F583         MOV     DPH,A
+   \   000065   E0           MOVX    A,@DPTR
+   \   000066   FA           MOV     R2,A
+   \   000067   A3           INC     DPTR
+   \   000068   E0           MOVX    A,@DPTR
+   \   000069   FB           MOV     R3,A
+   \   00006A   12....       LCALL   ??uip_udp_packet_sendto?relay
+   \   00006D   7406         MOV     A,#0x6
+   \   00006F   12....       LCALL   ?DEALLOC_XSTACK8
+    140            }
+    141            return 0;
+   \                     ??simple_udp_sendto_port_0:
+   \   000072   7A00         MOV     R2,#0x0
+   \   000074   7B00         MOV     R3,#0x0
+   \   000076   7F06         MOV     R7,#0x6
+   \   000078   02....       LJMP    ?BANKED_LEAVE_XDATA
+    142          }
+    143          /*---------------------------------------------------------------------------*/
+    144          /**
+    145           * \brief      Register a UDP connection
+    146           * \param c    A pointer to a struct simple_udp_connection
+    147           * \param local_port The local UDP port in host byte order
+    148           * \param remote_addr The remote IP address
+    149           * \param remote_port The remote UDP port in host byte order
+    150           * \param receive_callback A pointer to a function to be called for incoming packets
+    151           * \retval 0   If no UDP connection could be allocated
+    152           * \retval 1   If the connection was successfully allocated
+    153           *
+    154           *             This function registers a UDP connection and attaches a
+    155           *             callback function to it. The callback function will be
+    156           *             called for incoming packets. The local UDP port can be
+    157           *             set to 0 to indicate that an ephemeral UDP port should
+    158           *             be allocated. The remote IP address can be NULL, to
+    159           *             indicate that packets from any IP address should be
+    160           *             accepted.
+    161           *
+    162           */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    163          int
+    164          simple_udp_register(struct simple_udp_connection *c,
+   \                     simple_udp_register:
+    165                              uint16_t local_port,
+    166                              uip_ipaddr_t *remote_addr,
+    167                              uint16_t remote_port,
+    168                              simple_udp_callback receive_callback)
+    169          {
+   \   000000   74EE         MOV     A,#-0x12
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 18
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 6,R2
+   \   000007   8B..         MOV     ?V0 + 7,R3
+   \   000009   8C..         MOV     ?V0 + 0,R4
+   \   00000B   8D..         MOV     ?V0 + 1,R5
+   \   00000D   7416         MOV     A,#0x16
+   \   00000F   12....       LCALL   ?XSTACK_DISP0_8
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   F5..         MOV     ?V0 + 4,A
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F5..         MOV     ?V0 + 5,A
+    170          
+    171            init_simple_udp();
+   \   000019                ; Setup parameters for call to function init_simple_udp
+   \   000019   12....       LCALL   ??init_simple_udp?relay
+    172          
+    173            c->local_port = local_port;
+   \   00001C   E5..         MOV     A,?V0 + 6
+   \   00001E   2414         ADD     A,#0x14
+   \   000020   F582         MOV     DPL,A
+   \   000022   E5..         MOV     A,?V0 + 7
+   \   000024   3400         ADDC    A,#0x0
+   \   000026   F583         MOV     DPH,A
+   \   000028   E5..         MOV     A,?V0 + 0
+   \   00002A   F0           MOVX    @DPTR,A
+   \   00002B   A3           INC     DPTR
+   \   00002C   E5..         MOV     A,?V0 + 1
+   \   00002E   F0           MOVX    @DPTR,A
+   \   00002F   7414         MOV     A,#0x14
+   \   000031   12....       LCALL   ?XSTACK_DISP0_8
+   \   000034   E0           MOVX    A,@DPTR
+   \   000035   F5..         MOV     ?V0 + 2,A
+   \   000037   A3           INC     DPTR
+   \   000038   E0           MOVX    A,@DPTR
+   \   000039   F5..         MOV     ?V0 + 3,A
+    174            c->remote_port = remote_port;
+   \   00003B   E5..         MOV     A,?V0 + 6
+   \   00003D   2412         ADD     A,#0x12
+   \   00003F   F582         MOV     DPL,A
+   \   000041   E5..         MOV     A,?V0 + 7
+   \   000043   3400         ADDC    A,#0x0
+   \   000045   F583         MOV     DPH,A
+   \   000047   E5..         MOV     A,?V0 + 2
+   \   000049   F0           MOVX    @DPTR,A
+   \   00004A   A3           INC     DPTR
+   \   00004B   E5..         MOV     A,?V0 + 3
+   \   00004D   F0           MOVX    @DPTR,A
+   \   00004E   7412         MOV     A,#0x12
+   \   000050   12....       LCALL   ?XSTACK_DISP0_8
+   \   000053   E0           MOVX    A,@DPTR
+   \   000054   FE           MOV     R6,A
+   \   000055   A3           INC     DPTR
+   \   000056   E0           MOVX    A,@DPTR
+   \   000057   FF           MOV     R7,A
+    175            if(remote_addr != NULL) {
+   \   000058   EE           MOV     A,R6
+   \   000059   4F           ORL     A,R7
+   \   00005A   6021         JZ      ??simple_udp_register_0
+    176              uip_ipaddr_copy(&c->remote_addr, remote_addr);
+   \   00005C                ; Setup parameters for call to function memcpy
+   \   00005C   75..10       MOV     ?V0 + 8,#0x10
+   \   00005F   75..00       MOV     ?V0 + 9,#0x0
+   \   000062   78..         MOV     R0,#?V0 + 8
+   \   000064   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000067   EE           MOV     A,R6
+   \   000068   FC           MOV     R4,A
+   \   000069   EF           MOV     A,R7
+   \   00006A   FD           MOV     R5,A
+   \   00006B   E5..         MOV     A,?V0 + 6
+   \   00006D   2402         ADD     A,#0x2
+   \   00006F   FA           MOV     R2,A
+   \   000070   E5..         MOV     A,?V0 + 7
+   \   000072   3400         ADDC    A,#0x0
+   \   000074   FB           MOV     R3,A
+   \   000075   12....       LCALL   ??memcpy?relay
+   \   000078   7402         MOV     A,#0x2
+   \   00007A   12....       LCALL   ?DEALLOC_XSTACK8
+    177            }
+    178            c->receive_callback = receive_callback;
+   \                     ??simple_udp_register_0:
+   \   00007D   E5..         MOV     A,?V0 + 6
+   \   00007F   2416         ADD     A,#0x16
+   \   000081   F582         MOV     DPL,A
+   \   000083   E5..         MOV     A,?V0 + 7
+   \   000085   3400         ADDC    A,#0x0
+   \   000087   F583         MOV     DPH,A
+   \   000089   E5..         MOV     A,?V0 + 4
+   \   00008B   F0           MOVX    @DPTR,A
+   \   00008C   A3           INC     DPTR
+   \   00008D   E5..         MOV     A,?V0 + 5
+   \   00008F   F0           MOVX    @DPTR,A
+    179          
+    180            PROCESS_CONTEXT_BEGIN(&simple_udp_process);
+   \   000090   90....       MOV     DPTR,#process_current
+   \   000093   E0           MOVX    A,@DPTR
+   \   000094   F5..         MOV     ?V0 + 4,A
+   \   000096   A3           INC     DPTR
+   \   000097   E0           MOVX    A,@DPTR
+   \   000098   F5..         MOV     ?V0 + 5,A
+   \   00009A   90....       MOV     DPTR,#process_current
+   \   00009D   74..         MOV     A,#simple_udp_process & 0xff
+   \   00009F   F0           MOVX    @DPTR,A
+   \   0000A0   A3           INC     DPTR
+   \   0000A1   74..         MOV     A,#(simple_udp_process >> 8) & 0xff
+   \   0000A3   F0           MOVX    @DPTR,A
+    181            c->udp_conn = udp_new(remote_addr, UIP_HTONS(remote_port), c);
+   \   0000A4                ; Setup parameters for call to function udp_new
+   \   0000A4   78..         MOV     R0,#?V0 + 6
+   \   0000A6   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000A9   A8..         MOV     R0,?V0 + 2
+   \   0000AB   A9..         MOV     R1,?V0 + 3
+   \   0000AD   E4           CLR     A
+   \   0000AE   C8           XCH     A,R0
+   \   0000AF   F9           MOV     R1,A
+   \   0000B0   E4           CLR     A
+   \   0000B1   C5..         XCH     A,?V0 + 3
+   \   0000B3   F5..         MOV     ?V0 + 2,A
+   \   0000B5   E8           MOV     A,R0
+   \   0000B6   45..         ORL     A,?V0 + 2
+   \   0000B8   FC           MOV     R4,A
+   \   0000B9   E9           MOV     A,R1
+   \   0000BA   45..         ORL     A,?V0 + 3
+   \   0000BC   FD           MOV     R5,A
+   \   0000BD   EE           MOV     A,R6
+   \   0000BE   FA           MOV     R2,A
+   \   0000BF   EF           MOV     A,R7
+   \   0000C0   FB           MOV     R3,A
+   \   0000C1   12....       LCALL   ??udp_new?relay
+   \   0000C4   7402         MOV     A,#0x2
+   \   0000C6   12....       LCALL   ?DEALLOC_XSTACK8
+   \   0000C9   E5..         MOV     A,?V0 + 6
+   \   0000CB   2418         ADD     A,#0x18
+   \   0000CD   F582         MOV     DPL,A
+   \   0000CF   E5..         MOV     A,?V0 + 7
+   \   0000D1   3400         ADDC    A,#0x0
+   \   0000D3   F583         MOV     DPH,A
+   \   0000D5   EA           MOV     A,R2
+   \   0000D6   F0           MOVX    @DPTR,A
+   \   0000D7   A3           INC     DPTR
+   \   0000D8   EB           MOV     A,R3
+   \   0000D9   F0           MOVX    @DPTR,A
+    182            if(c->udp_conn != NULL) {
+   \   0000DA   E5..         MOV     A,?V0 + 6
+   \   0000DC   2418         ADD     A,#0x18
+   \   0000DE   F582         MOV     DPL,A
+   \   0000E0   E5..         MOV     A,?V0 + 7
+   \   0000E2   3400         ADDC    A,#0x0
+   \   0000E4   F583         MOV     DPH,A
+   \   0000E6   E0           MOVX    A,@DPTR
+   \   0000E7   F8           MOV     R0,A
+   \   0000E8   A3           INC     DPTR
+   \   0000E9   E0           MOVX    A,@DPTR
+   \   0000EA   F9           MOV     R1,A
+   \   0000EB   E8           MOV     A,R0
+   \   0000EC   49           ORL     A,R1
+   \   0000ED   6033         JZ      ??simple_udp_register_1
+    183              udp_bind(c->udp_conn, UIP_HTONS(local_port));
+   \   0000EF   A8..         MOV     R0,?V0 + 0
+   \   0000F1   A9..         MOV     R1,?V0 + 1
+   \   0000F3   E4           CLR     A
+   \   0000F4   C8           XCH     A,R0
+   \   0000F5   F9           MOV     R1,A
+   \   0000F6   E4           CLR     A
+   \   0000F7   C5..         XCH     A,?V0 + 1
+   \   0000F9   F5..         MOV     ?V0 + 0,A
+   \   0000FB   E8           MOV     A,R0
+   \   0000FC   45..         ORL     A,?V0 + 0
+   \   0000FE   F8           MOV     R0,A
+   \   0000FF   E9           MOV     A,R1
+   \   000100   45..         ORL     A,?V0 + 1
+   \   000102   F9           MOV     R1,A
+   \   000103   E5..         MOV     A,?V0 + 6
+   \   000105   2418         ADD     A,#0x18
+   \   000107   F582         MOV     DPL,A
+   \   000109   E5..         MOV     A,?V0 + 7
+   \   00010B   3400         ADDC    A,#0x0
+   \   00010D   F583         MOV     DPH,A
+   \   00010F   E0           MOVX    A,@DPTR
+   \   000110   FA           MOV     R2,A
+   \   000111   A3           INC     DPTR
+   \   000112   E0           MOVX    A,@DPTR
+   \   000113   CA           XCH     A,R2
+   \   000114   2410         ADD     A,#0x10
+   \   000116   F582         MOV     DPL,A
+   \   000118   EA           MOV     A,R2
+   \   000119   3400         ADDC    A,#0x0
+   \   00011B   F583         MOV     DPH,A
+   \   00011D   E8           MOV     A,R0
+   \   00011E   F0           MOVX    @DPTR,A
+   \   00011F   A3           INC     DPTR
+   \   000120   E9           MOV     A,R1
+   \   000121   F0           MOVX    @DPTR,A
+    184            }
+    185            PROCESS_CONTEXT_END();
+   \                     ??simple_udp_register_1:
+   \   000122   90....       MOV     DPTR,#process_current
+   \   000125   E5..         MOV     A,?V0 + 4
+   \   000127   F0           MOVX    @DPTR,A
+   \   000128   A3           INC     DPTR
+   \   000129   E5..         MOV     A,?V0 + 5
+   \   00012B   F0           MOVX    @DPTR,A
+    186          
+    187            if(c->udp_conn == NULL) {
+   \   00012C   E5..         MOV     A,?V0 + 6
+   \   00012E   2418         ADD     A,#0x18
+   \   000130   F582         MOV     DPL,A
+   \   000132   E5..         MOV     A,?V0 + 7
+   \   000134   3400         ADDC    A,#0x0
+   \   000136   F583         MOV     DPH,A
+   \   000138   E0           MOVX    A,@DPTR
+   \   000139   F8           MOV     R0,A
+   \   00013A   A3           INC     DPTR
+   \   00013B   E0           MOVX    A,@DPTR
+   \   00013C   F9           MOV     R1,A
+   \   00013D   E8           MOV     A,R0
+   \   00013E   49           ORL     A,R1
+   \   00013F   7006         JNZ     ??simple_udp_register_2
+    188              return 0;
+   \   000141   7A00         MOV     R2,#0x0
+   \   000143   7B00         MOV     R3,#0x0
+   \   000145   8004         SJMP    ??simple_udp_register_3
+    189            }
+    190            return 1;
+   \                     ??simple_udp_register_2:
+   \   000147   7A01         MOV     R2,#0x1
+   \   000149   7B00         MOV     R3,#0x0
+   \                     ??simple_udp_register_3:
+   \   00014B   7F0A         MOV     R7,#0xa
+   \   00014D   02....       LJMP    ?BANKED_LEAVE_XDATA
+    191          }
+    192          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    193          PROCESS_THREAD(simple_udp_process, ev, data)
+   \                     process_thread_simple_udp_process:
+    194          {
+   \   000000   74EE         MOV     A,#-0x12
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 18
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   89..         MOV     ?V0 + 4,R1
+   \   00000B   8C..         MOV     ?V0 + 6,R4
+   \   00000D   8D..         MOV     ?V0 + 7,R5
+    195            struct simple_udp_connection *c;
+    196            PROCESS_BEGIN();
+   \   00000F   7A01         MOV     R2,#0x1
+   \   000011   8E82         MOV     DPL,R6
+   \   000013   8F83         MOV     DPH,R7
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   F5..         MOV     ?V0 + 0,A
+   \   000018   A3           INC     DPTR
+   \   000019   E0           MOVX    A,@DPTR
+   \   00001A   F5..         MOV     ?V0 + 1,A
+   \   00001C   78..         MOV     R0,#?V0 + 0
+   \   00001E   12....       LCALL   ?US_SWITCH_SPARSE
+   \                     `?<Jumptable for process_thread_simple_udp_proc_0`:
+   \   000021   0000         DW        0
+   \   000023   0200         DW        2
+   \   000025   0000         DW        0
+   \   000027   ....         DW        ??process_thread_simple_udp_process_0
+   \   000029   C700         DW        199
+   \   00002B   ....         DW        ??process_thread_simple_udp_process_1
+   \   00002D   ....         DW        ??process_thread_simple_udp_process_2
+    197            
+    198            while(1) {
+    199              PROCESS_WAIT_EVENT();
+   \                     ??process_thread_simple_udp_process_0:
+   \   00002F   7A00         MOV     R2,#0x0
+   \   000031   8E82         MOV     DPL,R6
+   \   000033   8F83         MOV     DPH,R7
+   \   000035   74C7         MOV     A,#-0x39
+   \   000037   F0           MOVX    @DPTR,A
+   \   000038   A3           INC     DPTR
+   \   000039   7400         MOV     A,#0x0
+   \   00003B   F0           MOVX    @DPTR,A
+   \                     ??process_thread_simple_udp_process_1:
+   \   00003C   EA           MOV     A,R2
+   \   00003D   7005         JNZ     ??process_thread_simple_udp_process_3
+   \   00003F   7901         MOV     R1,#0x1
+   \   000041   02....       LJMP    ??process_thread_simple_udp_process_4 & 0xFFFF
+    200              if(ev == tcpip_event) {
+   \                     ??process_thread_simple_udp_process_3:
+   \   000044   90....       MOV     DPTR,#tcpip_event
+   \   000047   E0           MOVX    A,@DPTR
+   \   000048   65..         XRL     A,?V0 + 4
+   \   00004A   70E3         JNZ     ??process_thread_simple_udp_process_0
+    201          
+    202                /* An appstate pointer is passed to use from the IP stack
+    203                   through the 'data' pointer. We registered this appstate when
+    204                   we did the udp_new() call in simple_udp_register() as the
+    205                   struct simple_udp_connection pointer. So we extract this
+    206                   pointer and use it when calling the reception callback. */
+    207                c = (struct simple_udp_connection *)data;
+   \   00004C   85....       MOV     ?V0 + 2,?V0 + 6
+   \   00004F   85....       MOV     ?V0 + 3,?V0 + 7
+    208          
+    209                /* Defensive coding: although the appstate *should* be non-null
+    210                   here, we make sure to avoid the program crashing on us. */
+    211                if(c != NULL) {
+   \   000052   E5..         MOV     A,?V0 + 2
+   \   000054   45..         ORL     A,?V0 + 3
+   \   000056   60D7         JZ      ??process_thread_simple_udp_process_0
+    212          
+    213                  /* If we were called because of incoming data, we should call
+    214                     the reception callback. */
+    215                  if(uip_newdata()) {
+   \   000058   90....       MOV     DPTR,#uip_flags
+   \   00005B   E0           MOVX    A,@DPTR
+   \   00005C   A2E1         MOV     C,0xE0 /* A   */.1
+   \   00005E   50CF         JNC     ??process_thread_simple_udp_process_0
+    216                    /* Copy the data from the uIP data buffer into our own
+    217                       buffer to avoid the uIP buffer being messed with by the
+    218                       callee. */
+    219                    memcpy(databuffer, uip_appdata, uip_datalen());
+   \   000060                ; Setup parameters for call to function memcpy
+   \   000060   90....       MOV     DPTR,#uip_len
+   \   000063   12....       LCALL   ?PUSH_XSTACK8_X_TWO
+   \   000066   90....       MOV     DPTR,#uip_appdata
+   \   000069   E0           MOVX    A,@DPTR
+   \   00006A   FC           MOV     R4,A
+   \   00006B   A3           INC     DPTR
+   \   00006C   E0           MOVX    A,@DPTR
+   \   00006D   FD           MOV     R5,A
+   \   00006E   7A..         MOV     R2,#databuffer & 0xff
+   \   000070   7B..         MOV     R3,#(databuffer >> 8) & 0xff
+   \   000072   12....       LCALL   ??memcpy?relay
+   \   000075   7402         MOV     A,#0x2
+   \   000077   12....       LCALL   ?DEALLOC_XSTACK8
+    220          
+    221                    /* Call the client process. We use the PROCESS_CONTEXT
+    222                       mechanism to temporarily switch process context to the
+    223                       client process. */
+    224                    if(c->receive_callback != NULL) {
+   \   00007A   E5..         MOV     A,?V0 + 2
+   \   00007C   2416         ADD     A,#0x16
+   \   00007E   F582         MOV     DPL,A
+   \   000080   E5..         MOV     A,?V0 + 3
+   \   000082   3400         ADDC    A,#0x0
+   \   000084   F583         MOV     DPH,A
+   \   000086   E0           MOVX    A,@DPTR
+   \   000087   F8           MOV     R0,A
+   \   000088   A3           INC     DPTR
+   \   000089   E0           MOVX    A,@DPTR
+   \   00008A   F9           MOV     R1,A
+   \   00008B   E8           MOV     A,R0
+   \   00008C   49           ORL     A,R1
+   \   00008D   60A0         JZ      ??process_thread_simple_udp_process_0
+    225                      PROCESS_CONTEXT_BEGIN(c->client_process);
+   \   00008F   90....       MOV     DPTR,#process_current
+   \   000092   E0           MOVX    A,@DPTR
+   \   000093   F5..         MOV     ?V0 + 0,A
+   \   000095   A3           INC     DPTR
+   \   000096   E0           MOVX    A,@DPTR
+   \   000097   F5..         MOV     ?V0 + 1,A
+   \   000099   E5..         MOV     A,?V0 + 2
+   \   00009B   241A         ADD     A,#0x1a
+   \   00009D   F582         MOV     DPL,A
+   \   00009F   E5..         MOV     A,?V0 + 3
+   \   0000A1   3400         ADDC    A,#0x0
+   \   0000A3   F583         MOV     DPH,A
+   \   0000A5   E0           MOVX    A,@DPTR
+   \   0000A6   F8           MOV     R0,A
+   \   0000A7   A3           INC     DPTR
+   \   0000A8   E0           MOVX    A,@DPTR
+   \   0000A9   F9           MOV     R1,A
+   \   0000AA   90....       MOV     DPTR,#process_current
+   \   0000AD   E8           MOV     A,R0
+   \   0000AE   F0           MOVX    @DPTR,A
+   \   0000AF   A3           INC     DPTR
+   \   0000B0   E9           MOV     A,R1
+   \   0000B1   F0           MOVX    @DPTR,A
+    226                      c->receive_callback(c,
+    227                                          &(UIP_IP_BUF->srcipaddr),
+    228                                          UIP_HTONS(UIP_IP_BUF->srcport),
+    229                                          &(UIP_IP_BUF->destipaddr),
+    230                                          UIP_HTONS(UIP_IP_BUF->destport),
+    231                                          databuffer, uip_datalen());
+   \   0000B2                ; Setup parameters for indirect call
+   \   0000B2   90....       MOV     DPTR,#uip_len
+   \   0000B5   12....       LCALL   ?PUSH_XSTACK8_X_TWO
+   \   0000B8   75....       MOV     ?V0 + 8,#databuffer & 0xff
+   \   0000BB   75....       MOV     ?V0 + 9,#(databuffer >> 8) & 0xff
+   \   0000BE   78..         MOV     R0,#?V0 + 8
+   \   0000C0   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000C3   90....       MOV     DPTR,#uip_aligned_buf + 42
+   \   0000C6   E0           MOVX    A,@DPTR
+   \   0000C7   FA           MOV     R2,A
+   \   0000C8   A3           INC     DPTR
+   \   0000C9   E0           MOVX    A,@DPTR
+   \   0000CA   FB           MOV     R3,A
+   \   0000CB   E4           CLR     A
+   \   0000CC   CA           XCH     A,R2
+   \   0000CD   FB           MOV     R3,A
+   \   0000CE   90....       MOV     DPTR,#uip_aligned_buf + 42
+   \   0000D1   E0           MOVX    A,@DPTR
+   \   0000D2   F8           MOV     R0,A
+   \   0000D3   A3           INC     DPTR
+   \   0000D4   E0           MOVX    A,@DPTR
+   \   0000D5   F9           MOV     R1,A
+   \   0000D6   E4           CLR     A
+   \   0000D7   C9           XCH     A,R1
+   \   0000D8   F8           MOV     R0,A
+   \   0000D9   EA           MOV     A,R2
+   \   0000DA   48           ORL     A,R0
+   \   0000DB   F5..         MOV     ?V0 + 8,A
+   \   0000DD   EB           MOV     A,R3
+   \   0000DE   49           ORL     A,R1
+   \   0000DF   F5..         MOV     ?V0 + 9,A
+   \   0000E1   78..         MOV     R0,#?V0 + 8
+   \   0000E3   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000E6   75....       MOV     ?V0 + 8,#(uip_aligned_buf + 24) & 0xff
+   \   0000E9   75....       MOV     ?V0 + 9,#((uip_aligned_buf + 24) >> 8) & 0xff
+   \   0000EC   78..         MOV     R0,#?V0 + 8
+   \   0000EE   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000F1   90....       MOV     DPTR,#uip_aligned_buf + 40
+   \   0000F4   E0           MOVX    A,@DPTR
+   \   0000F5   FA           MOV     R2,A
+   \   0000F6   A3           INC     DPTR
+   \   0000F7   E0           MOVX    A,@DPTR
+   \   0000F8   FB           MOV     R3,A
+   \   0000F9   E4           CLR     A
+   \   0000FA   CA           XCH     A,R2
+   \   0000FB   FB           MOV     R3,A
+   \   0000FC   90....       MOV     DPTR,#uip_aligned_buf + 40
+   \   0000FF   E0           MOVX    A,@DPTR
+   \   000100   F8           MOV     R0,A
+   \   000101   A3           INC     DPTR
+   \   000102   E0           MOVX    A,@DPTR
+   \   000103   F9           MOV     R1,A
+   \   000104   E4           CLR     A
+   \   000105   C9           XCH     A,R1
+   \   000106   F8           MOV     R0,A
+   \   000107   EA           MOV     A,R2
+   \   000108   48           ORL     A,R0
+   \   000109   F5..         MOV     ?V0 + 8,A
+   \   00010B   EB           MOV     A,R3
+   \   00010C   49           ORL     A,R1
+   \   00010D   F5..         MOV     ?V0 + 9,A
+   \   00010F   78..         MOV     R0,#?V0 + 8
+   \   000111   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000114   7C..         MOV     R4,#(uip_aligned_buf + 8) & 0xff
+   \   000116   7D..         MOV     R5,#((uip_aligned_buf + 8) >> 8) & 0xff
+   \   000118   AA..         MOV     R2,?V0 + 2
+   \   00011A   AB..         MOV     R3,?V0 + 3
+   \   00011C   E5..         MOV     A,?V0 + 2
+   \   00011E   2416         ADD     A,#0x16
+   \   000120   F582         MOV     DPL,A
+   \   000122   E5..         MOV     A,?V0 + 3
+   \   000124   3400         ADDC    A,#0x0
+   \   000126   F583         MOV     DPH,A
+   \   000128   E0           MOVX    A,@DPTR
+   \   000129   F8           MOV     R0,A
+   \   00012A   A3           INC     DPTR
+   \   00012B   E0           MOVX    A,@DPTR
+   \   00012C   F583         MOV     DPH,A
+   \   00012E   8882         MOV     DPL,R0
+   \   000130   12....       LCALL   ?CALL_IND
+   \   000133   740A         MOV     A,#0xa
+   \   000135   12....       LCALL   ?DEALLOC_XSTACK8
+    232                      PROCESS_CONTEXT_END();
+   \   000138   90....       MOV     DPTR,#process_current
+   \   00013B   E5..         MOV     A,?V0 + 0
+   \   00013D   F0           MOVX    @DPTR,A
+   \   00013E   A3           INC     DPTR
+   \   00013F   E5..         MOV     A,?V0 + 1
+   \   000141   F0           MOVX    @DPTR,A
+   \   000142   02....       LJMP    ??process_thread_simple_udp_process_0 & 0xFFFF
+    233                    }
+    234                  }
+    235                }
+    236              }
+    237          
+    238            }
+    239          
+    240            PROCESS_END();
+   \                     ??process_thread_simple_udp_process_2:
+   \   000145   7A00         MOV     R2,#0x0
+   \   000147   8E82         MOV     DPL,R6
+   \   000149   8F83         MOV     DPH,R7
+   \   00014B   7400         MOV     A,#0x0
+   \   00014D   F0           MOVX    @DPTR,A
+   \   00014E   A3           INC     DPTR
+   \   00014F   7400         MOV     A,#0x0
+   \   000151   F0           MOVX    @DPTR,A
+   \   000152   7903         MOV     R1,#0x3
+   \                     ??process_thread_simple_udp_process_4:
+   \   000154   7F0A         MOV     R7,#0xa
+   \   000156   02....       LJMP    ?BANKED_LEAVE_XDATA
+    241          }
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for simple_udp_process>`:
+   \   000000   0000         DW 0H
+   \   000002   ....         DW ??process_thread_simple_udp_process?relay
+   \   000004   00000000     DB 0, 0, 0, 0
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??init_simple_udp?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    init_simple_udp
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??simple_udp_send?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    simple_udp_send
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??simple_udp_sendto?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    simple_udp_sendto
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??simple_udp_sendto_port?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    simple_udp_sendto_port
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??simple_udp_register?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    simple_udp_register
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_thread_simple_udp_process?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_thread_simple_udp_process
+    242          /*---------------------------------------------------------------------------*/
+    243          /** @} */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       2      0     18  init_simple_udp
+                          2 0  0 -> process_start
+       0      0     28  process_thread_simple_udp_process
+                          0 0 20 -> memcpy
+       0      0     26  simple_udp_register
+                          0 0 18 -> init_simple_udp
+                          0 0 20 -> memcpy
+                          0 0 20 -> udp_new
+       0      0     20  simple_udp_send
+                          0 0 18 -> uip_udp_packet_sendto
+       0      0     24  simple_udp_sendto
+                          0 0 20 -> uip_udp_packet_sendto
+       0      0     26  simple_udp_sendto_port
+                          0 0 20 -> uip_udp_packet_sendto
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       8  ?<Initializer for simple_udp_process>
+       6  ??init_simple_udp?relay
+       6  ??process_thread_simple_udp_process?relay
+       6  ??simple_udp_register?relay
+       6  ??simple_udp_send?relay
+       6  ??simple_udp_sendto?relay
+       6  ??simple_udp_sendto_port?relay
+     240  databuffer
+      34  init_simple_udp
+     345  process_thread_simple_udp_process
+       8  simple_udp_process
+     336  simple_udp_register
+     137  simple_udp_send
+     139  simple_udp_sendto
+     123  simple_udp_sendto_port
+       1  started
+
+ 
+ 1 114 bytes in segment BANKED_CODE
+    36 bytes in segment BANK_RELAYS
+     8 bytes in segment XDATA_I
+     8 bytes in segment XDATA_ID
+   241 bytes in segment XDATA_Z
+ 
+ 1 158 bytes of CODE  memory
+   249 bytes of XDATA memory
+
+Errors: none
+Warnings: none

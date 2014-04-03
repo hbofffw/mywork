@@ -1,0 +1,1397 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:39 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\queuebuf.c               #
+#    Command line       =  D:\myWork\myWork\core\net\queuebuf.c -D            #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\queuebuf.lst                                #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\queuebuf.r51                                 #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\queuebuf.c
+      1          /**
+      2           * \addtogroup rimequeuebuf
+      3           * @{
+      4           */
+      5          
+      6          /*
+      7           * Copyright (c) 2006, Swedish Institute of Computer Science.
+      8           * All rights reserved.
+      9           *
+     10           * Redistribution and use in source and binary forms, with or without
+     11           * modification, are permitted provided that the following conditions
+     12           * are met:
+     13           * 1. Redistributions of source code must retain the above copyright
+     14           *    notice, this list of conditions and the following disclaimer.
+     15           * 2. Redistributions in binary form must reproduce the above copyright
+     16           *    notice, this list of conditions and the following disclaimer in the
+     17           *    documentation and/or other materials provided with the distribution.
+     18           * 3. Neither the name of the Institute nor the names of its contributors
+     19           *    may be used to endorse or promote products derived from this software
+     20           *    without specific prior written permission.
+     21           *
+     22           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     23           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     24           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     25           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     26           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     27           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     28           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     29           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     30           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     31           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     32           * SUCH DAMAGE.
+     33           *
+     34           * This file is part of the Contiki operating system.
+     35           *
+     36           */
+     37          
+     38          /**
+     39           * \file
+     40           *         Implementation of the Rime queue buffers
+     41           * \author
+     42           *         Adam Dunkels <adam@sics.se>
+     43           */
+     44          
+     45          #include "contiki-net.h"
+     46          #if WITH_SWAP
+     47          #include "cfs/cfs.h"
+     48          #endif
+     49          
+     50          #include <string.h> /* for memcpy() */
+     51          
+     52          #ifdef QUEUEBUF_CONF_REF_NUM
+     53          #define QUEUEBUF_REF_NUM QUEUEBUF_CONF_REF_NUM
+     54          #else
+     55          #define QUEUEBUF_REF_NUM 2
+     56          #endif
+     57          
+     58          /* Structure pointing to a buffer either stored
+     59             in RAM or swapped in CFS */
+     60          struct queuebuf {
+     61          #if QUEUEBUF_DEBUG
+     62            struct queuebuf *next;
+     63            const char *file;
+     64            int line;
+     65            clock_time_t time;
+     66          #endif /* QUEUEBUF_DEBUG */
+     67          #if WITH_SWAP
+     68            enum {IN_RAM, IN_CFS} location;
+     69            union {
+     70          #endif
+     71              struct queuebuf_data *ram_ptr;
+     72          #if WITH_SWAP
+     73              int swap_id;
+     74            };
+     75          #endif
+     76          };
+     77          
+     78          /* The actual queuebuf data */
+     79          struct queuebuf_data {
+     80            uint16_t len;
+     81            uint8_t data[PACKETBUF_SIZE];
+     82            struct packetbuf_attr attrs[PACKETBUF_NUM_ATTRS];
+     83            struct packetbuf_addr addrs[PACKETBUF_NUM_ADDRS];
+     84          };
+     85          
+     86          struct queuebuf_ref {
+     87            uint16_t len;
+     88            uint8_t *ref;
+     89            uint8_t hdr[PACKETBUF_HDR_SIZE];
+     90            uint8_t hdrlen;
+     91          };
+     92          
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     93          MEMB(bufmem, struct queuebuf, QUEUEBUF_NUM);
+   \                     bufmem:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for bufmem>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static char bufmem_memb_count[6]
+   \                     bufmem_memb_count:
+   \   000000                DS 6
+   \   000006                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static struct queuebuf bufmem_memb_mem[6]
+   \                     bufmem_memb_mem:
+   \   000000                DS 12
+   \   00000C                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     94          MEMB(refbufmem, struct queuebuf_ref, QUEUEBUF_REF_NUM);
+   \                     refbufmem:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for refbufmem>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static char refbufmem_memb_count[2]
+   \                     refbufmem_memb_count:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static struct queuebuf_ref refbufmem_memb_mem[2]
+   \                     refbufmem_memb_mem:
+   \   000000                DS 106
+   \   00006A                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     95          MEMB(buframmem, struct queuebuf_data, QUEUEBUFRAM_NUM);
+   \                     buframmem:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for buframmem>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static char buframmem_memb_count[6]
+   \                     buframmem_memb_count:
+   \   000000                DS 6
+   \   000006                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static struct queuebuf_data buframmem_memb_mem[6]
+   \                     buframmem_memb_mem:
+   \   000000                DS 1116
+   \   00045C                REQUIRE __INIT_XDATA_Z
+     96          
+     97          #if WITH_SWAP
+     98          
+     99          /* Swapping allows to store up to QUEUEBUF_NUM - QUEUEBUFRAM_NUM
+    100             queuebufs in CFS. The swap is made of several large CFS files.
+    101             Every buffer stored in CFS has a swap id, referring to a specific
+    102             offset in one of these files. */
+    103          #define NQBUF_FILES 4
+    104          #define NQBUF_PER_FILE 256
+    105          #define QBUF_FILE_SIZE (NQBUF_PER_FILE*sizeof(struct queuebuf_data))
+    106          #define NQBUF_ID (NQBUF_PER_FILE * NQBUF_FILES)
+    107          
+    108          struct qbuf_file {
+    109            int fd;
+    110            int usage;
+    111            int renewable;
+    112          };
+    113          
+    114          /* A statically allocated queuebuf used as a cache for swapped qbufs */
+    115          static struct queuebuf_data tmpdata;
+    116          /* A pointer to the qbuf associated to the data in tmpdata */
+    117          static struct queuebuf *tmpdata_qbuf = NULL;
+    118          /* The swap id counter */
+    119          static int next_swap_id = 0;
+    120          /* The swap files */
+    121          static struct qbuf_file qbuf_files[NQBUF_FILES];
+    122          /* The timer used to renew files during inactivity periods */
+    123          static struct ctimer renew_timer;
+    124          
+    125          #endif
+    126          
+    127          #if QUEUEBUF_DEBUG
+    128          #include "lib/list.h"
+    129          LIST(queuebuf_list);
+    130          #endif /* QUEUEBUF_DEBUG */
+    131          
+    132          #define DEBUG 0
+    133          #if DEBUG
+    134          #include <stdio.h>
+    135          #define PRINTF(...) printf(__VA_ARGS__)
+    136          #else
+    137          #define PRINTF(...)
+    138          #endif
+    139          
+    140          #ifdef QUEUEBUF_CONF_STATS
+    141          #define QUEUEBUF_STATS QUEUEBUF_CONF_STATS
+    142          #else
+    143          #define QUEUEBUF_STATS 0
+    144          #endif /* QUEUEBUF_CONF_STATS */
+    145          
+    146          #if QUEUEBUF_STATS
+    147          uint8_t queuebuf_len, queuebuf_ref_len, queuebuf_max_len;
+    148          #endif /* QUEUEBUF_STATS */
+    149          
+    150          #if WITH_SWAP
+    151          /*---------------------------------------------------------------------------*/
+    152          static void
+    153          qbuf_renew_file(int file)
+    154          {
+    155            int ret;
+    156            char name[2];
+    157            name[0] = 'a' + file;
+    158            name[1] = '\0';
+    159            if(qbuf_files[file].renewable == 1) {
+    160              PRINTF("qbuf_renew_file: removing file %d\n", file);
+    161              cfs_remove(name);
+    162            }
+    163            ret = cfs_open(name, CFS_READ | CFS_WRITE);
+    164            if(ret == -1) {
+    165              PRINTF("qbuf_renew_file: cfs open error\n");
+    166            }
+    167            qbuf_files[file].fd = ret;
+    168            qbuf_files[file].usage = 0;
+    169            qbuf_files[file].renewable = 0;
+    170          }
+    171          /*---------------------------------------------------------------------------*/
+    172          /* Renews every file with renewable flag set */
+    173          static void
+    174          qbuf_renew_all(void *unused)
+    175          {
+    176            int i;
+    177            for(i=0; i<NQBUF_FILES; i++) {
+    178              if(qbuf_files[i].renewable == 1) {
+    179                qbuf_renew_file(i);
+    180              }
+    181            }
+    182          }
+    183          /*---------------------------------------------------------------------------*/
+    184          /* Removes a queuebuf from its swap file */
+    185          static void
+    186          queuebuf_remove_from_file(int swap_id)
+    187          {
+    188            int fileid;
+    189            if(swap_id != -1) {
+    190              fileid = swap_id / NQBUF_PER_FILE;
+    191              qbuf_files[fileid].usage--;
+    192          
+    193              /* The file is full but doesn't contain any more queuebuf, mark it as renewable */
+    194              if(qbuf_files[fileid].usage == 0 && fileid != next_swap_id / NQBUF_PER_FILE) {
+    195                qbuf_files[fileid].renewable = 1;
+    196                /* This file is renewable, set a timer to renew files */
+    197                ctimer_set(&renew_timer, 0, qbuf_renew_all, NULL);
+    198              }
+    199          
+    200              if(tmpdata_qbuf->swap_id == swap_id) {
+    201                tmpdata_qbuf->swap_id = -1;
+    202              }
+    203            }
+    204          }
+    205          /*---------------------------------------------------------------------------*/
+    206          static int
+    207          get_new_swap_id(void)
+    208          {
+    209            int fileid;
+    210            int swap_id = next_swap_id;
+    211            fileid = swap_id / NQBUF_PER_FILE;
+    212            if(swap_id % NQBUF_PER_FILE == 0) { /* This is the first id in the file */
+    213              if(qbuf_files[fileid].renewable) {
+    214                qbuf_renew_file(fileid);
+    215              }
+    216              if(qbuf_files[fileid].usage>0) {
+    217                return -1;
+    218              }
+    219            }
+    220            qbuf_files[fileid].usage++;
+    221            next_swap_id = (next_swap_id+1) % NQBUF_ID;
+    222            return swap_id;
+    223          }
+    224          /*---------------------------------------------------------------------------*/
+    225          /* Flush tmpdata to CFS */
+    226          static int
+    227          queuebuf_flush_tmpdata(void)
+    228          {
+    229            int fileid, fd, ret;
+    230            cfs_offset_t offset;
+    231            if(tmpdata_qbuf) {
+    232              queuebuf_remove_from_file(tmpdata_qbuf->swap_id);
+    233              tmpdata_qbuf->swap_id = get_new_swap_id();
+    234              if(tmpdata_qbuf->swap_id == -1) {
+    235                return -1;
+    236              }
+    237              fileid = tmpdata_qbuf->swap_id / NQBUF_PER_FILE;
+    238              offset = (tmpdata_qbuf->swap_id % NQBUF_PER_FILE) * sizeof(struct queuebuf_data);
+    239              fd = qbuf_files[fileid].fd;
+    240              ret = cfs_seek(fd, offset, CFS_SEEK_SET);
+    241              if(ret == -1) {
+    242                PRINTF("queuebuf_flush_tmpdata: cfs seek error\n");
+    243                return -1;
+    244              }
+    245              ret = cfs_write(fd, &tmpdata, sizeof(struct queuebuf_data));
+    246              if(ret == -1) {
+    247                PRINTF("queuebuf_flush_tmpdata: cfs write error\n");
+    248                return -1;
+    249              }
+    250            }
+    251            return 0;
+    252          }
+    253          /*---------------------------------------------------------------------------*/
+    254          /* If the queuebuf is in CFS, load it to tmpdata */
+    255          static struct queuebuf_data *
+    256          queuebuf_load_to_ram(struct queuebuf *b)
+    257          {
+    258            int fileid, fd, ret;
+    259            cfs_offset_t offset;
+    260            if(b->location == IN_RAM) { /* the qbuf is loacted in RAM */
+    261              return b->ram_ptr;
+    262            } else { /* the qbuf is located in CFS */
+    263              if(tmpdata_qbuf && tmpdata_qbuf->swap_id == b->swap_id) { /* the qbuf is already in tmpdata */
+    264                return &tmpdata;
+    265              } else { /* the qbuf needs to be loaded from CFS */
+    266                tmpdata_qbuf = b;
+    267                /* read the qbuf from CFS */
+    268                fileid = b->swap_id / NQBUF_PER_FILE;
+    269                offset = (b->swap_id % NQBUF_PER_FILE) * sizeof(struct queuebuf_data);
+    270                fd = qbuf_files[fileid].fd;
+    271                ret = cfs_seek(fd, offset, CFS_SEEK_SET);
+    272                if(ret == -1) {
+    273                  PRINTF("queuebuf_load_to_ram: cfs seek error\n");
+    274                }
+    275                ret = cfs_read(fd, &tmpdata, sizeof(struct queuebuf_data));
+    276                if(ret == -1) {
+    277                  PRINTF("queuebuf_load_to_ram: cfs read error\n");
+    278                }
+    279                return &tmpdata;
+    280              }
+    281            }
+    282          }
+    283          #else /* WITH_SWAP */
+    284          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    285          static struct queuebuf_data *
+    286          queuebuf_load_to_ram(struct queuebuf *b)
+   \                     queuebuf_load_to_ram:
+    287          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    288            return b->ram_ptr;
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   FA           MOV     R2,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   FB           MOV     R3,A
+   \   00000D   D083         POP     DPH
+   \   00000F   D082         POP     DPL
+   \   000011   02....       LJMP    ?BRET
+    289          }
+    290          #endif /* WITH_SWAP */
+    291          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    292          void
+    293          queuebuf_init(void)
+   \                     queuebuf_init:
+    294          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    295          #if WITH_SWAP
+    296            int i;
+    297            for(i=0; i<NQBUF_FILES; i++) {
+    298              qbuf_files[i].renewable = 1;
+    299              qbuf_renew_file(i);
+    300            }
+    301          #endif
+    302            memb_init(&buframmem);
+   \   000004                ; Setup parameters for call to function memb_init
+   \   000004   7A..         MOV     R2,#buframmem & 0xff
+   \   000006   7B..         MOV     R3,#(buframmem >> 8) & 0xff
+   \   000008   12....       LCALL   ??memb_init?relay
+    303            memb_init(&bufmem);
+   \   00000B                ; Setup parameters for call to function memb_init
+   \   00000B   7A..         MOV     R2,#bufmem & 0xff
+   \   00000D   7B..         MOV     R3,#(bufmem >> 8) & 0xff
+   \   00000F   12....       LCALL   ??memb_init?relay
+    304            memb_init(&refbufmem);
+   \   000012                ; Setup parameters for call to function memb_init
+   \   000012   7A..         MOV     R2,#refbufmem & 0xff
+   \   000014   7B..         MOV     R3,#(refbufmem >> 8) & 0xff
+   \   000016   12....       LCALL   ??memb_init?relay
+    305          #if QUEUEBUF_STATS
+    306            queuebuf_max_len = QUEUEBUF_NUM;
+    307          #endif /* QUEUEBUF_STATS */
+    308          }
+   \   000019   D083         POP     DPH
+   \   00001B   D082         POP     DPL
+   \   00001D   02....       LJMP    ?BRET
+    309          /*---------------------------------------------------------------------------*/
+    310          #if QUEUEBUF_DEBUG
+    311          struct queuebuf *
+    312          queuebuf_new_from_packetbuf_debug(const char *file, int line)
+    313          #else /* QUEUEBUF_DEBUG */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    314          struct queuebuf *
+    315          queuebuf_new_from_packetbuf(void)
+   \                     queuebuf_new_from_packetbuf:
+    316          #endif /* QUEUEBUF_DEBUG */
+    317          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+    318            struct queuebuf *buf;
+    319            struct queuebuf_ref *rbuf;
+    320          
+    321            if(packetbuf_is_reference()) {
+   \   000005                ; Setup parameters for call to function packetbuf_is_reference
+   \   000005   12....       LCALL   ??packetbuf_is_reference?relay
+   \   000008   8A..         MOV     ?V0 + 0,R2
+   \   00000A   8B..         MOV     ?V0 + 1,R3
+   \   00000C   E5..         MOV     A,?V0 + 0
+   \   00000E   45..         ORL     A,?V0 + 1
+   \   000010   604E         JZ      ??queuebuf_new_from_packetbuf_0
+    322              rbuf = memb_alloc(&refbufmem);
+   \   000012                ; Setup parameters for call to function memb_alloc
+   \   000012   7A..         MOV     R2,#refbufmem & 0xff
+   \   000014   7B..         MOV     R3,#(refbufmem >> 8) & 0xff
+   \   000016   12....       LCALL   ??memb_alloc?relay
+   \   000019   8A..         MOV     ?V0 + 0,R2
+   \   00001B   8B..         MOV     ?V0 + 1,R3
+   \   00001D   AE..         MOV     R6,?V0 + 0
+   \   00001F   AF..         MOV     R7,?V0 + 1
+    323              if(rbuf != NULL) {
+   \   000021   EE           MOV     A,R6
+   \   000022   4F           ORL     A,R7
+   \   000023   6035         JZ      ??queuebuf_new_from_packetbuf_1
+    324          #if QUEUEBUF_STATS
+    325                ++queuebuf_ref_len;
+    326          #endif /* QUEUEBUF_STATS */
+    327                rbuf->len = packetbuf_datalen();
+   \   000025                ; Setup parameters for call to function packetbuf_datalen
+   \   000025   12....       LCALL   ??packetbuf_datalen?relay
+   \   000028   8E82         MOV     DPL,R6
+   \   00002A   8F83         MOV     DPH,R7
+   \   00002C   EA           MOV     A,R2
+   \   00002D   F0           MOVX    @DPTR,A
+   \   00002E   A3           INC     DPTR
+   \   00002F   EB           MOV     A,R3
+   \   000030   F0           MOVX    @DPTR,A
+    328                rbuf->ref = packetbuf_reference_ptr();
+   \   000031                ; Setup parameters for call to function packetbuf_reference_ptr
+   \   000031   12....       LCALL   ??packetbuf_reference_ptr?relay
+   \   000034   8E82         MOV     DPL,R6
+   \   000036   8F83         MOV     DPH,R7
+   \   000038   A3           INC     DPTR
+   \   000039   A3           INC     DPTR
+   \   00003A   EA           MOV     A,R2
+   \   00003B   F0           MOVX    @DPTR,A
+   \   00003C   A3           INC     DPTR
+   \   00003D   EB           MOV     A,R3
+   \   00003E   F0           MOVX    @DPTR,A
+    329                rbuf->hdrlen = packetbuf_copyto_hdr(rbuf->hdr);
+   \   00003F                ; Setup parameters for call to function packetbuf_copyto_hdr
+   \   00003F   EE           MOV     A,R6
+   \   000040   2404         ADD     A,#0x4
+   \   000042   FA           MOV     R2,A
+   \   000043   EF           MOV     A,R7
+   \   000044   3400         ADDC    A,#0x0
+   \   000046   FB           MOV     R3,A
+   \   000047   12....       LCALL   ??packetbuf_copyto_hdr?relay
+   \   00004A   EA           MOV     A,R2
+   \   00004B   C0E0         PUSH    A
+   \   00004D   EE           MOV     A,R6
+   \   00004E   2434         ADD     A,#0x34
+   \   000050   F582         MOV     DPL,A
+   \   000052   EF           MOV     A,R7
+   \   000053   3400         ADDC    A,#0x0
+   \   000055   F583         MOV     DPH,A
+   \   000057   D0E0         POP     A
+   \   000059   F0           MOVX    @DPTR,A
+    330              } else {
+    331                PRINTF("queuebuf_new_from_packetbuf: could not allocate a reference queuebuf\n");
+    332              }
+    333              return (struct queuebuf *)rbuf;
+   \                     ??queuebuf_new_from_packetbuf_1:
+   \   00005A   EE           MOV     A,R6
+   \   00005B   FA           MOV     R2,A
+   \   00005C   EF           MOV     A,R7
+   \   00005D   FB           MOV     R3,A
+   \   00005E   8074         SJMP    ??queuebuf_new_from_packetbuf_2
+    334            } else {
+    335              struct queuebuf_data *buframptr;
+    336              buf = memb_alloc(&bufmem);
+   \                     ??queuebuf_new_from_packetbuf_0:
+   \   000060                ; Setup parameters for call to function memb_alloc
+   \   000060   7A..         MOV     R2,#bufmem & 0xff
+   \   000062   7B..         MOV     R3,#(bufmem >> 8) & 0xff
+   \   000064   12....       LCALL   ??memb_alloc?relay
+   \   000067   8A..         MOV     ?V0 + 2,R2
+   \   000069   8B..         MOV     ?V0 + 3,R3
+   \   00006B   85....       MOV     ?V0 + 0,?V0 + 2
+   \   00006E   85....       MOV     ?V0 + 1,?V0 + 3
+    337              if(buf != NULL) {
+   \   000071   E5..         MOV     A,?V0 + 0
+   \   000073   45..         ORL     A,?V0 + 1
+   \   000075   6059         JZ      ??queuebuf_new_from_packetbuf_3
+    338          #if QUEUEBUF_DEBUG
+    339                list_add(queuebuf_list, buf);
+    340                buf->file = file;
+    341                buf->line = line;
+    342                buf->time = clock_time();
+    343          #endif /* QUEUEBUF_DEBUG */
+    344                buf->ram_ptr = memb_alloc(&buframmem);
+   \   000077                ; Setup parameters for call to function memb_alloc
+   \   000077   7A..         MOV     R2,#buframmem & 0xff
+   \   000079   7B..         MOV     R3,#(buframmem >> 8) & 0xff
+   \   00007B   12....       LCALL   ??memb_alloc?relay
+   \   00007E   85..82       MOV     DPL,?V0 + 0
+   \   000081   85..83       MOV     DPH,?V0 + 1
+   \   000084   EA           MOV     A,R2
+   \   000085   F0           MOVX    @DPTR,A
+   \   000086   A3           INC     DPTR
+   \   000087   EB           MOV     A,R3
+   \   000088   F0           MOVX    @DPTR,A
+    345          #if WITH_SWAP
+    346                /* If the allocation failed, store the qbuf in swap files */
+    347                if(buf->ram_ptr != NULL) {
+    348                  buf->location = IN_RAM;
+    349                  buframptr = buf->ram_ptr;
+    350                } else {
+    351                  buf->location = IN_CFS;
+    352                  buf->swap_id = -1;
+    353                  tmpdata_qbuf = buf;
+    354                  buframptr = &tmpdata;
+    355                }
+    356          #else
+    357                if(buf->ram_ptr == NULL) {
+   \   000089   85..82       MOV     DPL,?V0 + 0
+   \   00008C   85..83       MOV     DPH,?V0 + 1
+   \   00008F   E0           MOVX    A,@DPTR
+   \   000090   F8           MOV     R0,A
+   \   000091   A3           INC     DPTR
+   \   000092   E0           MOVX    A,@DPTR
+   \   000093   F9           MOV     R1,A
+   \   000094   E8           MOV     A,R0
+   \   000095   49           ORL     A,R1
+   \   000096   7006         JNZ     ??queuebuf_new_from_packetbuf_4
+    358                  PRINTF("queuebuf_new_from_packetbuf: could not queuebuf data\n");
+    359                  return NULL;
+   \   000098   7A00         MOV     R2,#0x0
+   \   00009A   7B00         MOV     R3,#0x0
+   \   00009C   8036         SJMP    ??queuebuf_new_from_packetbuf_2
+    360                }
+    361                buframptr = buf->ram_ptr;
+   \                     ??queuebuf_new_from_packetbuf_4:
+   \   00009E   85..82       MOV     DPL,?V0 + 0
+   \   0000A1   85..83       MOV     DPH,?V0 + 1
+   \   0000A4   E0           MOVX    A,@DPTR
+   \   0000A5   FE           MOV     R6,A
+   \   0000A6   A3           INC     DPTR
+   \   0000A7   E0           MOVX    A,@DPTR
+   \   0000A8   FF           MOV     R7,A
+    362          #endif
+    363          
+    364                buframptr->len = packetbuf_copyto(buframptr->data);
+   \   0000A9                ; Setup parameters for call to function packetbuf_copyto
+   \   0000A9   EE           MOV     A,R6
+   \   0000AA   2402         ADD     A,#0x2
+   \   0000AC   FA           MOV     R2,A
+   \   0000AD   EF           MOV     A,R7
+   \   0000AE   3400         ADDC    A,#0x0
+   \   0000B0   FB           MOV     R3,A
+   \   0000B1   12....       LCALL   ??packetbuf_copyto?relay
+   \   0000B4   8E82         MOV     DPL,R6
+   \   0000B6   8F83         MOV     DPH,R7
+   \   0000B8   EA           MOV     A,R2
+   \   0000B9   F0           MOVX    @DPTR,A
+   \   0000BA   A3           INC     DPTR
+   \   0000BB   EB           MOV     A,R3
+   \   0000BC   F0           MOVX    @DPTR,A
+    365                packetbuf_attr_copyto(buframptr->attrs, buframptr->addrs);
+   \   0000BD                ; Setup parameters for call to function packetbuf_attr_copyto
+   \   0000BD   EE           MOV     A,R6
+   \   0000BE   24B2         ADD     A,#-0x4e
+   \   0000C0   FC           MOV     R4,A
+   \   0000C1   EF           MOV     A,R7
+   \   0000C2   3400         ADDC    A,#0x0
+   \   0000C4   FD           MOV     R5,A
+   \   0000C5   EE           MOV     A,R6
+   \   0000C6   2482         ADD     A,#-0x7e
+   \   0000C8   FA           MOV     R2,A
+   \   0000C9   EF           MOV     A,R7
+   \   0000CA   3400         ADDC    A,#0x0
+   \   0000CC   FB           MOV     R3,A
+   \   0000CD   12....       LCALL   ??packetbuf_attr_copyto?relay
+    366          
+    367          #if WITH_SWAP
+    368                if(buf->location == IN_CFS) {
+    369                  if(queuebuf_flush_tmpdata() == -1) {
+    370                    /* We were unable to write the data in the swap */
+    371                    memb_free(&bufmem, buf);
+    372                    return NULL;
+    373                  }
+    374                }
+    375          #endif
+    376          
+    377          #if QUEUEBUF_STATS
+    378                ++queuebuf_len;
+    379                PRINTF("queuebuf len %d\n", queuebuf_len);
+    380                printf("#A q=%d\n", queuebuf_len);
+    381                if(queuebuf_len == queuebuf_max_len + 1) {
+    382            memb_free(&bufmem, buf);
+    383            queuebuf_len--;
+    384            return NULL;
+    385                }
+    386          #endif /* QUEUEBUF_STATS */
+    387          
+    388              } else {
+    389                PRINTF("queuebuf_new_from_packetbuf: could not allocate a queuebuf\n");
+    390              }
+    391              return buf;
+   \                     ??queuebuf_new_from_packetbuf_3:
+   \   0000D0   AA..         MOV     R2,?V0 + 0
+   \   0000D2   AB..         MOV     R3,?V0 + 1
+   \                     ??queuebuf_new_from_packetbuf_2:
+   \   0000D4   7F04         MOV     R7,#0x4
+   \   0000D6   02....       LJMP    ?BANKED_LEAVE_XDATA
+    392            }
+    393          }
+    394          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    395          void
+    396          queuebuf_update_attr_from_packetbuf(struct queuebuf *buf)
+   \                     queuebuf_update_attr_from_packetbuf:
+    397          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    398            struct queuebuf_data *buframptr = queuebuf_load_to_ram(buf);
+   \   000005                ; Setup parameters for call to function queuebuf_load_to_ram
+   \   000005   12....       LCALL   ??queuebuf_load_to_ram?relay
+   \   000008   8A..         MOV     ?V0 + 0,R2
+   \   00000A   8B..         MOV     ?V0 + 1,R3
+   \   00000C   A8..         MOV     R0,?V0 + 0
+   \   00000E   A9..         MOV     R1,?V0 + 1
+    399            packetbuf_attr_copyto(buframptr->attrs, buframptr->addrs);
+   \   000010                ; Setup parameters for call to function packetbuf_attr_copyto
+   \   000010   E8           MOV     A,R0
+   \   000011   24B2         ADD     A,#-0x4e
+   \   000013   FC           MOV     R4,A
+   \   000014   E9           MOV     A,R1
+   \   000015   3400         ADDC    A,#0x0
+   \   000017   FD           MOV     R5,A
+   \   000018   E8           MOV     A,R0
+   \   000019   2482         ADD     A,#-0x7e
+   \   00001B   FA           MOV     R2,A
+   \   00001C   E9           MOV     A,R1
+   \   00001D   3400         ADDC    A,#0x0
+   \   00001F   FB           MOV     R3,A
+   \   000020   12....       LCALL   ??packetbuf_attr_copyto?relay
+    400          #if WITH_SWAP
+    401            if(buf->location == IN_CFS) {
+    402              queuebuf_flush_tmpdata();
+    403            }
+    404          #endif
+    405          }
+   \   000023   7F02         MOV     R7,#0x2
+   \   000025   02....       LJMP    ?BANKED_LEAVE_XDATA
+    406          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    407          void
+    408          queuebuf_free(struct queuebuf *buf)
+   \                     queuebuf_free:
+    409          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    410            if(memb_inmemb(&bufmem, buf)) {
+   \   000009                ; Setup parameters for call to function memb_inmemb
+   \   000009   EE           MOV     A,R6
+   \   00000A   FC           MOV     R4,A
+   \   00000B   EF           MOV     A,R7
+   \   00000C   FD           MOV     R5,A
+   \   00000D   7A..         MOV     R2,#bufmem & 0xff
+   \   00000F   7B..         MOV     R3,#(bufmem >> 8) & 0xff
+   \   000011   12....       LCALL   ??memb_inmemb?relay
+   \   000014   8A..         MOV     ?V0 + 0,R2
+   \   000016   8B..         MOV     ?V0 + 1,R3
+   \   000018   E5..         MOV     A,?V0 + 0
+   \   00001A   45..         ORL     A,?V0 + 1
+   \   00001C   601F         JZ      ??queuebuf_free_0
+    411          #if WITH_SWAP
+    412              if(buf->location == IN_RAM) {
+    413                memb_free(&buframmem, buf->ram_ptr);
+    414              } else {
+    415                queuebuf_remove_from_file(buf->swap_id);
+    416              }
+    417          #else
+    418              memb_free(&buframmem, buf->ram_ptr);
+   \   00001E                ; Setup parameters for call to function memb_free
+   \   00001E   8E82         MOV     DPL,R6
+   \   000020   8F83         MOV     DPH,R7
+   \   000022   E0           MOVX    A,@DPTR
+   \   000023   FC           MOV     R4,A
+   \   000024   A3           INC     DPTR
+   \   000025   E0           MOVX    A,@DPTR
+   \   000026   FD           MOV     R5,A
+   \   000027   7A..         MOV     R2,#buframmem & 0xff
+   \   000029   7B..         MOV     R3,#(buframmem >> 8) & 0xff
+   \   00002B   12....       LCALL   ??memb_free?relay
+   \   00002E   E9           MOV     A,R1
+    419          #endif
+    420              memb_free(&bufmem, buf);
+   \   00002F                ; Setup parameters for call to function memb_free
+   \   00002F   EE           MOV     A,R6
+   \   000030   FC           MOV     R4,A
+   \   000031   EF           MOV     A,R7
+   \   000032   FD           MOV     R5,A
+   \   000033   7A..         MOV     R2,#bufmem & 0xff
+   \   000035   7B..         MOV     R3,#(bufmem >> 8) & 0xff
+   \   000037   12....       LCALL   ??memb_free?relay
+   \   00003A   E9           MOV     A,R1
+   \   00003B   8021         SJMP    ??queuebuf_free_1
+    421          #if QUEUEBUF_STATS
+    422              --queuebuf_len;
+    423              printf("#A q=%d\n", queuebuf_len);
+    424          #endif /* QUEUEBUF_STATS */
+    425          #if QUEUEBUF_DEBUG
+    426              list_remove(queuebuf_list, buf);
+    427          #endif /* QUEUEBUF_DEBUG */
+    428            } else if(memb_inmemb(&refbufmem, buf)) {
+   \                     ??queuebuf_free_0:
+   \   00003D                ; Setup parameters for call to function memb_inmemb
+   \   00003D   EE           MOV     A,R6
+   \   00003E   FC           MOV     R4,A
+   \   00003F   EF           MOV     A,R7
+   \   000040   FD           MOV     R5,A
+   \   000041   7A..         MOV     R2,#refbufmem & 0xff
+   \   000043   7B..         MOV     R3,#(refbufmem >> 8) & 0xff
+   \   000045   12....       LCALL   ??memb_inmemb?relay
+   \   000048   8A..         MOV     ?V0 + 0,R2
+   \   00004A   8B..         MOV     ?V0 + 1,R3
+   \   00004C   E5..         MOV     A,?V0 + 0
+   \   00004E   45..         ORL     A,?V0 + 1
+   \   000050   600C         JZ      ??queuebuf_free_1
+    429              memb_free(&refbufmem, buf);
+   \   000052                ; Setup parameters for call to function memb_free
+   \   000052   EE           MOV     A,R6
+   \   000053   FC           MOV     R4,A
+   \   000054   EF           MOV     A,R7
+   \   000055   FD           MOV     R5,A
+   \   000056   7A..         MOV     R2,#refbufmem & 0xff
+   \   000058   7B..         MOV     R3,#(refbufmem >> 8) & 0xff
+   \   00005A   12....       LCALL   ??memb_free?relay
+   \   00005D   E9           MOV     A,R1
+    430          #if QUEUEBUF_STATS
+    431              --queuebuf_ref_len;
+    432          #endif /* QUEUEBUF_STATS */
+    433            }
+    434          }
+   \                     ??queuebuf_free_1:
+   \   00005E   7F02         MOV     R7,#0x2
+   \   000060   02....       LJMP    ?BANKED_LEAVE_XDATA
+    435          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    436          void
+    437          queuebuf_to_packetbuf(struct queuebuf *b)
+   \                     queuebuf_to_packetbuf:
+    438          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    439            struct queuebuf_ref *r;
+    440            if(memb_inmemb(&bufmem, b)) {
+   \   000009                ; Setup parameters for call to function memb_inmemb
+   \   000009   EE           MOV     A,R6
+   \   00000A   FC           MOV     R4,A
+   \   00000B   EF           MOV     A,R7
+   \   00000C   FD           MOV     R5,A
+   \   00000D   7A..         MOV     R2,#bufmem & 0xff
+   \   00000F   7B..         MOV     R3,#(bufmem >> 8) & 0xff
+   \   000011   12....       LCALL   ??memb_inmemb?relay
+   \   000014   8A..         MOV     ?V0 + 0,R2
+   \   000016   8B..         MOV     ?V0 + 1,R3
+   \   000018   E5..         MOV     A,?V0 + 0
+   \   00001A   45..         ORL     A,?V0 + 1
+   \   00001C   6038         JZ      ??queuebuf_to_packetbuf_0
+    441              struct queuebuf_data *buframptr = queuebuf_load_to_ram(b);
+   \   00001E                ; Setup parameters for call to function queuebuf_load_to_ram
+   \   00001E   EE           MOV     A,R6
+   \   00001F   FA           MOV     R2,A
+   \   000020   EF           MOV     A,R7
+   \   000021   FB           MOV     R3,A
+   \   000022   12....       LCALL   ??queuebuf_load_to_ram?relay
+   \   000025   8A..         MOV     ?V0 + 0,R2
+   \   000027   8B..         MOV     ?V0 + 1,R3
+   \   000029   AE..         MOV     R6,?V0 + 0
+   \   00002B   AF..         MOV     R7,?V0 + 1
+    442              packetbuf_copyfrom(buframptr->data, buframptr->len);
+   \   00002D                ; Setup parameters for call to function packetbuf_copyfrom
+   \   00002D   8E82         MOV     DPL,R6
+   \   00002F   8F83         MOV     DPH,R7
+   \   000031   E0           MOVX    A,@DPTR
+   \   000032   FC           MOV     R4,A
+   \   000033   A3           INC     DPTR
+   \   000034   E0           MOVX    A,@DPTR
+   \   000035   FD           MOV     R5,A
+   \   000036   EE           MOV     A,R6
+   \   000037   2402         ADD     A,#0x2
+   \   000039   FA           MOV     R2,A
+   \   00003A   EF           MOV     A,R7
+   \   00003B   3400         ADDC    A,#0x0
+   \   00003D   FB           MOV     R3,A
+   \   00003E   12....       LCALL   ??packetbuf_copyfrom?relay
+    443              packetbuf_attr_copyfrom(buframptr->attrs, buframptr->addrs);
+   \   000041                ; Setup parameters for call to function packetbuf_attr_copyfrom
+   \   000041   EE           MOV     A,R6
+   \   000042   24B2         ADD     A,#-0x4e
+   \   000044   FC           MOV     R4,A
+   \   000045   EF           MOV     A,R7
+   \   000046   3400         ADDC    A,#0x0
+   \   000048   FD           MOV     R5,A
+   \   000049   EE           MOV     A,R6
+   \   00004A   2482         ADD     A,#-0x7e
+   \   00004C   FA           MOV     R2,A
+   \   00004D   EF           MOV     A,R7
+   \   00004E   3400         ADDC    A,#0x0
+   \   000050   FB           MOV     R3,A
+   \   000051   12....       LCALL   ??packetbuf_attr_copyfrom?relay
+   \   000054   8072         SJMP    ??queuebuf_to_packetbuf_1
+    444            } else if(memb_inmemb(&refbufmem, b)) {
+   \                     ??queuebuf_to_packetbuf_0:
+   \   000056                ; Setup parameters for call to function memb_inmemb
+   \   000056   EE           MOV     A,R6
+   \   000057   FC           MOV     R4,A
+   \   000058   EF           MOV     A,R7
+   \   000059   FD           MOV     R5,A
+   \   00005A   7A..         MOV     R2,#refbufmem & 0xff
+   \   00005C   7B..         MOV     R3,#(refbufmem >> 8) & 0xff
+   \   00005E   12....       LCALL   ??memb_inmemb?relay
+   \   000061   8A..         MOV     ?V0 + 0,R2
+   \   000063   8B..         MOV     ?V0 + 1,R3
+   \   000065   E5..         MOV     A,?V0 + 0
+   \   000067   45..         ORL     A,?V0 + 1
+   \   000069   605D         JZ      ??queuebuf_to_packetbuf_1
+    445              r = (struct queuebuf_ref *)b;
+    446              packetbuf_clear();
+   \   00006B                ; Setup parameters for call to function packetbuf_clear
+   \   00006B   12....       LCALL   ??packetbuf_clear?relay
+    447              packetbuf_copyfrom(r->ref, r->len);
+   \   00006E                ; Setup parameters for call to function packetbuf_copyfrom
+   \   00006E   8E82         MOV     DPL,R6
+   \   000070   8F83         MOV     DPH,R7
+   \   000072   E0           MOVX    A,@DPTR
+   \   000073   FC           MOV     R4,A
+   \   000074   A3           INC     DPTR
+   \   000075   E0           MOVX    A,@DPTR
+   \   000076   FD           MOV     R5,A
+   \   000077   8E82         MOV     DPL,R6
+   \   000079   8F83         MOV     DPH,R7
+   \   00007B   A3           INC     DPTR
+   \   00007C   A3           INC     DPTR
+   \   00007D   E0           MOVX    A,@DPTR
+   \   00007E   FA           MOV     R2,A
+   \   00007F   A3           INC     DPTR
+   \   000080   E0           MOVX    A,@DPTR
+   \   000081   FB           MOV     R3,A
+   \   000082   12....       LCALL   ??packetbuf_copyfrom?relay
+    448              packetbuf_hdralloc(r->hdrlen);
+   \   000085                ; Setup parameters for call to function packetbuf_hdralloc
+   \   000085   EE           MOV     A,R6
+   \   000086   2434         ADD     A,#0x34
+   \   000088   F582         MOV     DPL,A
+   \   00008A   EF           MOV     A,R7
+   \   00008B   3400         ADDC    A,#0x0
+   \   00008D   F583         MOV     DPH,A
+   \   00008F   E0           MOVX    A,@DPTR
+   \   000090   FA           MOV     R2,A
+   \   000091   7B00         MOV     R3,#0x0
+   \   000093   12....       LCALL   ??packetbuf_hdralloc?relay
+    449              memcpy(packetbuf_hdrptr(), r->hdr, r->hdrlen);
+   \   000096                ; Setup parameters for call to function memcpy
+   \   000096   EE           MOV     A,R6
+   \   000097   2434         ADD     A,#0x34
+   \   000099   F582         MOV     DPL,A
+   \   00009B   EF           MOV     A,R7
+   \   00009C   3400         ADDC    A,#0x0
+   \   00009E   F583         MOV     DPH,A
+   \   0000A0   E0           MOVX    A,@DPTR
+   \   0000A1   F5..         MOV     ?V0 + 0,A
+   \   0000A3   75..00       MOV     ?V0 + 1,#0x0
+   \   0000A6   78..         MOV     R0,#?V0 + 0
+   \   0000A8   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000AB   EE           MOV     A,R6
+   \   0000AC   2404         ADD     A,#0x4
+   \   0000AE   FC           MOV     R4,A
+   \   0000AF   EF           MOV     A,R7
+   \   0000B0   3400         ADDC    A,#0x0
+   \   0000B2   FD           MOV     R5,A
+   \   0000B3   FF           MOV     R7,A
+   \   0000B4   EC           MOV     A,R4
+   \   0000B5   FE           MOV     R6,A
+   \   0000B6   ED           MOV     A,R5
+   \   0000B7   FF           MOV     R7,A
+   \   0000B8                ; Setup parameters for call to function packetbuf_hdrptr
+   \   0000B8   12....       LCALL   ??packetbuf_hdrptr?relay
+   \   0000BB   FD           MOV     R5,A
+   \   0000BC   EE           MOV     A,R6
+   \   0000BD   FC           MOV     R4,A
+   \   0000BE   EF           MOV     A,R7
+   \   0000BF   FD           MOV     R5,A
+   \   0000C0   12....       LCALL   ??memcpy?relay
+   \   0000C3   7402         MOV     A,#0x2
+   \   0000C5   12....       LCALL   ?DEALLOC_XSTACK8
+    450            }
+    451          }
+   \                     ??queuebuf_to_packetbuf_1:
+   \   0000C8   7F02         MOV     R7,#0x2
+   \   0000CA   02....       LJMP    ?BANKED_LEAVE_XDATA
+    452          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    453          void *
+    454          queuebuf_dataptr(struct queuebuf *b)
+   \                     queuebuf_dataptr:
+    455          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    456            struct queuebuf_ref *r;
+    457          
+    458            if(memb_inmemb(&bufmem, b)) {
+   \   000009                ; Setup parameters for call to function memb_inmemb
+   \   000009   EE           MOV     A,R6
+   \   00000A   FC           MOV     R4,A
+   \   00000B   EF           MOV     A,R7
+   \   00000C   FD           MOV     R5,A
+   \   00000D   7A..         MOV     R2,#bufmem & 0xff
+   \   00000F   7B..         MOV     R3,#(bufmem >> 8) & 0xff
+   \   000011   12....       LCALL   ??memb_inmemb?relay
+   \   000014   8A..         MOV     ?V0 + 0,R2
+   \   000016   8B..         MOV     ?V0 + 1,R3
+   \   000018   E5..         MOV     A,?V0 + 0
+   \   00001A   45..         ORL     A,?V0 + 1
+   \   00001C   601B         JZ      ??queuebuf_dataptr_0
+    459              struct queuebuf_data *buframptr = queuebuf_load_to_ram(b);
+   \   00001E                ; Setup parameters for call to function queuebuf_load_to_ram
+   \   00001E   EE           MOV     A,R6
+   \   00001F   FA           MOV     R2,A
+   \   000020   EF           MOV     A,R7
+   \   000021   FB           MOV     R3,A
+   \   000022   12....       LCALL   ??queuebuf_load_to_ram?relay
+   \   000025   8A..         MOV     ?V0 + 0,R2
+   \   000027   8B..         MOV     ?V0 + 1,R3
+   \   000029   A8..         MOV     R0,?V0 + 0
+   \   00002B   A9..         MOV     R1,?V0 + 1
+    460              return buframptr->data;
+   \   00002D   E5..         MOV     A,?V0 + 0
+   \   00002F   2402         ADD     A,#0x2
+   \   000031   FA           MOV     R2,A
+   \   000032   E5..         MOV     A,?V0 + 1
+   \   000034   3400         ADDC    A,#0x0
+   \   000036   FB           MOV     R3,A
+   \   000037   8026         SJMP    ??queuebuf_dataptr_1
+    461            } else if(memb_inmemb(&refbufmem, b)) {
+   \                     ??queuebuf_dataptr_0:
+   \   000039                ; Setup parameters for call to function memb_inmemb
+   \   000039   EE           MOV     A,R6
+   \   00003A   FC           MOV     R4,A
+   \   00003B   EF           MOV     A,R7
+   \   00003C   FD           MOV     R5,A
+   \   00003D   7A..         MOV     R2,#refbufmem & 0xff
+   \   00003F   7B..         MOV     R3,#(refbufmem >> 8) & 0xff
+   \   000041   12....       LCALL   ??memb_inmemb?relay
+   \   000044   8A..         MOV     ?V0 + 0,R2
+   \   000046   8B..         MOV     ?V0 + 1,R3
+   \   000048   E5..         MOV     A,?V0 + 0
+   \   00004A   45..         ORL     A,?V0 + 1
+   \   00004C   600D         JZ      ??queuebuf_dataptr_2
+    462              r = (struct queuebuf_ref *)b;
+   \   00004E   8E82         MOV     DPL,R6
+   \   000050   8F83         MOV     DPH,R7
+    463              return r->ref;
+   \   000052   A3           INC     DPTR
+   \   000053   A3           INC     DPTR
+   \   000054   E0           MOVX    A,@DPTR
+   \   000055   FA           MOV     R2,A
+   \   000056   A3           INC     DPTR
+   \   000057   E0           MOVX    A,@DPTR
+   \   000058   FB           MOV     R3,A
+   \   000059   8004         SJMP    ??queuebuf_dataptr_1
+    464            }
+    465            return NULL;
+   \                     ??queuebuf_dataptr_2:
+   \   00005B   7A00         MOV     R2,#0x0
+   \   00005D   7B00         MOV     R3,#0x0
+   \                     ??queuebuf_dataptr_1:
+   \   00005F   7F02         MOV     R7,#0x2
+   \   000061   02....       LJMP    ?BANKED_LEAVE_XDATA
+    466          }
+    467          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    468          int
+    469          queuebuf_datalen(struct queuebuf *b)
+   \                     queuebuf_datalen:
+    470          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    471            struct queuebuf_data *buframptr = queuebuf_load_to_ram(b);
+   \   000005                ; Setup parameters for call to function queuebuf_load_to_ram
+   \   000005   12....       LCALL   ??queuebuf_load_to_ram?relay
+   \   000008   8A..         MOV     ?V0 + 0,R2
+   \   00000A   8B..         MOV     ?V0 + 1,R3
+   \   00000C   85..82       MOV     DPL,?V0 + 0
+   \   00000F   85..83       MOV     DPH,?V0 + 1
+    472            return buframptr->len;
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   FA           MOV     R2,A
+   \   000014   A3           INC     DPTR
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   FB           MOV     R3,A
+   \   000017   7F02         MOV     R7,#0x2
+   \   000019   02....       LJMP    ?BANKED_LEAVE_XDATA
+    473          }
+    474          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    475          rimeaddr_t *
+    476          queuebuf_addr(struct queuebuf *b, uint8_t type)
+   \                     queuebuf_addr:
+    477          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   E9           MOV     A,R1
+   \   000006   FE           MOV     R6,A
+    478            struct queuebuf_data *buframptr = queuebuf_load_to_ram(b);
+   \   000007                ; Setup parameters for call to function queuebuf_load_to_ram
+   \   000007   12....       LCALL   ??queuebuf_load_to_ram?relay
+   \   00000A   8A..         MOV     ?V0 + 0,R2
+   \   00000C   8B..         MOV     ?V0 + 1,R3
+   \   00000E   AA..         MOV     R2,?V0 + 0
+   \   000010   AB..         MOV     R3,?V0 + 1
+    479            return &buframptr->addrs[type - PACKETBUF_ADDR_FIRST].addr;
+   \   000012   EE           MOV     A,R6
+   \   000013   F8           MOV     R0,A
+   \   000014   7900         MOV     R1,#0x0
+   \   000016   E8           MOV     A,R0
+   \   000017   75F002       MOV     B,#0x2
+   \   00001A   A4           MUL     AB
+   \   00001B   C8           XCH     A,R0
+   \   00001C   ACF0         MOV     R4,B
+   \   00001E   75F000       MOV     B,#0x0
+   \   000021   A4           MUL     AB
+   \   000022   2C           ADD     A,R4
+   \   000023   FC           MOV     R4,A
+   \   000024   75F002       MOV     B,#0x2
+   \   000027   E9           MOV     A,R1
+   \   000028   A4           MUL     AB
+   \   000029   2C           ADD     A,R4
+   \   00002A   F9           MOV     R1,A
+   \   00002B   E5..         MOV     A,?V0 + 0
+   \   00002D   28           ADD     A,R0
+   \   00002E   F8           MOV     R0,A
+   \   00002F   E5..         MOV     A,?V0 + 1
+   \   000031   39           ADDC    A,R1
+   \   000032   F9           MOV     R1,A
+   \   000033   E8           MOV     A,R0
+   \   000034   2482         ADD     A,#-0x7e
+   \   000036   FA           MOV     R2,A
+   \   000037   E9           MOV     A,R1
+   \   000038   3400         ADDC    A,#0x0
+   \   00003A   FB           MOV     R3,A
+   \   00003B   7F02         MOV     R7,#0x2
+   \   00003D   02....       LJMP    ?BANKED_LEAVE_XDATA
+    480          }
+    481          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    482          packetbuf_attr_t
+    483          queuebuf_attr(struct queuebuf *b, uint8_t type)
+   \                     queuebuf_attr:
+    484          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   E9           MOV     A,R1
+   \   000006   FE           MOV     R6,A
+    485            struct queuebuf_data *buframptr = queuebuf_load_to_ram(b);
+   \   000007                ; Setup parameters for call to function queuebuf_load_to_ram
+   \   000007   12....       LCALL   ??queuebuf_load_to_ram?relay
+   \   00000A   8A..         MOV     ?V0 + 0,R2
+   \   00000C   8B..         MOV     ?V0 + 1,R3
+   \   00000E   AA..         MOV     R2,?V0 + 0
+   \   000010   AB..         MOV     R3,?V0 + 1
+    486            return buframptr->attrs[type].val;
+   \   000012   EE           MOV     A,R6
+   \   000013   F8           MOV     R0,A
+   \   000014   7900         MOV     R1,#0x0
+   \   000016   E8           MOV     A,R0
+   \   000017   75F002       MOV     B,#0x2
+   \   00001A   A4           MUL     AB
+   \   00001B   C8           XCH     A,R0
+   \   00001C   ACF0         MOV     R4,B
+   \   00001E   75F000       MOV     B,#0x0
+   \   000021   A4           MUL     AB
+   \   000022   2C           ADD     A,R4
+   \   000023   FC           MOV     R4,A
+   \   000024   75F002       MOV     B,#0x2
+   \   000027   E9           MOV     A,R1
+   \   000028   A4           MUL     AB
+   \   000029   2C           ADD     A,R4
+   \   00002A   F9           MOV     R1,A
+   \   00002B   E5..         MOV     A,?V0 + 0
+   \   00002D   28           ADD     A,R0
+   \   00002E   F8           MOV     R0,A
+   \   00002F   E5..         MOV     A,?V0 + 1
+   \   000031   39           ADDC    A,R1
+   \   000032   F9           MOV     R1,A
+   \   000033   E8           MOV     A,R0
+   \   000034   2482         ADD     A,#-0x7e
+   \   000036   F582         MOV     DPL,A
+   \   000038   E9           MOV     A,R1
+   \   000039   3400         ADDC    A,#0x0
+   \   00003B   F583         MOV     DPH,A
+   \   00003D   E0           MOVX    A,@DPTR
+   \   00003E   FA           MOV     R2,A
+   \   00003F   A3           INC     DPTR
+   \   000040   E0           MOVX    A,@DPTR
+   \   000041   FB           MOV     R3,A
+   \   000042   7F02         MOV     R7,#0x2
+   \   000044   02....       LJMP    ?BANKED_LEAVE_XDATA
+    487          }
+    488          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    489          void
+    490          queuebuf_debug_print(void)
+   \                     queuebuf_debug_print:
+    491          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+    492          #if QUEUEBUF_DEBUG
+    493            struct queuebuf *q;
+    494            printf("queuebuf_list: ");
+    495            for(q = list_head(queuebuf_list); q != NULL;
+    496                q = list_item_next(q)) {
+    497              printf("%s,%d,%lu ", q->file, q->line, q->time);
+    498            }
+    499            printf("\n");
+    500          #endif /* QUEUEBUF_DEBUG */
+    501          }
+   \   000000   02....       LJMP    ?BRET
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for bufmem>`:
+   \   000000   0200         DW 2
+   \   000002   0600         DW 6
+   \   000004   ....         DW bufmem_memb_count
+   \   000006   ....         DW bufmem_memb_mem
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for refbufmem>`:
+   \   000000   3500         DW 53
+   \   000002   0200         DW 2
+   \   000004   ....         DW refbufmem_memb_count
+   \   000006   ....         DW refbufmem_memb_mem
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for buframmem>`:
+   \   000000   BA00         DW 186
+   \   000002   0600         DW 6
+   \   000004   ....         DW buframmem_memb_count
+   \   000006   ....         DW buframmem_memb_mem
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??queuebuf_load_to_ram?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    queuebuf_load_to_ram
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??queuebuf_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    queuebuf_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??queuebuf_new_from_packetbuf?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    queuebuf_new_from_packetbuf
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??queuebuf_update_attr_from_packetbuf?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    queuebuf_update_attr_from_packetbuf
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??queuebuf_free?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    queuebuf_free
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??queuebuf_to_packetbuf?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    queuebuf_to_packetbuf
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??queuebuf_dataptr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    queuebuf_dataptr
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??queuebuf_datalen?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    queuebuf_datalen
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??queuebuf_addr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    queuebuf_addr
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??queuebuf_attr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    queuebuf_attr
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??queuebuf_debug_print?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    queuebuf_debug_print
+    502          /*---------------------------------------------------------------------------*/
+    503          /** @} */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     10  queuebuf_addr
+                          0 0 10 -> queuebuf_load_to_ram
+       0      0     10  queuebuf_attr
+                          0 0 10 -> queuebuf_load_to_ram
+       0      0     10  queuebuf_datalen
+                          0 0 10 -> queuebuf_load_to_ram
+       0      0     10  queuebuf_dataptr
+                          0 0 10 -> memb_inmemb
+                          0 0 10 -> queuebuf_load_to_ram
+       0      0      0  queuebuf_debug_print
+       0      0     10  queuebuf_free
+                          0 0 10 -> memb_free
+                          0 0 10 -> memb_inmemb
+       2      0      0  queuebuf_init
+                          2 0  0 -> memb_init
+       2      0     10  queuebuf_load_to_ram
+       1      0     12  queuebuf_new_from_packetbuf
+                          0 0 12 -> memb_alloc
+                          0 0 12 -> packetbuf_attr_copyto
+                          0 0 12 -> packetbuf_copyto
+                          0 0 12 -> packetbuf_copyto_hdr
+                          0 0 12 -> packetbuf_datalen
+                          0 0 12 -> packetbuf_is_reference
+                          0 0 12 -> packetbuf_reference_ptr
+       0      0     12  queuebuf_to_packetbuf
+                          0 0 10 -> memb_inmemb
+                          0 0 12 -> memcpy
+                          0 0 10 -> packetbuf_attr_copyfrom
+                          0 0 10 -> packetbuf_clear
+                          0 0 10 -> packetbuf_copyfrom
+                          0 0 10 -> packetbuf_hdralloc
+                          0 0 12 -> packetbuf_hdrptr
+                          0 0 10 -> queuebuf_load_to_ram
+       0      0     10  queuebuf_update_attr_from_packetbuf
+                          0 0 10 -> packetbuf_attr_copyto
+                          0 0 10 -> queuebuf_load_to_ram
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       8  ?<Initializer for bufmem>
+       8  ?<Initializer for buframmem>
+       8  ?<Initializer for refbufmem>
+       6  ??queuebuf_addr?relay
+       6  ??queuebuf_attr?relay
+       6  ??queuebuf_datalen?relay
+       6  ??queuebuf_dataptr?relay
+       6  ??queuebuf_debug_print?relay
+       6  ??queuebuf_free?relay
+       6  ??queuebuf_init?relay
+       6  ??queuebuf_load_to_ram?relay
+       6  ??queuebuf_new_from_packetbuf?relay
+       6  ??queuebuf_to_packetbuf?relay
+       6  ??queuebuf_update_attr_from_packetbuf?relay
+       8  bufmem
+       6  bufmem_memb_count
+      12  bufmem_memb_mem
+       8  buframmem
+       6  buframmem_memb_count
+    1116  buframmem_memb_mem
+      64  queuebuf_addr
+      71  queuebuf_attr
+      28  queuebuf_datalen
+     100  queuebuf_dataptr
+       3  queuebuf_debug_print
+      99  queuebuf_free
+      32  queuebuf_init
+      20  queuebuf_load_to_ram
+     217  queuebuf_new_from_packetbuf
+     205  queuebuf_to_packetbuf
+      40  queuebuf_update_attr_from_packetbuf
+       8  refbufmem
+       2  refbufmem_memb_count
+     106  refbufmem_memb_mem
+
+ 
+   879 bytes in segment BANKED_CODE
+    66 bytes in segment BANK_RELAYS
+    24 bytes in segment XDATA_I
+    24 bytes in segment XDATA_ID
+ 1 248 bytes in segment XDATA_Z
+ 
+   969 bytes of CODE  memory
+ 1 272 bytes of XDATA memory
+
+Errors: none
+Warnings: none

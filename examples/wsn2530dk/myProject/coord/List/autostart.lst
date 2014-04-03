@@ -1,0 +1,325 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:44 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\sys\autostart.c              #
+#    Command line       =  D:\myWork\myWork\core\sys\autostart.c -D           #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\autostart.lst                               #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\autostart.r51                                #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\sys\autostart.c
+      1          /*
+      2           * Copyright (c) 2005, Swedish Institute of Computer Science.
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           */
+     32          
+     33          /**
+     34           * \file
+     35           *         Implementation of module for automatically starting and exiting a list of processes.
+     36           * \author
+     37           *         Adam Dunkels <adam@sics.se>
+     38           */
+     39          
+     40          #include "sys/autostart.h"
+     41          
+     42          #define DEBUG 0
+     43          #if DEBUG
+     44          #include <stdio.h>
+     45          #define PRINTF(...) printf(__VA_ARGS__)
+     46          #else
+     47          #define PRINTF(...)
+     48          #endif
+     49          
+     50          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     51          void
+     52          autostart_start(struct process * const processes[])
+   \                     autostart_start:
+     53          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+     54            int i;
+     55            
+     56            for(i = 0; processes[i] != NULL; ++i) {
+   \   000009   7E00         MOV     R6,#0x0
+   \   00000B   7F00         MOV     R7,#0x0
+   \   00000D   8037         SJMP    ??autostart_start_0
+     57              process_start(processes[i], NULL);
+   \                     ??autostart_start_1:
+   \   00000F                ; Setup parameters for call to function process_start
+   \   00000F   7C00         MOV     R4,#0x0
+   \   000011   7D00         MOV     R5,#0x0
+   \   000013   EE           MOV     A,R6
+   \   000014   F8           MOV     R0,A
+   \   000015   EF           MOV     A,R7
+   \   000016   F9           MOV     R1,A
+   \   000017   E8           MOV     A,R0
+   \   000018   75F002       MOV     B,#0x2
+   \   00001B   A4           MUL     AB
+   \   00001C   C8           XCH     A,R0
+   \   00001D   AAF0         MOV     R2,B
+   \   00001F   75F000       MOV     B,#0x0
+   \   000022   A4           MUL     AB
+   \   000023   2A           ADD     A,R2
+   \   000024   FA           MOV     R2,A
+   \   000025   75F002       MOV     B,#0x2
+   \   000028   E9           MOV     A,R1
+   \   000029   A4           MUL     AB
+   \   00002A   2A           ADD     A,R2
+   \   00002B   F9           MOV     R1,A
+   \   00002C   E5..         MOV     A,?V0 + 0
+   \   00002E   28           ADD     A,R0
+   \   00002F   F582         MOV     DPL,A
+   \   000031   E5..         MOV     A,?V0 + 1
+   \   000033   39           ADDC    A,R1
+   \   000034   F583         MOV     DPH,A
+   \   000036   E0           MOVX    A,@DPTR
+   \   000037   FA           MOV     R2,A
+   \   000038   A3           INC     DPTR
+   \   000039   E0           MOVX    A,@DPTR
+   \   00003A   FB           MOV     R3,A
+   \   00003B   12....       LCALL   ??process_start?relay
+     58              PRINTF("autostart_start: starting process '%s'\n", processes[i]->name);
+     59            }
+   \   00003E   EE           MOV     A,R6
+   \   00003F   2401         ADD     A,#0x1
+   \   000041   FE           MOV     R6,A
+   \   000042   EF           MOV     A,R7
+   \   000043   3400         ADDC    A,#0x0
+   \   000045   FF           MOV     R7,A
+   \                     ??autostart_start_0:
+   \   000046   EE           MOV     A,R6
+   \   000047   F8           MOV     R0,A
+   \   000048   EF           MOV     A,R7
+   \   000049   F9           MOV     R1,A
+   \   00004A   E8           MOV     A,R0
+   \   00004B   75F002       MOV     B,#0x2
+   \   00004E   A4           MUL     AB
+   \   00004F   C8           XCH     A,R0
+   \   000050   AAF0         MOV     R2,B
+   \   000052   75F000       MOV     B,#0x0
+   \   000055   A4           MUL     AB
+   \   000056   2A           ADD     A,R2
+   \   000057   FA           MOV     R2,A
+   \   000058   75F002       MOV     B,#0x2
+   \   00005B   E9           MOV     A,R1
+   \   00005C   A4           MUL     AB
+   \   00005D   2A           ADD     A,R2
+   \   00005E   F9           MOV     R1,A
+   \   00005F   E5..         MOV     A,?V0 + 0
+   \   000061   28           ADD     A,R0
+   \   000062   F582         MOV     DPL,A
+   \   000064   E5..         MOV     A,?V0 + 1
+   \   000066   39           ADDC    A,R1
+   \   000067   F583         MOV     DPH,A
+   \   000069   E0           MOVX    A,@DPTR
+   \   00006A   F8           MOV     R0,A
+   \   00006B   A3           INC     DPTR
+   \   00006C   E0           MOVX    A,@DPTR
+   \   00006D   F9           MOV     R1,A
+   \   00006E   E8           MOV     A,R0
+   \   00006F   49           ORL     A,R1
+   \   000070   709D         JNZ     ??autostart_start_1
+     60          }
+   \   000072   7F02         MOV     R7,#0x2
+   \   000074   02....       LJMP    ?BANKED_LEAVE_XDATA
+     61          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     62          void
+     63          autostart_exit(struct process * const processes[])
+   \                     autostart_exit:
+     64          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+     65            int i;
+     66            
+     67            for(i = 0; processes[i] != NULL; ++i) {
+   \   000009   7E00         MOV     R6,#0x0
+   \   00000B   7F00         MOV     R7,#0x0
+   \   00000D   8033         SJMP    ??autostart_exit_0
+     68              process_exit(processes[i]);
+   \                     ??autostart_exit_1:
+   \   00000F                ; Setup parameters for call to function process_exit
+   \   00000F   EE           MOV     A,R6
+   \   000010   F8           MOV     R0,A
+   \   000011   EF           MOV     A,R7
+   \   000012   F9           MOV     R1,A
+   \   000013   E8           MOV     A,R0
+   \   000014   75F002       MOV     B,#0x2
+   \   000017   A4           MUL     AB
+   \   000018   C8           XCH     A,R0
+   \   000019   AAF0         MOV     R2,B
+   \   00001B   75F000       MOV     B,#0x0
+   \   00001E   A4           MUL     AB
+   \   00001F   2A           ADD     A,R2
+   \   000020   FA           MOV     R2,A
+   \   000021   75F002       MOV     B,#0x2
+   \   000024   E9           MOV     A,R1
+   \   000025   A4           MUL     AB
+   \   000026   2A           ADD     A,R2
+   \   000027   F9           MOV     R1,A
+   \   000028   E5..         MOV     A,?V0 + 0
+   \   00002A   28           ADD     A,R0
+   \   00002B   F582         MOV     DPL,A
+   \   00002D   E5..         MOV     A,?V0 + 1
+   \   00002F   39           ADDC    A,R1
+   \   000030   F583         MOV     DPH,A
+   \   000032   E0           MOVX    A,@DPTR
+   \   000033   FA           MOV     R2,A
+   \   000034   A3           INC     DPTR
+   \   000035   E0           MOVX    A,@DPTR
+   \   000036   FB           MOV     R3,A
+   \   000037   12....       LCALL   ??process_exit?relay
+     69              PRINTF("autostart_exit: stopping process '%s'\n", processes[i]->name);
+     70            }
+   \   00003A   EE           MOV     A,R6
+   \   00003B   2401         ADD     A,#0x1
+   \   00003D   FE           MOV     R6,A
+   \   00003E   EF           MOV     A,R7
+   \   00003F   3400         ADDC    A,#0x0
+   \   000041   FF           MOV     R7,A
+   \                     ??autostart_exit_0:
+   \   000042   EE           MOV     A,R6
+   \   000043   F8           MOV     R0,A
+   \   000044   EF           MOV     A,R7
+   \   000045   F9           MOV     R1,A
+   \   000046   E8           MOV     A,R0
+   \   000047   75F002       MOV     B,#0x2
+   \   00004A   A4           MUL     AB
+   \   00004B   C8           XCH     A,R0
+   \   00004C   AAF0         MOV     R2,B
+   \   00004E   75F000       MOV     B,#0x0
+   \   000051   A4           MUL     AB
+   \   000052   2A           ADD     A,R2
+   \   000053   FA           MOV     R2,A
+   \   000054   75F002       MOV     B,#0x2
+   \   000057   E9           MOV     A,R1
+   \   000058   A4           MUL     AB
+   \   000059   2A           ADD     A,R2
+   \   00005A   F9           MOV     R1,A
+   \   00005B   E5..         MOV     A,?V0 + 0
+   \   00005D   28           ADD     A,R0
+   \   00005E   F582         MOV     DPL,A
+   \   000060   E5..         MOV     A,?V0 + 1
+   \   000062   39           ADDC    A,R1
+   \   000063   F583         MOV     DPH,A
+   \   000065   E0           MOVX    A,@DPTR
+   \   000066   F8           MOV     R0,A
+   \   000067   A3           INC     DPTR
+   \   000068   E0           MOVX    A,@DPTR
+   \   000069   F9           MOV     R1,A
+   \   00006A   E8           MOV     A,R0
+   \   00006B   49           ORL     A,R1
+   \   00006C   70A1         JNZ     ??autostart_exit_1
+     71          }
+   \   00006E   7F02         MOV     R7,#0x2
+   \   000070   02....       LJMP    ?BANKED_LEAVE_XDATA
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??autostart_start?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    autostart_start
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??autostart_exit?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    autostart_exit
+     72          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     10  autostart_exit
+                          0 0 10 -> process_exit
+       0      0     10  autostart_start
+                          0 0 10 -> process_start
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??autostart_exit?relay
+       6  ??autostart_start?relay
+     115  autostart_exit
+     119  autostart_start
+
+ 
+ 234 bytes in segment BANKED_CODE
+  12 bytes in segment BANK_RELAYS
+ 
+ 246 bytes of CODE memory
+
+Errors: none
+Warnings: none

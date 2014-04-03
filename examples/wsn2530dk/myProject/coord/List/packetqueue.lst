@@ -1,0 +1,762 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:44 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\packetqueue.c            #
+#    Command line       =  D:\myWork\myWork\core\net\packetqueue.c -D         #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\packetqueue.lst                             #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\packetqueue.r51                              #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\packetqueue.c
+      1          /**
+      2           * \addtogroup packetqueue
+      3           * @{
+      4           */
+      5          /*
+      6           * Copyright (c) 2009, Swedish Institute of Computer Science.
+      7           * All rights reserved.
+      8           *
+      9           * Redistribution and use in source and binary forms, with or without
+     10           * modification, are permitted provided that the following conditions
+     11           * are met:
+     12           * 1. Redistributions of source code must retain the above copyright
+     13           *    notice, this list of conditions and the following disclaimer.
+     14           * 2. Redistributions in binary form must reproduce the above copyright
+     15           *    notice, this list of conditions and the following disclaimer in the
+     16           *    documentation and/or other materials provided with the distribution.
+     17           * 3. Neither the name of the Institute nor the names of its contributors
+     18           *    may be used to endorse or promote products derived from this software
+     19           *    without specific prior written permission.
+     20           *
+     21           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     22           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     23           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     24           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     25           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     26           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     27           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     28           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     29           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     30           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     31           * SUCH DAMAGE.
+     32           *
+     33           * This file is part of the Contiki operating system.
+     34           *
+     35           */
+     36          
+     37          /**
+     38           * \file
+     39           *         Packet queue management
+     40           * \author
+     41           *         Adam Dunkels <adam@sics.se>
+     42           */
+     43          
+     44          #include "sys/ctimer.h"
+     45          #include "net/packetqueue.h"
+     46          
+     47          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     48          void
+     49          packetqueue_init(struct packetqueue *q)
+   \                     packetqueue_init:
+     50          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+     51            list_init(*q->list);
+   \   000009                ; Setup parameters for call to function list_init
+   \   000009   8E82         MOV     DPL,R6
+   \   00000B   8F83         MOV     DPH,R7
+   \   00000D   E0           MOVX    A,@DPTR
+   \   00000E   F8           MOV     R0,A
+   \   00000F   A3           INC     DPTR
+   \   000010   E0           MOVX    A,@DPTR
+   \   000011   F583         MOV     DPH,A
+   \   000013   8882         MOV     DPL,R0
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   FA           MOV     R2,A
+   \   000017   A3           INC     DPTR
+   \   000018   E0           MOVX    A,@DPTR
+   \   000019   FB           MOV     R3,A
+   \   00001A   12....       LCALL   ??list_init?relay
+     52            memb_init(q->memb);
+   \   00001D                ; Setup parameters for call to function memb_init
+   \   00001D   8E82         MOV     DPL,R6
+   \   00001F   8F83         MOV     DPH,R7
+   \   000021   A3           INC     DPTR
+   \   000022   A3           INC     DPTR
+   \   000023   E0           MOVX    A,@DPTR
+   \   000024   FA           MOV     R2,A
+   \   000025   A3           INC     DPTR
+   \   000026   E0           MOVX    A,@DPTR
+   \   000027   FB           MOV     R3,A
+   \   000028   12....       LCALL   ??memb_init?relay
+     53          }
+   \   00002B   7F01         MOV     R7,#0x1
+   \   00002D   02....       LJMP    ?BANKED_LEAVE_XDATA
+     54          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     55          static void
+     56          remove_queued_packet(void *item)
+   \                     remove_queued_packet:
+     57          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     58            struct packetqueue_item *i = item;
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+     59            struct packetqueue *q = i->queue;
+   \   000009   8E82         MOV     DPL,R6
+   \   00000B   8F83         MOV     DPH,R7
+   \   00000D   A3           INC     DPTR
+   \   00000E   A3           INC     DPTR
+   \   00000F   A3           INC     DPTR
+   \   000010   A3           INC     DPTR
+   \   000011   E0           MOVX    A,@DPTR
+   \   000012   F8           MOV     R0,A
+   \   000013   A3           INC     DPTR
+   \   000014   E0           MOVX    A,@DPTR
+   \   000015   F9           MOV     R1,A
+   \   000016   88..         MOV     ?V0 + 0,R0
+   \   000018   89..         MOV     ?V0 + 1,R1
+     60          
+     61            list_remove(*q->list, i);
+   \   00001A                ; Setup parameters for call to function list_remove
+   \   00001A   EE           MOV     A,R6
+   \   00001B   FC           MOV     R4,A
+   \   00001C   EF           MOV     A,R7
+   \   00001D   FD           MOV     R5,A
+   \   00001E   85..82       MOV     DPL,?V0 + 0
+   \   000021   85..83       MOV     DPH,?V0 + 1
+   \   000024   E0           MOVX    A,@DPTR
+   \   000025   F8           MOV     R0,A
+   \   000026   A3           INC     DPTR
+   \   000027   E0           MOVX    A,@DPTR
+   \   000028   F583         MOV     DPH,A
+   \   00002A   8882         MOV     DPL,R0
+   \   00002C   E0           MOVX    A,@DPTR
+   \   00002D   FA           MOV     R2,A
+   \   00002E   A3           INC     DPTR
+   \   00002F   E0           MOVX    A,@DPTR
+   \   000030   FB           MOV     R3,A
+   \   000031   12....       LCALL   ??list_remove?relay
+     62            queuebuf_free(i->buf);
+   \   000034                ; Setup parameters for call to function queuebuf_free
+   \   000034   8E82         MOV     DPL,R6
+   \   000036   8F83         MOV     DPH,R7
+   \   000038   A3           INC     DPTR
+   \   000039   A3           INC     DPTR
+   \   00003A   E0           MOVX    A,@DPTR
+   \   00003B   FA           MOV     R2,A
+   \   00003C   A3           INC     DPTR
+   \   00003D   E0           MOVX    A,@DPTR
+   \   00003E   FB           MOV     R3,A
+   \   00003F   12....       LCALL   ??queuebuf_free?relay
+     63            ctimer_stop(&i->lifetimer);
+   \   000042                ; Setup parameters for call to function ctimer_stop
+   \   000042   EE           MOV     A,R6
+   \   000043   2406         ADD     A,#0x6
+   \   000045   FA           MOV     R2,A
+   \   000046   EF           MOV     A,R7
+   \   000047   3400         ADDC    A,#0x0
+   \   000049   FB           MOV     R3,A
+   \   00004A   12....       LCALL   ??ctimer_stop?relay
+     64            memb_free(q->memb, i);
+   \   00004D                ; Setup parameters for call to function memb_free
+   \   00004D   EE           MOV     A,R6
+   \   00004E   FC           MOV     R4,A
+   \   00004F   EF           MOV     A,R7
+   \   000050   FD           MOV     R5,A
+   \   000051   85..82       MOV     DPL,?V0 + 0
+   \   000054   85..83       MOV     DPH,?V0 + 1
+   \   000057   A3           INC     DPTR
+   \   000058   A3           INC     DPTR
+   \   000059   E0           MOVX    A,@DPTR
+   \   00005A   FA           MOV     R2,A
+   \   00005B   A3           INC     DPTR
+   \   00005C   E0           MOVX    A,@DPTR
+   \   00005D   FB           MOV     R3,A
+   \   00005E   12....       LCALL   ??memb_free?relay
+   \   000061   E9           MOV     A,R1
+     65            /*  printf("removing queued packet due to timeout\n");*/
+     66          }
+   \   000062   7F02         MOV     R7,#0x2
+   \   000064   02....       LJMP    ?BANKED_LEAVE_XDATA
+     67          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     68          int
+     69          packetqueue_enqueue_packetbuf(struct packetqueue *q, clock_time_t lifetime,
+   \                     packetqueue_enqueue_packetbuf:
+     70          			      void *ptr)
+     71          {
+   \   000000   74F0         MOV     A,#-0x10
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 16
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   EC           MOV     A,R4
+   \   00000A   FE           MOV     R6,A
+   \   00000B   ED           MOV     A,R5
+   \   00000C   FF           MOV     R7,A
+   \   00000D   7410         MOV     A,#0x10
+   \   00000F   12....       LCALL   ?XSTACK_DISP0_8
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   F5..         MOV     ?V0 + 2,A
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F5..         MOV     ?V0 + 3,A
+     72            struct packetqueue_item *i;
+     73          
+     74            /* Allocate a memory block to hold the packet queue item. */
+     75            i = memb_alloc(q->memb);
+   \   000019                ; Setup parameters for call to function memb_alloc
+   \   000019   85..82       MOV     DPL,?V0 + 0
+   \   00001C   85..83       MOV     DPH,?V0 + 1
+   \   00001F   A3           INC     DPTR
+   \   000020   A3           INC     DPTR
+   \   000021   E0           MOVX    A,@DPTR
+   \   000022   FA           MOV     R2,A
+   \   000023   A3           INC     DPTR
+   \   000024   E0           MOVX    A,@DPTR
+   \   000025   FB           MOV     R3,A
+   \   000026   12....       LCALL   ??memb_alloc?relay
+   \   000029   8A..         MOV     ?V0 + 6,R2
+   \   00002B   8B..         MOV     ?V0 + 7,R3
+   \   00002D   85....       MOV     ?V0 + 4,?V0 + 6
+   \   000030   85....       MOV     ?V0 + 5,?V0 + 7
+     76          
+     77            if(i == NULL) {
+   \   000033   E5..         MOV     A,?V0 + 4
+   \   000035   45..         ORL     A,?V0 + 5
+   \   000037   7007         JNZ     ??packetqueue_enqueue_packetbuf_0
+     78              return 0;
+   \   000039   7A00         MOV     R2,#0x0
+   \   00003B   7B00         MOV     R3,#0x0
+   \   00003D   02....       LJMP    ??packetqueue_enqueue_packetbuf_1 & 0xFFFF
+     79            }
+     80          
+     81            /* Allocate a queuebuf and copy the contents of the packetbuf into it. */
+     82            i->buf = queuebuf_new_from_packetbuf();
+   \                     ??packetqueue_enqueue_packetbuf_0:
+   \   000040                ; Setup parameters for call to function queuebuf_new_from_packetbuf
+   \   000040   12....       LCALL   ??queuebuf_new_from_packetbuf?relay
+   \   000043   85..82       MOV     DPL,?V0 + 4
+   \   000046   85..83       MOV     DPH,?V0 + 5
+   \   000049   A3           INC     DPTR
+   \   00004A   A3           INC     DPTR
+   \   00004B   EA           MOV     A,R2
+   \   00004C   F0           MOVX    @DPTR,A
+   \   00004D   A3           INC     DPTR
+   \   00004E   EB           MOV     A,R3
+   \   00004F   F0           MOVX    @DPTR,A
+     83          
+     84            if(i->buf == NULL) {
+   \   000050   85..82       MOV     DPL,?V0 + 4
+   \   000053   85..83       MOV     DPH,?V0 + 5
+   \   000056   A3           INC     DPTR
+   \   000057   A3           INC     DPTR
+   \   000058   E0           MOVX    A,@DPTR
+   \   000059   F8           MOV     R0,A
+   \   00005A   A3           INC     DPTR
+   \   00005B   E0           MOVX    A,@DPTR
+   \   00005C   F9           MOV     R1,A
+   \   00005D   E8           MOV     A,R0
+   \   00005E   49           ORL     A,R1
+   \   00005F   701B         JNZ     ??packetqueue_enqueue_packetbuf_2
+     85              memb_free(q->memb, i);
+   \   000061                ; Setup parameters for call to function memb_free
+   \   000061   AC..         MOV     R4,?V0 + 4
+   \   000063   AD..         MOV     R5,?V0 + 5
+   \   000065   85..82       MOV     DPL,?V0 + 0
+   \   000068   85..83       MOV     DPH,?V0 + 1
+   \   00006B   A3           INC     DPTR
+   \   00006C   A3           INC     DPTR
+   \   00006D   E0           MOVX    A,@DPTR
+   \   00006E   FA           MOV     R2,A
+   \   00006F   A3           INC     DPTR
+   \   000070   E0           MOVX    A,@DPTR
+   \   000071   FB           MOV     R3,A
+   \   000072   12....       LCALL   ??memb_free?relay
+   \   000075   E9           MOV     A,R1
+     86              return 0;
+   \   000076   7A00         MOV     R2,#0x0
+   \   000078   7B00         MOV     R3,#0x0
+   \   00007A   8070         SJMP    ??packetqueue_enqueue_packetbuf_1
+     87            }
+     88          
+     89            i->queue = q;
+   \                     ??packetqueue_enqueue_packetbuf_2:
+   \   00007C   85..82       MOV     DPL,?V0 + 4
+   \   00007F   85..83       MOV     DPH,?V0 + 5
+   \   000082   A3           INC     DPTR
+   \   000083   A3           INC     DPTR
+   \   000084   A3           INC     DPTR
+   \   000085   A3           INC     DPTR
+   \   000086   E5..         MOV     A,?V0 + 0
+   \   000088   F0           MOVX    @DPTR,A
+   \   000089   A3           INC     DPTR
+   \   00008A   E5..         MOV     A,?V0 + 1
+   \   00008C   F0           MOVX    @DPTR,A
+     90            i->ptr = ptr;
+   \   00008D   A8..         MOV     R0,?V0 + 2
+   \   00008F   A9..         MOV     R1,?V0 + 3
+   \   000091   E5..         MOV     A,?V0 + 4
+   \   000093   2416         ADD     A,#0x16
+   \   000095   F582         MOV     DPL,A
+   \   000097   E5..         MOV     A,?V0 + 5
+   \   000099   3400         ADDC    A,#0x0
+   \   00009B   F583         MOV     DPH,A
+   \   00009D   E5..         MOV     A,?V0 + 2
+   \   00009F   F0           MOVX    @DPTR,A
+   \   0000A0   A3           INC     DPTR
+   \   0000A1   E5..         MOV     A,?V0 + 3
+   \   0000A3   F0           MOVX    @DPTR,A
+     91          
+     92            /* Setup a ctimer that removes the packet from the queue when its
+     93               lifetime expires. If the lifetime is zero, we do not set a
+     94               lifetimer. */
+     95            if(lifetime > 0) {
+   \   0000A4   EE           MOV     A,R6
+   \   0000A5   4F           ORL     A,R7
+   \   0000A6   6026         JZ      ??packetqueue_enqueue_packetbuf_3
+     96              ctimer_set(&i->lifetimer, lifetime, remove_queued_packet, i);
+   \   0000A8                ; Setup parameters for call to function ctimer_set
+   \   0000A8   78..         MOV     R0,#?V0 + 4
+   \   0000AA   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000AD   75....       MOV     ?V0 + 2,#??remove_queued_packet?relay & 0xff
+   \   0000B0   75....       MOV     ?V0 + 3,#(??remove_queued_packet?relay >> 8) & 0xff
+   \   0000B3   78..         MOV     R0,#?V0 + 2
+   \   0000B5   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000B8   EE           MOV     A,R6
+   \   0000B9   FC           MOV     R4,A
+   \   0000BA   EF           MOV     A,R7
+   \   0000BB   FD           MOV     R5,A
+   \   0000BC   E5..         MOV     A,?V0 + 4
+   \   0000BE   2406         ADD     A,#0x6
+   \   0000C0   FA           MOV     R2,A
+   \   0000C1   E5..         MOV     A,?V0 + 5
+   \   0000C3   3400         ADDC    A,#0x0
+   \   0000C5   FB           MOV     R3,A
+   \   0000C6   12....       LCALL   ??ctimer_set?relay
+   \   0000C9   7404         MOV     A,#0x4
+   \   0000CB   12....       LCALL   ?DEALLOC_XSTACK8
+     97            }
+     98          
+     99            /* Add the item to the queue. */
+    100            list_add(*q->list, i);
+   \                     ??packetqueue_enqueue_packetbuf_3:
+   \   0000CE                ; Setup parameters for call to function list_add
+   \   0000CE   AC..         MOV     R4,?V0 + 4
+   \   0000D0   AD..         MOV     R5,?V0 + 5
+   \   0000D2   85..82       MOV     DPL,?V0 + 0
+   \   0000D5   85..83       MOV     DPH,?V0 + 1
+   \   0000D8   E0           MOVX    A,@DPTR
+   \   0000D9   F8           MOV     R0,A
+   \   0000DA   A3           INC     DPTR
+   \   0000DB   E0           MOVX    A,@DPTR
+   \   0000DC   F583         MOV     DPH,A
+   \   0000DE   8882         MOV     DPL,R0
+   \   0000E0   E0           MOVX    A,@DPTR
+   \   0000E1   FA           MOV     R2,A
+   \   0000E2   A3           INC     DPTR
+   \   0000E3   E0           MOVX    A,@DPTR
+   \   0000E4   FB           MOV     R3,A
+   \   0000E5   12....       LCALL   ??list_add?relay
+    101          
+    102            return 1;
+   \   0000E8   7A01         MOV     R2,#0x1
+   \   0000EA   7B00         MOV     R3,#0x0
+   \                     ??packetqueue_enqueue_packetbuf_1:
+   \   0000EC   7F08         MOV     R7,#0x8
+   \   0000EE   02....       LJMP    ?BANKED_LEAVE_XDATA
+    103          }
+    104          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    105          struct packetqueue_item *
+    106          packetqueue_first(struct packetqueue *q)
+   \                     packetqueue_first:
+    107          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    108            return list_head(*q->list);
+   \   000004                ; Setup parameters for call to function list_head
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   F8           MOV     R0,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   F583         MOV     DPH,A
+   \   00000E   8882         MOV     DPL,R0
+   \   000010   E0           MOVX    A,@DPTR
+   \   000011   FA           MOV     R2,A
+   \   000012   A3           INC     DPTR
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   FB           MOV     R3,A
+   \   000015   12....       LCALL   ??list_head?relay
+   \   000018   D083         POP     DPH
+   \   00001A   D082         POP     DPL
+   \   00001C   02....       LJMP    ?BRET
+    109          }
+    110          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    111          void
+    112          packetqueue_dequeue(struct packetqueue *q)
+   \                     packetqueue_dequeue:
+    113          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+    114            struct packetqueue_item *i;
+    115            
+    116            i = list_head(*q->list);
+   \   000009                ; Setup parameters for call to function list_head
+   \   000009   85..82       MOV     DPL,?V0 + 0
+   \   00000C   85..83       MOV     DPH,?V0 + 1
+   \   00000F   E0           MOVX    A,@DPTR
+   \   000010   F8           MOV     R0,A
+   \   000011   A3           INC     DPTR
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   F583         MOV     DPH,A
+   \   000015   8882         MOV     DPL,R0
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   FA           MOV     R2,A
+   \   000019   A3           INC     DPTR
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   FB           MOV     R3,A
+   \   00001C   12....       LCALL   ??list_head?relay
+   \   00001F   8A..         MOV     ?V0 + 2,R2
+   \   000021   8B..         MOV     ?V0 + 3,R3
+   \   000023   AE..         MOV     R6,?V0 + 2
+   \   000025   AF..         MOV     R7,?V0 + 3
+    117            if(i != NULL) {
+   \   000027   EE           MOV     A,R6
+   \   000028   4F           ORL     A,R7
+   \   000029   6048         JZ      ??packetqueue_dequeue_0
+    118              list_remove(*q->list, i);
+   \   00002B                ; Setup parameters for call to function list_remove
+   \   00002B   EE           MOV     A,R6
+   \   00002C   FC           MOV     R4,A
+   \   00002D   EF           MOV     A,R7
+   \   00002E   FD           MOV     R5,A
+   \   00002F   85..82       MOV     DPL,?V0 + 0
+   \   000032   85..83       MOV     DPH,?V0 + 1
+   \   000035   E0           MOVX    A,@DPTR
+   \   000036   F8           MOV     R0,A
+   \   000037   A3           INC     DPTR
+   \   000038   E0           MOVX    A,@DPTR
+   \   000039   F583         MOV     DPH,A
+   \   00003B   8882         MOV     DPL,R0
+   \   00003D   E0           MOVX    A,@DPTR
+   \   00003E   FA           MOV     R2,A
+   \   00003F   A3           INC     DPTR
+   \   000040   E0           MOVX    A,@DPTR
+   \   000041   FB           MOV     R3,A
+   \   000042   12....       LCALL   ??list_remove?relay
+    119              queuebuf_free(i->buf);
+   \   000045                ; Setup parameters for call to function queuebuf_free
+   \   000045   8E82         MOV     DPL,R6
+   \   000047   8F83         MOV     DPH,R7
+   \   000049   A3           INC     DPTR
+   \   00004A   A3           INC     DPTR
+   \   00004B   E0           MOVX    A,@DPTR
+   \   00004C   FA           MOV     R2,A
+   \   00004D   A3           INC     DPTR
+   \   00004E   E0           MOVX    A,@DPTR
+   \   00004F   FB           MOV     R3,A
+   \   000050   12....       LCALL   ??queuebuf_free?relay
+    120              ctimer_stop(&i->lifetimer);
+   \   000053                ; Setup parameters for call to function ctimer_stop
+   \   000053   EE           MOV     A,R6
+   \   000054   2406         ADD     A,#0x6
+   \   000056   FA           MOV     R2,A
+   \   000057   EF           MOV     A,R7
+   \   000058   3400         ADDC    A,#0x0
+   \   00005A   FB           MOV     R3,A
+   \   00005B   12....       LCALL   ??ctimer_stop?relay
+    121              memb_free(q->memb, i);
+   \   00005E                ; Setup parameters for call to function memb_free
+   \   00005E   EE           MOV     A,R6
+   \   00005F   FC           MOV     R4,A
+   \   000060   EF           MOV     A,R7
+   \   000061   FD           MOV     R5,A
+   \   000062   85..82       MOV     DPL,?V0 + 0
+   \   000065   85..83       MOV     DPH,?V0 + 1
+   \   000068   A3           INC     DPTR
+   \   000069   A3           INC     DPTR
+   \   00006A   E0           MOVX    A,@DPTR
+   \   00006B   FA           MOV     R2,A
+   \   00006C   A3           INC     DPTR
+   \   00006D   E0           MOVX    A,@DPTR
+   \   00006E   FB           MOV     R3,A
+   \   00006F   12....       LCALL   ??memb_free?relay
+   \   000072   E9           MOV     A,R1
+    122            }
+    123          }
+   \                     ??packetqueue_dequeue_0:
+   \   000073   7F04         MOV     R7,#0x4
+   \   000075   02....       LJMP    ?BANKED_LEAVE_XDATA
+    124          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    125          int
+    126          packetqueue_len(struct packetqueue *q)
+   \                     packetqueue_len:
+    127          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    128            return list_length(*q->list);
+   \   000004                ; Setup parameters for call to function list_length
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   F8           MOV     R0,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   F583         MOV     DPH,A
+   \   00000E   8882         MOV     DPL,R0
+   \   000010   E0           MOVX    A,@DPTR
+   \   000011   FA           MOV     R2,A
+   \   000012   A3           INC     DPTR
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   FB           MOV     R3,A
+   \   000015   12....       LCALL   ??list_length?relay
+   \   000018   D083         POP     DPH
+   \   00001A   D082         POP     DPL
+   \   00001C   02....       LJMP    ?BRET
+    129          }
+    130          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    131          struct queuebuf *
+    132          packetqueue_queuebuf(struct packetqueue_item *i)
+   \                     packetqueue_queuebuf:
+    133          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    134            if(i != NULL) {
+   \   000004   EA           MOV     A,R2
+   \   000005   4B           ORL     A,R3
+   \   000006   600D         JZ      ??packetqueue_queuebuf_0
+    135              return i->buf;
+   \   000008   8A82         MOV     DPL,R2
+   \   00000A   8B83         MOV     DPH,R3
+   \   00000C   A3           INC     DPTR
+   \   00000D   A3           INC     DPTR
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   FA           MOV     R2,A
+   \   000010   A3           INC     DPTR
+   \   000011   E0           MOVX    A,@DPTR
+   \   000012   FB           MOV     R3,A
+   \   000013   8004         SJMP    ??packetqueue_queuebuf_1
+    136            } else {
+    137              return NULL;
+   \                     ??packetqueue_queuebuf_0:
+   \   000015   7A00         MOV     R2,#0x0
+   \   000017   7B00         MOV     R3,#0x0
+   \                     ??packetqueue_queuebuf_1:
+   \   000019   D083         POP     DPH
+   \   00001B   D082         POP     DPL
+   \   00001D   02....       LJMP    ?BRET
+    138            }
+    139          }
+    140          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    141          void *
+    142          packetqueue_ptr(struct packetqueue_item *i)
+   \                     packetqueue_ptr:
+    143          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    144            if(i != NULL) {
+   \   000004   EA           MOV     A,R2
+   \   000005   4B           ORL     A,R3
+   \   000006   6011         JZ      ??packetqueue_ptr_0
+    145              return i->ptr;
+   \   000008   EA           MOV     A,R2
+   \   000009   2416         ADD     A,#0x16
+   \   00000B   F582         MOV     DPL,A
+   \   00000D   EB           MOV     A,R3
+   \   00000E   3400         ADDC    A,#0x0
+   \   000010   F583         MOV     DPH,A
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   FA           MOV     R2,A
+   \   000014   A3           INC     DPTR
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   FB           MOV     R3,A
+   \   000017   8004         SJMP    ??packetqueue_ptr_1
+    146            } else {
+    147              return NULL;
+   \                     ??packetqueue_ptr_0:
+   \   000019   7A00         MOV     R2,#0x0
+   \   00001B   7B00         MOV     R3,#0x0
+   \                     ??packetqueue_ptr_1:
+   \   00001D   D083         POP     DPH
+   \   00001F   D082         POP     DPL
+   \   000021   02....       LJMP    ?BRET
+    148            }
+    149          }
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??packetqueue_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    packetqueue_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??remove_queued_packet?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    remove_queued_packet
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??packetqueue_enqueue_packetbuf?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    packetqueue_enqueue_packetbuf
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??packetqueue_first?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    packetqueue_first
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??packetqueue_dequeue?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    packetqueue_dequeue
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??packetqueue_len?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    packetqueue_len
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??packetqueue_queuebuf?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    packetqueue_queuebuf
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??packetqueue_ptr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    packetqueue_ptr
+    150          /*---------------------------------------------------------------------------*/
+    151          /** @} */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     12  packetqueue_dequeue
+                          0 0 12 -> ctimer_stop
+                          0 0 12 -> list_head
+                          0 0 12 -> list_remove
+                          0 0 12 -> memb_free
+                          0 0 12 -> queuebuf_free
+       0      0     22  packetqueue_enqueue_packetbuf
+                          0 0 20 -> ctimer_set
+                          0 0 16 -> list_add
+                          0 0 16 -> memb_alloc
+                          0 0 16 -> memb_free
+                          0 0 16 -> queuebuf_new_from_packetbuf
+       2      0      0  packetqueue_first
+                          2 0  0 -> list_head
+       0      0      9  packetqueue_init
+                          0 0  9 -> list_init
+                          0 0  9 -> memb_init
+       2      0      0  packetqueue_len
+                          2 0  0 -> list_length
+       2      0      0  packetqueue_ptr
+       2      0      0  packetqueue_queuebuf
+       0      0     10  remove_queued_packet
+                          0 0 10 -> ctimer_stop
+                          0 0 10 -> list_remove
+                          0 0 10 -> memb_free
+                          0 0 10 -> queuebuf_free
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??packetqueue_dequeue?relay
+       6  ??packetqueue_enqueue_packetbuf?relay
+       6  ??packetqueue_first?relay
+       6  ??packetqueue_init?relay
+       6  ??packetqueue_len?relay
+       6  ??packetqueue_ptr?relay
+       6  ??packetqueue_queuebuf?relay
+       6  ??remove_queued_packet?relay
+     120  packetqueue_dequeue
+     241  packetqueue_enqueue_packetbuf
+      31  packetqueue_first
+      48  packetqueue_init
+      31  packetqueue_len
+      36  packetqueue_ptr
+      32  packetqueue_queuebuf
+     103  remove_queued_packet
+
+ 
+ 642 bytes in segment BANKED_CODE
+  48 bytes in segment BANK_RELAYS
+ 
+ 690 bytes of CODE memory
+
+Errors: none
+Warnings: none

@@ -1,0 +1,1368 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:52 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\uip-ds6-nbr.c            #
+#    Command line       =  D:\myWork\myWork\core\net\uip-ds6-nbr.c -D         #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\uip-ds6-nbr.lst                             #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\uip-ds6-nbr.r51                              #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\uip-ds6-nbr.c
+      1          /**
+      2           * \addtogroup uip6
+      3           * @{
+      4           */
+      5          
+      6          /*
+      7           * Copyright (c) 2013, Swedish Institute of Computer Science.
+      8           * All rights reserved.
+      9           *
+     10           * Redistribution and use in source and binary forms, with or without
+     11           * modification, are permitted provided that the following conditions
+     12           * are met:
+     13           * 1. Redistributions of source code must retain the above copyright
+     14           *    notice, this list of conditions and the following disclaimer.
+     15           * 2. Redistributions in binary form must reproduce the above copyright
+     16           *    notice, this list of conditions and the following disclaimer in the
+     17           *    documentation and/or other materials provided with the distribution.
+     18           * 3. Neither the name of the Institute nor the names of its contributors
+     19           *    may be used to endorse or promote products derived from this software
+     20           *    without specific prior written permission.
+     21           *
+     22           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     23           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     24           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     25           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     26           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     27           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     28           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     29           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     30           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     31           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     32           * SUCH DAMAGE.
+     33           *
+     34           *
+     35           */
+     36          
+     37          /**
+     38           * \file
+     39           *         IPv6 Neighbor cache (link-layer/IPv6 address mapping)
+     40           * \author Mathilde Durvy <mdurvy@cisco.com>
+     41           * \author Julien Abeille <jabeille@cisco.com>
+     42           * \author Simon Duquennoy <simonduq@sics.se>
+     43           *
+     44           */
+     45          
+     46          #include <string.h>
+     47          #include <stdlib.h>
+     48          #include <stddef.h>
+     49          #include "lib/list.h"
+     50          #include "net/rime/rimeaddr.h"
+     51          #include "net/packetbuf.h"
+     52          #include "net/uip-ds6-nbr.h"
+     53          
+     54          #define DEBUG DEBUG_NONE
+     55          #include "net/uip-debug.h"
+     56          
+     57          #ifdef UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED
+     58          #define NEIGHBOR_STATE_CHANGED(n) UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED(n)
+     59          void NEIGHBOR_STATE_CHANGED(uip_ds6_nbr_t *n);
+     60          #else
+     61          #define NEIGHBOR_STATE_CHANGED(n)
+     62          #endif /* UIP_DS6_CONF_NEIGHBOR_STATE_CHANGED */
+     63          
+     64          #ifdef UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK
+     65          #define LINK_NEIGHBOR_CALLBACK(addr, status, numtx) UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK(addr, status, numtx)
+     66          void LINK_NEIGHBOR_CALLBACK(const rimeaddr_t *addr, int status, int numtx);
+     67          #else
+     68          #define LINK_NEIGHBOR_CALLBACK(addr, status, numtx)
+     69          #endif /* UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK */
+     70          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     71          NBR_TABLE_GLOBAL(uip_ds6_nbr_t, ds6_neighbors);
+   \                     _ds6_neighbors_mem:
+   \   000000                DS 140
+   \   00008C                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \   static nbr_table_t ds6_neighbors_struct
+   \                     ds6_neighbors_struct:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for ds6_neighbors_struct>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \   nbr_table_t *__xdata ds6_neighbors
+   \                     ds6_neighbors:
+   \   000000                DS 2
+   \   000002                REQUIRE `?<Initializer for ds6_neighbors>`
+   \   000002                REQUIRE __INIT_XDATA_I
+     72          
+     73          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     74          void
+     75          uip_ds6_neighbors_init(void)
+   \                     uip_ds6_neighbors_init:
+     76          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     77            nbr_table_register(ds6_neighbors, (nbr_table_callback *)uip_ds6_nbr_rm);
+   \   000004                ; Setup parameters for call to function nbr_table_register
+   \   000004   7C..         MOV     R4,#??uip_ds6_nbr_rm?relay & 0xff
+   \   000006   7D..         MOV     R5,#(??uip_ds6_nbr_rm?relay >> 8) & 0xff
+   \   000008   90....       MOV     DPTR,#ds6_neighbors
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   FA           MOV     R2,A
+   \   00000D   A3           INC     DPTR
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   FB           MOV     R3,A
+   \   000010   12....       LCALL   ??nbr_table_register?relay
+     78          }
+   \   000013   D083         POP     DPH
+   \   000015   D082         POP     DPL
+   \   000017   02....       LJMP    ?BRET
+     79          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     80          uip_ds6_nbr_t *
+     81          uip_ds6_nbr_add(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr,
+   \                     uip_ds6_nbr_add:
+     82                          uint8_t isrouter, uint8_t state)
+     83          {
+   \   000000   74F2         MOV     A,#-0xe
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 14
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   89..         MOV     ?V0 + 2,R1
+   \   00000B   740E         MOV     A,#0xe
+   \   00000D   12....       LCALL   ?XSTACK_DISP0_8
+   \   000010   E0           MOVX    A,@DPTR
+   \   000011   F5..         MOV     ?V0 + 3,A
+     84            uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (rimeaddr_t*)lladdr);
+   \   000013                ; Setup parameters for call to function nbr_table_add_lladdr
+   \   000013   90....       MOV     DPTR,#ds6_neighbors
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   FA           MOV     R2,A
+   \   000018   A3           INC     DPTR
+   \   000019   E0           MOVX    A,@DPTR
+   \   00001A   FB           MOV     R3,A
+   \   00001B   12....       LCALL   ??nbr_table_add_lladdr?relay
+   \   00001E   8A..         MOV     ?V0 + 4,R2
+   \   000020   8B..         MOV     ?V0 + 5,R3
+   \   000022   AE..         MOV     R6,?V0 + 4
+   \   000024   AF..         MOV     R7,?V0 + 5
+     85            if(nbr) {
+   \   000026   EE           MOV     A,R6
+   \   000027   4F           ORL     A,R7
+   \   000028   6078         JZ      ??uip_ds6_nbr_add_0
+     86              uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
+   \   00002A                ; Setup parameters for call to function memcpy
+   \   00002A   75..10       MOV     ?V0 + 4,#0x10
+   \   00002D   75..00       MOV     ?V0 + 5,#0x0
+   \   000030   78..         MOV     R0,#?V0 + 4
+   \   000032   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000035   AC..         MOV     R4,?V0 + 0
+   \   000037   AD..         MOV     R5,?V0 + 1
+   \   000039   EE           MOV     A,R6
+   \   00003A   FA           MOV     R2,A
+   \   00003B   EF           MOV     A,R7
+   \   00003C   FB           MOV     R3,A
+   \   00003D   12....       LCALL   ??memcpy?relay
+   \   000040   7402         MOV     A,#0x2
+   \   000042   12....       LCALL   ?DEALLOC_XSTACK8
+     87              nbr->isrouter = isrouter;
+   \   000045   E5..         MOV     A,?V0 + 2
+   \   000047   EE           MOV     A,R6
+   \   000048   2421         ADD     A,#0x21
+   \   00004A   F582         MOV     DPL,A
+   \   00004C   EF           MOV     A,R7
+   \   00004D   3400         ADDC    A,#0x0
+   \   00004F   F583         MOV     DPH,A
+   \   000051   E5..         MOV     A,?V0 + 2
+   \   000053   F0           MOVX    @DPTR,A
+     88              nbr->state = state;
+   \   000054   E5..         MOV     A,?V0 + 3
+   \   000056   EE           MOV     A,R6
+   \   000057   2422         ADD     A,#0x22
+   \   000059   F582         MOV     DPL,A
+   \   00005B   EF           MOV     A,R7
+   \   00005C   3400         ADDC    A,#0x0
+   \   00005E   F583         MOV     DPH,A
+   \   000060   E5..         MOV     A,?V0 + 3
+   \   000062   F0           MOVX    @DPTR,A
+     89            #if UIP_CONF_IPV6_QUEUE_PKT
+     90              uip_packetqueue_new(&nbr->packethandle);
+     91            #endif /* UIP_CONF_IPV6_QUEUE_PKT */
+     92              /* timers are set separately, for now we put them in expired state */
+     93              stimer_set(&nbr->reachable, 0);
+   \   000063                ; Setup parameters for call to function stimer_set
+   \   000063   90....       MOV     DPTR,#__Constant_0
+   \   000066   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   000069   EE           MOV     A,R6
+   \   00006A   2410         ADD     A,#0x10
+   \   00006C   FA           MOV     R2,A
+   \   00006D   EF           MOV     A,R7
+   \   00006E   3400         ADDC    A,#0x0
+   \   000070   FB           MOV     R3,A
+   \   000071   12....       LCALL   ??stimer_set?relay
+   \   000074   7404         MOV     A,#0x4
+   \   000076   12....       LCALL   ?DEALLOC_XSTACK8
+     94              stimer_set(&nbr->sendns, 0);
+   \   000079                ; Setup parameters for call to function stimer_set
+   \   000079   90....       MOV     DPTR,#__Constant_0
+   \   00007C   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   00007F   EE           MOV     A,R6
+   \   000080   2418         ADD     A,#0x18
+   \   000082   FA           MOV     R2,A
+   \   000083   EF           MOV     A,R7
+   \   000084   3400         ADDC    A,#0x0
+   \   000086   FB           MOV     R3,A
+   \   000087   12....       LCALL   ??stimer_set?relay
+   \   00008A   7404         MOV     A,#0x4
+   \   00008C   12....       LCALL   ?DEALLOC_XSTACK8
+     95              nbr->nscount = 0;
+   \   00008F   EE           MOV     A,R6
+   \   000090   2420         ADD     A,#0x20
+   \   000092   F582         MOV     DPL,A
+   \   000094   EF           MOV     A,R7
+   \   000095   3400         ADDC    A,#0x0
+   \   000097   F583         MOV     DPH,A
+   \   000099   7400         MOV     A,#0x0
+   \   00009B   F0           MOVX    @DPTR,A
+     96              PRINTF("Adding neighbor with ip addr ");
+     97              PRINT6ADDR(ipaddr);
+     98              PRINTF(" link addr ");
+     99              PRINTLLADDR(lladdr);
+    100              PRINTF(" state %u\n", state);
+    101              NEIGHBOR_STATE_CHANGED(nbr);
+    102              return nbr;
+   \   00009C   EE           MOV     A,R6
+   \   00009D   FA           MOV     R2,A
+   \   00009E   EF           MOV     A,R7
+   \   00009F   FB           MOV     R3,A
+   \   0000A0   8004         SJMP    ??uip_ds6_nbr_add_1
+    103            } else {
+    104              PRINTF("uip_ds6_nbr_add drop ip addr ");
+    105              PRINT6ADDR(ipaddr);
+    106              PRINTF(" link addr (%p) ", lladdr);
+    107              PRINTLLADDR(lladdr);
+    108              PRINTF(" state %u\n", state);
+    109              return NULL;
+   \                     ??uip_ds6_nbr_add_0:
+   \   0000A2   7A00         MOV     R2,#0x0
+   \   0000A4   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_nbr_add_1:
+   \   0000A6   7F06         MOV     R7,#0x6
+   \   0000A8   02....       LJMP    ?BANKED_LEAVE_XDATA
+    110            }
+    111          }
+    112          
+    113          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    114          void
+    115          uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
+   \                     uip_ds6_nbr_rm:
+    116          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    117            if(nbr != NULL) {
+   \   000004   EA           MOV     A,R2
+   \   000005   4B           ORL     A,R3
+   \   000006   600F         JZ      ??uip_ds6_nbr_rm_0
+    118          #if UIP_CONF_IPV6_QUEUE_PKT
+    119              uip_packetqueue_free(&nbr->packethandle);
+    120          #endif /* UIP_CONF_IPV6_QUEUE_PKT */
+    121              NEIGHBOR_STATE_CHANGED(nbr);
+    122              nbr_table_remove(ds6_neighbors, nbr);
+   \   000008                ; Setup parameters for call to function nbr_table_remove
+   \   000008   EA           MOV     A,R2
+   \   000009   FC           MOV     R4,A
+   \   00000A   EB           MOV     A,R3
+   \   00000B   FD           MOV     R5,A
+   \   00000C   90....       MOV     DPTR,#ds6_neighbors
+   \   00000F   E0           MOVX    A,@DPTR
+   \   000010   FA           MOV     R2,A
+   \   000011   A3           INC     DPTR
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   FB           MOV     R3,A
+   \   000014   12....       LCALL   ??nbr_table_remove?relay
+    123            }
+    124            return;
+   \                     ??uip_ds6_nbr_rm_0:
+   \   000017   D083         POP     DPH
+   \   000019   D082         POP     DPL
+   \   00001B   02....       LJMP    ?BRET
+    125          }
+    126          
+    127          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    128          uip_ipaddr_t *
+    129          uip_ds6_nbr_get_ipaddr(uip_ds6_nbr_t *nbr)
+   \                     uip_ds6_nbr_get_ipaddr:
+    130          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+    131            return (nbr != NULL) ? &nbr->ipaddr : NULL;
+   \   000000   EA           MOV     A,R2
+   \   000001   4B           ORL     A,R3
+   \   000002   7004         JNZ     ??uip_ds6_nbr_get_ipaddr_0
+   \   000004   7A00         MOV     R2,#0x0
+   \   000006   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_nbr_get_ipaddr_0:
+   \   000008   02....       LJMP    ?BRET
+    132          }
+    133          
+    134          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    135          uip_lladdr_t *
+    136          uip_ds6_nbr_get_ll(uip_ds6_nbr_t *nbr)
+   \                     uip_ds6_nbr_get_ll:
+    137          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    138            return (uip_lladdr_t *)nbr_table_get_lladdr(ds6_neighbors, nbr);
+   \   000004                ; Setup parameters for call to function nbr_table_get_lladdr
+   \   000004   EA           MOV     A,R2
+   \   000005   FC           MOV     R4,A
+   \   000006   EB           MOV     A,R3
+   \   000007   FD           MOV     R5,A
+   \   000008   90....       MOV     DPTR,#ds6_neighbors
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   FA           MOV     R2,A
+   \   00000D   A3           INC     DPTR
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   FB           MOV     R3,A
+   \   000010   12....       LCALL   ??nbr_table_get_lladdr?relay
+   \   000013   D083         POP     DPH
+   \   000015   D082         POP     DPL
+   \   000017   02....       LJMP    ?BRET
+    139          }
+    140          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    141          int
+    142          uip_ds6_nbr_num(void)
+   \                     uip_ds6_nbr_num:
+    143          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    144            uip_ds6_nbr_t *nbr;
+    145            int num;
+    146          
+    147            num = 0;
+   \   000005   7E00         MOV     R6,#0x0
+   \   000007   7F00         MOV     R7,#0x0
+    148            for(nbr = nbr_table_head(ds6_neighbors);
+   \   000009                ; Setup parameters for call to function nbr_table_head
+   \   000009   90....       MOV     DPTR,#ds6_neighbors
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   FA           MOV     R2,A
+   \   00000E   A3           INC     DPTR
+   \   00000F   E0           MOVX    A,@DPTR
+   \   000010   FB           MOV     R3,A
+   \   000011   12....       LCALL   ??nbr_table_head?relay
+   \   000014   8A..         MOV     ?V0 + 0,R2
+   \   000016   8B..         MOV     ?V0 + 1,R3
+   \   000018   AC..         MOV     R4,?V0 + 0
+   \   00001A   AD..         MOV     R5,?V0 + 1
+   \   00001C   801B         SJMP    ??uip_ds6_nbr_num_0
+    149                nbr != NULL;
+    150                nbr = nbr_table_next(ds6_neighbors, nbr)) {
+    151              num++;
+   \                     ??uip_ds6_nbr_num_1:
+   \   00001E   EE           MOV     A,R6
+   \   00001F   2401         ADD     A,#0x1
+   \   000021   FE           MOV     R6,A
+   \   000022   EF           MOV     A,R7
+   \   000023   3400         ADDC    A,#0x0
+   \   000025   FF           MOV     R7,A
+    152            }
+   \   000026                ; Setup parameters for call to function nbr_table_next
+   \   000026   90....       MOV     DPTR,#ds6_neighbors
+   \   000029   E0           MOVX    A,@DPTR
+   \   00002A   FA           MOV     R2,A
+   \   00002B   A3           INC     DPTR
+   \   00002C   E0           MOVX    A,@DPTR
+   \   00002D   FB           MOV     R3,A
+   \   00002E   12....       LCALL   ??nbr_table_next?relay
+   \   000031   8A..         MOV     ?V0 + 0,R2
+   \   000033   8B..         MOV     ?V0 + 1,R3
+   \   000035   AC..         MOV     R4,?V0 + 0
+   \   000037   AD..         MOV     R5,?V0 + 1
+   \                     ??uip_ds6_nbr_num_0:
+   \   000039   EC           MOV     A,R4
+   \   00003A   4D           ORL     A,R5
+   \   00003B   70E1         JNZ     ??uip_ds6_nbr_num_1
+    153            return num;
+   \   00003D   EE           MOV     A,R6
+   \   00003E   FA           MOV     R2,A
+   \   00003F   EF           MOV     A,R7
+   \   000040   FB           MOV     R3,A
+   \   000041   7F02         MOV     R7,#0x2
+   \   000043   02....       LJMP    ?BANKED_LEAVE_XDATA
+    154          }
+    155          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    156          uip_ds6_nbr_t *
+    157          uip_ds6_nbr_lookup(uip_ipaddr_t *ipaddr)
+   \                     uip_ds6_nbr_lookup:
+    158          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+    159            uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
+   \   000009                ; Setup parameters for call to function nbr_table_head
+   \   000009   90....       MOV     DPTR,#ds6_neighbors
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   FA           MOV     R2,A
+   \   00000E   A3           INC     DPTR
+   \   00000F   E0           MOVX    A,@DPTR
+   \   000010   FB           MOV     R3,A
+   \   000011   12....       LCALL   ??nbr_table_head?relay
+   \   000014   8A..         MOV     ?V0 + 2,R2
+   \   000016   8B..         MOV     ?V0 + 3,R3
+   \   000018   AE..         MOV     R6,?V0 + 2
+   \   00001A   AF..         MOV     R7,?V0 + 3
+    160            if(ipaddr != NULL) {
+   \   00001C   E5..         MOV     A,?V0 + 0
+   \   00001E   45..         ORL     A,?V0 + 1
+   \   000020   7020         JNZ     ??uip_ds6_nbr_lookup_0
+    161              while(nbr != NULL) {
+    162                if(uip_ipaddr_cmp(&nbr->ipaddr, ipaddr)) {
+    163                  return nbr;
+    164                }
+    165                nbr = nbr_table_next(ds6_neighbors, nbr);
+    166              }
+    167            }
+    168            return NULL;
+   \                     ??uip_ds6_nbr_lookup_1:
+   \   000022   7A00         MOV     R2,#0x0
+   \   000024   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_nbr_lookup_2:
+   \   000026   7F04         MOV     R7,#0x4
+   \   000028   02....       LJMP    ?BANKED_LEAVE_XDATA
+   \                     ??uip_ds6_nbr_lookup_3:
+   \   00002B                ; Setup parameters for call to function nbr_table_next
+   \   00002B   EE           MOV     A,R6
+   \   00002C   FC           MOV     R4,A
+   \   00002D   EF           MOV     A,R7
+   \   00002E   FD           MOV     R5,A
+   \   00002F   90....       MOV     DPTR,#ds6_neighbors
+   \   000032   E0           MOVX    A,@DPTR
+   \   000033   FA           MOV     R2,A
+   \   000034   A3           INC     DPTR
+   \   000035   E0           MOVX    A,@DPTR
+   \   000036   FB           MOV     R3,A
+   \   000037   12....       LCALL   ??nbr_table_next?relay
+   \   00003A   8A..         MOV     ?V0 + 2,R2
+   \   00003C   8B..         MOV     ?V0 + 3,R3
+   \   00003E   AE..         MOV     R6,?V0 + 2
+   \   000040   AF..         MOV     R7,?V0 + 3
+   \                     ??uip_ds6_nbr_lookup_0:
+   \   000042   EE           MOV     A,R6
+   \   000043   4F           ORL     A,R7
+   \   000044   60DC         JZ      ??uip_ds6_nbr_lookup_1
+   \   000046                ; Setup parameters for call to function memcmp
+   \   000046   75..10       MOV     ?V0 + 2,#0x10
+   \   000049   75..00       MOV     ?V0 + 3,#0x0
+   \   00004C   78..         MOV     R0,#?V0 + 2
+   \   00004E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000051   AC..         MOV     R4,?V0 + 0
+   \   000053   AD..         MOV     R5,?V0 + 1
+   \   000055   EE           MOV     A,R6
+   \   000056   FA           MOV     R2,A
+   \   000057   EF           MOV     A,R7
+   \   000058   FB           MOV     R3,A
+   \   000059   12....       LCALL   ??memcmp?relay
+   \   00005C   7402         MOV     A,#0x2
+   \   00005E   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000061   8A..         MOV     ?V0 + 2,R2
+   \   000063   8B..         MOV     ?V0 + 3,R3
+   \   000065   E5..         MOV     A,?V0 + 2
+   \   000067   45..         ORL     A,?V0 + 3
+   \   000069   70C0         JNZ     ??uip_ds6_nbr_lookup_3
+   \   00006B   EE           MOV     A,R6
+   \   00006C   FA           MOV     R2,A
+   \   00006D   EF           MOV     A,R7
+   \   00006E   FB           MOV     R3,A
+   \   00006F   80B5         SJMP    ??uip_ds6_nbr_lookup_2
+    169          }
+    170          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    171          uip_ds6_nbr_t *
+    172          uip_ds6_nbr_ll_lookup(uip_lladdr_t *lladdr)
+   \                     uip_ds6_nbr_ll_lookup:
+    173          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    174            return nbr_table_get_from_lladdr(ds6_neighbors, (rimeaddr_t*)lladdr);
+   \   000004                ; Setup parameters for call to function nbr_table_get_from_lladdr
+   \   000004   EA           MOV     A,R2
+   \   000005   FC           MOV     R4,A
+   \   000006   EB           MOV     A,R3
+   \   000007   FD           MOV     R5,A
+   \   000008   90....       MOV     DPTR,#ds6_neighbors
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   FA           MOV     R2,A
+   \   00000D   A3           INC     DPTR
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   FB           MOV     R3,A
+   \   000010   12....       LCALL   ??nbr_table_get_from_lladdr?relay
+   \   000013   D083         POP     DPH
+   \   000015   D082         POP     DPL
+   \   000017   02....       LJMP    ?BRET
+    175          }
+    176          
+    177          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    178          uip_ipaddr_t *
+    179          uip_ds6_nbr_ipaddr_from_lladdr(uip_lladdr_t *lladdr)
+   \                     uip_ds6_nbr_ipaddr_from_lladdr:
+    180          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    181            uip_ds6_nbr_t *nbr = uip_ds6_nbr_ll_lookup(lladdr);
+   \   000005                ; Setup parameters for call to function uip_ds6_nbr_ll_lookup
+   \   000005   12....       LCALL   ??uip_ds6_nbr_ll_lookup?relay
+   \   000008   8A..         MOV     ?V0 + 0,R2
+   \   00000A   8B..         MOV     ?V0 + 1,R3
+   \   00000C   AA..         MOV     R2,?V0 + 0
+   \   00000E   AB..         MOV     R3,?V0 + 1
+    182            return nbr ? &nbr->ipaddr : NULL;
+   \   000010   EA           MOV     A,R2
+   \   000011   4B           ORL     A,R3
+   \   000012   7004         JNZ     ??uip_ds6_nbr_ipaddr_from_lladdr_0
+   \   000014   7A00         MOV     R2,#0x0
+   \   000016   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_nbr_ipaddr_from_lladdr_0:
+   \   000018   7F02         MOV     R7,#0x2
+   \   00001A   02....       LJMP    ?BANKED_LEAVE_XDATA
+    183          }
+    184          
+    185          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    186          uip_lladdr_t *
+    187          uip_ds6_nbr_lladdr_from_ipaddr(uip_ipaddr_t *ipaddr)
+   \                     uip_ds6_nbr_lladdr_from_ipaddr:
+    188          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    189            uip_ds6_nbr_t *nbr = uip_ds6_nbr_lookup(ipaddr);
+   \   000005                ; Setup parameters for call to function uip_ds6_nbr_lookup
+   \   000005   12....       LCALL   ??uip_ds6_nbr_lookup?relay
+   \   000008   8A..         MOV     ?V0 + 0,R2
+   \   00000A   8B..         MOV     ?V0 + 1,R3
+   \   00000C   AA..         MOV     R2,?V0 + 0
+   \   00000E   AB..         MOV     R3,?V0 + 1
+    190            return nbr ? uip_ds6_nbr_get_ll(nbr) : NULL;
+   \   000010   EA           MOV     A,R2
+   \   000011   4B           ORL     A,R3
+   \   000012   600D         JZ      ??uip_ds6_nbr_lladdr_from_ipaddr_0
+   \   000014                ; Setup parameters for call to function uip_ds6_nbr_get_ll
+   \   000014   12....       LCALL   ??uip_ds6_nbr_get_ll?relay
+   \   000017   8A..         MOV     ?V0 + 0,R2
+   \   000019   8B..         MOV     ?V0 + 1,R3
+   \   00001B   AA..         MOV     R2,?V0 + 0
+   \   00001D   AB..         MOV     R3,?V0 + 1
+   \   00001F   8004         SJMP    ??uip_ds6_nbr_lladdr_from_ipaddr_1
+   \                     ??uip_ds6_nbr_lladdr_from_ipaddr_0:
+   \   000021   7A00         MOV     R2,#0x0
+   \   000023   7B00         MOV     R3,#0x0
+   \                     ??uip_ds6_nbr_lladdr_from_ipaddr_1:
+   \   000025   7F02         MOV     R7,#0x2
+   \   000027   02....       LJMP    ?BANKED_LEAVE_XDATA
+    191          }
+    192          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    193          void
+    194          uip_ds6_link_neighbor_callback(int status, int numtx)
+   \                     uip_ds6_link_neighbor_callback:
+    195          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    196            const rimeaddr_t *dest = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+   \   000005                ; Setup parameters for call to function packetbuf_addr
+   \   000005   7919         MOV     R1,#0x19
+   \   000007   12....       LCALL   ??packetbuf_addr?relay
+   \   00000A   8A..         MOV     ?V0 + 0,R2
+   \   00000C   8B..         MOV     ?V0 + 1,R3
+   \   00000E   AA..         MOV     R2,?V0 + 0
+   \   000010   AB..         MOV     R3,?V0 + 1
+    197            if(rimeaddr_cmp(dest, &rimeaddr_null)) {
+   \   000012                ; Setup parameters for call to function rimeaddr_cmp
+   \   000012   7C..         MOV     R4,#rimeaddr_null & 0xff
+   \   000014   7D..         MOV     R5,#(rimeaddr_null >> 8) & 0xff
+   \   000016   12....       LCALL   ??rimeaddr_cmp?relay
+   \   000019   8A..         MOV     ?V0 + 0,R2
+   \   00001B   8B..         MOV     ?V0 + 1,R3
+   \   00001D   E5..         MOV     A,?V0 + 0
+   \   00001F   45..         ORL     A,?V0 + 1
+    198              return;
+    199            }
+    200          
+    201            LINK_NEIGHBOR_CALLBACK(dest, status, numtx);
+    202          
+    203          #if UIP_DS6_LL_NUD
+    204            if(status == MAC_TX_OK) {
+    205              uip_ds6_nbr_t *nbr;
+    206              nbr = uip_ds6_nbr_ll_lookup((uip_lladdr_t *)dest);
+    207              if(nbr != NULL &&
+    208                  (nbr->state == STALE || nbr->state == DELAY || nbr->state == PROBE)) {
+    209                nbr->state = REACHABLE;
+    210                stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+    211                PRINTF("uip-ds6-neighbor : received a link layer ACK : ");
+    212                PRINTLLADDR((uip_lladdr_t *)dest);
+    213                PRINTF(" is reachable.\n");
+    214              }
+    215            }
+    216          #endif /* UIP_DS6_LL_NUD */
+    217          
+    218          }
+   \   000021   7F02         MOV     R7,#0x2
+   \   000023   02....       LJMP    ?BANKED_LEAVE_XDATA
+    219          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    220          void
+    221          uip_ds6_neighbor_periodic(void)
+   \                     uip_ds6_neighbor_periodic:
+    222          {
+   \   000000   74EC         MOV     A,#-0x14
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 20
+   \   000005                ; Auto size: 0
+    223            /* Periodic processing on neighbors */
+    224            uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
+   \   000005                ; Setup parameters for call to function nbr_table_head
+   \   000005   90....       MOV     DPTR,#ds6_neighbors
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   FA           MOV     R2,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   FB           MOV     R3,A
+   \   00000D   12....       LCALL   ??nbr_table_head?relay
+   \   000010   8A..         MOV     ?V0 + 2,R2
+   \   000012   8B..         MOV     ?V0 + 3,R3
+   \   000014   85....       MOV     ?V0 + 0,?V0 + 2
+   \   000017   85....       MOV     ?V0 + 1,?V0 + 3
+   \   00001A   8019         SJMP    ??uip_ds6_neighbor_periodic_0
+    225            while(nbr != NULL) {
+    226              switch(nbr->state) {
+    227              case NBR_REACHABLE:
+    228                if(stimer_expired(&nbr->reachable)) {
+    229                  PRINTF("REACHABLE: moving to STALE (");
+    230                  PRINT6ADDR(&nbr->ipaddr);
+    231                  PRINTF(")\n");
+    232                  nbr->state = NBR_STALE;
+    233                }
+    234                break;
+    235          #if UIP_ND6_SEND_NA
+    236              case NBR_INCOMPLETE:
+    237                if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
+    238                  uip_ds6_nbr_rm(nbr);
+    239                } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
+    240                  nbr->nscount++;
+    241                  PRINTF("NBR_INCOMPLETE: NS %u\n", nbr->nscount);
+    242                  uip_nd6_ns_output(NULL, NULL, &nbr->ipaddr);
+    243                  stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+    244                }
+    245                break;
+    246              case NBR_DELAY:
+    247                if(stimer_expired(&nbr->reachable)) {
+    248                  nbr->state = NBR_PROBE;
+    249                  nbr->nscount = 0;
+    250                  PRINTF("DELAY: moving to PROBE\n");
+    251                  stimer_set(&nbr->sendns, 0);
+    252                }
+    253                break;
+    254              case NBR_PROBE:
+    255                if(nbr->nscount >= UIP_ND6_MAX_UNICAST_SOLICIT) {
+    256                  uip_ds6_defrt_t *locdefrt;
+    257                  PRINTF("PROBE END\n");
+    258                  if((locdefrt = uip_ds6_defrt_lookup(&nbr->ipaddr)) != NULL) {
+    259                    if (!locdefrt->isinfinite) {
+    260                      uip_ds6_defrt_rm(locdefrt);
+    261                    }
+    262                  }
+    263                  uip_ds6_nbr_rm(nbr);
+    264                } else if(stimer_expired(&nbr->sendns) && (uip_len == 0)) {
+    265                  nbr->nscount++;
+    266                  PRINTF("PROBE: NS %u\n", nbr->nscount);
+    267                  uip_nd6_ns_output(NULL, &nbr->ipaddr, &nbr->ipaddr);
+    268                  stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+    269                }
+    270                break;
+    271          #endif /* UIP_ND6_SEND_NA */
+    272              default:
+    273                break;
+    274              }
+    275              nbr = nbr_table_next(ds6_neighbors, nbr);
+   \                     ??uip_ds6_neighbor_periodic_1:
+   \   00001C                ; Setup parameters for call to function nbr_table_next
+   \   00001C   AC..         MOV     R4,?V0 + 0
+   \   00001E   AD..         MOV     R5,?V0 + 1
+   \   000020   90....       MOV     DPTR,#ds6_neighbors
+   \   000023   E0           MOVX    A,@DPTR
+   \   000024   FA           MOV     R2,A
+   \   000025   A3           INC     DPTR
+   \   000026   E0           MOVX    A,@DPTR
+   \   000027   FB           MOV     R3,A
+   \   000028   12....       LCALL   ??nbr_table_next?relay
+   \   00002B   8A..         MOV     ?V0 + 2,R2
+   \   00002D   8B..         MOV     ?V0 + 3,R3
+   \   00002F   85....       MOV     ?V0 + 0,?V0 + 2
+   \   000032   85....       MOV     ?V0 + 1,?V0 + 3
+   \                     ??uip_ds6_neighbor_periodic_0:
+   \   000035   E5..         MOV     A,?V0 + 0
+   \   000037   45..         ORL     A,?V0 + 1
+   \   000039   7003         JNZ     $+5
+   \   00003B   02....       LJMP    ??uip_ds6_neighbor_periodic_2 & 0xFFFF
+   \   00003E   E5..         MOV     A,?V0 + 0
+   \   000040   2422         ADD     A,#0x22
+   \   000042   F582         MOV     DPL,A
+   \   000044   E5..         MOV     A,?V0 + 1
+   \   000046   3400         ADDC    A,#0x0
+   \   000048   F583         MOV     DPH,A
+   \   00004A   E0           MOVX    A,@DPTR
+   \   00004B   603A         JZ      ??uip_ds6_neighbor_periodic_3
+   \   00004D   14           DEC     A
+   \   00004E   600F         JZ      ??uip_ds6_neighbor_periodic_4
+   \   000050   24FE         ADD     A,#-0x2
+   \   000052   7003         JNZ     $+5
+   \   000054   02....       LJMP    ??uip_ds6_neighbor_periodic_5 & 0xFFFF
+   \   000057   14           DEC     A
+   \   000058   7003         JNZ     $+5
+   \   00005A   02....       LJMP    ??uip_ds6_neighbor_periodic_6 & 0xFFFF
+   \   00005D   80BD         SJMP    ??uip_ds6_neighbor_periodic_1
+   \                     ??uip_ds6_neighbor_periodic_4:
+   \   00005F                ; Setup parameters for call to function stimer_expired
+   \   00005F   E5..         MOV     A,?V0 + 0
+   \   000061   2410         ADD     A,#0x10
+   \   000063   FA           MOV     R2,A
+   \   000064   E5..         MOV     A,?V0 + 1
+   \   000066   3400         ADDC    A,#0x0
+   \   000068   FB           MOV     R3,A
+   \   000069   12....       LCALL   ??stimer_expired?relay
+   \   00006C   8A..         MOV     ?V0 + 2,R2
+   \   00006E   8B..         MOV     ?V0 + 3,R3
+   \   000070   E5..         MOV     A,?V0 + 2
+   \   000072   45..         ORL     A,?V0 + 3
+   \   000074   60A6         JZ      ??uip_ds6_neighbor_periodic_1
+   \   000076   E5..         MOV     A,?V0 + 0
+   \   000078   2422         ADD     A,#0x22
+   \   00007A   F582         MOV     DPL,A
+   \   00007C   E5..         MOV     A,?V0 + 1
+   \   00007E   3400         ADDC    A,#0x0
+   \   000080   F583         MOV     DPH,A
+   \   000082   7402         MOV     A,#0x2
+   \   000084   F0           MOVX    @DPTR,A
+   \   000085   8095         SJMP    ??uip_ds6_neighbor_periodic_1
+   \                     ??uip_ds6_neighbor_periodic_3:
+   \   000087   E5..         MOV     A,?V0 + 0
+   \   000089   2420         ADD     A,#0x20
+   \   00008B   F582         MOV     DPL,A
+   \   00008D   E5..         MOV     A,?V0 + 1
+   \   00008F   3400         ADDC    A,#0x0
+   \   000091   F583         MOV     DPH,A
+   \   000093   E0           MOVX    A,@DPTR
+   \   000094   C3           CLR     C
+   \   000095   9403         SUBB    A,#0x3
+   \   000097   400A         JC      ??uip_ds6_neighbor_periodic_7
+   \   000099                ; Setup parameters for call to function uip_ds6_nbr_rm
+   \   000099   AA..         MOV     R2,?V0 + 0
+   \   00009B   AB..         MOV     R3,?V0 + 1
+   \   00009D   12....       LCALL   ??uip_ds6_nbr_rm?relay
+   \   0000A0   02....       LJMP    ??uip_ds6_neighbor_periodic_1 & 0xFFFF
+   \                     ??uip_ds6_neighbor_periodic_7:
+   \   0000A3                ; Setup parameters for call to function stimer_expired
+   \   0000A3   E5..         MOV     A,?V0 + 0
+   \   0000A5   2418         ADD     A,#0x18
+   \   0000A7   FA           MOV     R2,A
+   \   0000A8   E5..         MOV     A,?V0 + 1
+   \   0000AA   3400         ADDC    A,#0x0
+   \   0000AC   FB           MOV     R3,A
+   \   0000AD   12....       LCALL   ??stimer_expired?relay
+   \   0000B0   8A..         MOV     ?V0 + 2,R2
+   \   0000B2   8B..         MOV     ?V0 + 3,R3
+   \   0000B4   E5..         MOV     A,?V0 + 2
+   \   0000B6   45..         ORL     A,?V0 + 3
+   \   0000B8   605F         JZ      ??uip_ds6_neighbor_periodic_8
+   \   0000BA   90....       MOV     DPTR,#uip_len
+   \   0000BD   E0           MOVX    A,@DPTR
+   \   0000BE   F8           MOV     R0,A
+   \   0000BF   A3           INC     DPTR
+   \   0000C0   E0           MOVX    A,@DPTR
+   \   0000C1   F9           MOV     R1,A
+   \   0000C2   E8           MOV     A,R0
+   \   0000C3   49           ORL     A,R1
+   \   0000C4   7053         JNZ     ??uip_ds6_neighbor_periodic_8
+   \   0000C6   E5..         MOV     A,?V0 + 0
+   \   0000C8   2420         ADD     A,#0x20
+   \   0000CA   F582         MOV     DPL,A
+   \   0000CC   E5..         MOV     A,?V0 + 1
+   \   0000CE   3400         ADDC    A,#0x0
+   \   0000D0   F583         MOV     DPH,A
+   \   0000D2   E0           MOVX    A,@DPTR
+   \   0000D3   2401         ADD     A,#0x1
+   \   0000D5   F0           MOVX    @DPTR,A
+   \   0000D6                ; Setup parameters for call to function uip_nd6_ns_output
+   \   0000D6   78..         MOV     R0,#?V0 + 0
+   \   0000D8   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000DB   7C00         MOV     R4,#0x0
+   \   0000DD   7D00         MOV     R5,#0x0
+   \   0000DF   7A00         MOV     R2,#0x0
+   \   0000E1   7B00         MOV     R3,#0x0
+   \   0000E3   12....       LCALL   ??uip_nd6_ns_output?relay
+   \   0000E6   7402         MOV     A,#0x2
+   \   0000E8   12....       LCALL   ?DEALLOC_XSTACK8
+   \   0000EB                ; Setup parameters for call to function stimer_set
+   \   0000EB   90....       MOV     DPTR,#uip_ds6_if + 13
+   \   0000EE   78..         MOV     R0,#?V0 + 4
+   \   0000F0   12....       LCALL   ?L_MOV_X
+   \   0000F3   90....       MOV     DPTR,#__Constant_3e8
+   \   0000F6   78..         MOV     R0,#?V0 + 8
+   \   0000F8   12....       LCALL   ?L_MOV_X
+   \   0000FB   78..         MOV     R0,#?V0 + 4
+   \   0000FD   79..         MOV     R1,#?V0 + 8
+   \   0000FF   12....       LCALL   ?UL_DIV_MOD
+   \   000102   78..         MOV     R0,#?V0 + 4
+   \   000104   12....       LCALL   ?PUSH_XSTACK_I_FOUR
+   \   000107   E5..         MOV     A,?V0 + 0
+   \   000109   2418         ADD     A,#0x18
+   \   00010B   FA           MOV     R2,A
+   \   00010C   E5..         MOV     A,?V0 + 1
+   \   00010E   3400         ADDC    A,#0x0
+   \   000110   FB           MOV     R3,A
+   \   000111   12....       LCALL   ??stimer_set?relay
+   \   000114   7404         MOV     A,#0x4
+   \   000116   12....       LCALL   ?DEALLOC_XSTACK8
+   \                     ??uip_ds6_neighbor_periodic_8:
+   \   000119   02....       LJMP    ??uip_ds6_neighbor_periodic_1 & 0xFFFF
+   \                     ??uip_ds6_neighbor_periodic_5:
+   \   00011C                ; Setup parameters for call to function stimer_expired
+   \   00011C   E5..         MOV     A,?V0 + 0
+   \   00011E   2410         ADD     A,#0x10
+   \   000120   FA           MOV     R2,A
+   \   000121   E5..         MOV     A,?V0 + 1
+   \   000123   3400         ADDC    A,#0x0
+   \   000125   FB           MOV     R3,A
+   \   000126   12....       LCALL   ??stimer_expired?relay
+   \   000129   8A..         MOV     ?V0 + 2,R2
+   \   00012B   8B..         MOV     ?V0 + 3,R3
+   \   00012D   E5..         MOV     A,?V0 + 2
+   \   00012F   45..         ORL     A,?V0 + 3
+   \   000131   6036         JZ      ??uip_ds6_neighbor_periodic_9
+   \   000133   E5..         MOV     A,?V0 + 0
+   \   000135   2422         ADD     A,#0x22
+   \   000137   F582         MOV     DPL,A
+   \   000139   E5..         MOV     A,?V0 + 1
+   \   00013B   3400         ADDC    A,#0x0
+   \   00013D   F583         MOV     DPH,A
+   \   00013F   7404         MOV     A,#0x4
+   \   000141   F0           MOVX    @DPTR,A
+   \   000142   E5..         MOV     A,?V0 + 0
+   \   000144   2420         ADD     A,#0x20
+   \   000146   F582         MOV     DPL,A
+   \   000148   E5..         MOV     A,?V0 + 1
+   \   00014A   3400         ADDC    A,#0x0
+   \   00014C   F583         MOV     DPH,A
+   \   00014E   7400         MOV     A,#0x0
+   \   000150   F0           MOVX    @DPTR,A
+   \   000151                ; Setup parameters for call to function stimer_set
+   \   000151   90....       MOV     DPTR,#__Constant_0
+   \   000154   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   000157   E5..         MOV     A,?V0 + 0
+   \   000159   2418         ADD     A,#0x18
+   \   00015B   FA           MOV     R2,A
+   \   00015C   E5..         MOV     A,?V0 + 1
+   \   00015E   3400         ADDC    A,#0x0
+   \   000160   FB           MOV     R3,A
+   \   000161   12....       LCALL   ??stimer_set?relay
+   \   000164   7404         MOV     A,#0x4
+   \   000166   12....       LCALL   ?DEALLOC_XSTACK8
+   \                     ??uip_ds6_neighbor_periodic_9:
+   \   000169   02....       LJMP    ??uip_ds6_neighbor_periodic_1 & 0xFFFF
+   \                     ??uip_ds6_neighbor_periodic_6:
+   \   00016C   E5..         MOV     A,?V0 + 0
+   \   00016E   2420         ADD     A,#0x20
+   \   000170   F582         MOV     DPL,A
+   \   000172   E5..         MOV     A,?V0 + 1
+   \   000174   3400         ADDC    A,#0x0
+   \   000176   F583         MOV     DPH,A
+   \   000178   E0           MOVX    A,@DPTR
+   \   000179   C3           CLR     C
+   \   00017A   9403         SUBB    A,#0x3
+   \   00017C   4030         JC      ??uip_ds6_neighbor_periodic_10
+   \   00017E                ; Setup parameters for call to function uip_ds6_defrt_lookup
+   \   00017E   AA..         MOV     R2,?V0 + 0
+   \   000180   AB..         MOV     R3,?V0 + 1
+   \   000182   12....       LCALL   ??uip_ds6_defrt_lookup?relay
+   \   000185   8A..         MOV     ?V0 + 2,R2
+   \   000187   8B..         MOV     ?V0 + 3,R3
+   \   000189   A8..         MOV     R0,?V0 + 2
+   \   00018B   A9..         MOV     R1,?V0 + 3
+   \   00018D   E8           MOV     A,R0
+   \   00018E   FA           MOV     R2,A
+   \   00018F   E9           MOV     A,R1
+   \   000190   FB           MOV     R3,A
+   \   000191   E8           MOV     A,R0
+   \   000192   49           ORL     A,R1
+   \   000193   6010         JZ      ??uip_ds6_neighbor_periodic_11
+   \   000195   EA           MOV     A,R2
+   \   000196   241A         ADD     A,#0x1a
+   \   000198   F582         MOV     DPL,A
+   \   00019A   EB           MOV     A,R3
+   \   00019B   3400         ADDC    A,#0x0
+   \   00019D   F583         MOV     DPH,A
+   \   00019F   E0           MOVX    A,@DPTR
+   \   0001A0   7003         JNZ     ??uip_ds6_neighbor_periodic_11
+   \   0001A2                ; Setup parameters for call to function uip_ds6_defrt_rm
+   \   0001A2   12....       LCALL   ??uip_ds6_defrt_rm?relay
+   \                     ??uip_ds6_neighbor_periodic_11:
+   \   0001A5                ; Setup parameters for call to function uip_ds6_nbr_rm
+   \   0001A5   AA..         MOV     R2,?V0 + 0
+   \   0001A7   AB..         MOV     R3,?V0 + 1
+   \   0001A9   12....       LCALL   ??uip_ds6_nbr_rm?relay
+   \   0001AC   8076         SJMP    ??uip_ds6_neighbor_periodic_12
+   \                     ??uip_ds6_neighbor_periodic_10:
+   \   0001AE                ; Setup parameters for call to function stimer_expired
+   \   0001AE   E5..         MOV     A,?V0 + 0
+   \   0001B0   2418         ADD     A,#0x18
+   \   0001B2   FA           MOV     R2,A
+   \   0001B3   E5..         MOV     A,?V0 + 1
+   \   0001B5   3400         ADDC    A,#0x0
+   \   0001B7   FB           MOV     R3,A
+   \   0001B8   12....       LCALL   ??stimer_expired?relay
+   \   0001BB   8A..         MOV     ?V0 + 2,R2
+   \   0001BD   8B..         MOV     ?V0 + 3,R3
+   \   0001BF   E5..         MOV     A,?V0 + 2
+   \   0001C1   45..         ORL     A,?V0 + 3
+   \   0001C3   605F         JZ      ??uip_ds6_neighbor_periodic_12
+   \   0001C5   90....       MOV     DPTR,#uip_len
+   \   0001C8   E0           MOVX    A,@DPTR
+   \   0001C9   F8           MOV     R0,A
+   \   0001CA   A3           INC     DPTR
+   \   0001CB   E0           MOVX    A,@DPTR
+   \   0001CC   F9           MOV     R1,A
+   \   0001CD   E8           MOV     A,R0
+   \   0001CE   49           ORL     A,R1
+   \   0001CF   7053         JNZ     ??uip_ds6_neighbor_periodic_12
+   \   0001D1   E5..         MOV     A,?V0 + 0
+   \   0001D3   2420         ADD     A,#0x20
+   \   0001D5   F582         MOV     DPL,A
+   \   0001D7   E5..         MOV     A,?V0 + 1
+   \   0001D9   3400         ADDC    A,#0x0
+   \   0001DB   F583         MOV     DPH,A
+   \   0001DD   E0           MOVX    A,@DPTR
+   \   0001DE   2401         ADD     A,#0x1
+   \   0001E0   F0           MOVX    @DPTR,A
+   \   0001E1                ; Setup parameters for call to function uip_nd6_ns_output
+   \   0001E1   78..         MOV     R0,#?V0 + 0
+   \   0001E3   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0001E6   AC..         MOV     R4,?V0 + 0
+   \   0001E8   AD..         MOV     R5,?V0 + 1
+   \   0001EA   7A00         MOV     R2,#0x0
+   \   0001EC   7B00         MOV     R3,#0x0
+   \   0001EE   12....       LCALL   ??uip_nd6_ns_output?relay
+   \   0001F1   7402         MOV     A,#0x2
+   \   0001F3   12....       LCALL   ?DEALLOC_XSTACK8
+   \   0001F6                ; Setup parameters for call to function stimer_set
+   \   0001F6   90....       MOV     DPTR,#uip_ds6_if + 13
+   \   0001F9   78..         MOV     R0,#?V0 + 4
+   \   0001FB   12....       LCALL   ?L_MOV_X
+   \   0001FE   90....       MOV     DPTR,#__Constant_3e8
+   \   000201   78..         MOV     R0,#?V0 + 8
+   \   000203   12....       LCALL   ?L_MOV_X
+   \   000206   78..         MOV     R0,#?V0 + 4
+   \   000208   79..         MOV     R1,#?V0 + 8
+   \   00020A   12....       LCALL   ?UL_DIV_MOD
+   \   00020D   78..         MOV     R0,#?V0 + 4
+   \   00020F   12....       LCALL   ?PUSH_XSTACK_I_FOUR
+   \   000212   E5..         MOV     A,?V0 + 0
+   \   000214   2418         ADD     A,#0x18
+   \   000216   FA           MOV     R2,A
+   \   000217   E5..         MOV     A,?V0 + 1
+   \   000219   3400         ADDC    A,#0x0
+   \   00021B   FB           MOV     R3,A
+   \   00021C   12....       LCALL   ??stimer_set?relay
+   \   00021F   7404         MOV     A,#0x4
+   \   000221   12....       LCALL   ?DEALLOC_XSTACK8
+   \                     ??uip_ds6_neighbor_periodic_12:
+   \   000224   02....       LJMP    ??uip_ds6_neighbor_periodic_1 & 0xFFFF
+    276            }
+    277          }
+   \                     ??uip_ds6_neighbor_periodic_2:
+   \   000227   7F0C         MOV     R7,#0xc
+   \   000229   02....       LJMP    ?BANKED_LEAVE_XDATA
+    278          
+    279          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    280          uip_ds6_nbr_t *
+    281          uip_ds6_get_least_lifetime_neighbor(void)
+   \                     uip_ds6_get_least_lifetime_neighbor:
+    282          {
+   \   000000   74EC         MOV     A,#-0x14
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 20
+   \   000005                ; Auto size: 0
+    283            uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
+   \   000005                ; Setup parameters for call to function nbr_table_head
+   \   000005   90....       MOV     DPTR,#ds6_neighbors
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   FA           MOV     R2,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   FB           MOV     R3,A
+   \   00000D   12....       LCALL   ??nbr_table_head?relay
+   \   000010   8A..         MOV     ?V0 + 2,R2
+   \   000012   8B..         MOV     ?V0 + 3,R3
+   \   000014   85....       MOV     ?V0 + 0,?V0 + 2
+   \   000017   85....       MOV     ?V0 + 1,?V0 + 3
+    284            uip_ds6_nbr_t *nbr_expiring = NULL;
+   \   00001A   7E00         MOV     R6,#0x0
+   \   00001C   7F00         MOV     R7,#0x0
+   \   00001E   801D         SJMP    ??uip_ds6_get_least_lifetime_neighbor_0
+    285            while(nbr != NULL) {
+    286              if(nbr_expiring != NULL) {
+    287                clock_time_t curr = stimer_remaining(&nbr->reachable);
+    288                if(curr < stimer_remaining(&nbr->reachable)) {
+    289                  nbr_expiring = nbr;
+    290                }
+    291              } else {
+    292                nbr_expiring = nbr;
+   \                     ??uip_ds6_get_least_lifetime_neighbor_1:
+   \   000020   AE..         MOV     R6,?V0 + 0
+   \   000022   AF..         MOV     R7,?V0 + 1
+    293              }
+    294              nbr = nbr_table_next(ds6_neighbors, nbr);
+   \                     ??uip_ds6_get_least_lifetime_neighbor_2:
+   \   000024                ; Setup parameters for call to function nbr_table_next
+   \   000024   AC..         MOV     R4,?V0 + 0
+   \   000026   AD..         MOV     R5,?V0 + 1
+   \   000028   90....       MOV     DPTR,#ds6_neighbors
+   \   00002B   E0           MOVX    A,@DPTR
+   \   00002C   FA           MOV     R2,A
+   \   00002D   A3           INC     DPTR
+   \   00002E   E0           MOVX    A,@DPTR
+   \   00002F   FB           MOV     R3,A
+   \   000030   12....       LCALL   ??nbr_table_next?relay
+   \   000033   8A..         MOV     ?V0 + 2,R2
+   \   000035   8B..         MOV     ?V0 + 3,R3
+   \   000037   85....       MOV     ?V0 + 0,?V0 + 2
+   \   00003A   85....       MOV     ?V0 + 1,?V0 + 3
+   \                     ??uip_ds6_get_least_lifetime_neighbor_0:
+   \   00003D   E5..         MOV     A,?V0 + 0
+   \   00003F   45..         ORL     A,?V0 + 1
+   \   000041   604E         JZ      ??uip_ds6_get_least_lifetime_neighbor_3
+   \   000043   EE           MOV     A,R6
+   \   000044   4F           ORL     A,R7
+   \   000045   60D9         JZ      ??uip_ds6_get_least_lifetime_neighbor_1
+   \   000047                ; Setup parameters for call to function stimer_remaining
+   \   000047   E5..         MOV     A,?V0 + 0
+   \   000049   2410         ADD     A,#0x10
+   \   00004B   FA           MOV     R2,A
+   \   00004C   E5..         MOV     A,?V0 + 1
+   \   00004E   3400         ADDC    A,#0x0
+   \   000050   FB           MOV     R3,A
+   \   000051   12....       LCALL   ??stimer_remaining?relay
+   \   000054   8A..         MOV     ?V0 + 4,R2
+   \   000056   8B..         MOV     ?V0 + 5,R3
+   \   000058   8C..         MOV     ?V0 + 6,R4
+   \   00005A   8D..         MOV     ?V0 + 7,R5
+   \   00005C   85....       MOV     ?V0 + 2,?V0 + 4
+   \   00005F   85....       MOV     ?V0 + 3,?V0 + 5
+   \   000062   85....       MOV     ?V0 + 4,?V0 + 2
+   \   000065   85....       MOV     ?V0 + 5,?V0 + 3
+   \   000068                ; Setup parameters for call to function stimer_remaining
+   \   000068   E5..         MOV     A,?V0 + 0
+   \   00006A   2410         ADD     A,#0x10
+   \   00006C   FA           MOV     R2,A
+   \   00006D   E5..         MOV     A,?V0 + 1
+   \   00006F   3400         ADDC    A,#0x0
+   \   000071   FB           MOV     R3,A
+   \   000072   12....       LCALL   ??stimer_remaining?relay
+   \   000075   8A..         MOV     ?V0 + 8,R2
+   \   000077   8B..         MOV     ?V0 + 9,R3
+   \   000079   8C..         MOV     ?V0 + 10,R4
+   \   00007B   8D..         MOV     ?V0 + 11,R5
+   \   00007D   E4           CLR     A
+   \   00007E   F5..         MOV     ?V0 + 6,A
+   \   000080   F5..         MOV     ?V0 + 7,A
+   \   000082   78..         MOV     R0,#?V0 + 8
+   \   000084   79..         MOV     R1,#?V0 + 4
+   \   000086   12....       LCALL   ?UL_GT
+   \   000089   5099         JNC     ??uip_ds6_get_least_lifetime_neighbor_2
+   \   00008B   AE..         MOV     R6,?V0 + 0
+   \   00008D   AF..         MOV     R7,?V0 + 1
+   \   00008F   8093         SJMP    ??uip_ds6_get_least_lifetime_neighbor_2
+    295            }
+    296            return nbr_expiring;
+   \                     ??uip_ds6_get_least_lifetime_neighbor_3:
+   \   000091   EE           MOV     A,R6
+   \   000092   FA           MOV     R2,A
+   \   000093   EF           MOV     A,R7
+   \   000094   FB           MOV     R3,A
+   \   000095   7F0C         MOV     R7,#0xc
+   \   000097   02....       LJMP    ?BANKED_LEAVE_XDATA
+    297          }
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     __Constant_0:
+   \   000000                DS 4
+   \   000004                REQUIRE `?<Initializer for __Constant_0>`
+   \   000004                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     __Constant_3e8:
+   \   000000                DS 4
+   \   000004                REQUIRE `?<Initializer for __Constant_3e8>`
+   \   000004                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for ds6_neighbors_struct>`:
+   \   000000   0000         DW 0
+   \   000002   2300         DW 35
+   \   000004   0000         DW 0H
+   \   000006   ....         DW _ds6_neighbors_mem
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for ds6_neighbors>`:
+   \   000000   ....         DW ds6_neighbors_struct
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for __Constant_0>`:
+   \   000000   00000000     DD 0
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for __Constant_3e8>`:
+   \   000000   E8030000     DD 1000
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_neighbors_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_neighbors_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_nbr_add?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_nbr_add
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_nbr_rm?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_nbr_rm
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_nbr_get_ipaddr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_nbr_get_ipaddr
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_nbr_get_ll?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_nbr_get_ll
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_nbr_num?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_nbr_num
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_nbr_lookup?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_nbr_lookup
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_nbr_ll_lookup?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_nbr_ll_lookup
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_nbr_ipaddr_from_lladdr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_nbr_ipaddr_from_lladdr
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_nbr_lladdr_from_ipaddr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_nbr_lladdr_from_ipaddr
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_link_neighbor_callback?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_link_neighbor_callback
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_neighbor_periodic?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_neighbor_periodic
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_ds6_get_least_lifetime_neighbor?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_ds6_get_least_lifetime_neighbor
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     20  uip_ds6_get_least_lifetime_neighbor
+                          0 0 20 -> nbr_table_head
+                          0 0 20 -> nbr_table_next
+                          0 0 20 -> stimer_remaining
+       0      0     10  uip_ds6_link_neighbor_callback
+                          0 0 10 -> packetbuf_addr
+                          0 0 10 -> rimeaddr_cmp
+       1      0     19  uip_ds6_nbr_add
+                          0 0 16 -> memcpy
+                          0 0 14 -> nbr_table_add_lladdr
+                          0 0 18 -> stimer_set
+       0      0      0  uip_ds6_nbr_get_ipaddr
+       2      0     10  uip_ds6_nbr_get_ll
+                          2 0  0 -> nbr_table_get_lladdr
+       0      0     10  uip_ds6_nbr_ipaddr_from_lladdr
+                          0 0 10 -> uip_ds6_nbr_ll_lookup
+       2      0     10  uip_ds6_nbr_ll_lookup
+                          2 0  0 -> nbr_table_get_from_lladdr
+       0      0     10  uip_ds6_nbr_lladdr_from_ipaddr
+                          0 0 10 -> uip_ds6_nbr_get_ll
+                          0 0 10 -> uip_ds6_nbr_lookup
+       0      0     24  uip_ds6_nbr_lookup
+                          0 0 14 -> memcmp
+                          0 0 12 -> nbr_table_head
+                          0 0 12 -> nbr_table_next
+       0      0     10  uip_ds6_nbr_num
+                          0 0 10 -> nbr_table_head
+                          0 0 10 -> nbr_table_next
+       2      0     20  uip_ds6_nbr_rm
+                          2 0  0 -> nbr_table_remove
+       0      0     24  uip_ds6_neighbor_periodic
+                          0 0 20 -> nbr_table_head
+                          0 0 20 -> nbr_table_next
+                          0 0 20 -> stimer_expired
+                          0 0 24 -> stimer_set
+                          0 0 20 -> uip_ds6_defrt_lookup
+                          0 0 20 -> uip_ds6_defrt_rm
+                          0 0 20 -> uip_ds6_nbr_rm
+                          0 0 22 -> uip_nd6_ns_output
+       2      0      0  uip_ds6_neighbors_init
+                          2 0  0 -> nbr_table_register
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       4  ?<Initializer for __Constant_0>
+       4  ?<Initializer for __Constant_3e8>
+       2  ?<Initializer for ds6_neighbors>
+       8  ?<Initializer for ds6_neighbors_struct>
+       6  ??uip_ds6_get_least_lifetime_neighbor?relay
+       6  ??uip_ds6_link_neighbor_callback?relay
+       6  ??uip_ds6_nbr_add?relay
+       6  ??uip_ds6_nbr_get_ipaddr?relay
+       6  ??uip_ds6_nbr_get_ll?relay
+       6  ??uip_ds6_nbr_ipaddr_from_lladdr?relay
+       6  ??uip_ds6_nbr_ll_lookup?relay
+       6  ??uip_ds6_nbr_lladdr_from_ipaddr?relay
+       6  ??uip_ds6_nbr_lookup?relay
+       6  ??uip_ds6_nbr_num?relay
+       6  ??uip_ds6_nbr_rm?relay
+       6  ??uip_ds6_neighbor_periodic?relay
+       6  ??uip_ds6_neighbors_init?relay
+       4  __Constant_0
+       4  __Constant_3e8
+     140  _ds6_neighbors_mem
+       2  ds6_neighbors
+       8  ds6_neighbors_struct
+     154  uip_ds6_get_least_lifetime_neighbor
+      38  uip_ds6_link_neighbor_callback
+     171  uip_ds6_nbr_add
+      11  uip_ds6_nbr_get_ipaddr
+      26  uip_ds6_nbr_get_ll
+      29  uip_ds6_nbr_ipaddr_from_lladdr
+      26  uip_ds6_nbr_ll_lookup
+      42  uip_ds6_nbr_lladdr_from_ipaddr
+     113  uip_ds6_nbr_lookup
+      70  uip_ds6_nbr_num
+      30  uip_ds6_nbr_rm
+     556  uip_ds6_neighbor_periodic
+      26  uip_ds6_neighbors_init
+
+ 
+ 1 292 bytes in segment BANKED_CODE
+    78 bytes in segment BANK_RELAYS
+    18 bytes in segment XDATA_I
+    18 bytes in segment XDATA_ID
+   140 bytes in segment XDATA_Z
+ 
+ 1 380 bytes of CODE  memory (+ 8 bytes shared)
+   150 bytes of XDATA memory (+ 8 bytes shared)
+
+Errors: none
+Warnings: none

@@ -1,0 +1,2101 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:51 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\tcpip.c                  #
+#    Command line       =  D:\myWork\myWork\core\net\tcpip.c -D               #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\tcpip.lst                                   #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\tcpip.r51                                    #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\tcpip.c
+      1          /*
+      2           * Copyright (c) 2004, Swedish Institute of Computer Science.
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           */
+     31          
+     32          /**
+     33           * \file
+     34           *         Code for tunnelling uIP packets over the Rime mesh routing module
+     35           *
+     36           * \author  Adam Dunkels <adam@sics.se>\author
+     37           * \author  Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
+     38           * \author  Julien Abeille <jabeille@cisco.com> (IPv6 related code)
+     39           */
+     40          
+     41          #include "contiki-net.h"
+     42          #include "net/uip-split.h"
+     43          #include "net/uip-packetqueue.h"
+     44          
+     45          #if UIP_CONF_IPV6
+     46          #include "net/uip-nd6.h"
+     47          #include "net/uip-ds6.h"
+     48          #endif
+     49          
+     50          #include <string.h>
+     51          
+     52          #define DEBUG DEBUG_NONE
+     53          #include "net/uip-debug.h"
+     54          
+     55          #if UIP_LOGGING
+     56          #include <stdio.h>
+     57          void uip_log(char *msg);
+     58          #define UIP_LOG(m) uip_log(m)
+     59          #else
+     60          #define UIP_LOG(m)
+     61          #endif
+     62          
+     63          #define UIP_ICMP_BUF ((struct uip_icmp_hdr *)&uip_buf[UIP_LLIPH_LEN + uip_ext_len])
+     64          #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+     65          #define UIP_TCP_BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+     66          
+     67          #ifdef UIP_FALLBACK_INTERFACE
+     68          extern struct uip_fallback_interface UIP_FALLBACK_INTERFACE;
+     69          #endif
+     70          
+     71          #if UIP_CONF_IPV6_RPL
+     72          #include "rpl/rpl.h"
+     73          #endif
+     74          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     75          process_event_t tcpip_event;
+   \                     tcpip_event:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+     76          #if UIP_CONF_ICMP6
+     77          process_event_t tcpip_icmp6_event;
+     78          #endif /* UIP_CONF_ICMP6 */
+     79          
+     80          /* Periodic check of active connections. */
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     81          static struct etimer periodic;
+   \                     periodic:
+   \   000000                DS 8
+   \   000008                REQUIRE __INIT_XDATA_Z
+     82          
+     83          #if UIP_CONF_IPV6 && UIP_CONF_IPV6_REASSEMBLY
+     84          /* Timer for reassembly. */
+     85          extern struct etimer uip_reass_timer;
+     86          #endif
+     87          
+     88          #if UIP_TCP
+     89          /**
+     90           * \internal Structure for holding a TCP port and a process ID.
+     91           */
+     92          struct listenport {
+     93            uint16_t port;
+     94            struct process *p;
+     95          };
+     96          
+     97          static struct internal_state {
+     98            struct listenport listenports[UIP_LISTENPORTS];
+     99            struct process *p;
+    100          } s;
+    101          #endif
+    102          
+    103          enum {
+    104            TCP_POLL,
+    105            UDP_POLL,
+    106            PACKET_INPUT
+    107          };
+    108          
+    109          /* Called on IP packet output. */
+    110          #if UIP_CONF_IPV6
+    111          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+    112          static uint8_t (* outputfunc)(uip_lladdr_t *a);
+   \                     outputfunc:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+    113          
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    114          uint8_t
+    115          tcpip_output(uip_lladdr_t *a)
+   \                     tcpip_output:
+    116          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    117            int ret;
+    118            if(outputfunc != NULL) {
+   \   000004   90....       MOV     DPTR,#outputfunc
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   F8           MOV     R0,A
+   \   000009   A3           INC     DPTR
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F9           MOV     R1,A
+   \   00000C   E8           MOV     A,R0
+   \   00000D   49           ORL     A,R1
+   \   00000E   6015         JZ      ??tcpip_output_0
+    119              ret = outputfunc(a);
+   \   000010                ; Setup parameters for indirect call
+   \   000010   90....       MOV     DPTR,#outputfunc
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   F8           MOV     R0,A
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F583         MOV     DPH,A
+   \   000019   8882         MOV     DPL,R0
+   \   00001B   12....       LCALL   ?CALL_IND
+   \   00001E   E9           MOV     A,R1
+   \   00001F   F8           MOV     R0,A
+   \   000020   7900         MOV     R1,#0x0
+    120              return ret;
+   \   000022   F9           MOV     R1,A
+   \   000023   8002         SJMP    ??tcpip_output_1
+    121            }
+    122            UIP_LOG("tcpip_output: Use tcpip_set_outputfunc() to set an output function");
+    123            return 0;
+   \                     ??tcpip_output_0:
+   \   000025   7900         MOV     R1,#0x0
+   \                     ??tcpip_output_1:
+   \   000027   D083         POP     DPH
+   \   000029   D082         POP     DPL
+   \   00002B   02....       LJMP    ?BRET
+    124          }
+    125          
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    126          void
+    127          tcpip_set_outputfunc(uint8_t (*f)(uip_lladdr_t *))
+   \                     tcpip_set_outputfunc:
+    128          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    129            outputfunc = f;
+   \   000004   90....       MOV     DPTR,#outputfunc
+   \   000007   EA           MOV     A,R2
+   \   000008   F0           MOVX    @DPTR,A
+   \   000009   A3           INC     DPTR
+   \   00000A   EB           MOV     A,R3
+   \   00000B   F0           MOVX    @DPTR,A
+    130          }
+   \   00000C   D083         POP     DPH
+   \   00000E   D082         POP     DPL
+   \   000010   02....       LJMP    ?BRET
+    131          #else
+    132          
+    133          static uint8_t (* outputfunc)(void);
+    134          uint8_t
+    135          tcpip_output(void)
+    136          {
+    137            if(outputfunc != NULL) {
+    138              return outputfunc();
+    139            }
+    140            UIP_LOG("tcpip_output: Use tcpip_set_outputfunc() to set an output function");
+    141            return 0;
+    142          }
+    143          
+    144          void
+    145          tcpip_set_outputfunc(uint8_t (*f)(void))
+    146          {
+    147            outputfunc = f;
+    148          }
+    149          #endif
+    150          
+    151          #if UIP_CONF_IP_FORWARD
+    152          unsigned char tcpip_is_forwarding; /* Forwarding right now? */
+    153          #endif /* UIP_CONF_IP_FORWARD */
+    154          
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+    155          PROCESS(tcpip_process, "TCP/IP stack");
+   \                     tcpip_process:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for tcpip_process>`
+   \   000008                REQUIRE __INIT_XDATA_I
+    156          
+    157          /*---------------------------------------------------------------------------*/
+    158          static void
+    159          start_periodic_tcp_timer(void)
+                 ^
+Warning[Pe177]: function "start_periodic_tcp_timer" was declared but never
+          referenced
+    160          {
+    161            if(etimer_expired(&periodic)) {
+    162              etimer_restart(&periodic);
+    163            }
+    164          }
+    165          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    166          static void
+    167          check_for_tcp_syn(void)
+   \                     check_for_tcp_syn:
+    168          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+    169          #if UIP_TCP || UIP_CONF_IP_FORWARD
+    170            /* This is a hack that is needed to start the periodic TCP timer if
+    171               an incoming packet contains a SYN: since uIP does not inform the
+    172               application if a SYN arrives, we have no other way of starting
+    173               this timer.  This function is called for every incoming IP packet
+    174               to check for such SYNs. */
+    175          #define TCP_SYN 0x02
+    176            if(UIP_IP_BUF->proto == UIP_PROTO_TCP &&
+    177               (UIP_TCP_BUF->flags & TCP_SYN) == TCP_SYN) {
+    178              start_periodic_tcp_timer();
+    179            }
+    180          #endif /* UIP_TCP || UIP_CONF_IP_FORWARD */
+    181          }
+   \   000000   02....       LJMP    ?BRET
+    182          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    183          static void
+    184          packet_input(void)
+   \                     packet_input:
+    185          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    186          #if UIP_CONF_IP_FORWARD
+    187            if(uip_len > 0) {
+    188              tcpip_is_forwarding = 1;
+    189              if(uip_fw_forward() == UIP_FW_LOCAL) {
+    190                tcpip_is_forwarding = 0;
+    191                check_for_tcp_syn();
+    192                uip_input();
+    193                if(uip_len > 0) {
+    194          #if UIP_CONF_TCP_SPLIT
+    195                  uip_split_output();
+    196          #else /* UIP_CONF_TCP_SPLIT */
+    197          #if UIP_CONF_IPV6
+    198                  tcpip_ipv6_output();
+    199          #else
+    200          	PRINTF("tcpip packet_input forward output len %d\n", uip_len);
+    201                  tcpip_output();
+    202          #endif
+    203          #endif /* UIP_CONF_TCP_SPLIT */
+    204                }
+    205              }
+    206              tcpip_is_forwarding = 0;
+    207            }
+    208          #else /* UIP_CONF_IP_FORWARD */
+    209            if(uip_len > 0) {
+   \   000004   90....       MOV     DPTR,#uip_len
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   F8           MOV     R0,A
+   \   000009   A3           INC     DPTR
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F9           MOV     R1,A
+   \   00000C   E8           MOV     A,R0
+   \   00000D   49           ORL     A,R1
+   \   00000E   6017         JZ      ??packet_input_0
+    210              check_for_tcp_syn();
+   \   000010                ; Setup parameters for call to function check_for_tcp_syn
+   \   000010   12....       LCALL   ??check_for_tcp_syn?relay
+    211              uip_input();
+   \   000013                ; Setup parameters for call to function uip_process
+   \   000013   7901         MOV     R1,#0x1
+   \   000015   12....       LCALL   ??uip_process?relay
+    212              if(uip_len > 0) {
+   \   000018   90....       MOV     DPTR,#uip_len
+   \   00001B   E0           MOVX    A,@DPTR
+   \   00001C   F8           MOV     R0,A
+   \   00001D   A3           INC     DPTR
+   \   00001E   E0           MOVX    A,@DPTR
+   \   00001F   F9           MOV     R1,A
+   \   000020   E8           MOV     A,R0
+   \   000021   49           ORL     A,R1
+   \   000022   6003         JZ      ??packet_input_0
+    213          #if UIP_CONF_TCP_SPLIT
+    214                uip_split_output();
+    215          #else /* UIP_CONF_TCP_SPLIT */
+    216          #if UIP_CONF_IPV6
+    217                tcpip_ipv6_output();
+   \   000024                ; Setup parameters for call to function tcpip_ipv6_output
+   \   000024   12....       LCALL   ??tcpip_ipv6_output?relay
+    218          #else
+    219                PRINTF("tcpip packet_input output len %d\n", uip_len);
+    220                tcpip_output();
+    221          #endif
+    222          #endif /* UIP_CONF_TCP_SPLIT */
+    223              }
+    224            }
+    225          #endif /* UIP_CONF_IP_FORWARD */
+    226          }
+   \                     ??packet_input_0:
+   \   000027   D083         POP     DPH
+   \   000029   D082         POP     DPL
+   \   00002B   02....       LJMP    ?BRET
+    227          /*---------------------------------------------------------------------------*/
+    228          #if UIP_TCP
+    229          #if UIP_ACTIVE_OPEN
+    230          struct uip_conn *
+    231          tcp_connect(uip_ipaddr_t *ripaddr, uint16_t port, void *appstate)
+    232          {
+    233            struct uip_conn *c;
+    234            
+    235            c = uip_connect(ripaddr, port);
+    236            if(c == NULL) {
+    237              return NULL;
+    238            }
+    239          
+    240            c->appstate.p = PROCESS_CURRENT();
+    241            c->appstate.state = appstate;
+    242            
+    243            tcpip_poll_tcp(c);
+    244            
+    245            return c;
+    246          }
+    247          #endif /* UIP_ACTIVE_OPEN */
+    248          /*---------------------------------------------------------------------------*/
+    249          void
+    250          tcp_unlisten(uint16_t port)
+    251          {
+    252            static unsigned char i;
+    253            struct listenport *l;
+    254          
+    255            l = s.listenports;
+    256            for(i = 0; i < UIP_LISTENPORTS; ++i) {
+    257              if(l->port == port &&
+    258                 l->p == PROCESS_CURRENT()) {
+    259                l->port = 0;
+    260                uip_unlisten(port);
+    261                break;
+    262              }
+    263              ++l;
+    264            }
+    265          }
+    266          /*---------------------------------------------------------------------------*/
+    267          void
+    268          tcp_listen(uint16_t port)
+    269          {
+    270            static unsigned char i;
+    271            struct listenport *l;
+    272          
+    273            l = s.listenports;
+    274            for(i = 0; i < UIP_LISTENPORTS; ++i) {
+    275              if(l->port == 0) {
+    276                l->port = port;
+    277                l->p = PROCESS_CURRENT();
+    278                uip_listen(port);
+    279                break;
+    280              }
+    281              ++l;
+    282            }
+    283          }
+    284          /*---------------------------------------------------------------------------*/
+    285          void
+    286          tcp_attach(struct uip_conn *conn,
+    287          	   void *appstate)
+    288          {
+    289            uip_tcp_appstate_t *s;
+    290          
+    291            s = &conn->appstate;
+    292            s->p = PROCESS_CURRENT();
+    293            s->state = appstate;
+    294          }
+    295          
+    296          #endif /* UIP_TCP */
+    297          /*---------------------------------------------------------------------------*/
+    298          #if UIP_UDP
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    299          void
+    300          udp_attach(struct uip_udp_conn *conn,
+   \                     udp_attach:
+    301          	   void *appstate)
+    302          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+    303            uip_udp_appstate_t *s;
+    304          
+    305            s = &conn->appstate;
+   \   000005   EA           MOV     A,R2
+   \   000006   2415         ADD     A,#0x15
+   \   000008   F8           MOV     R0,A
+   \   000009   EB           MOV     A,R3
+   \   00000A   3400         ADDC    A,#0x0
+   \   00000C   F9           MOV     R1,A
+    306            s->p = PROCESS_CURRENT();
+   \   00000D   90....       MOV     DPTR,#process_current
+   \   000010   E0           MOVX    A,@DPTR
+   \   000011   FA           MOV     R2,A
+   \   000012   A3           INC     DPTR
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   FB           MOV     R3,A
+   \   000015   8882         MOV     DPL,R0
+   \   000017   8983         MOV     DPH,R1
+   \   000019   EA           MOV     A,R2
+   \   00001A   F0           MOVX    @DPTR,A
+   \   00001B   A3           INC     DPTR
+   \   00001C   EB           MOV     A,R3
+   \   00001D   F0           MOVX    @DPTR,A
+    307            s->state = appstate;
+   \   00001E   8882         MOV     DPL,R0
+   \   000020   8983         MOV     DPH,R1
+   \   000022   A3           INC     DPTR
+   \   000023   A3           INC     DPTR
+   \   000024   EC           MOV     A,R4
+   \   000025   F0           MOVX    @DPTR,A
+   \   000026   A3           INC     DPTR
+   \   000027   ED           MOV     A,R5
+   \   000028   F0           MOVX    @DPTR,A
+    308          }
+   \   000029   7F01         MOV     R7,#0x1
+   \   00002B   02....       LJMP    ?BANKED_LEAVE_XDATA
+    309          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    310          struct uip_udp_conn *
+    311          udp_new(const uip_ipaddr_t *ripaddr, uint16_t port, void *appstate)
+   \                     udp_new:
+    312          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   740A         MOV     A,#0xa
+   \   000007   12....       LCALL   ?XSTACK_DISP0_8
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   FE           MOV     R6,A
+   \   00000C   A3           INC     DPTR
+   \   00000D   E0           MOVX    A,@DPTR
+   \   00000E   FF           MOV     R7,A
+    313            struct uip_udp_conn *c;
+    314            uip_udp_appstate_t *s;
+    315            
+    316            c = uip_udp_new(ripaddr, port);
+   \   00000F                ; Setup parameters for call to function uip_udp_new
+   \   00000F   12....       LCALL   ??uip_udp_new?relay
+   \   000012   8A..         MOV     ?V0 + 0,R2
+   \   000014   8B..         MOV     ?V0 + 1,R3
+   \   000016   AA..         MOV     R2,?V0 + 0
+   \   000018   AB..         MOV     R3,?V0 + 1
+    317            if(c == NULL) {
+   \   00001A   EA           MOV     A,R2
+   \   00001B   4B           ORL     A,R3
+   \   00001C   7006         JNZ     ??udp_new_0
+    318              return NULL;
+   \   00001E   7A00         MOV     R2,#0x0
+   \   000020   7B00         MOV     R3,#0x0
+   \   000022   802C         SJMP    ??udp_new_1
+    319            }
+    320          
+    321            s = &c->appstate;
+   \                     ??udp_new_0:
+   \   000024   EA           MOV     A,R2
+   \   000025   2415         ADD     A,#0x15
+   \   000027   F8           MOV     R0,A
+   \   000028   EB           MOV     A,R3
+   \   000029   3400         ADDC    A,#0x0
+   \   00002B   F9           MOV     R1,A
+   \   00002C   E8           MOV     A,R0
+   \   00002D   FC           MOV     R4,A
+   \   00002E   E9           MOV     A,R1
+   \   00002F   FD           MOV     R5,A
+    322            s->p = PROCESS_CURRENT();
+   \   000030   90....       MOV     DPTR,#process_current
+   \   000033   E0           MOVX    A,@DPTR
+   \   000034   F8           MOV     R0,A
+   \   000035   A3           INC     DPTR
+   \   000036   E0           MOVX    A,@DPTR
+   \   000037   F9           MOV     R1,A
+   \   000038   8C82         MOV     DPL,R4
+   \   00003A   8D83         MOV     DPH,R5
+   \   00003C   E8           MOV     A,R0
+   \   00003D   F0           MOVX    @DPTR,A
+   \   00003E   A3           INC     DPTR
+   \   00003F   E9           MOV     A,R1
+   \   000040   F0           MOVX    @DPTR,A
+    323            s->state = appstate;
+   \   000041   EE           MOV     A,R6
+   \   000042   F8           MOV     R0,A
+   \   000043   EF           MOV     A,R7
+   \   000044   F9           MOV     R1,A
+   \   000045   8C82         MOV     DPL,R4
+   \   000047   8D83         MOV     DPH,R5
+   \   000049   A3           INC     DPTR
+   \   00004A   A3           INC     DPTR
+   \   00004B   E8           MOV     A,R0
+   \   00004C   F0           MOVX    @DPTR,A
+   \   00004D   A3           INC     DPTR
+   \   00004E   E9           MOV     A,R1
+   \   00004F   F0           MOVX    @DPTR,A
+    324          
+    325            return c;
+   \                     ??udp_new_1:
+   \   000050   7F02         MOV     R7,#0x2
+   \   000052   02....       LJMP    ?BANKED_LEAVE_XDATA
+    326          }
+    327          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    328          struct uip_udp_conn *
+    329          udp_broadcast_new(uint16_t port, void *appstate)
+   \                     udp_broadcast_new:
+    330          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 16
+   \   000005   74F0         MOV     A,#-0x10
+   \   000007   12....       LCALL   ?ALLOC_XSTACK8
+   \   00000A   EA           MOV     A,R2
+   \   00000B   FE           MOV     R6,A
+   \   00000C   EB           MOV     A,R3
+   \   00000D   FF           MOV     R7,A
+    331            uip_ipaddr_t addr;
+    332            struct uip_udp_conn *conn;
+    333          
+    334          #if UIP_CONF_IPV6
+    335            uip_create_linklocal_allnodes_mcast(&addr);
+   \   00000E   85..82       MOV     DPL,?XSP + 0
+   \   000011   85..83       MOV     DPH,?XSP + 1
+   \   000014   74FF         MOV     A,#-0x1
+   \   000016   F0           MOVX    @DPTR,A
+   \   000017   A3           INC     DPTR
+   \   000018   7402         MOV     A,#0x2
+   \   00001A   F0           MOVX    @DPTR,A
+   \   00001B   7402         MOV     A,#0x2
+   \   00001D   12....       LCALL   ?XSTACK_DISP0_8
+   \   000020   7400         MOV     A,#0x0
+   \   000022   F0           MOVX    @DPTR,A
+   \   000023   A3           INC     DPTR
+   \   000024   7400         MOV     A,#0x0
+   \   000026   F0           MOVX    @DPTR,A
+   \   000027   7404         MOV     A,#0x4
+   \   000029   12....       LCALL   ?XSTACK_DISP0_8
+   \   00002C   7400         MOV     A,#0x0
+   \   00002E   F0           MOVX    @DPTR,A
+   \   00002F   A3           INC     DPTR
+   \   000030   7400         MOV     A,#0x0
+   \   000032   F0           MOVX    @DPTR,A
+   \   000033   7406         MOV     A,#0x6
+   \   000035   12....       LCALL   ?XSTACK_DISP0_8
+   \   000038   7400         MOV     A,#0x0
+   \   00003A   F0           MOVX    @DPTR,A
+   \   00003B   A3           INC     DPTR
+   \   00003C   7400         MOV     A,#0x0
+   \   00003E   F0           MOVX    @DPTR,A
+   \   00003F   7408         MOV     A,#0x8
+   \   000041   12....       LCALL   ?XSTACK_DISP0_8
+   \   000044   7400         MOV     A,#0x0
+   \   000046   F0           MOVX    @DPTR,A
+   \   000047   A3           INC     DPTR
+   \   000048   7400         MOV     A,#0x0
+   \   00004A   F0           MOVX    @DPTR,A
+   \   00004B   740A         MOV     A,#0xa
+   \   00004D   12....       LCALL   ?XSTACK_DISP0_8
+   \   000050   7400         MOV     A,#0x0
+   \   000052   F0           MOVX    @DPTR,A
+   \   000053   A3           INC     DPTR
+   \   000054   7400         MOV     A,#0x0
+   \   000056   F0           MOVX    @DPTR,A
+   \   000057   740C         MOV     A,#0xc
+   \   000059   12....       LCALL   ?XSTACK_DISP0_8
+   \   00005C   7400         MOV     A,#0x0
+   \   00005E   F0           MOVX    @DPTR,A
+   \   00005F   A3           INC     DPTR
+   \   000060   7400         MOV     A,#0x0
+   \   000062   F0           MOVX    @DPTR,A
+   \   000063   740E         MOV     A,#0xe
+   \   000065   12....       LCALL   ?XSTACK_DISP0_8
+   \   000068   7400         MOV     A,#0x0
+   \   00006A   F0           MOVX    @DPTR,A
+   \   00006B   A3           INC     DPTR
+   \   00006C   7401         MOV     A,#0x1
+   \   00006E   F0           MOVX    @DPTR,A
+    336          #else
+    337            uip_ipaddr(&addr, 255,255,255,255);
+    338          #endif /* UIP_CONF_IPV6 */
+    339            conn = udp_new(&addr, port, appstate);
+   \   00006F                ; Setup parameters for call to function udp_new
+   \   00006F   8C..         MOV     ?V0 + 0,R4
+   \   000071   8D..         MOV     ?V0 + 1,R5
+   \   000073   78..         MOV     R0,#?V0 + 0
+   \   000075   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000078   EE           MOV     A,R6
+   \   000079   FC           MOV     R4,A
+   \   00007A   EF           MOV     A,R7
+   \   00007B   FD           MOV     R5,A
+   \   00007C   7402         MOV     A,#0x2
+   \   00007E   12....       LCALL   ?XSTACK_DISP0_8
+   \   000081   AA82         MOV     R2,DPL
+   \   000083   AB83         MOV     R3,DPH
+   \   000085   12....       LCALL   ??udp_new?relay
+   \   000088   7402         MOV     A,#0x2
+   \   00008A   12....       LCALL   ?DEALLOC_XSTACK8
+   \   00008D   8A..         MOV     ?V0 + 0,R2
+   \   00008F   8B..         MOV     ?V0 + 1,R3
+   \   000091   AA..         MOV     R2,?V0 + 0
+   \   000093   AB..         MOV     R3,?V0 + 1
+    340            if(conn != NULL) {
+   \   000095   EA           MOV     A,R2
+   \   000096   4B           ORL     A,R3
+   \   000097   600F         JZ      ??udp_broadcast_new_0
+    341              udp_bind(conn, port);
+   \   000099   EA           MOV     A,R2
+   \   00009A   2410         ADD     A,#0x10
+   \   00009C   F582         MOV     DPL,A
+   \   00009E   EB           MOV     A,R3
+   \   00009F   3400         ADDC    A,#0x0
+   \   0000A1   F583         MOV     DPH,A
+   \   0000A3   EE           MOV     A,R6
+   \   0000A4   F0           MOVX    @DPTR,A
+   \   0000A5   A3           INC     DPTR
+   \   0000A6   EF           MOV     A,R7
+   \   0000A7   F0           MOVX    @DPTR,A
+    342            }
+    343            return conn;
+   \                     ??udp_broadcast_new_0:
+   \   0000A8   7410         MOV     A,#0x10
+   \   0000AA   12....       LCALL   ?DEALLOC_XSTACK8
+   \   0000AD   7F02         MOV     R7,#0x2
+   \   0000AF   02....       LJMP    ?BANKED_LEAVE_XDATA
+    344          }
+    345          #endif /* UIP_UDP */
+    346          /*---------------------------------------------------------------------------*/
+    347          #if UIP_CONF_ICMP6
+    348          uint8_t
+    349          icmp6_new(void *appstate) {
+    350            if(uip_icmp6_conns.appstate.p == PROCESS_NONE) {
+    351              uip_icmp6_conns.appstate.p = PROCESS_CURRENT();
+    352              uip_icmp6_conns.appstate.state = appstate;
+    353              return 0;
+    354            }
+    355            return 1;
+    356          }
+    357          
+    358          void
+    359          tcpip_icmp6_call(uint8_t type)
+    360          {
+    361            if(uip_icmp6_conns.appstate.p != PROCESS_NONE) {
+    362              /* XXX: This is a hack that needs to be updated. Passing a pointer (&type)
+    363                 like this only works with process_post_synch. */
+    364              process_post_synch(uip_icmp6_conns.appstate.p, tcpip_icmp6_event, &type);
+    365            }
+    366            return;
+    367          }
+    368          #endif /* UIP_CONF_ICMP6 */
+    369          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    370          static void
+    371          eventhandler(process_event_t ev, process_data_t data)
+   \                     eventhandler:
+    372          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   89..         MOV     ?V0 + 0,R1
+   \   000007   EA           MOV     A,R2
+   \   000008   FE           MOV     R6,A
+   \   000009   EB           MOV     A,R3
+   \   00000A   FF           MOV     R7,A
+    373          #if UIP_TCP
+    374            static unsigned char i;
+    375            register struct listenport *l;
+    376          #endif /*UIP_TCP*/
+    377            struct process *p;
+    378          
+    379            switch(ev) {
+   \   00000B   E5..         MOV     A,?V0 + 0
+   \   00000D   14           DEC     A
+   \   00000E   7003         JNZ     $+5
+   \   000010   02....       LJMP    ??eventhandler_0 & 0xFFFF
+   \   000013   14           DEC     A
+   \   000014   7003         JNZ     $+5
+   \   000016   02....       LJMP    ??eventhandler_1 & 0xFFFF
+   \   000019   247B         ADD     A,#0x7b
+   \   00001B   6006         JZ      ??eventhandler_2
+   \   00001D   14           DEC     A
+   \   00001E   6044         JZ      ??eventhandler_3
+   \   000020   02....       LJMP    ??eventhandler_4 & 0xFFFF
+    380              case PROCESS_EVENT_EXITED:
+    381                /* This is the event we get if a process has exited. We go through
+    382                   the TCP/IP tables to see if this process had any open
+    383                   connections or listening TCP ports. If so, we'll close those
+    384                   connections. */
+    385          
+    386                p = (struct process *)data;
+    387          #if UIP_TCP
+    388                l = s.listenports;
+    389                for(i = 0; i < UIP_LISTENPORTS; ++i) {
+    390                  if(l->p == p) {
+    391                    uip_unlisten(l->port);
+    392                    l->port = 0;
+    393                    l->p = PROCESS_NONE;
+    394                  }
+    395                  ++l;
+    396                }
+    397          	 
+    398                {
+    399                  struct uip_conn *cptr;
+    400          	    
+    401                  for(cptr = &uip_conns[0]; cptr < &uip_conns[UIP_CONNS]; ++cptr) {
+    402                    if(cptr->appstate.p == p) {
+    403                      cptr->appstate.p = PROCESS_NONE;
+    404                      cptr->tcpstateflags = UIP_CLOSED;
+    405                    }
+    406                  }
+    407                }
+    408          #endif /* UIP_TCP */
+    409          #if UIP_UDP
+    410                {
+    411                  struct uip_udp_conn *cptr;
+    412          
+    413                  for(cptr = &uip_udp_conns[0];
+   \                     ??eventhandler_2:
+   \   000023   78..         MOV     R0,#uip_udp_conns & 0xff
+   \   000025   79..         MOV     R1,#(uip_udp_conns >> 8) & 0xff
+   \   000027   8030         SJMP    ??eventhandler_5
+    414                      cptr < &uip_udp_conns[UIP_UDP_CONNS]; ++cptr) {
+    415                    if(cptr->appstate.p == p) {
+   \                     ??eventhandler_6:
+   \   000029   E8           MOV     A,R0
+   \   00002A   2415         ADD     A,#0x15
+   \   00002C   F582         MOV     DPL,A
+   \   00002E   E9           MOV     A,R1
+   \   00002F   3400         ADDC    A,#0x0
+   \   000031   F583         MOV     DPH,A
+   \   000033   E0           MOVX    A,@DPTR
+   \   000034   FA           MOV     R2,A
+   \   000035   A3           INC     DPTR
+   \   000036   E0           MOVX    A,@DPTR
+   \   000037   FB           MOV     R3,A
+   \   000038   EE           MOV     A,R6
+   \   000039   6A           XRL     A,R2
+   \   00003A   7002         JNZ     ??eventhandler_7
+   \   00003C   EF           MOV     A,R7
+   \   00003D   6B           XRL     A,R3
+   \                     ??eventhandler_7:
+   \   00003E   7011         JNZ     ??eventhandler_8
+    416                      cptr->lport = 0;
+   \   000040   E8           MOV     A,R0
+   \   000041   2410         ADD     A,#0x10
+   \   000043   F582         MOV     DPL,A
+   \   000045   E9           MOV     A,R1
+   \   000046   3400         ADDC    A,#0x0
+   \   000048   F583         MOV     DPH,A
+   \   00004A   7400         MOV     A,#0x0
+   \   00004C   F0           MOVX    @DPTR,A
+   \   00004D   A3           INC     DPTR
+   \   00004E   7400         MOV     A,#0x0
+   \   000050   F0           MOVX    @DPTR,A
+    417                    }
+    418                  }
+   \                     ??eventhandler_8:
+   \   000051   E8           MOV     A,R0
+   \   000052   2419         ADD     A,#0x19
+   \   000054   F8           MOV     R0,A
+   \   000055   E9           MOV     A,R1
+   \   000056   3400         ADDC    A,#0x0
+   \   000058   F9           MOV     R1,A
+   \                     ??eventhandler_5:
+   \   000059   C3           CLR     C
+   \   00005A   E8           MOV     A,R0
+   \   00005B   94..         SUBB    A,#(uip_udp_conns + 250) & 0xff
+   \   00005D   E9           MOV     A,R1
+   \   00005E   94..         SUBB    A,#((uip_udp_conns + 250) >> 8) & 0xff
+   \   000060   40C7         JC      ??eventhandler_6
+    419                }
+    420          #endif /* UIP_UDP */
+    421                break;
+   \   000062   8055         SJMP    ??eventhandler_4
+    422          
+    423              case PROCESS_EVENT_TIMER:
+    424                /* We get this event if one of our timers have expired. */
+    425                {
+    426                  /* Check the clock so see if we should call the periodic uIP
+    427                     processing. */
+    428                  if(data == &periodic &&
+    429                     etimer_expired(&periodic)) {
+   \                     ??eventhandler_3:
+   \   000064   EE           MOV     A,R6
+   \   000065   64..         XRL     A,#periodic & 0xff
+   \   000067   7003         JNZ     ??eventhandler_9
+   \   000069   EF           MOV     A,R7
+   \   00006A   64..         XRL     A,#(periodic >> 8) & 0xff
+   \                     ??eventhandler_9:
+   \   00006C   700F         JNZ     ??eventhandler_10
+   \   00006E                ; Setup parameters for call to function etimer_expired
+   \   00006E   7A..         MOV     R2,#periodic & 0xff
+   \   000070   7B..         MOV     R3,#(periodic >> 8) & 0xff
+   \   000072   12....       LCALL   ??etimer_expired?relay
+   \   000075   8A..         MOV     ?V0 + 2,R2
+   \   000077   8B..         MOV     ?V0 + 3,R3
+   \   000079   A8..         MOV     R0,?V0 + 2
+   \   00007B   A9..         MOV     R1,?V0 + 3
+    430          #if UIP_TCP
+    431                    for(i = 0; i < UIP_CONNS; ++i) {
+    432                      if(uip_conn_active(i)) {
+    433                        /* Only restart the timer if there are active
+    434                           connections. */
+    435                        etimer_restart(&periodic);
+    436                        uip_periodic(i);
+    437          #if UIP_CONF_IPV6
+    438                        tcpip_ipv6_output();
+    439          #else
+    440                        if(uip_len > 0) {
+    441          		PRINTF("tcpip_output from periodic len %d\n", uip_len);
+    442                          tcpip_output();
+    443          		PRINTF("tcpip_output after periodic len %d\n", uip_len);
+    444                        }
+    445          #endif /* UIP_CONF_IPV6 */
+    446                      }
+    447                    }
+    448          #endif /* UIP_TCP */
+    449          #if UIP_CONF_IP_FORWARD
+    450                    uip_fw_periodic();
+    451          #endif /* UIP_CONF_IP_FORWARD */
+    452                  }
+    453                  
+    454          #if UIP_CONF_IPV6
+    455          #if UIP_CONF_IPV6_REASSEMBLY
+    456                  /*
+    457                   * check the timer for reassembly
+    458                   */
+    459                  if(data == &uip_reass_timer &&
+    460                     etimer_expired(&uip_reass_timer)) {
+    461                    uip_reass_over();
+    462                    tcpip_ipv6_output();
+    463                  }
+    464          #endif /* UIP_CONF_IPV6_REASSEMBLY */
+    465                  /*
+    466                   * check the different timers for neighbor discovery and
+    467                   * stateless autoconfiguration
+    468                   */
+    469                  /*if(data == &uip_ds6_timer_periodic &&
+    470                     etimer_expired(&uip_ds6_timer_periodic)) {
+    471                    uip_ds6_periodic();
+    472                    tcpip_ipv6_output();
+    473                  }*/
+    474          #if !UIP_CONF_ROUTER
+    475                  if(data == &uip_ds6_timer_rs &&
+    476                     etimer_expired(&uip_ds6_timer_rs)) {
+    477                    uip_ds6_send_rs();
+    478                    tcpip_ipv6_output();
+    479                  }
+    480          #endif /* !UIP_CONF_ROUTER */
+    481                  if(data == &uip_ds6_timer_periodic &&
+    482                     etimer_expired(&uip_ds6_timer_periodic)) {
+   \                     ??eventhandler_10:
+   \   00007D   EE           MOV     A,R6
+   \   00007E   64..         XRL     A,#uip_ds6_timer_periodic & 0xff
+   \   000080   7003         JNZ     ??eventhandler_11
+   \   000082   EF           MOV     A,R7
+   \   000083   64..         XRL     A,#(uip_ds6_timer_periodic >> 8) & 0xff
+   \                     ??eventhandler_11:
+   \   000085   7032         JNZ     ??eventhandler_4
+   \   000087                ; Setup parameters for call to function etimer_expired
+   \   000087   7A..         MOV     R2,#uip_ds6_timer_periodic & 0xff
+   \   000089   7B..         MOV     R3,#(uip_ds6_timer_periodic >> 8) & 0xff
+   \   00008B   12....       LCALL   ??etimer_expired?relay
+   \   00008E   8A..         MOV     ?V0 + 2,R2
+   \   000090   8B..         MOV     ?V0 + 3,R3
+   \   000092   E5..         MOV     A,?V0 + 2
+   \   000094   45..         ORL     A,?V0 + 3
+   \   000096   6021         JZ      ??eventhandler_4
+    483                    uip_ds6_periodic();
+   \   000098                ; Setup parameters for call to function uip_ds6_periodic
+   \   000098   12....       LCALL   ??uip_ds6_periodic?relay
+    484                    tcpip_ipv6_output();
+   \   00009B                ; Setup parameters for call to function tcpip_ipv6_output
+   \   00009B   12....       LCALL   ??tcpip_ipv6_output?relay
+    485                  }
+    486          #endif /* UIP_CONF_IPV6 */
+    487                }
+    488                break;
+   \   00009E   8019         SJMP    ??eventhandler_4
+    489          	 
+    490          #if UIP_TCP
+    491              case TCP_POLL:
+    492                if(data != NULL) {
+    493                  uip_poll_conn(data);
+    494          #if UIP_CONF_IPV6
+    495                  tcpip_ipv6_output();
+    496          #else /* UIP_CONF_IPV6 */
+    497                  if(uip_len > 0) {
+    498          	  PRINTF("tcpip_output from tcp poll len %d\n", uip_len);
+    499                    tcpip_output();
+    500                  }
+    501          #endif /* UIP_CONF_IPV6 */
+    502                  /* Start the periodic polling, if it isn't already active. */
+    503                  start_periodic_tcp_timer();
+    504                }
+    505                break;
+    506          #endif /* UIP_TCP */
+    507          #if UIP_UDP
+    508              case UDP_POLL:
+    509                if(data != NULL) {
+   \                     ??eventhandler_0:
+   \   0000A0   EE           MOV     A,R6
+   \   0000A1   4F           ORL     A,R7
+   \   0000A2   6015         JZ      ??eventhandler_4
+    510                  uip_udp_periodic_conn(data);
+   \   0000A4   90....       MOV     DPTR,#uip_udp_conn
+   \   0000A7   EE           MOV     A,R6
+   \   0000A8   F0           MOVX    @DPTR,A
+   \   0000A9   A3           INC     DPTR
+   \   0000AA   EF           MOV     A,R7
+   \   0000AB   F0           MOVX    @DPTR,A
+   \   0000AC                ; Setup parameters for call to function uip_process
+   \   0000AC   7905         MOV     R1,#0x5
+   \   0000AE   12....       LCALL   ??uip_process?relay
+    511          #if UIP_CONF_IPV6
+    512                  tcpip_ipv6_output();
+   \   0000B1                ; Setup parameters for call to function tcpip_ipv6_output
+   \   0000B1   12....       LCALL   ??tcpip_ipv6_output?relay
+    513          #else
+    514                  if(uip_len > 0) {
+    515                    tcpip_output();
+    516                  }
+    517          #endif /* UIP_UDP */
+    518                }
+    519                break;
+   \   0000B4   8003         SJMP    ??eventhandler_4
+    520          #endif /* UIP_UDP */
+    521          
+    522              case PACKET_INPUT:
+    523                packet_input();
+   \                     ??eventhandler_1:
+   \   0000B6                ; Setup parameters for call to function packet_input
+   \   0000B6   12....       LCALL   ??packet_input?relay
+    524                break;
+    525            };
+    526          }
+   \                     ??eventhandler_4:
+   \   0000B9   7F04         MOV     R7,#0x4
+   \   0000BB   02....       LJMP    ?BANKED_LEAVE_XDATA
+    527          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    528          void
+    529          tcpip_input(void)
+   \                     tcpip_input:
+    530          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    531            process_post_synch(&tcpip_process, PACKET_INPUT, NULL);
+   \   000004                ; Setup parameters for call to function process_post_synch
+   \   000004   7C00         MOV     R4,#0x0
+   \   000006   7D00         MOV     R5,#0x0
+   \   000008   7902         MOV     R1,#0x2
+   \   00000A   7A..         MOV     R2,#tcpip_process & 0xff
+   \   00000C   7B..         MOV     R3,#(tcpip_process >> 8) & 0xff
+   \   00000E   12....       LCALL   ??process_post_synch?relay
+    532            uip_len = 0;
+   \   000011   90....       MOV     DPTR,#uip_len
+   \   000014   7400         MOV     A,#0x0
+   \   000016   F0           MOVX    @DPTR,A
+   \   000017   A3           INC     DPTR
+   \   000018   7400         MOV     A,#0x0
+   \   00001A   F0           MOVX    @DPTR,A
+    533          #if UIP_CONF_IPV6
+    534            uip_ext_len = 0;
+   \   00001B   90....       MOV     DPTR,#uip_ext_len
+   \   00001E   7400         MOV     A,#0x0
+   \   000020   F0           MOVX    @DPTR,A
+    535          #endif /*UIP_CONF_IPV6*/
+    536          }
+   \   000021   D083         POP     DPH
+   \   000023   D082         POP     DPL
+   \   000025   02....       LJMP    ?BRET
+    537          /*---------------------------------------------------------------------------*/
+    538          #if UIP_CONF_IPV6
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    539          void
+    540          tcpip_ipv6_output(void)
+   \                     tcpip_ipv6_output:
+    541          {
+   \   000000   74EC         MOV     A,#-0x14
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 20
+   \   000005                ; Auto size: 0
+    542            uip_ds6_nbr_t *nbr = NULL;
+   \   000005   75..00       MOV     ?V0 + 2,#0x0
+   \   000008   75..00       MOV     ?V0 + 3,#0x0
+    543            uip_ipaddr_t *nexthop;
+    544          
+    545            if(uip_len == 0) {
+   \   00000B   90....       MOV     DPTR,#uip_len
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   F8           MOV     R0,A
+   \   000010   A3           INC     DPTR
+   \   000011   E0           MOVX    A,@DPTR
+   \   000012   F9           MOV     R1,A
+   \   000013   E8           MOV     A,R0
+   \   000014   49           ORL     A,R1
+   \   000015   7003         JNZ     $+5
+   \   000017   02....       LJMP    ??tcpip_ipv6_output_0 & 0xFFFF
+    546              return;
+    547            }
+    548          
+    549            if(uip_len > UIP_LINK_MTU) {
+   \   00001A   90....       MOV     DPTR,#uip_len
+   \   00001D   C3           CLR     C
+   \   00001E   E0           MOVX    A,@DPTR
+   \   00001F   9401         SUBB    A,#0x1
+   \   000021   A3           INC     DPTR
+   \   000022   E0           MOVX    A,@DPTR
+   \   000023   9405         SUBB    A,#0x5
+   \   000025   400D         JC      ??tcpip_ipv6_output_1
+    550              UIP_LOG("tcpip_ipv6_output: Packet to big");
+    551              uip_len = 0;
+   \   000027   90....       MOV     DPTR,#uip_len
+   \   00002A   7400         MOV     A,#0x0
+   \   00002C   F0           MOVX    @DPTR,A
+   \   00002D   A3           INC     DPTR
+   \   00002E   7400         MOV     A,#0x0
+   \   000030   F0           MOVX    @DPTR,A
+    552              return;
+   \   000031   02....       LJMP    ??tcpip_ipv6_output_0 & 0xFFFF
+    553            }
+    554          
+    555            if(uip_is_addr_unspecified(&UIP_IP_BUF->destipaddr)){
+   \                     ??tcpip_ipv6_output_1:
+   \   000034   90....       MOV     DPTR,#uip_aligned_buf + 24
+   \   000037   E0           MOVX    A,@DPTR
+   \   000038   F8           MOV     R0,A
+   \   000039   A3           INC     DPTR
+   \   00003A   E0           MOVX    A,@DPTR
+   \   00003B   F9           MOV     R1,A
+   \   00003C   E8           MOV     A,R0
+   \   00003D   49           ORL     A,R1
+   \   00003E   7061         JNZ     ??tcpip_ipv6_output_2
+   \   000040   90....       MOV     DPTR,#uip_aligned_buf + 26
+   \   000043   E0           MOVX    A,@DPTR
+   \   000044   F8           MOV     R0,A
+   \   000045   A3           INC     DPTR
+   \   000046   E0           MOVX    A,@DPTR
+   \   000047   F9           MOV     R1,A
+   \   000048   E8           MOV     A,R0
+   \   000049   49           ORL     A,R1
+   \   00004A   7055         JNZ     ??tcpip_ipv6_output_2
+   \   00004C   90....       MOV     DPTR,#uip_aligned_buf + 28
+   \   00004F   E0           MOVX    A,@DPTR
+   \   000050   F8           MOV     R0,A
+   \   000051   A3           INC     DPTR
+   \   000052   E0           MOVX    A,@DPTR
+   \   000053   F9           MOV     R1,A
+   \   000054   E8           MOV     A,R0
+   \   000055   49           ORL     A,R1
+   \   000056   7049         JNZ     ??tcpip_ipv6_output_2
+   \   000058   90....       MOV     DPTR,#uip_aligned_buf + 30
+   \   00005B   E0           MOVX    A,@DPTR
+   \   00005C   F8           MOV     R0,A
+   \   00005D   A3           INC     DPTR
+   \   00005E   E0           MOVX    A,@DPTR
+   \   00005F   F9           MOV     R1,A
+   \   000060   E8           MOV     A,R0
+   \   000061   49           ORL     A,R1
+   \   000062   703D         JNZ     ??tcpip_ipv6_output_2
+   \   000064   90....       MOV     DPTR,#uip_aligned_buf + 32
+   \   000067   E0           MOVX    A,@DPTR
+   \   000068   F8           MOV     R0,A
+   \   000069   A3           INC     DPTR
+   \   00006A   E0           MOVX    A,@DPTR
+   \   00006B   F9           MOV     R1,A
+   \   00006C   E8           MOV     A,R0
+   \   00006D   49           ORL     A,R1
+   \   00006E   7031         JNZ     ??tcpip_ipv6_output_2
+   \   000070   90....       MOV     DPTR,#uip_aligned_buf + 34
+   \   000073   E0           MOVX    A,@DPTR
+   \   000074   F8           MOV     R0,A
+   \   000075   A3           INC     DPTR
+   \   000076   E0           MOVX    A,@DPTR
+   \   000077   F9           MOV     R1,A
+   \   000078   E8           MOV     A,R0
+   \   000079   49           ORL     A,R1
+   \   00007A   7025         JNZ     ??tcpip_ipv6_output_2
+   \   00007C   90....       MOV     DPTR,#uip_aligned_buf + 36
+   \   00007F   E0           MOVX    A,@DPTR
+   \   000080   F8           MOV     R0,A
+   \   000081   A3           INC     DPTR
+   \   000082   E0           MOVX    A,@DPTR
+   \   000083   F9           MOV     R1,A
+   \   000084   E8           MOV     A,R0
+   \   000085   49           ORL     A,R1
+   \   000086   7019         JNZ     ??tcpip_ipv6_output_2
+   \   000088   90....       MOV     DPTR,#uip_aligned_buf + 38
+   \   00008B   E0           MOVX    A,@DPTR
+   \   00008C   F8           MOV     R0,A
+   \   00008D   A3           INC     DPTR
+   \   00008E   E0           MOVX    A,@DPTR
+   \   00008F   F9           MOV     R1,A
+   \   000090   E8           MOV     A,R0
+   \   000091   49           ORL     A,R1
+   \   000092   700D         JNZ     ??tcpip_ipv6_output_2
+    556              UIP_LOG("tcpip_ipv6_output: Destination address unspecified");
+    557              uip_len = 0;
+   \   000094   90....       MOV     DPTR,#uip_len
+   \   000097   7400         MOV     A,#0x0
+   \   000099   F0           MOVX    @DPTR,A
+   \   00009A   A3           INC     DPTR
+   \   00009B   7400         MOV     A,#0x0
+   \   00009D   F0           MOVX    @DPTR,A
+    558              return;
+   \   00009E   02....       LJMP    ??tcpip_ipv6_output_0 & 0xFFFF
+    559            }
+    560          
+    561            if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
+   \                     ??tcpip_ipv6_output_2:
+   \   0000A1   90....       MOV     DPTR,#uip_aligned_buf + 24
+   \   0000A4   E0           MOVX    A,@DPTR
+   \   0000A5   64FF         XRL     A,#0xff
+   \   0000A7   7003         JNZ     $+5
+   \   0000A9   02....       LJMP    ??tcpip_ipv6_output_3 & 0xFFFF
+    562              /* Next hop determination */
+    563              nbr = NULL;
+   \   0000AC   75..00       MOV     ?V0 + 2,#0x0
+   \   0000AF   75..00       MOV     ?V0 + 3,#0x0
+    564          
+    565              /* We first check if the destination address is on our immediate
+    566                 link. If so, we simply use the destination address as our
+    567                 nexthop address. */
+    568              if(uip_ds6_is_addr_onlink(&UIP_IP_BUF->destipaddr)){
+   \   0000B2                ; Setup parameters for call to function uip_ds6_is_addr_onlink
+   \   0000B2   7A..         MOV     R2,#(uip_aligned_buf + 24) & 0xff
+   \   0000B4   7B..         MOV     R3,#((uip_aligned_buf + 24) >> 8) & 0xff
+   \   0000B6   12....       LCALL   ??uip_ds6_is_addr_onlink?relay
+   \   0000B9   E9           MOV     A,R1
+   \   0000BA   605B         JZ      ??tcpip_ipv6_output_4
+    569                nexthop = &UIP_IP_BUF->destipaddr;
+   \   0000BC   7E..         MOV     R6,#(uip_aligned_buf + 24) & 0xff
+   \   0000BE   7F..         MOV     R7,#((uip_aligned_buf + 24) >> 8) & 0xff
+    570              } else {
+    571                uip_ds6_route_t *route;
+    572                /* Check if we have a route to the destination address. */
+    573                route = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
+    574          
+    575                /* No route was found - we send to the default route instead. */
+    576                if(route == NULL) {
+    577                  PRINTF("tcpip_ipv6_output: no route found, using default route\n");
+    578                  nexthop = uip_ds6_defrt_choose();
+    579                  if(nexthop == NULL) {
+    580          #ifdef UIP_FALLBACK_INTERFACE
+    581          	  PRINTF("FALLBACK: removing ext hdrs & setting proto %d %d\n", 
+    582          		 uip_ext_len, *((uint8_t *)UIP_IP_BUF + 40));
+    583          	  if(uip_ext_len > 0) {
+    584          	    extern void remove_ext_hdr(void);
+    585          	    uint8_t proto = *((uint8_t *)UIP_IP_BUF + 40);
+    586          	    remove_ext_hdr();
+    587          	    /* This should be copied from the ext header... */
+    588          	    UIP_IP_BUF->proto = proto;
+    589          	  }
+    590          	  UIP_FALLBACK_INTERFACE.output();
+    591          #else
+    592                    PRINTF("tcpip_ipv6_output: Destination off-link but no route\n");
+    593          #endif /* !UIP_FALLBACK_INTERFACE */
+    594                    uip_len = 0;
+    595                    return;
+    596                  }
+    597          
+    598                } else {
+    599                  /* A route was found, so we look up the nexthop neighbor for
+    600                     the route. */
+    601                  nexthop = uip_ds6_route_nexthop(route);
+    602          
+    603                  /* If the nexthop is dead, for example because the neighbor
+    604                     never responded to link-layer acks, we drop its route. */
+    605                  if(nexthop == NULL) {
+    606          #if UIP_CONF_IPV6_RPL
+    607                    /* If we are running RPL, and if we are the root of the
+    608                       network, we'll trigger a global repair berfore we remove
+    609                       the route. */
+    610                    rpl_dag_t *dag;
+    611                    rpl_instance_t *instance;
+    612          
+    613                    dag = (rpl_dag_t *)route->state.dag;
+    614                    if(dag != NULL) {
+    615                      instance = dag->instance;
+    616          
+    617                      rpl_repair_root(instance->instance_id);
+    618                    }
+    619          #endif /* UIP_CONF_RPL */
+    620                    uip_ds6_route_rm(route);
+    621          
+    622                    /* We don't have a nexthop to send the packet to, so we drop
+    623                       it. */
+    624                    return;
+    625                  }
+    626                }
+    627          #if TCPIP_CONF_ANNOTATE_TRANSMISSIONS
+    628                if(nexthop != NULL) {
+    629                  static uint8_t annotate_last;
+    630                  static uint8_t annotate_has_last = 0;
+    631          
+    632                  if(annotate_has_last) {
+    633                    printf("#L %u 0; red\n", annotate_last);
+    634                  }
+    635                  printf("#L %u 1; red\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+    636                  annotate_last = nexthop->u8[sizeof(uip_ipaddr_t) - 1];
+    637                  annotate_has_last = 1;
+    638                }
+    639          #endif /* TCPIP_CONF_ANNOTATE_TRANSMISSIONS */
+    640              }
+    641          
+    642              /* End of next hop determination */
+    643          
+    644          #if UIP_CONF_IPV6_RPL
+    645              if(rpl_update_header_final(nexthop)) {
+    646                uip_len = 0;
+    647                return;
+    648              }
+    649          #endif /* UIP_CONF_IPV6_RPL */
+    650              nbr = uip_ds6_nbr_lookup(nexthop);
+   \                     ??tcpip_ipv6_output_5:
+   \   0000C0                ; Setup parameters for call to function uip_ds6_nbr_lookup
+   \   0000C0   EE           MOV     A,R6
+   \   0000C1   FA           MOV     R2,A
+   \   0000C2   EF           MOV     A,R7
+   \   0000C3   FB           MOV     R3,A
+   \   0000C4   12....       LCALL   ??uip_ds6_nbr_lookup?relay
+   \   0000C7   8A..         MOV     ?V0 + 0,R2
+   \   0000C9   8B..         MOV     ?V0 + 1,R3
+   \   0000CB   85....       MOV     ?V0 + 2,?V0 + 0
+   \   0000CE   85....       MOV     ?V0 + 3,?V0 + 1
+    651              if(nbr == NULL) {
+   \   0000D1   E5..         MOV     A,?V0 + 2
+   \   0000D3   45..         ORL     A,?V0 + 3
+   \   0000D5   6003         JZ      $+5
+   \   0000D7   02....       LJMP    ??tcpip_ipv6_output_6 & 0xFFFF
+    652          #if UIP_ND6_SEND_NA
+    653                if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE)) == NULL) {
+   \   0000DA                ; Setup parameters for call to function uip_ds6_nbr_add
+   \   0000DA   75..00       MOV     ?V0 + 0,#0x0
+   \   0000DD   78..         MOV     R0,#?V0 + 0
+   \   0000DF   12....       LCALL   ?PUSH_XSTACK_I_ONE
+   \   0000E2   7900         MOV     R1,#0x0
+   \   0000E4   7C00         MOV     R4,#0x0
+   \   0000E6   7D00         MOV     R5,#0x0
+   \   0000E8   EE           MOV     A,R6
+   \   0000E9   FA           MOV     R2,A
+   \   0000EA   EF           MOV     A,R7
+   \   0000EB   FB           MOV     R3,A
+   \   0000EC   12....       LCALL   ??uip_ds6_nbr_add?relay
+   \   0000EF   7401         MOV     A,#0x1
+   \   0000F1   12....       LCALL   ?DEALLOC_XSTACK8
+   \   0000F4   8A..         MOV     ?V0 + 2,R2
+   \   0000F6   8B..         MOV     ?V0 + 3,R3
+   \   0000F8   85....       MOV     ?V0 + 0,?V0 + 2
+   \   0000FB   85....       MOV     ?V0 + 1,?V0 + 3
+   \   0000FE   85....       MOV     ?V0 + 2,?V0 + 0
+   \   000101   85....       MOV     ?V0 + 3,?V0 + 1
+   \   000104   E5..         MOV     A,?V0 + 0
+   \   000106   45..         ORL     A,?V0 + 1
+   \   000108   7060         JNZ     ??tcpip_ipv6_output_7
+    654                  uip_len = 0;
+   \   00010A   90....       MOV     DPTR,#uip_len
+   \   00010D   7400         MOV     A,#0x0
+   \   00010F   F0           MOVX    @DPTR,A
+   \   000110   A3           INC     DPTR
+   \   000111   7400         MOV     A,#0x0
+   \   000113   F0           MOVX    @DPTR,A
+    655                  return;
+   \   000114   02....       LJMP    ??tcpip_ipv6_output_0 & 0xFFFF
+    656                } else {
+   \                     ??tcpip_ipv6_output_4:
+   \   000117                ; Setup parameters for call to function uip_ds6_route_lookup
+   \   000117   7A..         MOV     R2,#(uip_aligned_buf + 24) & 0xff
+   \   000119   7B..         MOV     R3,#((uip_aligned_buf + 24) >> 8) & 0xff
+   \   00011B   12....       LCALL   ??uip_ds6_route_lookup?relay
+   \   00011E   8A..         MOV     ?V0 + 2,R2
+   \   000120   8B..         MOV     ?V0 + 3,R3
+   \   000122   85....       MOV     ?V0 + 0,?V0 + 2
+   \   000125   85....       MOV     ?V0 + 1,?V0 + 3
+   \   000128   E5..         MOV     A,?V0 + 0
+   \   00012A   45..         ORL     A,?V0 + 1
+   \   00012C   701C         JNZ     ??tcpip_ipv6_output_8
+   \   00012E                ; Setup parameters for call to function uip_ds6_defrt_choose
+   \   00012E   12....       LCALL   ??uip_ds6_defrt_choose?relay
+   \   000131   8A..         MOV     ?V0 + 0,R2
+   \   000133   8B..         MOV     ?V0 + 1,R3
+   \   000135   AE..         MOV     R6,?V0 + 0
+   \   000137   AF..         MOV     R7,?V0 + 1
+   \   000139   EE           MOV     A,R6
+   \   00013A   4F           ORL     A,R7
+   \   00013B   7083         JNZ     ??tcpip_ipv6_output_5
+   \   00013D   90....       MOV     DPTR,#uip_len
+   \   000140   7400         MOV     A,#0x0
+   \   000142   F0           MOVX    @DPTR,A
+   \   000143   A3           INC     DPTR
+   \   000144   7400         MOV     A,#0x0
+   \   000146   F0           MOVX    @DPTR,A
+   \   000147   02....       LJMP    ??tcpip_ipv6_output_0 & 0xFFFF
+   \                     ??tcpip_ipv6_output_8:
+   \   00014A                ; Setup parameters for call to function uip_ds6_route_nexthop
+   \   00014A   AA..         MOV     R2,?V0 + 0
+   \   00014C   AB..         MOV     R3,?V0 + 1
+   \   00014E   12....       LCALL   ??uip_ds6_route_nexthop?relay
+   \   000151   8A..         MOV     ?V0 + 2,R2
+   \   000153   8B..         MOV     ?V0 + 3,R3
+   \   000155   AE..         MOV     R6,?V0 + 2
+   \   000157   AF..         MOV     R7,?V0 + 3
+   \   000159   EE           MOV     A,R6
+   \   00015A   4F           ORL     A,R7
+   \   00015B   6003         JZ      $+5
+   \   00015D   02....       LJMP    ??tcpip_ipv6_output_5 & 0xFFFF
+   \   000160                ; Setup parameters for call to function uip_ds6_route_rm
+   \   000160   AA..         MOV     R2,?V0 + 0
+   \   000162   AB..         MOV     R3,?V0 + 1
+   \   000164   12....       LCALL   ??uip_ds6_route_rm?relay
+   \   000167   02....       LJMP    ??tcpip_ipv6_output_0 & 0xFFFF
+    657          #if UIP_CONF_IPV6_QUEUE_PKT
+    658                  /* Copy outgoing pkt in the queuing buffer for later transmit. */
+    659                  if(uip_packetqueue_alloc(&nbr->packethandle, UIP_DS6_NBR_PACKET_LIFETIME) != NULL) {
+    660                    memcpy(uip_packetqueue_buf(&nbr->packethandle), UIP_IP_BUF, uip_len);
+    661                    uip_packetqueue_set_buflen(&nbr->packethandle, uip_len);
+    662                  }
+    663          #endif
+    664                /* RFC4861, 7.2.2:
+    665                 * "If the source address of the packet prompting the solicitation is the
+    666                 * same as one of the addresses assigned to the outgoing interface, that
+    667                 * address SHOULD be placed in the IP Source Address of the outgoing
+    668                 * solicitation.  Otherwise, any one of the addresses assigned to the
+    669                 * interface should be used."*/
+    670                 if(uip_ds6_is_my_addr(&UIP_IP_BUF->srcipaddr)){
+   \                     ??tcpip_ipv6_output_7:
+   \   00016A                ; Setup parameters for call to function uip_ds6_addr_lookup
+   \   00016A   7A..         MOV     R2,#(uip_aligned_buf + 8) & 0xff
+   \   00016C   7B..         MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+   \   00016E   12....       LCALL   ??uip_ds6_addr_lookup?relay
+   \   000171   8A..         MOV     ?V0 + 0,R2
+   \   000173   8B..         MOV     ?V0 + 1,R3
+   \   000175   E5..         MOV     A,?V0 + 0
+   \   000177   45..         ORL     A,?V0 + 1
+   \   000179   6017         JZ      ??tcpip_ipv6_output_9
+    671                    uip_nd6_ns_output(&UIP_IP_BUF->srcipaddr, NULL, &nbr->ipaddr);
+   \   00017B                ; Setup parameters for call to function uip_nd6_ns_output
+   \   00017B   78..         MOV     R0,#?V0 + 2
+   \   00017D   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000180   7C00         MOV     R4,#0x0
+   \   000182   7D00         MOV     R5,#0x0
+   \   000184   7A..         MOV     R2,#(uip_aligned_buf + 8) & 0xff
+   \   000186   7B..         MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+   \   000188   12....       LCALL   ??uip_nd6_ns_output?relay
+   \   00018B   7402         MOV     A,#0x2
+   \   00018D   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000190   8015         SJMP    ??tcpip_ipv6_output_10
+    672                  } else {
+    673                    uip_nd6_ns_output(NULL, NULL, &nbr->ipaddr);
+   \                     ??tcpip_ipv6_output_9:
+   \   000192                ; Setup parameters for call to function uip_nd6_ns_output
+   \   000192   78..         MOV     R0,#?V0 + 2
+   \   000194   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000197   7C00         MOV     R4,#0x0
+   \   000199   7D00         MOV     R5,#0x0
+   \   00019B   7A00         MOV     R2,#0x0
+   \   00019D   7B00         MOV     R3,#0x0
+   \   00019F   12....       LCALL   ??uip_nd6_ns_output?relay
+   \   0001A2   7402         MOV     A,#0x2
+   \   0001A4   12....       LCALL   ?DEALLOC_XSTACK8
+    674                  }
+    675          
+    676                  stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
+   \                     ??tcpip_ipv6_output_10:
+   \   0001A7                ; Setup parameters for call to function stimer_set
+   \   0001A7   90....       MOV     DPTR,#uip_ds6_if + 13
+   \   0001AA   78..         MOV     R0,#?V0 + 4
+   \   0001AC   12....       LCALL   ?L_MOV_X
+   \   0001AF   90....       MOV     DPTR,#__Constant_3e8
+   \   0001B2   78..         MOV     R0,#?V0 + 8
+   \   0001B4   12....       LCALL   ?L_MOV_X
+   \   0001B7   78..         MOV     R0,#?V0 + 4
+   \   0001B9   79..         MOV     R1,#?V0 + 8
+   \   0001BB   12....       LCALL   ?UL_DIV_MOD
+   \   0001BE   78..         MOV     R0,#?V0 + 4
+   \   0001C0   12....       LCALL   ?PUSH_XSTACK_I_FOUR
+   \   0001C3   E5..         MOV     A,?V0 + 2
+   \   0001C5   2418         ADD     A,#0x18
+   \   0001C7   FA           MOV     R2,A
+   \   0001C8   E5..         MOV     A,?V0 + 3
+   \   0001CA   3400         ADDC    A,#0x0
+   \   0001CC   FB           MOV     R3,A
+   \   0001CD   12....       LCALL   ??stimer_set?relay
+   \   0001D0   7404         MOV     A,#0x4
+   \   0001D2   12....       LCALL   ?DEALLOC_XSTACK8
+    677                  nbr->nscount = 1;
+   \   0001D5   E5..         MOV     A,?V0 + 2
+   \   0001D7   2420         ADD     A,#0x20
+   \   0001D9   F582         MOV     DPL,A
+   \   0001DB   E5..         MOV     A,?V0 + 3
+   \   0001DD   3400         ADDC    A,#0x0
+   \   0001DF   F583         MOV     DPH,A
+   \   0001E1   7401         MOV     A,#0x1
+   \   0001E3   F0           MOVX    @DPTR,A
+    678                }
+    679          #endif /* UIP_ND6_SEND_NA */
+    680              } else {
+    681          #if UIP_ND6_SEND_NA
+    682                if(nbr->state == NBR_INCOMPLETE) {
+    683                  PRINTF("tcpip_ipv6_output: nbr cache entry incomplete\n");
+    684          #if UIP_CONF_IPV6_QUEUE_PKT
+    685                  /* Copy outgoing pkt in the queuing buffer for later transmit and set
+    686                     the destination nbr to nbr. */
+    687                  if(uip_packetqueue_alloc(&nbr->packethandle, UIP_DS6_NBR_PACKET_LIFETIME) != NULL) {
+    688                    memcpy(uip_packetqueue_buf(&nbr->packethandle), UIP_IP_BUF, uip_len);
+    689                    uip_packetqueue_set_buflen(&nbr->packethandle, uip_len);
+    690                  }
+    691          #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
+    692                  uip_len = 0;
+    693                  return;
+    694                }
+    695                /* Send in parallel if we are running NUD (nbc state is either STALE,
+    696                   DELAY, or PROBE). See RFC 4861, section 7.7.3 on node behavior. */
+    697                if(nbr->state == NBR_STALE) {
+    698                  nbr->state = NBR_DELAY;
+    699                  stimer_set(&nbr->reachable, UIP_ND6_DELAY_FIRST_PROBE_TIME);
+    700                  nbr->nscount = 0;
+    701                  PRINTF("tcpip_ipv6_output: nbr cache entry stale moving to delay\n");
+    702                }
+    703          #endif /* UIP_ND6_SEND_NA */
+    704          
+    705                tcpip_output(uip_ds6_nbr_get_ll(nbr));
+    706          
+    707          #if UIP_CONF_IPV6_QUEUE_PKT
+    708                /*
+    709                 * Send the queued packets from here, may not be 100% perfect though.
+    710                 * This happens in a few cases, for example when instead of receiving a
+    711                 * NA after sendiong a NS, you receive a NS with SLLAO: the entry moves
+    712                 * to STALE, and you must both send a NA and the queued packet.
+    713                 */
+    714                if(uip_packetqueue_buflen(&nbr->packethandle) != 0) {
+    715                  uip_len = uip_packetqueue_buflen(&nbr->packethandle);
+    716                  memcpy(UIP_IP_BUF, uip_packetqueue_buf(&nbr->packethandle), uip_len);
+    717                  uip_packetqueue_free(&nbr->packethandle);
+    718                  tcpip_output(uip_ds6_nbr_get_ll(nbr));
+    719                }
+    720          #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
+    721          
+    722                uip_len = 0;
+    723                return;
+    724              }
+    725              return;
+   \   0001E4   02....       LJMP    ??tcpip_ipv6_output_0 & 0xFFFF
+   \                     ??tcpip_ipv6_output_6:
+   \   0001E7   E5..         MOV     A,?V0 + 2
+   \   0001E9   2422         ADD     A,#0x22
+   \   0001EB   F582         MOV     DPL,A
+   \   0001ED   E5..         MOV     A,?V0 + 3
+   \   0001EF   3400         ADDC    A,#0x0
+   \   0001F1   F583         MOV     DPH,A
+   \   0001F3   E0           MOVX    A,@DPTR
+   \   0001F4   700C         JNZ     ??tcpip_ipv6_output_11
+   \   0001F6   90....       MOV     DPTR,#uip_len
+   \   0001F9   7400         MOV     A,#0x0
+   \   0001FB   F0           MOVX    @DPTR,A
+   \   0001FC   A3           INC     DPTR
+   \   0001FD   7400         MOV     A,#0x0
+   \   0001FF   F0           MOVX    @DPTR,A
+   \   000200   8076         SJMP    ??tcpip_ipv6_output_0
+   \                     ??tcpip_ipv6_output_11:
+   \   000202   E5..         MOV     A,?V0 + 2
+   \   000204   2422         ADD     A,#0x22
+   \   000206   F582         MOV     DPL,A
+   \   000208   E5..         MOV     A,?V0 + 3
+   \   00020A   3400         ADDC    A,#0x0
+   \   00020C   F583         MOV     DPH,A
+   \   00020E   E0           MOVX    A,@DPTR
+   \   00020F   6402         XRL     A,#0x2
+   \   000211   7036         JNZ     ??tcpip_ipv6_output_12
+   \   000213   E5..         MOV     A,?V0 + 2
+   \   000215   2422         ADD     A,#0x22
+   \   000217   F582         MOV     DPL,A
+   \   000219   E5..         MOV     A,?V0 + 3
+   \   00021B   3400         ADDC    A,#0x0
+   \   00021D   F583         MOV     DPH,A
+   \   00021F   7403         MOV     A,#0x3
+   \   000221   F0           MOVX    @DPTR,A
+   \   000222                ; Setup parameters for call to function stimer_set
+   \   000222   90....       MOV     DPTR,#__Constant_5
+   \   000225   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   000228   E5..         MOV     A,?V0 + 2
+   \   00022A   2410         ADD     A,#0x10
+   \   00022C   FA           MOV     R2,A
+   \   00022D   E5..         MOV     A,?V0 + 3
+   \   00022F   3400         ADDC    A,#0x0
+   \   000231   FB           MOV     R3,A
+   \   000232   12....       LCALL   ??stimer_set?relay
+   \   000235   7404         MOV     A,#0x4
+   \   000237   12....       LCALL   ?DEALLOC_XSTACK8
+   \   00023A   E5..         MOV     A,?V0 + 2
+   \   00023C   2420         ADD     A,#0x20
+   \   00023E   F582         MOV     DPL,A
+   \   000240   E5..         MOV     A,?V0 + 3
+   \   000242   3400         ADDC    A,#0x0
+   \   000244   F583         MOV     DPH,A
+   \   000246   7400         MOV     A,#0x0
+   \   000248   F0           MOVX    @DPTR,A
+   \                     ??tcpip_ipv6_output_12:
+   \   000249                ; Setup parameters for call to function tcpip_output
+   \   000249                ; Setup parameters for call to function uip_ds6_nbr_get_ll
+   \   000249   AA..         MOV     R2,?V0 + 2
+   \   00024B   AB..         MOV     R3,?V0 + 3
+   \   00024D   12....       LCALL   ??uip_ds6_nbr_get_ll?relay
+   \   000250   12....       LCALL   ??tcpip_output?relay
+   \   000253   E9           MOV     A,R1
+   \   000254   90....       MOV     DPTR,#uip_len
+   \   000257   7400         MOV     A,#0x0
+   \   000259   F0           MOVX    @DPTR,A
+   \   00025A   A3           INC     DPTR
+   \   00025B   7400         MOV     A,#0x0
+   \   00025D   F0           MOVX    @DPTR,A
+   \   00025E   8018         SJMP    ??tcpip_ipv6_output_0
+    726            }
+    727            /* Multicast IP destination address. */
+    728            tcpip_output(NULL);
+   \                     ??tcpip_ipv6_output_3:
+   \   000260                ; Setup parameters for call to function tcpip_output
+   \   000260   7A00         MOV     R2,#0x0
+   \   000262   7B00         MOV     R3,#0x0
+   \   000264   12....       LCALL   ??tcpip_output?relay
+   \   000267   E9           MOV     A,R1
+    729            uip_len = 0;
+   \   000268   90....       MOV     DPTR,#uip_len
+   \   00026B   7400         MOV     A,#0x0
+   \   00026D   F0           MOVX    @DPTR,A
+   \   00026E   A3           INC     DPTR
+   \   00026F   7400         MOV     A,#0x0
+   \   000271   F0           MOVX    @DPTR,A
+    730            uip_ext_len = 0;
+   \   000272   90....       MOV     DPTR,#uip_ext_len
+   \   000275   7400         MOV     A,#0x0
+   \   000277   F0           MOVX    @DPTR,A
+    731          }
+   \                     ??tcpip_ipv6_output_0:
+   \   000278   7F0C         MOV     R7,#0xc
+   \   00027A   02....       LJMP    ?BANKED_LEAVE_XDATA
+    732          #endif /* UIP_CONF_IPV6 */
+    733          /*---------------------------------------------------------------------------*/
+    734          #if UIP_UDP
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    735          void
+    736          tcpip_poll_udp(struct uip_udp_conn *conn)
+   \                     tcpip_poll_udp:
+    737          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    738            process_post(&tcpip_process, UDP_POLL, conn);
+   \   000004                ; Setup parameters for call to function process_post
+   \   000004   EA           MOV     A,R2
+   \   000005   FC           MOV     R4,A
+   \   000006   EB           MOV     A,R3
+   \   000007   FD           MOV     R5,A
+   \   000008   7901         MOV     R1,#0x1
+   \   00000A   7A..         MOV     R2,#tcpip_process & 0xff
+   \   00000C   7B..         MOV     R3,#(tcpip_process >> 8) & 0xff
+   \   00000E   12....       LCALL   ??process_post?relay
+    739          }
+   \   000011   D083         POP     DPH
+   \   000013   D082         POP     DPL
+   \   000015   02....       LJMP    ?BRET
+    740          #endif /* UIP_UDP */
+    741          /*---------------------------------------------------------------------------*/
+    742          #if UIP_TCP
+    743          void
+    744          tcpip_poll_tcp(struct uip_conn *conn)
+    745          {
+    746            process_post(&tcpip_process, TCP_POLL, conn);
+    747          }
+    748          #endif /* UIP_TCP */
+    749          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    750          void
+    751          tcpip_uipcall(void)
+   \                     tcpip_uipcall:
+    752          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    753            uip_udp_appstate_t *ts;
+    754            
+    755          #if UIP_UDP
+    756            if(uip_conn != NULL) {
+   \   000004   90....       MOV     DPTR,#uip_conn
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   F8           MOV     R0,A
+   \   000009   A3           INC     DPTR
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F9           MOV     R1,A
+   \   00000C   E8           MOV     A,R0
+   \   00000D   49           ORL     A,R1
+   \   00000E   600E         JZ      ??tcpip_uipcall_0
+    757              ts = &uip_conn->appstate;
+   \   000010   90....       MOV     DPTR,#uip_conn
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   2428         ADD     A,#0x28
+   \   000016   FA           MOV     R2,A
+   \   000017   A3           INC     DPTR
+   \   000018   E0           MOVX    A,@DPTR
+   \   000019   3400         ADDC    A,#0x0
+   \   00001B   FB           MOV     R3,A
+   \   00001C   8010         SJMP    ??tcpip_uipcall_1
+    758            } else {
+    759              ts = &uip_udp_conn->appstate;
+   \                     ??tcpip_uipcall_0:
+   \   00001E   90....       MOV     DPTR,#uip_udp_conn
+   \   000021   E0           MOVX    A,@DPTR
+   \   000022   2415         ADD     A,#0x15
+   \   000024   F8           MOV     R0,A
+   \   000025   A3           INC     DPTR
+   \   000026   E0           MOVX    A,@DPTR
+   \   000027   3400         ADDC    A,#0x0
+   \   000029   F9           MOV     R1,A
+   \   00002A   E8           MOV     A,R0
+   \   00002B   FA           MOV     R2,A
+   \   00002C   E9           MOV     A,R1
+   \   00002D   FB           MOV     R3,A
+    760            }
+    761          #else /* UIP_UDP */
+    762            ts = &uip_conn->appstate;
+    763          #endif /* UIP_UDP */
+    764          
+    765          #if UIP_TCP
+    766           {
+    767             static unsigned char i;
+    768             struct listenport *l;
+    769             
+    770             /* If this is a connection request for a listening port, we must
+    771                mark the connection with the right process ID. */
+    772             if(uip_connected()) {
+    773               l = &s.listenports[0];
+    774               for(i = 0; i < UIP_LISTENPORTS; ++i) {
+    775                 if(l->port == uip_conn->lport &&
+    776          	  l->p != PROCESS_NONE) {
+    777          	 ts->p = l->p;
+    778          	 ts->state = NULL;
+    779          	 break;
+    780                 }
+    781                 ++l;
+    782               }
+    783               
+    784               /* Start the periodic polling, if it isn't already active. */
+    785               start_periodic_tcp_timer();
+    786             }
+    787           }
+    788          #endif /* UIP_TCP */
+    789            
+    790            if(ts->p != NULL) {
+   \                     ??tcpip_uipcall_1:
+   \   00002E   8A82         MOV     DPL,R2
+   \   000030   8B83         MOV     DPH,R3
+   \   000032   E0           MOVX    A,@DPTR
+   \   000033   F8           MOV     R0,A
+   \   000034   A3           INC     DPTR
+   \   000035   E0           MOVX    A,@DPTR
+   \   000036   F9           MOV     R1,A
+   \   000037   E8           MOV     A,R0
+   \   000038   49           ORL     A,R1
+   \   000039   601C         JZ      ??tcpip_uipcall_2
+    791              process_post_synch(ts->p, tcpip_event, ts->state);
+   \   00003B                ; Setup parameters for call to function process_post_synch
+   \   00003B   8A82         MOV     DPL,R2
+   \   00003D   8B83         MOV     DPH,R3
+   \   00003F   A3           INC     DPTR
+   \   000040   A3           INC     DPTR
+   \   000041   E0           MOVX    A,@DPTR
+   \   000042   FC           MOV     R4,A
+   \   000043   A3           INC     DPTR
+   \   000044   E0           MOVX    A,@DPTR
+   \   000045   FD           MOV     R5,A
+   \   000046   90....       MOV     DPTR,#tcpip_event
+   \   000049   E0           MOVX    A,@DPTR
+   \   00004A   F9           MOV     R1,A
+   \   00004B   8A82         MOV     DPL,R2
+   \   00004D   8B83         MOV     DPH,R3
+   \   00004F   E0           MOVX    A,@DPTR
+   \   000050   FA           MOV     R2,A
+   \   000051   A3           INC     DPTR
+   \   000052   E0           MOVX    A,@DPTR
+   \   000053   FB           MOV     R3,A
+   \   000054   12....       LCALL   ??process_post_synch?relay
+    792            }
+    793          }
+   \                     ??tcpip_uipcall_2:
+   \   000057   D083         POP     DPH
+   \   000059   D082         POP     DPL
+   \   00005B   02....       LJMP    ?BRET
+    794          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    795          PROCESS_THREAD(tcpip_process, ev, data)
+   \                     process_thread_tcpip_process:
+    796          {
+   \   000000   74F2         MOV     A,#-0xe
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 14
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   89..         MOV     ?V0 + 2,R1
+   \   00000B   EC           MOV     A,R4
+   \   00000C   FE           MOV     R6,A
+   \   00000D   ED           MOV     A,R5
+   \   00000E   FF           MOV     R7,A
+    797            PROCESS_BEGIN();
+   \   00000F   7A01         MOV     R2,#0x1
+   \   000011   85..82       MOV     DPL,?V0 + 0
+   \   000014   85..83       MOV     DPH,?V0 + 1
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   F5..         MOV     ?V0 + 4,A
+   \   00001A   A3           INC     DPTR
+   \   00001B   E0           MOVX    A,@DPTR
+   \   00001C   F5..         MOV     ?V0 + 5,A
+   \   00001E   78..         MOV     R0,#?V0 + 4
+   \   000020   12....       LCALL   ?US_SWITCH_SPARSE
+   \                     `?<Jumptable for process_thread_tcpip_process>_0`:
+   \   000023   0000         DW        0
+   \   000025   0200         DW        2
+   \   000027   0000         DW        0
+   \   000029   ....         DW        ??process_thread_tcpip_process_0
+   \   00002B   3A03         DW        826
+   \   00002D   ....         DW        ??process_thread_tcpip_process_1
+   \   00002F   ....         DW        ??process_thread_tcpip_process_2
+    798            
+    799          #if UIP_TCP
+    800           {
+    801             static unsigned char i;
+    802             
+    803             for(i = 0; i < UIP_LISTENPORTS; ++i) {
+    804               s.listenports[i].port = 0;
+    805             }
+    806             s.p = PROCESS_CURRENT();
+    807           }
+    808          #endif
+    809          
+    810            tcpip_event = process_alloc_event();
+   \                     ??process_thread_tcpip_process_0:
+   \   000031                ; Setup parameters for call to function process_alloc_event
+   \   000031   12....       LCALL   ??process_alloc_event?relay
+   \   000034   E9           MOV     A,R1
+   \   000035   90....       MOV     DPTR,#tcpip_event
+   \   000038   F0           MOVX    @DPTR,A
+    811          #if UIP_CONF_ICMP6
+    812            tcpip_icmp6_event = process_alloc_event();
+    813          #endif /* UIP_CONF_ICMP6 */
+    814            etimer_set(&periodic, CLOCK_SECOND / 2);
+   \   000039                ; Setup parameters for call to function etimer_set
+   \   000039   7C40         MOV     R4,#0x40
+   \   00003B   7D00         MOV     R5,#0x0
+   \   00003D   7A..         MOV     R2,#periodic & 0xff
+   \   00003F   7B..         MOV     R3,#(periodic >> 8) & 0xff
+   \   000041   12....       LCALL   ??etimer_set?relay
+    815          
+    816            uip_init();
+   \   000044                ; Setup parameters for call to function uip_init
+   \   000044   12....       LCALL   ??uip_init?relay
+    817          #ifdef UIP_FALLBACK_INTERFACE
+    818            UIP_FALLBACK_INTERFACE.init();
+    819          #endif
+    820          /* initialize RPL if configured for using RPL */
+    821          #if UIP_CONF_IPV6 && UIP_CONF_IPV6_RPL
+    822            rpl_init();
+    823          #endif /* UIP_CONF_IPV6_RPL */
+    824          
+    825            while(1) {
+    826              PROCESS_YIELD();
+   \                     ??process_thread_tcpip_process_3:
+   \   000047   7A00         MOV     R2,#0x0
+   \   000049   85..82       MOV     DPL,?V0 + 0
+   \   00004C   85..83       MOV     DPH,?V0 + 1
+   \   00004F   743A         MOV     A,#0x3a
+   \   000051   F0           MOVX    @DPTR,A
+   \   000052   A3           INC     DPTR
+   \   000053   7403         MOV     A,#0x3
+   \   000055   F0           MOVX    @DPTR,A
+   \                     ??process_thread_tcpip_process_1:
+   \   000056   EA           MOV     A,R2
+   \   000057   7004         JNZ     ??process_thread_tcpip_process_4
+   \   000059   7901         MOV     R1,#0x1
+   \   00005B   801C         SJMP    ??process_thread_tcpip_process_5
+    827              eventhandler(ev, data);
+   \                     ??process_thread_tcpip_process_4:
+   \   00005D                ; Setup parameters for call to function eventhandler
+   \   00005D   EE           MOV     A,R6
+   \   00005E   FA           MOV     R2,A
+   \   00005F   EF           MOV     A,R7
+   \   000060   FB           MOV     R3,A
+   \   000061   A9..         MOV     R1,?V0 + 2
+   \   000063   12....       LCALL   ??eventhandler?relay
+   \   000066   80DF         SJMP    ??process_thread_tcpip_process_3
+    828            }
+    829            
+    830            PROCESS_END();
+   \                     ??process_thread_tcpip_process_2:
+   \   000068   7A00         MOV     R2,#0x0
+   \   00006A   85..82       MOV     DPL,?V0 + 0
+   \   00006D   85..83       MOV     DPH,?V0 + 1
+   \   000070   7400         MOV     A,#0x0
+   \   000072   F0           MOVX    @DPTR,A
+   \   000073   A3           INC     DPTR
+   \   000074   7400         MOV     A,#0x0
+   \   000076   F0           MOVX    @DPTR,A
+   \   000077   7903         MOV     R1,#0x3
+   \                     ??process_thread_tcpip_process_5:
+   \   000079   7F06         MOV     R7,#0x6
+   \   00007B   02....       LJMP    ?BANKED_LEAVE_XDATA
+    831          }
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     __Constant_3e8:
+   \   000000                DS 4
+   \   000004                REQUIRE `?<Initializer for __Constant_3e8>`
+   \   000004                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     __Constant_5:
+   \   000000                DS 4
+   \   000004                REQUIRE `?<Initializer for __Constant_5>`
+   \   000004                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for tcpip_process>`:
+   \   000000   0000         DW 0H
+   \   000002   ....         DW ??process_thread_tcpip_process?relay
+   \   000004   00000000     DB 0, 0, 0, 0
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for __Constant_3e8>`:
+   \   000000   E8030000     DD 1000
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for __Constant_5>`:
+   \   000000   05000000     DD 5
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??tcpip_output?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    tcpip_output
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??tcpip_set_outputfunc?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    tcpip_set_outputfunc
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??check_for_tcp_syn?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    check_for_tcp_syn
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??packet_input?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    packet_input
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??udp_attach?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    udp_attach
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??udp_new?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    udp_new
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??udp_broadcast_new?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    udp_broadcast_new
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??eventhandler?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    eventhandler
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??tcpip_input?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    tcpip_input
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??tcpip_ipv6_output?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    tcpip_ipv6_output
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??tcpip_poll_udp?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    tcpip_poll_udp
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??tcpip_uipcall?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    tcpip_uipcall
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_thread_tcpip_process?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_thread_tcpip_process
+    832          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0      0  check_for_tcp_syn
+       0      0     26  eventhandler
+                          0 0 12 -> etimer_expired
+                          0 0 12 -> packet_input
+                          0 0 12 -> tcpip_ipv6_output
+                          0 0 12 -> uip_ds6_periodic
+                          0 0 12 -> uip_process
+       2      0     12  packet_input
+                          2 0  0 -> check_for_tcp_syn
+                          2 0  0 -> tcpip_ipv6_output
+                          2 0  0 -> uip_process
+       0      0     14  process_thread_tcpip_process
+                          0 0 14 -> etimer_set
+                          0 0 14 -> eventhandler
+                          0 0 14 -> process_alloc_event
+                          0 0 14 -> uip_init
+       2      0      0  tcpip_input
+                          2 0  0 -> process_post_synch
+       0      0     36  tcpip_ipv6_output
+                          0 0 24 -> stimer_set
+                          0 0 20 -> tcpip_output
+                          0 0 20 -> uip_ds6_addr_lookup
+                          0 0 20 -> uip_ds6_defrt_choose
+                          0 0 20 -> uip_ds6_is_addr_onlink
+                          0 0 21 -> uip_ds6_nbr_add
+                          0 0 20 -> uip_ds6_nbr_get_ll
+                          0 0 20 -> uip_ds6_nbr_lookup
+                          0 0 20 -> uip_ds6_route_lookup
+                          0 0 20 -> uip_ds6_route_nexthop
+                          0 0 20 -> uip_ds6_route_rm
+                          0 0 22 -> uip_nd6_ns_output
+       2      0     20  tcpip_output
+       2      0      0  tcpip_poll_udp
+                          2 0  0 -> process_post
+       2      0      0  tcpip_set_outputfunc
+       2      0      0  tcpip_uipcall
+                          2 0  0 -> process_post_synch
+       0      0      9  udp_attach
+       0      0     28  udp_broadcast_new
+                          0 0 28 -> udp_new
+       0      0     38  udp_new
+                          0 0 10 -> uip_udp_new
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       4  ?<Initializer for __Constant_3e8>
+       4  ?<Initializer for __Constant_5>
+       8  ?<Initializer for tcpip_process>
+       6  ??check_for_tcp_syn?relay
+       6  ??eventhandler?relay
+       6  ??packet_input?relay
+       6  ??process_thread_tcpip_process?relay
+       6  ??tcpip_input?relay
+       6  ??tcpip_ipv6_output?relay
+       6  ??tcpip_output?relay
+       6  ??tcpip_poll_udp?relay
+       6  ??tcpip_set_outputfunc?relay
+       6  ??tcpip_uipcall?relay
+       6  ??udp_attach?relay
+       6  ??udp_broadcast_new?relay
+       6  ??udp_new?relay
+       4  __Constant_3e8
+       4  __Constant_5
+       3  check_for_tcp_syn
+     190  eventhandler
+       2  outputfunc
+      46  packet_input
+       8  periodic
+     126  process_thread_tcpip_process
+       1  tcpip_event
+      40  tcpip_input
+     637  tcpip_ipv6_output
+      46  tcpip_output
+      24  tcpip_poll_udp
+       8  tcpip_process
+      19  tcpip_set_outputfunc
+      94  tcpip_uipcall
+      46  udp_attach
+     178  udp_broadcast_new
+      85  udp_new
+
+ 
+ 1 534 bytes in segment BANKED_CODE
+    78 bytes in segment BANK_RELAYS
+    16 bytes in segment XDATA_I
+    16 bytes in segment XDATA_ID
+    11 bytes in segment XDATA_Z
+ 
+ 1 620 bytes of CODE  memory (+ 8 bytes shared)
+    19 bytes of XDATA memory (+ 8 bytes shared)
+
+Errors: none
+Warnings: 1

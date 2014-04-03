@@ -1,0 +1,319 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:37 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\cpu\cc253x\dev\port2.c            #
+#    Command line       =  D:\myWork\myWork\cpu\cc253x\dev\port2.c -D         #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\port2.lst                                   #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\port2.r51                                    #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
+   \                                 In  segment SFR_AN, at 0x9a
+   \   unsigned char volatile __sfr IEN2
+   \                     IEN2:
+   \   000000                DS 1
+D:\myWork\myWork\cpu\cc253x\dev\port2.c
+      1          /*
+      2          Copyright (c) 2012, Philippe Retornaz
+      3          Copyright (c) 2012, EPFL STI IMT LSRO1 -- Mobots group
+      4          All rights reserved.
+      5          
+      6          Redistribution and use in source and binary forms, with or without
+      7          modification, are permitted provided that the following conditions
+      8          are met:
+      9          1. Redistributions of source code must retain the above copyright
+     10             notice, this list of conditions and the following disclaimer.
+     11          2. Redistributions in binary form must reproduce the above copyright
+     12             notice, this list of conditions and the following disclaimer in the
+     13             documentation and/or other materials provided with the distribution.
+     14          3. The name of the author may not be used to endorse or promote
+     15             products derived from this software without specific prior
+     16             written permission.
+     17          
+     18          THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+     19          OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+     20          WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     21          ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+     22          DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     23          DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+     24          GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+     25          INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+     26          WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+     27          NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+     28          SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+     29          */
+     30          
+     31          #include "cc253x.h"
+     32          #include "port2.h"
+     33          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     34          struct cc253x_p2_handler *handlers = NULL;
+   \                     handlers:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     35          
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     36          void
+     37          cc253x_p2_register_handler(struct cc253x_p2_handler *h)
+   \                     cc253x_p2_register_handler:
+     38          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     39            uint8_t flags;
+     40          
+     41            if(!h) {
+   \   000004   EA           MOV     A,R2
+   \   000005   4B           ORL     A,R3
+   \   000006   6024         JZ      ??cc253x_p2_register_handler_0
+     42              return;
+     43            }
+     44          
+     45            cc253x_p2_irq_disable(flags);
+   \   000008   E59A         MOV     A,0x9a
+   \   00000A   5402         ANL     A,#0x2
+   \   00000C   FC           MOV     R4,A
+   \   00000D   539AFD       ANL     0x9a,#0xfd
+     46          
+     47            h->next = handlers;
+   \   000010   90....       MOV     DPTR,#handlers
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   F8           MOV     R0,A
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F9           MOV     R1,A
+   \   000018   8A82         MOV     DPL,R2
+   \   00001A   8B83         MOV     DPH,R3
+   \   00001C   E8           MOV     A,R0
+   \   00001D   F0           MOVX    @DPTR,A
+   \   00001E   A3           INC     DPTR
+   \   00001F   E9           MOV     A,R1
+   \   000020   F0           MOVX    @DPTR,A
+     48            handlers = h;
+   \   000021   90....       MOV     DPTR,#handlers
+   \   000024   EA           MOV     A,R2
+   \   000025   F0           MOVX    @DPTR,A
+   \   000026   A3           INC     DPTR
+   \   000027   EB           MOV     A,R3
+   \   000028   F0           MOVX    @DPTR,A
+     49          
+     50            cc253x_p2_irq_enable(flags);
+   \   000029   EC           MOV     A,R4
+   \   00002A   429A         ORL     0x9a,A
+     51          }
+   \                     ??cc253x_p2_register_handler_0:
+   \   00002C   D083         POP     DPH
+   \   00002E   D082         POP     DPL
+   \   000030   02....       LJMP    ?BRET
+   \   000033                REQUIRE IEN2
+     52          
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     53          void
+     54          cc253x_p2_unregister_handler(struct cc253x_p2_handler *remove)
+   \                     cc253x_p2_unregister_handler:
+     55          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+     56            uint8_t flags;
+     57            struct cc253x_p2_handler *h = handlers;
+   \   000005   90....       MOV     DPTR,#handlers
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   F8           MOV     R0,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   F9           MOV     R1,A
+     58          
+     59            // Protect against dumb users
+     60            if(!h || !remove) {
+   \   00000D   E8           MOV     A,R0
+   \   00000E   49           ORL     A,R1
+   \   00000F   606B         JZ      ??cc253x_p2_unregister_handler_0
+   \   000011   EA           MOV     A,R2
+   \   000012   4B           ORL     A,R3
+   \   000013   6067         JZ      ??cc253x_p2_unregister_handler_0
+     61              return;
+     62            }
+     63          
+     64            cc253x_p2_irq_disable(flags);
+   \   000015   E59A         MOV     A,0x9a
+   \   000017   5402         ANL     A,#0x2
+   \   000019   FE           MOV     R6,A
+   \   00001A   539AFD       ANL     0x9a,#0xfd
+     65          
+     66            if(h == remove) {
+   \   00001D   EA           MOV     A,R2
+   \   00001E   68           XRL     A,R0
+   \   00001F   7002         JNZ     ??cc253x_p2_unregister_handler_1
+   \   000021   EB           MOV     A,R3
+   \   000022   69           XRL     A,R1
+   \                     ??cc253x_p2_unregister_handler_1:
+   \   000023   701C         JNZ     ??cc253x_p2_unregister_handler_2
+     67              // First element in the list
+     68              handlers = h->next;
+   \   000025   8882         MOV     DPL,R0
+   \   000027   8983         MOV     DPH,R1
+   \   000029   E0           MOVX    A,@DPTR
+   \   00002A   F8           MOV     R0,A
+   \   00002B   A3           INC     DPTR
+   \   00002C   E0           MOVX    A,@DPTR
+   \   00002D   F9           MOV     R1,A
+   \   00002E   90....       MOV     DPTR,#handlers
+   \   000031   E8           MOV     A,R0
+   \   000032   F0           MOVX    @DPTR,A
+   \   000033   A3           INC     DPTR
+   \   000034   E9           MOV     A,R1
+   \   000035   F0           MOVX    @DPTR,A
+   \   000036   8041         SJMP    ??cc253x_p2_unregister_handler_3
+     69            } else {
+     70              while(h->next) {
+     71                if(h->next == remove) {
+     72                  h->next = h->next->next;
+     73                  break;
+     74                }
+     75                h = h->next;
+   \                     ??cc253x_p2_unregister_handler_4:
+   \   000038   8882         MOV     DPL,R0
+   \   00003A   8983         MOV     DPH,R1
+   \   00003C   E0           MOVX    A,@DPTR
+   \   00003D   F8           MOV     R0,A
+   \   00003E   A3           INC     DPTR
+   \   00003F   E0           MOVX    A,@DPTR
+   \   000040   F9           MOV     R1,A
+   \                     ??cc253x_p2_unregister_handler_2:
+   \   000041   8882         MOV     DPL,R0
+   \   000043   8983         MOV     DPH,R1
+   \   000045   E0           MOVX    A,@DPTR
+   \   000046   FC           MOV     R4,A
+   \   000047   A3           INC     DPTR
+   \   000048   E0           MOVX    A,@DPTR
+   \   000049   FD           MOV     R5,A
+   \   00004A   EC           MOV     A,R4
+   \   00004B   4D           ORL     A,R5
+   \   00004C   602B         JZ      ??cc253x_p2_unregister_handler_3
+   \   00004E   8882         MOV     DPL,R0
+   \   000050   8983         MOV     DPH,R1
+   \   000052   E0           MOVX    A,@DPTR
+   \   000053   FC           MOV     R4,A
+   \   000054   A3           INC     DPTR
+   \   000055   E0           MOVX    A,@DPTR
+   \   000056   FD           MOV     R5,A
+   \   000057   EA           MOV     A,R2
+   \   000058   6C           XRL     A,R4
+   \   000059   7002         JNZ     ??cc253x_p2_unregister_handler_5
+   \   00005B   EB           MOV     A,R3
+   \   00005C   6D           XRL     A,R5
+   \                     ??cc253x_p2_unregister_handler_5:
+   \   00005D   70D9         JNZ     ??cc253x_p2_unregister_handler_4
+   \   00005F   8882         MOV     DPL,R0
+   \   000061   8983         MOV     DPH,R1
+   \   000063   E0           MOVX    A,@DPTR
+   \   000064   FA           MOV     R2,A
+   \   000065   A3           INC     DPTR
+   \   000066   E0           MOVX    A,@DPTR
+   \   000067   F583         MOV     DPH,A
+   \   000069   8A82         MOV     DPL,R2
+   \   00006B   E0           MOVX    A,@DPTR
+   \   00006C   FA           MOV     R2,A
+   \   00006D   A3           INC     DPTR
+   \   00006E   E0           MOVX    A,@DPTR
+   \   00006F   FB           MOV     R3,A
+   \   000070   8882         MOV     DPL,R0
+   \   000072   8983         MOV     DPH,R1
+   \   000074   EA           MOV     A,R2
+   \   000075   F0           MOVX    @DPTR,A
+   \   000076   A3           INC     DPTR
+   \   000077   EB           MOV     A,R3
+   \   000078   F0           MOVX    @DPTR,A
+     76              }
+     77            }
+     78          
+     79            cc253x_p2_irq_enable(flags);
+   \                     ??cc253x_p2_unregister_handler_3:
+   \   000079   EE           MOV     A,R6
+   \   00007A   429A         ORL     0x9a,A
+     80          }
+   \                     ??cc253x_p2_unregister_handler_0:
+   \   00007C   7F01         MOV     R7,#0x1
+   \   00007E   02....       LJMP    ?BANKED_LEAVE_XDATA
+   \   000081                REQUIRE IEN2
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??cc253x_p2_register_handler?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    cc253x_p2_register_handler
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??cc253x_p2_unregister_handler?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    cc253x_p2_unregister_handler
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       2      0      0  cc253x_p2_register_handler
+       0      0      9  cc253x_p2_unregister_handler
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??cc253x_p2_register_handler?relay
+       6  ??cc253x_p2_unregister_handler?relay
+       1  IEN2
+      51  cc253x_p2_register_handler
+     129  cc253x_p2_unregister_handler
+       2  handlers
+
+ 
+ 180 bytes in segment BANKED_CODE
+  12 bytes in segment BANK_RELAYS
+   1 byte  in segment SFR_AN
+   2 bytes in segment XDATA_Z
+ 
+ 192 bytes of CODE  memory
+   0 bytes of DATA  memory (+ 1 byte shared)
+   2 bytes of XDATA memory
+
+Errors: none
+Warnings: none

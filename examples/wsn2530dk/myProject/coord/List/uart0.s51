@@ -1,0 +1,477 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:52 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\cpu\cc253x\dev\uart0.c           /
+//    Command line       =  D:\myWork\myWork\cpu\cc253x\dev\uart0.c -D        /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\uart0.s51                                 /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME uart0
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+
+        PUBLIC ??uart0_init?relay
+        FUNCTION ??uart0_init?relay,0203H
+        PUBLIC ??uart0_write?relay
+        FUNCTION ??uart0_write?relay,0203H
+        PUBLIC ??uart0_writeb?relay
+        FUNCTION ??uart0_writeb?relay,0203H
+        PUBWEAK P0DIR
+        PUBWEAK P0SEL
+        PUBWEAK PERCFG
+        PUBWEAK U0BAUD
+        PUBWEAK U0CSR
+        PUBWEAK U0DBUF
+        PUBWEAK U0GCR
+        PUBWEAK U0UCR
+        PUBWEAK _A_IEN0
+        PUBWEAK _A_IRCON2
+        PUBWEAK _A_P0
+        PUBLIC uart0_init
+        FUNCTION uart0_init,0201H
+        ARGFRAME XSTACK, 0, STACK
+        PUBLIC uart0_write
+        FUNCTION uart0_write,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC uart0_writeb
+        FUNCTION uart0_writeb,0203H
+        ARGFRAME XSTACK, 0, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+uart0_init          SYMBOL "uart0_init"
+??uart0_init?relay  SYMBOL "?relay", uart0_init
+uart0_write         SYMBOL "uart0_write"
+??uart0_write?relay SYMBOL "?relay", uart0_write
+uart0_writeb        SYMBOL "uart0_writeb"
+??uart0_writeb?relay SYMBOL "?relay", uart0_writeb
+
+
+        ASEGN SFR_AN:DATA:NOROOT,080H
+// union <unnamed> volatile __sfr _A_P0
+_A_P0:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0a8H
+// union <unnamed> volatile __sfr _A_IEN0
+_A_IEN0:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0e8H
+// union <unnamed> volatile __sfr _A_IRCON2
+_A_IRCON2:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0f1H
+// unsigned char volatile __sfr PERCFG
+PERCFG:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0f3H
+// unsigned char volatile __sfr P0SEL
+P0SEL:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0fdH
+// unsigned char volatile __sfr P0DIR
+P0DIR:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,086H
+// unsigned char volatile __sfr U0CSR
+U0CSR:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0c1H
+// unsigned char volatile __sfr U0DBUF
+U0DBUF:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0c2H
+// unsigned char volatile __sfr U0BAUD
+U0BAUD:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0c4H
+// unsigned char volatile __sfr U0UCR
+U0UCR:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0c5H
+// unsigned char volatile __sfr U0GCR
+U0GCR:
+        DATA8
+        DS 1
+// D:\myWork\myWork\cpu\cc253x\dev\uart0.c
+//    1 /**
+//    2  * \file
+//    3  *
+//    4  *   uart0 write routines
+//    5  *
+//    6  * \author
+//    7  *
+//    8  *   Anthony "Asterisk" Ambuehl
+//    9  *
+//   10  */
+//   11 #include <stdlib.h>
+//   12 #include <string.h>
+//   13 
+//   14 #include "cc253x.h"
+//   15 #include "sfr-bits.h"
+//   16 #include "dev/uart0.h"
+//   17 
+//   18 #if UART0_ENABLE
+//   19 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   20 void
+//   21 uart0_init()
+uart0_init:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function uart0_init
+        CODE
+//   22 {
+        ; Saved register size: 0
+        ; Auto size: 0
+//   23 #if UART0_CONF_HIGH_SPEED
+//   24   UART_SET_SPEED(0, UART_460_M, UART_460_E);
+//   25 #else
+//   26   UART_SET_SPEED(0, UART_115_M, UART_115_E);
+        MOV     0xc2,#-0x28
+        MOV     0xc5,#0xb
+//   27   //UART_SET_SPEED(0,UART_9_M,UART_921_E);
+//   28 #endif
+//   29 
+//   30 #ifdef UART0_ALTERNATIVE_2
+//   31   PERCFG |= PERCFG_U0CFG;  /* alternative port 2 = P1.5-2 */
+//   32 #ifdef UART0_RTSCTS
+//   33   P1SEL |= 0x3C;    /* peripheral select for TX and RX, RTS, CTS */
+//   34 #else
+//   35   P1SEL |= 0x30;    /* peripheral select for TX and RX */
+//   36   P1 &= ~0x08;      /* RTS down */
+//   37 #endif
+//   38   P1DIR |= 0x28;    /* RTS, TX out */
+//   39   P1DIR &= ~0x14;   /* CTS & RX in */
+//   40 #else
+//   41   PERCFG &= ~PERCFG_U0CFG; /* alternative port 1 = P0.5-2 */
+        ANL     0xf1,#0xfe
+//   42 #ifdef UART0_RTSCTS
+//   43   P0SEL |= 0x20 | 0x10;    /* peripheral select for TX and RX */
+//   44 #else
+//   45   P0SEL |= 0x0C;    /* peripheral select for TX and RX */
+        ORL     0xf3,#0xc
+//   46   P0 &= ~0x20;    /* RTS down */
+        CLR     0x80.5
+//   47 #endif
+//   48   P0DIR |= 0x28;    /* RTS, TX out */
+        ORL     0xfd,#0x28
+//   49   P0DIR &= ~0x14;   /* CTS, RX in */
+        ANL     0xfd,#0xeb
+//   50 #endif
+//   51 
+//   52 
+//   53 #ifdef UART0_RTSCTS
+//   54   U0UCR = 0x42; /*defaults: 8N1, RTS/CTS, high stop bit*/
+//   55 #else
+//   56   U0UCR = 0x02; /*defaults: 8N1, no flow control, high stop bit*/
+        MOV     0xc4,#0x2
+//   57 #endif
+//   58 
+//   59   U0CSR = UCSR_MODE; /* UART mode */
+        MOV     0x86,#-0x80
+//   60   U0UCR |= 0x80; /* Flush */
+        ORL     0xc4,#0x80
+//   61   UART0_RX_EN();
+        ORL     0x86,#0x40
+//   62 
+//   63   UART0_RX_INT(1);
+        SETB    0xa8.2
+//   64 }
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock0
+        REQUIRE U0BAUD
+        REQUIRE U0GCR
+        REQUIRE PERCFG
+        REQUIRE P0SEL
+        REQUIRE _A_P0
+        REQUIRE P0DIR
+        REQUIRE U0UCR
+        REQUIRE U0CSR
+        REQUIRE _A_IEN0
+//   65 /*---------------------------------------------------------------------------*/
+//   66 /* Write one byte over the UART. */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   67 void
+//   68 uart0_writeb(uint8_t byte)
+uart0_writeb:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function uart0_writeb
+        CODE
+//   69 {
+        ; Saved register size: 0
+        ; Auto size: 0
+//   70   UTX0IF = 0;
+        CLR     0xe8.1
+//   71   U0DBUF = byte;
+        MOV     0xc1,R1
+//   72   while(!UTX0IF); /* Wait until byte has been transmitted. */
+??uart0_writeb_0:
+        MOV     C,0xe8.1
+        JNC     ??uart0_writeb_0
+//   73   UTX0IF = 0;
+        CLR     0xe8.1
+//   74 }
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock1
+        REQUIRE _A_IRCON2
+        REQUIRE U0DBUF
+//   75 
+//   76 /* Write n byte over the UART0. */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   77 void
+//   78 uart0_write(uint8_t *data, uint16_t len)
+uart0_write:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function uart0_write
+        CODE
+//   79 {  
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   80   uint16_t i;  
+//   81   for(i=0; i<len; i++) {    
+        MOV     R0,#0x0
+        MOV     R1,#0x0
+        SJMP    ??uart0_write_0
+//   82     UTX0IF = 0;    
+??uart0_write_1:
+        CLR     0xe8.1
+//   83     U0DBUF = data[i];    
+        MOV     A,R2
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     0xc1,A
+//   84     while(!UTX0IF);  /* Wait until byte has been transmitted. */  
+??uart0_write_2:
+        MOV     C,0xe8.1
+        JNC     ??uart0_write_2
+//   85   }  
+        MOV     A,R0
+        ADD     A,#0x1
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R1,A
+??uart0_write_0:
+        CLR     C
+        MOV     A,R0
+        SUBB    A,R4
+        MOV     A,R1
+        SUBB    A,R5
+        JC      ??uart0_write_1
+//   86   UTX0IF = 0;
+        CLR     0xe8.1
+//   87 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock2
+        REQUIRE _A_IRCON2
+        REQUIRE U0DBUF
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uart0_init?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uart0_init
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uart0_writeb?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uart0_writeb
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uart0_write?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uart0_write
+
+        END
+//   88 #endif
+// 
+// 101 bytes in segment BANKED_CODE
+//  18 bytes in segment BANK_RELAYS
+//  11 bytes in segment SFR_AN
+// 
+// 119 bytes of CODE memory
+//   0 bytes of DATA memory (+ 11 bytes shared)
+//
+//Errors: none
+//Warnings: none

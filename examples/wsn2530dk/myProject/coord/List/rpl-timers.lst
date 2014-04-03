@@ -1,0 +1,1119 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:42 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\rpl\rpl-timers.c         #
+#    Command line       =  D:\myWork\myWork\core\net\rpl\rpl-timers.c -D      #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\rpl-timers.lst                              #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\rpl-timers.r51                               #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\rpl\rpl-timers.c
+      1          /**
+      2           * \addtogroup uip6
+      3           * @{
+      4           */
+      5          /*
+      6           * Copyright (c) 2010, Swedish Institute of Computer Science.
+      7           * All rights reserved.
+      8           *
+      9           * Redistribution and use in source and binary forms, with or without
+     10           * modification, are permitted provided that the following conditions
+     11           * are met:
+     12           * 1. Redistributions of source code must retain the above copyright
+     13           *    notice, this list of conditions and the following disclaimer.
+     14           * 2. Redistributions in binary form must reproduce the above copyright
+     15           *    notice, this list of conditions and the following disclaimer in the
+     16           *    documentation and/or other materials provided with the distribution.
+     17           * 3. Neither the name of the Institute nor the names of its contributors
+     18           *    may be used to endorse or promote products derived from this software
+     19           *    without specific prior written permission.
+     20           *
+     21           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     22           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     23           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     24           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     25           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     26           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     27           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     28           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     29           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     30           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     31           * SUCH DAMAGE.
+     32           *
+     33           * This file is part of the Contiki operating system.
+     34           */
+     35          /**
+     36           * \file
+     37           *         RPL timer management.
+     38           *
+     39           * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
+     40           */
+     41          
+     42          #include "contiki-conf.h"
+     43          #include "net/rpl/rpl-private.h"
+     44          #include "lib/random.h"
+     45          #include "sys/ctimer.h"
+     46          
+     47          #if UIP_CONF_IPV6
+     48          
+     49          #define DEBUG DEBUG_NONE
+     50          #include "net/uip-debug.h"
+     51          
+     52          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     53          static struct ctimer periodic_timer;
+   \                     periodic_timer:
+   \   000000                DS 16
+   \   000010                REQUIRE __INIT_XDATA_Z
+     54          
+     55          static void handle_periodic_timer(void *ptr);
+     56          static void new_dio_interval(rpl_instance_t *instance);
+     57          static void handle_dio_timer(void *ptr);
+     58          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     59          static uint16_t next_dis;
+   \                     next_dis:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     60          
+     61          /* dio_send_ok is true if the node is ready to send DIOs */
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     62          static uint8_t dio_send_ok;
+   \                     dio_send_ok:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+     63          
+     64          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     65          static void
+     66          handle_periodic_timer(void *ptr)
+   \                     handle_periodic_timer:
+     67          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     68            rpl_purge_routes();
+   \   000005                ; Setup parameters for call to function rpl_purge_routes
+   \   000005   12....       LCALL   ??rpl_purge_routes?relay
+     69            rpl_recalculate_ranks();
+   \   000008                ; Setup parameters for call to function rpl_recalculate_ranks
+   \   000008   12....       LCALL   ??rpl_recalculate_ranks?relay
+     70          
+     71            /* handle DIS */
+     72          #ifdef RPL_DIS_SEND
+     73            next_dis++;
+   \   00000B   90....       MOV     DPTR,#next_dis
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   2401         ADD     A,#0x1
+   \   000011   F0           MOVX    @DPTR,A
+   \   000012   A3           INC     DPTR
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   3400         ADDC    A,#0x0
+   \   000016   F0           MOVX    @DPTR,A
+     74            if(rpl_get_any_dag() == NULL && next_dis >= RPL_DIS_INTERVAL) {
+   \   000017                ; Setup parameters for call to function rpl_get_any_dag
+   \   000017   12....       LCALL   ??rpl_get_any_dag?relay
+   \   00001A   8A..         MOV     ?V0 + 0,R2
+   \   00001C   8B..         MOV     ?V0 + 1,R3
+   \   00001E   E5..         MOV     A,?V0 + 0
+   \   000020   45..         ORL     A,?V0 + 1
+   \   000022   701E         JNZ     ??handle_periodic_timer_0
+   \   000024   90....       MOV     DPTR,#next_dis
+   \   000027   C3           CLR     C
+   \   000028   E0           MOVX    A,@DPTR
+   \   000029   943C         SUBB    A,#0x3c
+   \   00002B   A3           INC     DPTR
+   \   00002C   E0           MOVX    A,@DPTR
+   \   00002D   9400         SUBB    A,#0x0
+   \   00002F   4011         JC      ??handle_periodic_timer_0
+     75              next_dis = 0;
+   \   000031   90....       MOV     DPTR,#next_dis
+   \   000034   7400         MOV     A,#0x0
+   \   000036   F0           MOVX    @DPTR,A
+   \   000037   A3           INC     DPTR
+   \   000038   7400         MOV     A,#0x0
+   \   00003A   F0           MOVX    @DPTR,A
+     76              dis_output(NULL);
+   \   00003B                ; Setup parameters for call to function dis_output
+   \   00003B   7A00         MOV     R2,#0x0
+   \   00003D   7B00         MOV     R3,#0x0
+   \   00003F   12....       LCALL   ??dis_output?relay
+     77            }
+     78          #endif
+     79            ctimer_reset(&periodic_timer);
+   \                     ??handle_periodic_timer_0:
+   \   000042                ; Setup parameters for call to function ctimer_reset
+   \   000042   7A..         MOV     R2,#periodic_timer & 0xff
+   \   000044   7B..         MOV     R3,#(periodic_timer >> 8) & 0xff
+   \   000046   12....       LCALL   ??ctimer_reset?relay
+     80          }
+   \   000049   7F02         MOV     R7,#0x2
+   \   00004B   02....       LJMP    ?BANKED_LEAVE_XDATA
+     81          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     82          static void
+     83          new_dio_interval(rpl_instance_t *instance)
+   \                     new_dio_interval:
+     84          {
+   \   000000   74EE         MOV     A,#-0x12
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 18
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 8,R2
+   \   000007   8B..         MOV     ?V0 + 9,R3
+     85            uint32_t time;
+     86            clock_time_t ticks;
+     87          
+     88            /* TODO: too small timer intervals for many cases */
+     89            time = 1UL << instance->dio_intcurrent;
+   \   000009   75..01       MOV     ?V0 + 0,#0x1
+   \   00000C   75..00       MOV     ?V0 + 1,#0x0
+   \   00000F   75..00       MOV     ?V0 + 2,#0x0
+   \   000012   75..00       MOV     ?V0 + 3,#0x0
+   \   000015   E5..         MOV     A,?V0 + 8
+   \   000017   2483         ADD     A,#-0x7d
+   \   000019   F582         MOV     DPL,A
+   \   00001B   E5..         MOV     A,?V0 + 9
+   \   00001D   3400         ADDC    A,#0x0
+   \   00001F   F583         MOV     DPH,A
+   \   000021   E0           MOVX    A,@DPTR
+   \   000022   78..         MOV     R0,#?V0 + 0
+   \   000024   12....       LCALL   ?L_SHL
+     90          
+     91            /* Convert from milliseconds to CLOCK_TICKS. */
+     92            ticks = (time * CLOCK_SECOND) / 1000;
+   \   000027   90....       MOV     DPTR,#__Constant_80
+   \   00002A   78..         MOV     R0,#?V0 + 4
+   \   00002C   12....       LCALL   ?L_MOV_X
+   \   00002F   78..         MOV     R0,#?V0 + 0
+   \   000031   79..         MOV     R1,#?V0 + 4
+   \   000033   12....       LCALL   ?L_MUL
+   \   000036   90....       MOV     DPTR,#__Constant_3e8
+   \   000039   78..         MOV     R0,#?V0 + 4
+   \   00003B   12....       LCALL   ?L_MOV_X
+   \   00003E   78..         MOV     R0,#?V0 + 0
+   \   000040   79..         MOV     R1,#?V0 + 4
+   \   000042   12....       LCALL   ?UL_DIV_MOD
+   \   000045   AC..         MOV     R4,?V0 + 0
+   \   000047   AD..         MOV     R5,?V0 + 1
+     93            instance->dio_next_delay = ticks;
+   \   000049   E5..         MOV     A,?V0 + 8
+   \   00004B   248C         ADD     A,#-0x74
+   \   00004D   F582         MOV     DPL,A
+   \   00004F   E5..         MOV     A,?V0 + 9
+   \   000051   3400         ADDC    A,#0x0
+   \   000053   F583         MOV     DPH,A
+   \   000055   EC           MOV     A,R4
+   \   000056   F0           MOVX    @DPTR,A
+   \   000057   A3           INC     DPTR
+   \   000058   ED           MOV     A,R5
+   \   000059   F0           MOVX    @DPTR,A
+     94          
+     95            /* random number between I/2 and I */
+     96            ticks = ticks / 2 + (ticks / 2 * (uint32_t)random_rand()) / RANDOM_RAND_MAX;
+   \   00005A   EC           MOV     A,R4
+   \   00005B   FE           MOV     R6,A
+   \   00005C   ED           MOV     A,R5
+   \   00005D   FF           MOV     R7,A
+   \   00005E   C3           CLR     C
+   \   00005F   13           RRC     A
+   \   000060   FF           MOV     R7,A
+   \   000061   EE           MOV     A,R6
+   \   000062   13           RRC     A
+   \   000063   FE           MOV     R6,A
+   \   000064   ED           MOV     A,R5
+   \   000065   C3           CLR     C
+   \   000066   13           RRC     A
+   \   000067   FD           MOV     R5,A
+   \   000068   EC           MOV     A,R4
+   \   000069   13           RRC     A
+   \   00006A   FC           MOV     R4,A
+   \   00006B   8C..         MOV     ?V0 + 0,R4
+   \   00006D   8D..         MOV     ?V0 + 1,R5
+   \   00006F   E4           CLR     A
+   \   000070   F5..         MOV     ?V0 + 2,A
+   \   000072   F5..         MOV     ?V0 + 3,A
+   \   000074                ; Setup parameters for call to function random_rand
+   \   000074   12....       LCALL   ??random_rand?relay
+   \   000077   8A..         MOV     ?V0 + 4,R2
+   \   000079   8B..         MOV     ?V0 + 5,R3
+   \   00007B   E4           CLR     A
+   \   00007C   F5..         MOV     ?V0 + 6,A
+   \   00007E   F5..         MOV     ?V0 + 7,A
+   \   000080   78..         MOV     R0,#?V0 + 0
+   \   000082   79..         MOV     R1,#?V0 + 4
+   \   000084   12....       LCALL   ?L_MUL
+   \   000087   90....       MOV     DPTR,#__Constant_ffff
+   \   00008A   78..         MOV     R0,#?V0 + 4
+   \   00008C   12....       LCALL   ?L_MOV_X
+   \   00008F   78..         MOV     R0,#?V0 + 0
+   \   000091   79..         MOV     R1,#?V0 + 4
+   \   000093   12....       LCALL   ?UL_DIV_MOD
+   \   000096   EE           MOV     A,R6
+   \   000097   25..         ADD     A,?V0 + 0
+   \   000099   FC           MOV     R4,A
+   \   00009A   EF           MOV     A,R7
+   \   00009B   35..         ADDC    A,?V0 + 1
+   \   00009D   FD           MOV     R5,A
+     97          
+     98            /*
+     99             * The intervals must be equally long among the nodes for Trickle to
+    100             * operate efficiently. Therefore we need to calculate the delay between
+    101             * the randomized time and the start time of the next interval.
+    102             */
+    103            instance->dio_next_delay -= ticks;
+   \   00009E   E5..         MOV     A,?V0 + 8
+   \   0000A0   248C         ADD     A,#-0x74
+   \   0000A2   F582         MOV     DPL,A
+   \   0000A4   E5..         MOV     A,?V0 + 9
+   \   0000A6   3400         ADDC    A,#0x0
+   \   0000A8   F583         MOV     DPH,A
+   \   0000AA   C3           CLR     C
+   \   0000AB   E0           MOVX    A,@DPTR
+   \   0000AC   9C           SUBB    A,R4
+   \   0000AD   F0           MOVX    @DPTR,A
+   \   0000AE   A3           INC     DPTR
+   \   0000AF   E0           MOVX    A,@DPTR
+   \   0000B0   9D           SUBB    A,R5
+   \   0000B1   F0           MOVX    @DPTR,A
+    104            instance->dio_send = 1;
+   \   0000B2   E5..         MOV     A,?V0 + 8
+   \   0000B4   2484         ADD     A,#-0x7c
+   \   0000B6   F582         MOV     DPL,A
+   \   0000B8   E5..         MOV     A,?V0 + 9
+   \   0000BA   3400         ADDC    A,#0x0
+   \   0000BC   F583         MOV     DPH,A
+   \   0000BE   7401         MOV     A,#0x1
+   \   0000C0   F0           MOVX    @DPTR,A
+    105          
+    106          #if RPL_CONF_STATS
+    107            /* keep some stats */
+    108            instance->dio_totint++;
+    109            instance->dio_totrecv += instance->dio_counter;
+    110            ANNOTATE("#A rank=%u.%u(%u),stats=%d %d %d %d,color=%s\n",
+    111          	   DAG_RANK(instance->current_dag->rank, instance),
+    112                     (10 * (instance->current_dag->rank % instance->min_hoprankinc)) / instance->min_hoprankinc,
+    113                     instance->current_dag->version,
+    114                     instance->dio_totint, instance->dio_totsend,
+    115                     instance->dio_totrecv,instance->dio_intcurrent,
+    116          	   instance->current_dag->rank == ROOT_RANK(instance) ? "BLUE" : "ORANGE");
+    117          #endif /* RPL_CONF_STATS */
+    118          
+    119            /* reset the redundancy counter */
+    120            instance->dio_counter = 0;
+   \   0000C1   E5..         MOV     A,?V0 + 8
+   \   0000C3   2485         ADD     A,#-0x7b
+   \   0000C5   F582         MOV     DPL,A
+   \   0000C7   E5..         MOV     A,?V0 + 9
+   \   0000C9   3400         ADDC    A,#0x0
+   \   0000CB   F583         MOV     DPH,A
+   \   0000CD   7400         MOV     A,#0x0
+   \   0000CF   F0           MOVX    @DPTR,A
+    121          
+    122            /* schedule the timer */
+    123            PRINTF("RPL: Scheduling DIO timer %lu ticks in future (Interval)\n", ticks);
+    124            ctimer_set(&instance->dio_timer, ticks, &handle_dio_timer, instance);
+   \   0000D0                ; Setup parameters for call to function ctimer_set
+   \   0000D0   78..         MOV     R0,#?V0 + 8
+   \   0000D2   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000D5   75....       MOV     ?V0 + 0,#??handle_dio_timer?relay & 0xff
+   \   0000D8   75....       MOV     ?V0 + 1,#(??handle_dio_timer?relay >> 8) & 0xff
+   \   0000DB   78..         MOV     R0,#?V0 + 0
+   \   0000DD   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000E0   E5..         MOV     A,?V0 + 8
+   \   0000E2   248E         ADD     A,#-0x72
+   \   0000E4   FA           MOV     R2,A
+   \   0000E5   E5..         MOV     A,?V0 + 9
+   \   0000E7   3400         ADDC    A,#0x0
+   \   0000E9   FB           MOV     R3,A
+   \   0000EA   12....       LCALL   ??ctimer_set?relay
+   \   0000ED   7404         MOV     A,#0x4
+   \   0000EF   12....       LCALL   ?DEALLOC_XSTACK8
+    125          }
+   \   0000F2   7F0A         MOV     R7,#0xa
+   \   0000F4   02....       LJMP    ?BANKED_LEAVE_XDATA
+    126          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    127          static void
+    128          handle_dio_timer(void *ptr)
+   \                     handle_dio_timer:
+    129          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+    130            rpl_instance_t *instance;
+    131          
+    132            instance = (rpl_instance_t *)ptr;
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+    133          
+    134            PRINTF("RPL: DIO Timer triggered\n");
+    135            if(!dio_send_ok) {
+   \   000009   90....       MOV     DPTR,#dio_send_ok
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   7018         JNZ     ??handle_dio_timer_0
+    136              if(uip_ds6_get_link_local(ADDR_PREFERRED) != NULL) {
+   \   00000F                ; Setup parameters for call to function uip_ds6_get_link_local
+   \   00000F   7901         MOV     R1,#0x1
+   \   000011   12....       LCALL   ??uip_ds6_get_link_local?relay
+   \   000014   8A..         MOV     ?V0 + 2,R2
+   \   000016   8B..         MOV     ?V0 + 3,R3
+   \   000018   E5..         MOV     A,?V0 + 2
+   \   00001A   45..         ORL     A,?V0 + 3
+   \   00001C   7003         JNZ     $+5
+   \   00001E   02....       LJMP    ??handle_dio_timer_1 & 0xFFFF
+    137                dio_send_ok = 1;
+   \   000021   90....       MOV     DPTR,#dio_send_ok
+   \   000024   7401         MOV     A,#0x1
+   \   000026   F0           MOVX    @DPTR,A
+    138              } else {
+    139                PRINTF("RPL: Postponing DIO transmission since link local address is not ok\n");
+    140                ctimer_set(&instance->dio_timer, CLOCK_SECOND, &handle_dio_timer, instance);
+    141                return;
+    142              }
+    143            }
+    144          
+    145            if(instance->dio_send) {
+   \                     ??handle_dio_timer_0:
+   \   000027   E5..         MOV     A,?V0 + 0
+   \   000029   2484         ADD     A,#-0x7c
+   \   00002B   F582         MOV     DPL,A
+   \   00002D   E5..         MOV     A,?V0 + 1
+   \   00002F   3400         ADDC    A,#0x0
+   \   000031   F583         MOV     DPH,A
+   \   000033   E0           MOVX    A,@DPTR
+   \   000034   7003         JNZ     $+5
+   \   000036   02....       LJMP    ??handle_dio_timer_2 & 0xFFFF
+    146              /* send DIO if counter is less than desired redundancy */
+    147              if(instance->dio_counter < instance->dio_redundancy) {
+   \   000039   E5..         MOV     A,?V0 + 0
+   \   00003B   2481         ADD     A,#-0x7f
+   \   00003D   F582         MOV     DPL,A
+   \   00003F   E5..         MOV     A,?V0 + 1
+   \   000041   3400         ADDC    A,#0x0
+   \   000043   F583         MOV     DPH,A
+   \   000045   E0           MOVX    A,@DPTR
+   \   000046   F8           MOV     R0,A
+   \   000047   E5..         MOV     A,?V0 + 0
+   \   000049   2485         ADD     A,#-0x7b
+   \   00004B   F582         MOV     DPL,A
+   \   00004D   E5..         MOV     A,?V0 + 1
+   \   00004F   3400         ADDC    A,#0x0
+   \   000051   F583         MOV     DPH,A
+   \   000053   E0           MOVX    A,@DPTR
+   \   000054   C3           CLR     C
+   \   000055   98           SUBB    A,R0
+   \   000056   500B         JNC     ??handle_dio_timer_3
+    148          #if RPL_CONF_STATS
+    149                instance->dio_totsend++;
+    150          #endif /* RPL_CONF_STATS */
+    151                dio_output(instance, NULL);
+   \   000058                ; Setup parameters for call to function dio_output
+   \   000058   7C00         MOV     R4,#0x0
+   \   00005A   7D00         MOV     R5,#0x0
+   \   00005C   AA..         MOV     R2,?V0 + 0
+   \   00005E   AB..         MOV     R3,?V0 + 1
+   \   000060   12....       LCALL   ??dio_output?relay
+    152              } else {
+    153                PRINTF("RPL: Supressing DIO transmission (%d >= %d)\n",
+    154                       instance->dio_counter, instance->dio_redundancy);
+    155              }
+    156              instance->dio_send = 0;
+   \                     ??handle_dio_timer_3:
+   \   000063   E5..         MOV     A,?V0 + 0
+   \   000065   2484         ADD     A,#-0x7c
+   \   000067   F582         MOV     DPL,A
+   \   000069   E5..         MOV     A,?V0 + 1
+   \   00006B   3400         ADDC    A,#0x0
+   \   00006D   F583         MOV     DPH,A
+   \   00006F   7400         MOV     A,#0x0
+   \   000071   F0           MOVX    @DPTR,A
+    157              PRINTF("RPL: Scheduling DIO timer %lu ticks in future (sent)\n",
+    158                     instance->dio_next_delay);
+    159              ctimer_set(&instance->dio_timer, instance->dio_next_delay, handle_dio_timer, instance);
+   \   000072                ; Setup parameters for call to function ctimer_set
+   \   000072   78..         MOV     R0,#?V0 + 0
+   \   000074   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000077   75....       MOV     ?V0 + 2,#??handle_dio_timer?relay & 0xff
+   \   00007A   75....       MOV     ?V0 + 3,#(??handle_dio_timer?relay >> 8) & 0xff
+   \   00007D   78..         MOV     R0,#?V0 + 2
+   \   00007F   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000082   E5..         MOV     A,?V0 + 0
+   \   000084   248C         ADD     A,#-0x74
+   \   000086   F582         MOV     DPL,A
+   \   000088   E5..         MOV     A,?V0 + 1
+   \   00008A   3400         ADDC    A,#0x0
+   \   00008C   F583         MOV     DPH,A
+   \   00008E   E0           MOVX    A,@DPTR
+   \   00008F   FC           MOV     R4,A
+   \   000090   A3           INC     DPTR
+   \   000091   E0           MOVX    A,@DPTR
+   \   000092   FD           MOV     R5,A
+   \   000093   E5..         MOV     A,?V0 + 0
+   \   000095   248E         ADD     A,#-0x72
+   \   000097   FA           MOV     R2,A
+   \   000098   E5..         MOV     A,?V0 + 1
+   \   00009A   3400         ADDC    A,#0x0
+   \   00009C   FB           MOV     R3,A
+   \   00009D   12....       LCALL   ??ctimer_set?relay
+   \   0000A0   7404         MOV     A,#0x4
+   \   0000A2   12....       LCALL   ?DEALLOC_XSTACK8
+   \   0000A5   02....       LJMP    ??handle_dio_timer_4 & 0xFFFF
+    160            } else {
+   \                     ??handle_dio_timer_1:
+   \   0000A8                ; Setup parameters for call to function ctimer_set
+   \   0000A8   78..         MOV     R0,#?V0 + 0
+   \   0000AA   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000AD   75....       MOV     ?V0 + 2,#??handle_dio_timer?relay & 0xff
+   \   0000B0   75....       MOV     ?V0 + 3,#(??handle_dio_timer?relay >> 8) & 0xff
+   \   0000B3   78..         MOV     R0,#?V0 + 2
+   \   0000B5   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000B8   7C80         MOV     R4,#-0x80
+   \   0000BA   7D00         MOV     R5,#0x0
+   \   0000BC   E5..         MOV     A,?V0 + 0
+   \   0000BE   248E         ADD     A,#-0x72
+   \   0000C0   FA           MOV     R2,A
+   \   0000C1   E5..         MOV     A,?V0 + 1
+   \   0000C3   3400         ADDC    A,#0x0
+   \   0000C5   FB           MOV     R3,A
+   \   0000C6   12....       LCALL   ??ctimer_set?relay
+   \   0000C9   7404         MOV     A,#0x4
+   \   0000CB   12....       LCALL   ?DEALLOC_XSTACK8
+   \   0000CE   8059         SJMP    ??handle_dio_timer_4
+    161              /* check if we need to double interval */
+    162              if(instance->dio_intcurrent < instance->dio_intmin + instance->dio_intdoubl) {
+   \                     ??handle_dio_timer_2:
+   \   0000D0   E5..         MOV     A,?V0 + 0
+   \   0000D2   2483         ADD     A,#-0x7d
+   \   0000D4   F582         MOV     DPL,A
+   \   0000D6   E5..         MOV     A,?V0 + 1
+   \   0000D8   3400         ADDC    A,#0x0
+   \   0000DA   F583         MOV     DPH,A
+   \   0000DC   E0           MOVX    A,@DPTR
+   \   0000DD   FA           MOV     R2,A
+   \   0000DE   7B00         MOV     R3,#0x0
+   \   0000E0   E5..         MOV     A,?V0 + 0
+   \   0000E2   2480         ADD     A,#-0x80
+   \   0000E4   F582         MOV     DPL,A
+   \   0000E6   E5..         MOV     A,?V0 + 1
+   \   0000E8   3400         ADDC    A,#0x0
+   \   0000EA   F583         MOV     DPH,A
+   \   0000EC   E0           MOVX    A,@DPTR
+   \   0000ED   F8           MOV     R0,A
+   \   0000EE   7900         MOV     R1,#0x0
+   \   0000F0   E5..         MOV     A,?V0 + 0
+   \   0000F2   247F         ADD     A,#0x7f
+   \   0000F4   F582         MOV     DPL,A
+   \   0000F6   E5..         MOV     A,?V0 + 1
+   \   0000F8   3400         ADDC    A,#0x0
+   \   0000FA   F583         MOV     DPH,A
+   \   0000FC   E0           MOVX    A,@DPTR
+   \   0000FD   FC           MOV     R4,A
+   \   0000FE   7D00         MOV     R5,#0x0
+   \   000100   E8           MOV     A,R0
+   \   000101   2C           ADD     A,R4
+   \   000102   F8           MOV     R0,A
+   \   000103   E9           MOV     A,R1
+   \   000104   3D           ADDC    A,R5
+   \   000105   F9           MOV     R1,A
+   \   000106   C3           CLR     C
+   \   000107   EA           MOV     A,R2
+   \   000108   98           SUBB    A,R0
+   \   000109   EB           MOV     A,R3
+   \   00010A   99           SUBB    A,R1
+   \   00010B   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   00010D   65D0         XRL     A,PSW
+   \   00010F   33           RLC     A
+   \   000110   5010         JNC     ??handle_dio_timer_5
+    163                instance->dio_intcurrent++;
+   \   000112   E5..         MOV     A,?V0 + 0
+   \   000114   2483         ADD     A,#-0x7d
+   \   000116   F582         MOV     DPL,A
+   \   000118   E5..         MOV     A,?V0 + 1
+   \   00011A   3400         ADDC    A,#0x0
+   \   00011C   F583         MOV     DPH,A
+   \   00011E   E0           MOVX    A,@DPTR
+   \   00011F   2401         ADD     A,#0x1
+   \   000121   F0           MOVX    @DPTR,A
+    164                PRINTF("RPL: DIO Timer interval doubled %d\n", instance->dio_intcurrent);
+    165              }
+    166              new_dio_interval(instance);
+   \                     ??handle_dio_timer_5:
+   \   000122                ; Setup parameters for call to function new_dio_interval
+   \   000122   AA..         MOV     R2,?V0 + 0
+   \   000124   AB..         MOV     R3,?V0 + 1
+   \   000126   12....       LCALL   ??new_dio_interval?relay
+    167            }
+    168          }
+   \                     ??handle_dio_timer_4:
+   \   000129   7F04         MOV     R7,#0x4
+   \   00012B   02....       LJMP    ?BANKED_LEAVE_XDATA
+    169          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    170          void
+    171          rpl_reset_periodic_timer(void)
+   \                     rpl_reset_periodic_timer:
+    172          {
+   \   000000   74F0         MOV     A,#-0x10
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 16
+   \   000005                ; Auto size: 0
+    173            next_dis = RPL_DIS_INTERVAL / 2 +
+    174              ((uint32_t)RPL_DIS_INTERVAL * (uint32_t)random_rand()) / RANDOM_RAND_MAX -
+    175              RPL_DIS_START_DELAY;
+   \   000005                ; Setup parameters for call to function random_rand
+   \   000005   12....       LCALL   ??random_rand?relay
+   \   000008   8A..         MOV     ?V0 + 0,R2
+   \   00000A   8B..         MOV     ?V0 + 1,R3
+   \   00000C   E4           CLR     A
+   \   00000D   F5..         MOV     ?V0 + 2,A
+   \   00000F   F5..         MOV     ?V0 + 3,A
+   \   000011   90....       MOV     DPTR,#__Constant_3c
+   \   000014   78..         MOV     R0,#?V0 + 4
+   \   000016   12....       LCALL   ?L_MOV_X
+   \   000019   78..         MOV     R0,#?V0 + 0
+   \   00001B   79..         MOV     R1,#?V0 + 4
+   \   00001D   12....       LCALL   ?L_MUL
+   \   000020   90....       MOV     DPTR,#__Constant_ffff
+   \   000023   78..         MOV     R0,#?V0 + 4
+   \   000025   12....       LCALL   ?L_MOV_X
+   \   000028   78..         MOV     R0,#?V0 + 0
+   \   00002A   79..         MOV     R1,#?V0 + 4
+   \   00002C   12....       LCALL   ?UL_DIV_MOD
+   \   00002F   E5..         MOV     A,?V0 + 0
+   \   000031   2419         ADD     A,#0x19
+   \   000033   F8           MOV     R0,A
+   \   000034   E5..         MOV     A,?V0 + 1
+   \   000036   3400         ADDC    A,#0x0
+   \   000038   F9           MOV     R1,A
+   \   000039   90....       MOV     DPTR,#next_dis
+   \   00003C   E8           MOV     A,R0
+   \   00003D   F0           MOVX    @DPTR,A
+   \   00003E   A3           INC     DPTR
+   \   00003F   E9           MOV     A,R1
+   \   000040   F0           MOVX    @DPTR,A
+    176            ctimer_set(&periodic_timer, CLOCK_SECOND, handle_periodic_timer, NULL);
+   \   000041                ; Setup parameters for call to function ctimer_set
+   \   000041   E4           CLR     A
+   \   000042   F5..         MOV     ?V0 + 0,A
+   \   000044   F5..         MOV     ?V0 + 1,A
+   \   000046   78..         MOV     R0,#?V0 + 0
+   \   000048   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00004B   75....       MOV     ?V0 + 0,#??handle_periodic_timer?relay & 0xff
+   \   00004E   75....       MOV     ?V0 + 1,#(??handle_periodic_timer?relay >> 8) & 0xff
+   \   000051   78..         MOV     R0,#?V0 + 0
+   \   000053   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000056   7C80         MOV     R4,#-0x80
+   \   000058   7D00         MOV     R5,#0x0
+   \   00005A   7A..         MOV     R2,#periodic_timer & 0xff
+   \   00005C   7B..         MOV     R3,#(periodic_timer >> 8) & 0xff
+   \   00005E   12....       LCALL   ??ctimer_set?relay
+   \   000061   7404         MOV     A,#0x4
+   \   000063   12....       LCALL   ?DEALLOC_XSTACK8
+    177          }
+   \   000066   7F08         MOV     R7,#0x8
+   \   000068   02....       LJMP    ?BANKED_LEAVE_XDATA
+    178          /*---------------------------------------------------------------------------*/
+    179          /* Resets the DIO timer in the instance to its minimal interval. */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    180          void
+    181          rpl_reset_dio_timer(rpl_instance_t *instance)
+   \                     rpl_reset_dio_timer:
+    182          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    183          #if !RPL_LEAF_ONLY
+    184            /* Do not reset if we are already on the minimum interval,
+    185               unless forced to do so. */
+    186            if(instance->dio_intcurrent > instance->dio_intmin) {
+   \   000004   EA           MOV     A,R2
+   \   000005   2483         ADD     A,#-0x7d
+   \   000007   F582         MOV     DPL,A
+   \   000009   EB           MOV     A,R3
+   \   00000A   3400         ADDC    A,#0x0
+   \   00000C   F583         MOV     DPH,A
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   F8           MOV     R0,A
+   \   000010   EA           MOV     A,R2
+   \   000011   2480         ADD     A,#-0x80
+   \   000013   F582         MOV     DPL,A
+   \   000015   EB           MOV     A,R3
+   \   000016   3400         ADDC    A,#0x0
+   \   000018   F583         MOV     DPH,A
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   C3           CLR     C
+   \   00001C   98           SUBB    A,R0
+   \   00001D   502A         JNC     ??rpl_reset_dio_timer_0
+    187              instance->dio_counter = 0;
+   \   00001F   EA           MOV     A,R2
+   \   000020   2485         ADD     A,#-0x7b
+   \   000022   F582         MOV     DPL,A
+   \   000024   EB           MOV     A,R3
+   \   000025   3400         ADDC    A,#0x0
+   \   000027   F583         MOV     DPH,A
+   \   000029   7400         MOV     A,#0x0
+   \   00002B   F0           MOVX    @DPTR,A
+    188              instance->dio_intcurrent = instance->dio_intmin;
+   \   00002C   EA           MOV     A,R2
+   \   00002D   2480         ADD     A,#-0x80
+   \   00002F   F582         MOV     DPL,A
+   \   000031   EB           MOV     A,R3
+   \   000032   3400         ADDC    A,#0x0
+   \   000034   F583         MOV     DPH,A
+   \   000036   E0           MOVX    A,@DPTR
+   \   000037   C0E0         PUSH    A
+   \   000039   EA           MOV     A,R2
+   \   00003A   2483         ADD     A,#-0x7d
+   \   00003C   F582         MOV     DPL,A
+   \   00003E   EB           MOV     A,R3
+   \   00003F   3400         ADDC    A,#0x0
+   \   000041   F583         MOV     DPH,A
+   \   000043   D0E0         POP     A
+   \   000045   F0           MOVX    @DPTR,A
+    189              new_dio_interval(instance);
+   \   000046                ; Setup parameters for call to function new_dio_interval
+   \   000046   12....       LCALL   ??new_dio_interval?relay
+    190            }
+    191          #if RPL_CONF_STATS
+    192            rpl_stats.resets++;
+    193          #endif /* RPL_CONF_STATS */
+    194          #endif /* RPL_LEAF_ONLY */
+    195          }
+   \                     ??rpl_reset_dio_timer_0:
+   \   000049   D083         POP     DPH
+   \   00004B   D082         POP     DPL
+   \   00004D   02....       LJMP    ?BRET
+    196          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    197          static void
+    198          handle_dao_timer(void *ptr)
+   \                     handle_dao_timer:
+    199          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+    200            rpl_instance_t *instance;
+    201          
+    202            instance = (rpl_instance_t *)ptr;
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+    203          
+    204            if(!dio_send_ok && uip_ds6_get_link_local(ADDR_PREFERRED) == NULL) {
+   \   000009   90....       MOV     DPTR,#dio_send_ok
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   7037         JNZ     ??handle_dao_timer_0
+   \   00000F                ; Setup parameters for call to function uip_ds6_get_link_local
+   \   00000F   7901         MOV     R1,#0x1
+   \   000011   12....       LCALL   ??uip_ds6_get_link_local?relay
+   \   000014   8A..         MOV     ?V0 + 2,R2
+   \   000016   8B..         MOV     ?V0 + 3,R3
+   \   000018   E5..         MOV     A,?V0 + 2
+   \   00001A   45..         ORL     A,?V0 + 3
+   \   00001C   7028         JNZ     ??handle_dao_timer_0
+    205              PRINTF("RPL: Postpone DAO transmission\n");
+    206              ctimer_set(&instance->dao_timer, CLOCK_SECOND, handle_dao_timer, instance);
+   \   00001E                ; Setup parameters for call to function ctimer_set
+   \   00001E   78..         MOV     R0,#?V0 + 0
+   \   000020   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000023   75....       MOV     ?V0 + 2,#??handle_dao_timer?relay & 0xff
+   \   000026   75....       MOV     ?V0 + 3,#(??handle_dao_timer?relay >> 8) & 0xff
+   \   000029   78..         MOV     R0,#?V0 + 2
+   \   00002B   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00002E   7C80         MOV     R4,#-0x80
+   \   000030   7D00         MOV     R5,#0x0
+   \   000032   E5..         MOV     A,?V0 + 0
+   \   000034   249E         ADD     A,#-0x62
+   \   000036   FA           MOV     R2,A
+   \   000037   E5..         MOV     A,?V0 + 1
+   \   000039   3400         ADDC    A,#0x0
+   \   00003B   FB           MOV     R3,A
+   \   00003C   12....       LCALL   ??ctimer_set?relay
+   \   00003F   7404         MOV     A,#0x4
+   \   000041   12....       LCALL   ?DEALLOC_XSTACK8
+    207              return;
+   \   000044   8066         SJMP    ??handle_dao_timer_1
+    208            }
+    209          
+    210            /* Send the DAO to the DAO parent set -- the preferred parent in our case. */
+    211            if(instance->current_dag->preferred_parent != NULL) {
+   \                     ??handle_dao_timer_0:
+   \   000046   85..82       MOV     DPL,?V0 + 0
+   \   000049   85..83       MOV     DPH,?V0 + 1
+   \   00004C   A3           INC     DPTR
+   \   00004D   A3           INC     DPTR
+   \   00004E   A3           INC     DPTR
+   \   00004F   A3           INC     DPTR
+   \   000050   A3           INC     DPTR
+   \   000051   A3           INC     DPTR
+   \   000052   A3           INC     DPTR
+   \   000053   A3           INC     DPTR
+   \   000054   A3           INC     DPTR
+   \   000055   E0           MOVX    A,@DPTR
+   \   000056   F8           MOV     R0,A
+   \   000057   A3           INC     DPTR
+   \   000058   E0           MOVX    A,@DPTR
+   \   000059   C8           XCH     A,R0
+   \   00005A   2417         ADD     A,#0x17
+   \   00005C   F582         MOV     DPL,A
+   \   00005E   E8           MOV     A,R0
+   \   00005F   3400         ADDC    A,#0x0
+   \   000061   F583         MOV     DPH,A
+   \   000063   E0           MOVX    A,@DPTR
+   \   000064   F8           MOV     R0,A
+   \   000065   A3           INC     DPTR
+   \   000066   E0           MOVX    A,@DPTR
+   \   000067   F9           MOV     R1,A
+   \   000068   E8           MOV     A,R0
+   \   000069   49           ORL     A,R1
+   \   00006A   6033         JZ      ??handle_dao_timer_2
+    212              PRINTF("RPL: handle_dao_timer - sending DAO\n");
+    213              /* Set the route lifetime to the default value. */
+    214              dao_output(instance->current_dag->preferred_parent, instance->default_lifetime);
+   \   00006C                ; Setup parameters for call to function dao_output
+   \   00006C   E5..         MOV     A,?V0 + 0
+   \   00006E   2482         ADD     A,#-0x7e
+   \   000070   F582         MOV     DPL,A
+   \   000072   E5..         MOV     A,?V0 + 1
+   \   000074   3400         ADDC    A,#0x0
+   \   000076   F583         MOV     DPH,A
+   \   000078   E0           MOVX    A,@DPTR
+   \   000079   F9           MOV     R1,A
+   \   00007A   85..82       MOV     DPL,?V0 + 0
+   \   00007D   85..83       MOV     DPH,?V0 + 1
+   \   000080   A3           INC     DPTR
+   \   000081   A3           INC     DPTR
+   \   000082   A3           INC     DPTR
+   \   000083   A3           INC     DPTR
+   \   000084   A3           INC     DPTR
+   \   000085   A3           INC     DPTR
+   \   000086   A3           INC     DPTR
+   \   000087   A3           INC     DPTR
+   \   000088   A3           INC     DPTR
+   \   000089   E0           MOVX    A,@DPTR
+   \   00008A   F8           MOV     R0,A
+   \   00008B   A3           INC     DPTR
+   \   00008C   E0           MOVX    A,@DPTR
+   \   00008D   C8           XCH     A,R0
+   \   00008E   2417         ADD     A,#0x17
+   \   000090   F582         MOV     DPL,A
+   \   000092   E8           MOV     A,R0
+   \   000093   3400         ADDC    A,#0x0
+   \   000095   F583         MOV     DPH,A
+   \   000097   E0           MOVX    A,@DPTR
+   \   000098   FA           MOV     R2,A
+   \   000099   A3           INC     DPTR
+   \   00009A   E0           MOVX    A,@DPTR
+   \   00009B   FB           MOV     R3,A
+   \   00009C   12....       LCALL   ??dao_output?relay
+    215            } else {
+    216              PRINTF("RPL: No suitable DAO parent\n");
+    217            }
+    218            ctimer_stop(&instance->dao_timer);
+   \                     ??handle_dao_timer_2:
+   \   00009F                ; Setup parameters for call to function ctimer_stop
+   \   00009F   E5..         MOV     A,?V0 + 0
+   \   0000A1   249E         ADD     A,#-0x62
+   \   0000A3   FA           MOV     R2,A
+   \   0000A4   E5..         MOV     A,?V0 + 1
+   \   0000A6   3400         ADDC    A,#0x0
+   \   0000A8   FB           MOV     R3,A
+   \   0000A9   12....       LCALL   ??ctimer_stop?relay
+    219          }
+   \                     ??handle_dao_timer_1:
+   \   0000AC   7F04         MOV     R7,#0x4
+   \   0000AE   02....       LJMP    ?BANKED_LEAVE_XDATA
+    220          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    221          void
+    222          rpl_schedule_dao(rpl_instance_t *instance)
+   \                     rpl_schedule_dao:
+    223          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+    224            clock_time_t expiration_time;
+    225          
+    226            expiration_time = etimer_expiration_time(&instance->dao_timer.etimer);
+   \   000009                ; Setup parameters for call to function etimer_expiration_time
+   \   000009   E5..         MOV     A,?V0 + 0
+   \   00000B   24A0         ADD     A,#-0x60
+   \   00000D   FA           MOV     R2,A
+   \   00000E   E5..         MOV     A,?V0 + 1
+   \   000010   3400         ADDC    A,#0x0
+   \   000012   FB           MOV     R3,A
+   \   000013   12....       LCALL   ??etimer_expiration_time?relay
+   \   000016   8A..         MOV     ?V0 + 2,R2
+   \   000018   8B..         MOV     ?V0 + 3,R3
+   \   00001A   AE..         MOV     R6,?V0 + 2
+   \   00001C   AF..         MOV     R7,?V0 + 3
+    227          
+    228            if(!etimer_expired(&instance->dao_timer.etimer)) {
+   \   00001E                ; Setup parameters for call to function etimer_expired
+   \   00001E   E5..         MOV     A,?V0 + 0
+   \   000020   24A0         ADD     A,#-0x60
+   \   000022   FA           MOV     R2,A
+   \   000023   E5..         MOV     A,?V0 + 1
+   \   000025   3400         ADDC    A,#0x0
+   \   000027   FB           MOV     R3,A
+   \   000028   12....       LCALL   ??etimer_expired?relay
+   \   00002B   8A..         MOV     ?V0 + 2,R2
+   \   00002D   8B..         MOV     ?V0 + 3,R3
+   \   00002F   E5..         MOV     A,?V0 + 2
+   \   000031   45..         ORL     A,?V0 + 3
+   \   000033   6042         JZ      ??rpl_schedule_dao_0
+    229              PRINTF("RPL: DAO timer already scheduled\n");
+    230            } else {
+    231              expiration_time = RPL_DAO_LATENCY / 2 +
+    232                (random_rand() % (RPL_DAO_LATENCY));
+   \   000035                ; Setup parameters for call to function random_rand
+   \   000035   12....       LCALL   ??random_rand?relay
+   \   000038   EA           MOV     A,R2
+   \   000039   F8           MOV     R0,A
+   \   00003A   EB           MOV     A,R3
+   \   00003B   F9           MOV     R1,A
+   \   00003C   7A00         MOV     R2,#0x0
+   \   00003E   7B02         MOV     R3,#0x2
+   \   000040   12....       LCALL   ?US_DIV_MOD
+   \   000043   8A..         MOV     ?V0 + 2,R2
+   \   000045   8B..         MOV     ?V0 + 3,R3
+   \   000047   E5..         MOV     A,?V0 + 2
+   \   000049   2400         ADD     A,#0x0
+   \   00004B   FE           MOV     R6,A
+   \   00004C   E5..         MOV     A,?V0 + 3
+   \   00004E   3401         ADDC    A,#0x1
+   \   000050   FF           MOV     R7,A
+    233              PRINTF("RPL: Scheduling DAO timer %u ticks in the future\n",
+    234                     (unsigned)expiration_time);
+    235              ctimer_set(&instance->dao_timer, expiration_time,
+    236                         handle_dao_timer, instance);
+   \   000051                ; Setup parameters for call to function ctimer_set
+   \   000051   78..         MOV     R0,#?V0 + 0
+   \   000053   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000056   75....       MOV     ?V0 + 2,#??handle_dao_timer?relay & 0xff
+   \   000059   75....       MOV     ?V0 + 3,#(??handle_dao_timer?relay >> 8) & 0xff
+   \   00005C   78..         MOV     R0,#?V0 + 2
+   \   00005E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000061   EE           MOV     A,R6
+   \   000062   FC           MOV     R4,A
+   \   000063   EF           MOV     A,R7
+   \   000064   FD           MOV     R5,A
+   \   000065   E5..         MOV     A,?V0 + 0
+   \   000067   249E         ADD     A,#-0x62
+   \   000069   FA           MOV     R2,A
+   \   00006A   E5..         MOV     A,?V0 + 1
+   \   00006C   3400         ADDC    A,#0x0
+   \   00006E   FB           MOV     R3,A
+   \   00006F   12....       LCALL   ??ctimer_set?relay
+   \   000072   7404         MOV     A,#0x4
+   \   000074   12....       LCALL   ?DEALLOC_XSTACK8
+    237            }
+    238          }
+   \                     ??rpl_schedule_dao_0:
+   \   000077   7F04         MOV     R7,#0x4
+   \   000079   02....       LJMP    ?BANKED_LEAVE_XDATA
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     __Constant_80:
+   \   000000                DS 4
+   \   000004                REQUIRE `?<Initializer for __Constant_80>`
+   \   000004                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for __Constant_80>`:
+   \   000000   80000000     DD 128
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     __Constant_3e8:
+   \   000000                DS 4
+   \   000004                REQUIRE `?<Initializer for __Constant_3e8>`
+   \   000004                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for __Constant_3e8>`:
+   \   000000   E8030000     DD 1000
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     __Constant_ffff:
+   \   000000                DS 4
+   \   000004                REQUIRE `?<Initializer for __Constant_ffff>`
+   \   000004                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for __Constant_ffff>`:
+   \   000000   FFFF0000     DD 65535
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     __Constant_3c:
+   \   000000                DS 4
+   \   000004                REQUIRE `?<Initializer for __Constant_3c>`
+   \   000004                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for __Constant_3c>`:
+   \   000000   3C000000     DD 60
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??handle_periodic_timer?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    handle_periodic_timer
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??new_dio_interval?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    new_dio_interval
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??handle_dio_timer?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    handle_dio_timer
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rpl_reset_periodic_timer?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rpl_reset_periodic_timer
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rpl_reset_dio_timer?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rpl_reset_dio_timer
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??handle_dao_timer?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    handle_dao_timer
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rpl_schedule_dao?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rpl_schedule_dao
+    239          /*---------------------------------------------------------------------------*/
+    240          #endif /* UIP_CONF_IPV6 */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     16  handle_dao_timer
+                          0 0 16 -> ctimer_set
+                          0 0 12 -> ctimer_stop
+                          0 0 12 -> dao_output
+                          0 0 12 -> uip_ds6_get_link_local
+       0      0     16  handle_dio_timer
+                          0 0 16 -> ctimer_set
+                          0 0 12 -> dio_output
+                          0 0 12 -> new_dio_interval
+                          0 0 12 -> uip_ds6_get_link_local
+       0      0     10  handle_periodic_timer
+                          0 0 10 -> ctimer_reset
+                          0 0 10 -> dis_output
+                          0 0 10 -> rpl_get_any_dag
+                          0 0 10 -> rpl_purge_routes
+                          0 0 10 -> rpl_recalculate_ranks
+       0      0     34  new_dio_interval
+                          0 0 22 -> ctimer_set
+                          0 0 18 -> random_rand
+       3      0      0  rpl_reset_dio_timer
+                          2 0  0 -> new_dio_interval
+       0      0     20  rpl_reset_periodic_timer
+                          0 0 20 -> ctimer_set
+                          0 0 16 -> random_rand
+       0      0     16  rpl_schedule_dao
+                          0 0 16 -> ctimer_set
+                          0 0 12 -> etimer_expiration_time
+                          0 0 12 -> etimer_expired
+                          0 0 12 -> random_rand
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       4  ?<Initializer for __Constant_3c>
+       4  ?<Initializer for __Constant_3e8>
+       4  ?<Initializer for __Constant_80>
+       4  ?<Initializer for __Constant_ffff>
+       6  ??handle_dao_timer?relay
+       6  ??handle_dio_timer?relay
+       6  ??handle_periodic_timer?relay
+       6  ??new_dio_interval?relay
+       6  ??rpl_reset_dio_timer?relay
+       6  ??rpl_reset_periodic_timer?relay
+       6  ??rpl_schedule_dao?relay
+       4  __Constant_3c
+       4  __Constant_3e8
+       4  __Constant_80
+       4  __Constant_ffff
+       1  dio_send_ok
+     177  handle_dao_timer
+     302  handle_dio_timer
+      78  handle_periodic_timer
+     247  new_dio_interval
+       2  next_dis
+      16  periodic_timer
+      80  rpl_reset_dio_timer
+     107  rpl_reset_periodic_timer
+     124  rpl_schedule_dao
+
+ 
+ 1 115 bytes in segment BANKED_CODE
+    42 bytes in segment BANK_RELAYS
+    16 bytes in segment XDATA_I
+    16 bytes in segment XDATA_ID
+    19 bytes in segment XDATA_Z
+ 
+ 1 157 bytes of CODE  memory (+ 16 bytes shared)
+    19 bytes of XDATA memory (+ 16 bytes shared)
+
+Errors: none
+Warnings: none

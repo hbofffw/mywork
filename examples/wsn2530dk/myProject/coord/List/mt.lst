@@ -1,0 +1,437 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:50 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\sys\mt.c                     #
+#    Command line       =  D:\myWork\myWork\core\sys\mt.c -D                  #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\mt.lst                                      #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\mt.r51                                       #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\sys\mt.c
+      1          /*
+      2           * Copyright (c) 2006, Swedish Institute of Computer Science.
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           * Author: Adam Dunkels <adam@sics.se>
+     32           *
+     33           */
+     34          
+     35          /**
+     36           * \file
+     37           * Implementation of the archtecture agnostic parts of the preemptive
+     38           * multithreading library for Contiki.
+     39           *
+     40           * \author
+     41           * Adam Dunkels <adam@sics.se>
+     42           *
+     43           */
+     44          
+     45          #include "contiki.h"
+     46          #include "sys/mt.h"
+     47          #include "sys/cc.h"
+     48          
+     49          #define MT_STATE_READY   1
+     50          #define MT_STATE_RUNNING 2
+     51          #define MT_STATE_EXITED  5
+     52          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     53          static struct mt_thread *current;
+   \                     current:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     54          
+     55          /*--------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     56          void
+     57          mt_init(void)
+   \                     mt_init:
+     58          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     59            mtarch_init();
+   \   000004                ; Setup parameters for call to function mtarch_init
+   \   000004   12....       LCALL   ??mtarch_init?relay
+     60          }
+   \   000007   D083         POP     DPH
+   \   000009   D082         POP     DPL
+   \   00000B   02....       LJMP    ?BRET
+     61          /*--------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     62          void
+     63          mt_remove(void)
+   \                     mt_remove:
+     64          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     65            mtarch_remove();
+   \   000004                ; Setup parameters for call to function mtarch_remove
+   \   000004   12....       LCALL   ??mtarch_remove?relay
+     66          }
+   \   000007   D083         POP     DPH
+   \   000009   D082         POP     DPL
+   \   00000B   02....       LJMP    ?BRET
+     67          /*--------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     68          void
+     69          mt_start(struct mt_thread *thread, void (* function)(void *), void *data)
+   \                     mt_start:
+     70          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   740A         MOV     A,#0xa
+   \   00000B   12....       LCALL   ?XSTACK_DISP0_8
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   F5..         MOV     ?V0 + 0,A
+   \   000011   A3           INC     DPTR
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   F5..         MOV     ?V0 + 1,A
+     71            /* Call the architecture dependant function to set up the processor
+     72               stack with the correct parameters. */
+     73            mtarch_start(&thread->thread, function, data);
+   \   000015                ; Setup parameters for call to function mtarch_start
+   \   000015   78..         MOV     R0,#?V0 + 0
+   \   000017   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00001A   EE           MOV     A,R6
+   \   00001B   2406         ADD     A,#0x6
+   \   00001D   FA           MOV     R2,A
+   \   00001E   EF           MOV     A,R7
+   \   00001F   3400         ADDC    A,#0x0
+   \   000021   FB           MOV     R3,A
+   \   000022   12....       LCALL   ??mtarch_start?relay
+   \   000025   7402         MOV     A,#0x2
+   \   000027   12....       LCALL   ?DEALLOC_XSTACK8
+     74          
+     75            thread->state = MT_STATE_READY;
+   \   00002A   8E82         MOV     DPL,R6
+   \   00002C   8F83         MOV     DPH,R7
+   \   00002E   7401         MOV     A,#0x1
+   \   000030   F0           MOVX    @DPTR,A
+   \   000031   A3           INC     DPTR
+   \   000032   7400         MOV     A,#0x0
+   \   000034   F0           MOVX    @DPTR,A
+     76          }
+   \   000035   7F02         MOV     R7,#0x2
+   \   000037   02....       LJMP    ?BANKED_LEAVE_XDATA
+     77          /*--------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     78          void
+     79          mt_exec(struct mt_thread *thread)
+   \                     mt_exec:
+     80          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     81            if(thread->state == MT_STATE_READY) {
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   6401         XRL     A,#0x1
+   \   00000B   7004         JNZ     ??mt_exec_0
+   \   00000D   A3           INC     DPTR
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   6400         XRL     A,#0x0
+   \                     ??mt_exec_0:
+   \   000011   701E         JNZ     ??mt_exec_1
+     82              thread->state = MT_STATE_RUNNING;
+   \   000013   8A82         MOV     DPL,R2
+   \   000015   8B83         MOV     DPH,R3
+   \   000017   7402         MOV     A,#0x2
+   \   000019   F0           MOVX    @DPTR,A
+   \   00001A   A3           INC     DPTR
+   \   00001B   7400         MOV     A,#0x0
+   \   00001D   F0           MOVX    @DPTR,A
+     83              current = thread;
+   \   00001E   90....       MOV     DPTR,#current
+   \   000021   EA           MOV     A,R2
+   \   000022   F0           MOVX    @DPTR,A
+   \   000023   A3           INC     DPTR
+   \   000024   EB           MOV     A,R3
+   \   000025   F0           MOVX    @DPTR,A
+     84              /* Switch context to the thread. The function call will not return
+     85                 until the the thread has yielded, or is preempted. */
+     86              mtarch_exec(&thread->thread);
+   \   000026                ; Setup parameters for call to function mtarch_exec
+   \   000026   EA           MOV     A,R2
+   \   000027   2406         ADD     A,#0x6
+   \   000029   FA           MOV     R2,A
+   \   00002A   EB           MOV     A,R3
+   \   00002B   3400         ADDC    A,#0x0
+   \   00002D   FB           MOV     R3,A
+   \   00002E   12....       LCALL   ??mtarch_exec?relay
+     87            }
+     88          }
+   \                     ??mt_exec_1:
+   \   000031   D083         POP     DPH
+   \   000033   D082         POP     DPL
+   \   000035   02....       LJMP    ?BRET
+     89          /*--------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     90          void
+     91          mt_yield(void)
+   \                     mt_yield:
+     92          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     93            mtarch_pstop();
+   \   000004                ; Setup parameters for call to function mtarch_pstop
+   \   000004   12....       LCALL   ??mtarch_pstop?relay
+     94            current->state = MT_STATE_READY;
+   \   000007   90....       MOV     DPTR,#current
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F8           MOV     R0,A
+   \   00000C   A3           INC     DPTR
+   \   00000D   E0           MOVX    A,@DPTR
+   \   00000E   F583         MOV     DPH,A
+   \   000010   8882         MOV     DPL,R0
+   \   000012   7401         MOV     A,#0x1
+   \   000014   F0           MOVX    @DPTR,A
+   \   000015   A3           INC     DPTR
+   \   000016   7400         MOV     A,#0x0
+   \   000018   F0           MOVX    @DPTR,A
+     95            current = NULL;
+   \   000019   90....       MOV     DPTR,#current
+   \   00001C   7400         MOV     A,#0x0
+   \   00001E   F0           MOVX    @DPTR,A
+   \   00001F   A3           INC     DPTR
+   \   000020   7400         MOV     A,#0x0
+   \   000022   F0           MOVX    @DPTR,A
+     96            /* This function is called from the running thread, and we call the
+     97               switch function in order to switch the thread to the main Contiki
+     98               program instead. For us, the switch function will not return
+     99               until the next time we are scheduled to run. */
+    100            mtarch_yield();
+   \   000023                ; Setup parameters for call to function mtarch_yield
+   \   000023   12....       LCALL   ??mtarch_yield?relay
+    101            
+    102          }
+   \   000026   D083         POP     DPH
+   \   000028   D082         POP     DPL
+   \   00002A   02....       LJMP    ?BRET
+    103          /*--------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    104          void
+    105          mt_exit(void)
+   \                     mt_exit:
+    106          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    107            current->state = MT_STATE_EXITED;
+   \   000004   90....       MOV     DPTR,#current
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   F8           MOV     R0,A
+   \   000009   A3           INC     DPTR
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F583         MOV     DPH,A
+   \   00000D   8882         MOV     DPL,R0
+   \   00000F   7405         MOV     A,#0x5
+   \   000011   F0           MOVX    @DPTR,A
+   \   000012   A3           INC     DPTR
+   \   000013   7400         MOV     A,#0x0
+   \   000015   F0           MOVX    @DPTR,A
+    108            current = NULL;
+   \   000016   90....       MOV     DPTR,#current
+   \   000019   7400         MOV     A,#0x0
+   \   00001B   F0           MOVX    @DPTR,A
+   \   00001C   A3           INC     DPTR
+   \   00001D   7400         MOV     A,#0x0
+   \   00001F   F0           MOVX    @DPTR,A
+    109            mtarch_yield();
+   \   000020                ; Setup parameters for call to function mtarch_yield
+   \   000020   12....       LCALL   ??mtarch_yield?relay
+    110          }
+   \   000023   D083         POP     DPH
+   \   000025   D082         POP     DPL
+   \   000027   02....       LJMP    ?BRET
+    111          /*--------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    112          void
+    113          mt_stop(struct mt_thread *thread)
+   \                     mt_stop:
+    114          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    115            mtarch_stop(&thread->thread);
+   \   000004                ; Setup parameters for call to function mtarch_stop
+   \   000004   EA           MOV     A,R2
+   \   000005   2406         ADD     A,#0x6
+   \   000007   FA           MOV     R2,A
+   \   000008   EB           MOV     A,R3
+   \   000009   3400         ADDC    A,#0x0
+   \   00000B   FB           MOV     R3,A
+   \   00000C   12....       LCALL   ??mtarch_stop?relay
+    116          }
+   \   00000F   D083         POP     DPH
+   \   000011   D082         POP     DPL
+   \   000013   02....       LJMP    ?BRET
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??mt_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    mt_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??mt_remove?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    mt_remove
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??mt_start?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    mt_start
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??mt_exec?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    mt_exec
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??mt_yield?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    mt_yield
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??mt_exit?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    mt_exit
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??mt_stop?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    mt_stop
+    117          /*--------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       2      0      0  mt_exec
+                          2 0  0 -> mtarch_exec
+       2      0      0  mt_exit
+                          2 0  0 -> mtarch_yield
+       2      0      0  mt_init
+                          2 0  0 -> mtarch_init
+       2      0      0  mt_remove
+                          2 0  0 -> mtarch_remove
+       0      0     14  mt_start
+                          0 0 12 -> mtarch_start
+       2      0      0  mt_stop
+                          2 0  0 -> mtarch_stop
+       2      0      0  mt_yield
+                          2 0  0 -> mtarch_pstop
+                          2 0  0 -> mtarch_yield
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??mt_exec?relay
+       6  ??mt_exit?relay
+       6  ??mt_init?relay
+       6  ??mt_remove?relay
+       6  ??mt_start?relay
+       6  ??mt_stop?relay
+       6  ??mt_yield?relay
+       2  current
+      56  mt_exec
+      42  mt_exit
+      14  mt_init
+      14  mt_remove
+      58  mt_start
+      22  mt_stop
+      45  mt_yield
+
+ 
+ 251 bytes in segment BANKED_CODE
+  42 bytes in segment BANK_RELAYS
+   2 bytes in segment XDATA_Z
+ 
+ 293 bytes of CODE  memory
+   2 bytes of XDATA memory
+
+Errors: none
+Warnings: none

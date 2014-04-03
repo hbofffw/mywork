@@ -1,0 +1,542 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:54 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\uip-packetqueue.c        #
+#    Command line       =  D:\myWork\myWork\core\net\uip-packetqueue.c -D     #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\uip-packetqueue.lst                         #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\uip-packetqueue.r51                          #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\uip-packetqueue.c
+      1          #include <stdio.h>
+      2          
+      3          #include "net/uip.h"
+      4          
+      5          #include "lib/memb.h"
+      6          
+      7          #include "net/uip-packetqueue.h"
+      8          
+      9          #define MAX_NUM_QUEUED_PACKETS 2
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     10          MEMB(packets_memb, struct uip_packetqueue_packet, MAX_NUM_QUEUED_PACKETS);
+   \                     packets_memb:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for packets_memb>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static char packets_memb_memb_count[2]
+   \                     packets_memb_memb_count:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static struct uip_packetqueue_packet packets_memb_memb_mem[2]
+   \                     packets_memb_memb_mem:
+   \   000000                DS 524
+   \   00020C                REQUIRE __INIT_XDATA_Z
+     11          
+     12          #define DEBUG 0
+     13          #if DEBUG
+     14          #include <stdio.h>
+     15          #define PRINTF(...) printf(__VA_ARGS__)
+     16          #else
+     17          #define PRINTF(...)
+     18          #endif
+     19          
+     20          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     21          static void
+     22          packet_timedout(void *ptr)
+   \                     packet_timedout:
+     23          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+     24            struct uip_packetqueue_handle *h = ptr;
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+     25          
+     26            PRINTF("uip_packetqueue_free timed out %p\n", h);
+     27            memb_free(&packets_memb, h->packet);
+   \   000009                ; Setup parameters for call to function memb_free
+   \   000009   8E82         MOV     DPL,R6
+   \   00000B   8F83         MOV     DPH,R7
+   \   00000D   E0           MOVX    A,@DPTR
+   \   00000E   FC           MOV     R4,A
+   \   00000F   A3           INC     DPTR
+   \   000010   E0           MOVX    A,@DPTR
+   \   000011   FD           MOV     R5,A
+   \   000012   7A..         MOV     R2,#packets_memb & 0xff
+   \   000014   7B..         MOV     R3,#(packets_memb >> 8) & 0xff
+   \   000016   12....       LCALL   ??memb_free?relay
+   \   000019   E9           MOV     A,R1
+     28            h->packet = NULL;
+   \   00001A   8E82         MOV     DPL,R6
+   \   00001C   8F83         MOV     DPH,R7
+   \   00001E   7400         MOV     A,#0x0
+   \   000020   F0           MOVX    @DPTR,A
+   \   000021   A3           INC     DPTR
+   \   000022   7400         MOV     A,#0x0
+   \   000024   F0           MOVX    @DPTR,A
+     29          }
+   \   000025   7F01         MOV     R7,#0x1
+   \   000027   02....       LJMP    ?BANKED_LEAVE_XDATA
+     30          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     31          void
+     32          uip_packetqueue_new(struct uip_packetqueue_handle *handle)
+   \                     uip_packetqueue_new:
+     33          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     34            PRINTF("uip_packetqueue_new %p\n", handle);
+     35            handle->packet = NULL;
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   7400         MOV     A,#0x0
+   \   00000A   F0           MOVX    @DPTR,A
+   \   00000B   A3           INC     DPTR
+   \   00000C   7400         MOV     A,#0x0
+   \   00000E   F0           MOVX    @DPTR,A
+     36          }
+   \   00000F   D083         POP     DPH
+   \   000011   D082         POP     DPL
+   \   000013   02....       LJMP    ?BRET
+     37          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     38          struct uip_packetqueue_packet *
+     39          uip_packetqueue_alloc(struct uip_packetqueue_handle *handle, clock_time_t lifetime)
+   \                     uip_packetqueue_alloc:
+     40          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   EC           MOV     A,R4
+   \   00000A   FE           MOV     R6,A
+   \   00000B   ED           MOV     A,R5
+   \   00000C   FF           MOV     R7,A
+     41            PRINTF("uip_packetqueue_alloc %p\n", handle);
+     42            if(handle->packet != NULL) {
+   \   00000D   85..82       MOV     DPL,?V0 + 0
+   \   000010   85..83       MOV     DPH,?V0 + 1
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   F8           MOV     R0,A
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F9           MOV     R1,A
+   \   000018   E8           MOV     A,R0
+   \   000019   49           ORL     A,R1
+   \   00001A   6006         JZ      ??uip_packetqueue_alloc_0
+     43              PRINTF("alloced\n");
+     44              return NULL;
+   \   00001C   7A00         MOV     R2,#0x0
+   \   00001E   7B00         MOV     R3,#0x0
+   \   000020   8057         SJMP    ??uip_packetqueue_alloc_1
+     45            }
+     46            handle->packet = memb_alloc(&packets_memb);
+   \                     ??uip_packetqueue_alloc_0:
+   \   000022                ; Setup parameters for call to function memb_alloc
+   \   000022   7A..         MOV     R2,#packets_memb & 0xff
+   \   000024   7B..         MOV     R3,#(packets_memb >> 8) & 0xff
+   \   000026   12....       LCALL   ??memb_alloc?relay
+   \   000029   85..82       MOV     DPL,?V0 + 0
+   \   00002C   85..83       MOV     DPH,?V0 + 1
+   \   00002F   EA           MOV     A,R2
+   \   000030   F0           MOVX    @DPTR,A
+   \   000031   A3           INC     DPTR
+   \   000032   EB           MOV     A,R3
+   \   000033   F0           MOVX    @DPTR,A
+     47            if(handle->packet != NULL) {
+   \   000034   85..82       MOV     DPL,?V0 + 0
+   \   000037   85..83       MOV     DPH,?V0 + 1
+   \   00003A   E0           MOVX    A,@DPTR
+   \   00003B   F8           MOV     R0,A
+   \   00003C   A3           INC     DPTR
+   \   00003D   E0           MOVX    A,@DPTR
+   \   00003E   F9           MOV     R1,A
+   \   00003F   E8           MOV     A,R0
+   \   000040   49           ORL     A,R1
+   \   000041   602B         JZ      ??uip_packetqueue_alloc_2
+     48              ctimer_set(&handle->packet->lifetimer, lifetime,
+     49                         packet_timedout, handle);
+   \   000043                ; Setup parameters for call to function ctimer_set
+   \   000043   78..         MOV     R0,#?V0 + 0
+   \   000045   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000048   75....       MOV     ?V0 + 2,#??packet_timedout?relay & 0xff
+   \   00004B   75....       MOV     ?V0 + 3,#(??packet_timedout?relay >> 8) & 0xff
+   \   00004E   78..         MOV     R0,#?V0 + 2
+   \   000050   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000053   EE           MOV     A,R6
+   \   000054   FC           MOV     R4,A
+   \   000055   EF           MOV     A,R7
+   \   000056   FD           MOV     R5,A
+   \   000057   85..82       MOV     DPL,?V0 + 0
+   \   00005A   85..83       MOV     DPH,?V0 + 1
+   \   00005D   E0           MOVX    A,@DPTR
+   \   00005E   24F4         ADD     A,#-0xc
+   \   000060   FA           MOV     R2,A
+   \   000061   A3           INC     DPTR
+   \   000062   E0           MOVX    A,@DPTR
+   \   000063   3400         ADDC    A,#0x0
+   \   000065   FB           MOV     R3,A
+   \   000066   12....       LCALL   ??ctimer_set?relay
+   \   000069   7404         MOV     A,#0x4
+   \   00006B   12....       LCALL   ?DEALLOC_XSTACK8
+     50            } else {
+     51              PRINTF("uip_packetqueue_alloc failed\n");
+     52            }
+     53            return handle->packet;
+   \                     ??uip_packetqueue_alloc_2:
+   \   00006E   85..82       MOV     DPL,?V0 + 0
+   \   000071   85..83       MOV     DPH,?V0 + 1
+   \   000074   E0           MOVX    A,@DPTR
+   \   000075   FA           MOV     R2,A
+   \   000076   A3           INC     DPTR
+   \   000077   E0           MOVX    A,@DPTR
+   \   000078   FB           MOV     R3,A
+   \                     ??uip_packetqueue_alloc_1:
+   \   000079   7F04         MOV     R7,#0x4
+   \   00007B   02....       LJMP    ?BANKED_LEAVE_XDATA
+     54          }
+     55          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     56          void
+     57          uip_packetqueue_free(struct uip_packetqueue_handle *handle)
+   \                     uip_packetqueue_free:
+     58          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+     59            PRINTF("uip_packetqueue_free %p\n", handle);
+     60            if(handle->packet != NULL) {
+   \   000009   8E82         MOV     DPL,R6
+   \   00000B   8F83         MOV     DPH,R7
+   \   00000D   E0           MOVX    A,@DPTR
+   \   00000E   F8           MOV     R0,A
+   \   00000F   A3           INC     DPTR
+   \   000010   E0           MOVX    A,@DPTR
+   \   000011   F9           MOV     R1,A
+   \   000012   E8           MOV     A,R0
+   \   000013   49           ORL     A,R1
+   \   000014   602C         JZ      ??uip_packetqueue_free_0
+     61              ctimer_stop(&handle->packet->lifetimer);
+   \   000016                ; Setup parameters for call to function ctimer_stop
+   \   000016   8E82         MOV     DPL,R6
+   \   000018   8F83         MOV     DPH,R7
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   24F4         ADD     A,#-0xc
+   \   00001D   FA           MOV     R2,A
+   \   00001E   A3           INC     DPTR
+   \   00001F   E0           MOVX    A,@DPTR
+   \   000020   3400         ADDC    A,#0x0
+   \   000022   FB           MOV     R3,A
+   \   000023   12....       LCALL   ??ctimer_stop?relay
+     62              memb_free(&packets_memb, handle->packet);
+   \   000026                ; Setup parameters for call to function memb_free
+   \   000026   8E82         MOV     DPL,R6
+   \   000028   8F83         MOV     DPH,R7
+   \   00002A   E0           MOVX    A,@DPTR
+   \   00002B   FC           MOV     R4,A
+   \   00002C   A3           INC     DPTR
+   \   00002D   E0           MOVX    A,@DPTR
+   \   00002E   FD           MOV     R5,A
+   \   00002F   7A..         MOV     R2,#packets_memb & 0xff
+   \   000031   7B..         MOV     R3,#(packets_memb >> 8) & 0xff
+   \   000033   12....       LCALL   ??memb_free?relay
+   \   000036   E9           MOV     A,R1
+     63              handle->packet = NULL;
+   \   000037   8E82         MOV     DPL,R6
+   \   000039   8F83         MOV     DPH,R7
+   \   00003B   7400         MOV     A,#0x0
+   \   00003D   F0           MOVX    @DPTR,A
+   \   00003E   A3           INC     DPTR
+   \   00003F   7400         MOV     A,#0x0
+   \   000041   F0           MOVX    @DPTR,A
+     64            }
+     65          }
+   \                     ??uip_packetqueue_free_0:
+   \   000042   7F01         MOV     R7,#0x1
+   \   000044   02....       LJMP    ?BANKED_LEAVE_XDATA
+     66          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     67          uint8_t *
+     68          uip_packetqueue_buf(struct uip_packetqueue_handle *h)
+   \                     uip_packetqueue_buf:
+     69          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     70            return h->packet != NULL? h->packet->queue_buf: NULL;
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   F8           MOV     R0,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   F9           MOV     R1,A
+   \   00000D   E8           MOV     A,R0
+   \   00000E   49           ORL     A,R1
+   \   00000F   600F         JZ      ??uip_packetqueue_buf_0
+   \   000011   8A82         MOV     DPL,R2
+   \   000013   8B83         MOV     DPH,R3
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   2402         ADD     A,#0x2
+   \   000018   FA           MOV     R2,A
+   \   000019   A3           INC     DPTR
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   3400         ADDC    A,#0x0
+   \   00001D   FB           MOV     R3,A
+   \   00001E   8004         SJMP    ??uip_packetqueue_buf_1
+   \                     ??uip_packetqueue_buf_0:
+   \   000020   7A00         MOV     R2,#0x0
+   \   000022   7B00         MOV     R3,#0x0
+   \                     ??uip_packetqueue_buf_1:
+   \   000024   D083         POP     DPH
+   \   000026   D082         POP     DPL
+   \   000028   02....       LJMP    ?BRET
+     71          }
+     72          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     73          uint16_t
+     74          uip_packetqueue_buflen(struct uip_packetqueue_handle *h)
+   \                     uip_packetqueue_buflen:
+     75          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     76            return h->packet != NULL? h->packet->queue_buf_len: 0;
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   F8           MOV     R0,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   F9           MOV     R1,A
+   \   00000D   E8           MOV     A,R0
+   \   00000E   49           ORL     A,R1
+   \   00000F   6019         JZ      ??uip_packetqueue_buflen_0
+   \   000011   8A82         MOV     DPL,R2
+   \   000013   8B83         MOV     DPH,R3
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   F8           MOV     R0,A
+   \   000017   A3           INC     DPTR
+   \   000018   E0           MOVX    A,@DPTR
+   \   000019   C8           XCH     A,R0
+   \   00001A   24F2         ADD     A,#-0xe
+   \   00001C   F582         MOV     DPL,A
+   \   00001E   E8           MOV     A,R0
+   \   00001F   3400         ADDC    A,#0x0
+   \   000021   F583         MOV     DPH,A
+   \   000023   E0           MOVX    A,@DPTR
+   \   000024   FA           MOV     R2,A
+   \   000025   A3           INC     DPTR
+   \   000026   E0           MOVX    A,@DPTR
+   \   000027   FB           MOV     R3,A
+   \   000028   8004         SJMP    ??uip_packetqueue_buflen_1
+   \                     ??uip_packetqueue_buflen_0:
+   \   00002A   7A00         MOV     R2,#0x0
+   \   00002C   7B00         MOV     R3,#0x0
+   \                     ??uip_packetqueue_buflen_1:
+   \   00002E   D083         POP     DPH
+   \   000030   D082         POP     DPL
+   \   000032   02....       LJMP    ?BRET
+     77          }
+     78          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     79          void
+     80          uip_packetqueue_set_buflen(struct uip_packetqueue_handle *h, uint16_t len)
+   \                     uip_packetqueue_set_buflen:
+     81          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     82            if(h->packet != NULL) {
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   F8           MOV     R0,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   F9           MOV     R1,A
+   \   00000D   E8           MOV     A,R0
+   \   00000E   49           ORL     A,R1
+   \   00000F   6017         JZ      ??uip_packetqueue_set_buflen_0
+     83              h->packet->queue_buf_len = len;
+   \   000011   8A82         MOV     DPL,R2
+   \   000013   8B83         MOV     DPH,R3
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   F8           MOV     R0,A
+   \   000017   A3           INC     DPTR
+   \   000018   E0           MOVX    A,@DPTR
+   \   000019   C8           XCH     A,R0
+   \   00001A   24F2         ADD     A,#-0xe
+   \   00001C   F582         MOV     DPL,A
+   \   00001E   E8           MOV     A,R0
+   \   00001F   3400         ADDC    A,#0x0
+   \   000021   F583         MOV     DPH,A
+   \   000023   EC           MOV     A,R4
+   \   000024   F0           MOVX    @DPTR,A
+   \   000025   A3           INC     DPTR
+   \   000026   ED           MOV     A,R5
+   \   000027   F0           MOVX    @DPTR,A
+     84            }
+     85          }
+   \                     ??uip_packetqueue_set_buflen_0:
+   \   000028   D083         POP     DPH
+   \   00002A   D082         POP     DPL
+   \   00002C   02....       LJMP    ?BRET
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for packets_memb>`:
+   \   000000   0601         DW 262
+   \   000002   0200         DW 2
+   \   000004   ....         DW packets_memb_memb_count
+   \   000006   ....         DW packets_memb_memb_mem
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??packet_timedout?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    packet_timedout
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_packetqueue_new?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_packetqueue_new
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_packetqueue_alloc?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_packetqueue_alloc
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_packetqueue_free?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_packetqueue_free
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_packetqueue_buf?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_packetqueue_buf
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_packetqueue_buflen?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_packetqueue_buflen
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_packetqueue_set_buflen?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_packetqueue_set_buflen
+     86          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0      9  packet_timedout
+                          0 0  9 -> memb_free
+       0      0     16  uip_packetqueue_alloc
+                          0 0 16 -> ctimer_set
+                          0 0 12 -> memb_alloc
+       2      0      0  uip_packetqueue_buf
+       2      0      0  uip_packetqueue_buflen
+       0      0      9  uip_packetqueue_free
+                          0 0  9 -> ctimer_stop
+                          0 0  9 -> memb_free
+       2      0      0  uip_packetqueue_new
+       2      0      0  uip_packetqueue_set_buflen
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       8  ?<Initializer for packets_memb>
+       6  ??packet_timedout?relay
+       6  ??uip_packetqueue_alloc?relay
+       6  ??uip_packetqueue_buf?relay
+       6  ??uip_packetqueue_buflen?relay
+       6  ??uip_packetqueue_free?relay
+       6  ??uip_packetqueue_new?relay
+       6  ??uip_packetqueue_set_buflen?relay
+      42  packet_timedout
+       8  packets_memb
+       2  packets_memb_memb_count
+     524  packets_memb_memb_mem
+     126  uip_packetqueue_alloc
+      43  uip_packetqueue_buf
+      53  uip_packetqueue_buflen
+      71  uip_packetqueue_free
+      22  uip_packetqueue_new
+      47  uip_packetqueue_set_buflen
+
+ 
+ 404 bytes in segment BANKED_CODE
+  42 bytes in segment BANK_RELAYS
+   8 bytes in segment XDATA_I
+   8 bytes in segment XDATA_ID
+ 526 bytes in segment XDATA_Z
+ 
+ 454 bytes of CODE  memory
+ 534 bytes of XDATA memory
+
+Errors: none
+Warnings: none

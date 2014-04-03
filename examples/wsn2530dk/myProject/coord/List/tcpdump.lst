@@ -1,0 +1,1554 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:51 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\tcpdump.c                #
+#    Command line       =  D:\myWork\myWork\core\net\tcpdump.c -D             #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\tcpdump.lst                                 #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\tcpdump.r51                                  #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\tcpdump.c
+      1          /*
+      2           * Copyright (c) 2005, Swedish Institute of Computer Science
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           */
+     32          
+     33          #include "contiki-net.h"
+     34          
+     35          #include <string.h>
+     36          #include <stdio.h>
+     37          
+     38           struct ip_hdr {
+     39            /* IP header. */
+     40             uint8_t vhl,
+     41              tos,
+     42               len[2],
+     43               ipid[2],
+     44               ipoffset[2],
+     45               ttl,
+     46               proto;
+     47             uint16_t ipchksum;
+     48             uint8_t srcipaddr[4],
+     49               destipaddr[4];
+     50           };
+     51          
+     52          #define TCP_FIN 0x01
+     53          #define TCP_SYN 0x02
+     54          #define TCP_RST 0x04
+     55          #define TCP_PSH 0x08
+     56          #define TCP_ACK 0x10
+     57          #define TCP_URG 0x20
+     58          #define TCP_CTL 0x3f
+     59          
+     60          struct tcpip_hdr {
+     61            /* IP header. */
+     62             uint8_t vhl,
+     63              tos,
+     64               len[2],
+     65               ipid[2],
+     66               ipoffset[2],
+     67               ttl,
+     68               proto;
+     69             uint16_t ipchksum;
+     70             uint8_t srcipaddr[4],
+     71               destipaddr[4];
+     72            /* TCP header. */
+     73            uint16_t srcport,
+     74              destport;
+     75            uint8_t seqno[4],
+     76              ackno[4],
+     77              tcpoffset,
+     78              flags,
+     79              wnd[2];
+     80            uint16_t tcpchksum;
+     81            uint8_t urgp[2];
+     82            uint8_t optdata[4];
+     83          };
+     84          
+     85          #define ICMP_ECHO_REPLY 0
+     86          #define ICMP_ECHO       8
+     87          
+     88          struct icmpip_hdr {
+     89            /* IP header. */
+     90             uint8_t vhl,
+     91              tos,
+     92               len[2],
+     93               ipid[2],
+     94               ipoffset[2],
+     95               ttl,
+     96               proto;
+     97            uint16_t ipchksum;
+     98            uint8_t srcipaddr[4],
+     99              destipaddr[4];
+    100            /* The ICMP and IP headers. */
+    101            /* ICMP (echo) header. */
+    102            uint8_t type, icode;
+    103            uint16_t icmpchksum;
+    104            uint16_t id, seqno;
+    105          };
+    106          
+    107          
+    108          /* The UDP and IP headers. */
+    109          struct udpip_hdr {
+    110            /* IP header. */
+    111             uint8_t vhl,
+    112              tos,
+    113               len[2],
+    114               ipid[2],
+    115               ipoffset[2],
+    116               ttl,
+    117               proto;
+    118             uint16_t ipchksum;
+    119            uint8_t srcipaddr[4],
+    120              destipaddr[4];
+    121            
+    122            /* UDP header. */
+    123            uint16_t srcport,
+    124              destport;
+    125            uint16_t udplen;
+    126            uint16_t udpchksum;
+    127          };
+    128          
+    129          #define ETHBUF    ((struct eth_hdr *)&packet[0])
+    130          #define IPBUF     ((struct ip_hdr *)&packet[0])
+    131          #define UDPBUF  ((struct udpip_hdr *)&packet[0])
+    132          #define ICMPBUF ((struct icmpip_hdr *)&packet[0])
+    133          #define TCPBUF  ((struct tcpip_hdr *)&packet[0])
+    134          
+    135          
+    136          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    137          static void
+    138          tcpflags(unsigned char flags, char *flagsstr)
+   \                     tcpflags:
+    139          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    140            if(flags & TCP_FIN) {
+   \   000004   E9           MOV     A,R1
+   \   000005   A2E0         MOV     C,0xE0 /* A   */.0
+   \   000007   5010         JNC     ??tcpflags_0
+    141              *flagsstr++ = 'F';
+   \   000009   8A82         MOV     DPL,R2
+   \   00000B   8B83         MOV     DPH,R3
+   \   00000D   7446         MOV     A,#0x46
+   \   00000F   F0           MOVX    @DPTR,A
+   \   000010   8A82         MOV     DPL,R2
+   \   000012   8B83         MOV     DPH,R3
+   \   000014   A3           INC     DPTR
+   \   000015   AA82         MOV     R2,DPL
+   \   000017   AB83         MOV     R3,DPH
+    142            }
+    143            if(flags & TCP_SYN) {
+   \                     ??tcpflags_0:
+   \   000019   E9           MOV     A,R1
+   \   00001A   A2E1         MOV     C,0xE0 /* A   */.1
+   \   00001C   5010         JNC     ??tcpflags_1
+    144              *flagsstr++ = 'S';
+   \   00001E   8A82         MOV     DPL,R2
+   \   000020   8B83         MOV     DPH,R3
+   \   000022   7453         MOV     A,#0x53
+   \   000024   F0           MOVX    @DPTR,A
+   \   000025   8A82         MOV     DPL,R2
+   \   000027   8B83         MOV     DPH,R3
+   \   000029   A3           INC     DPTR
+   \   00002A   AA82         MOV     R2,DPL
+   \   00002C   AB83         MOV     R3,DPH
+    145            }
+    146            if(flags & TCP_RST) {
+   \                     ??tcpflags_1:
+   \   00002E   E9           MOV     A,R1
+   \   00002F   A2E2         MOV     C,0xE0 /* A   */.2
+   \   000031   5010         JNC     ??tcpflags_2
+    147              *flagsstr++ = 'R';
+   \   000033   8A82         MOV     DPL,R2
+   \   000035   8B83         MOV     DPH,R3
+   \   000037   7452         MOV     A,#0x52
+   \   000039   F0           MOVX    @DPTR,A
+   \   00003A   8A82         MOV     DPL,R2
+   \   00003C   8B83         MOV     DPH,R3
+   \   00003E   A3           INC     DPTR
+   \   00003F   AA82         MOV     R2,DPL
+   \   000041   AB83         MOV     R3,DPH
+    148            }
+    149            if(flags & TCP_ACK) {
+   \                     ??tcpflags_2:
+   \   000043   E9           MOV     A,R1
+   \   000044   A2E4         MOV     C,0xE0 /* A   */.4
+   \   000046   5010         JNC     ??tcpflags_3
+    150              *flagsstr++ = 'A';
+   \   000048   8A82         MOV     DPL,R2
+   \   00004A   8B83         MOV     DPH,R3
+   \   00004C   7441         MOV     A,#0x41
+   \   00004E   F0           MOVX    @DPTR,A
+   \   00004F   8A82         MOV     DPL,R2
+   \   000051   8B83         MOV     DPH,R3
+   \   000053   A3           INC     DPTR
+   \   000054   AA82         MOV     R2,DPL
+   \   000056   AB83         MOV     R3,DPH
+    151            }
+    152            if(flags & TCP_URG) {
+   \                     ??tcpflags_3:
+   \   000058   E9           MOV     A,R1
+   \   000059   A2E5         MOV     C,0xE0 /* A   */.5
+   \   00005B   5010         JNC     ??tcpflags_4
+    153              *flagsstr++ = 'U';
+   \   00005D   8A82         MOV     DPL,R2
+   \   00005F   8B83         MOV     DPH,R3
+   \   000061   7455         MOV     A,#0x55
+   \   000063   F0           MOVX    @DPTR,A
+   \   000064   8A82         MOV     DPL,R2
+   \   000066   8B83         MOV     DPH,R3
+   \   000068   A3           INC     DPTR
+   \   000069   AA82         MOV     R2,DPL
+   \   00006B   AB83         MOV     R3,DPH
+    154            }
+    155          
+    156            *flagsstr = 0;
+   \                     ??tcpflags_4:
+   \   00006D   8A82         MOV     DPL,R2
+   \   00006F   8B83         MOV     DPH,R3
+   \   000071   7400         MOV     A,#0x0
+   \   000073   F0           MOVX    @DPTR,A
+    157          }
+   \   000074   D083         POP     DPH
+   \   000076   D082         POP     DPL
+   \   000078   02....       LJMP    ?BRET
+    158          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    159          static char * CC_FASTCALL
+    160          n(uint16_t num, char *ptr)
+   \                     n:
+    161          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   8C82         MOV     DPL,R4
+   \   00000B   8D83         MOV     DPH,R5
+    162            uint16_t d;
+    163            uint8_t a, f;
+    164          
+    165            if(num == 0) {
+   \   00000D   EE           MOV     A,R6
+   \   00000E   4F           ORL     A,R7
+   \   00000F   700A         JNZ     ??n_0
+    166              *ptr = '0';
+   \   000011   7430         MOV     A,#0x30
+   \   000013   F0           MOVX    @DPTR,A
+    167              return ptr + 1;
+   \   000014   A3           INC     DPTR
+   \   000015   AA82         MOV     R2,DPL
+   \   000017   AB83         MOV     R3,DPH
+   \   000019   804C         SJMP    ??n_1
+    168            } else {
+    169              f = 0;
+   \                     ??n_0:
+   \   00001B   75..00       MOV     ?V0 + 0,#0x0
+    170              for(d = 10000; d >= 1; d /= 10) {
+   \   00001E   7C10         MOV     R4,#0x10
+   \   000020   7D27         MOV     R5,#0x27
+   \   000022   803B         SJMP    ??n_2
+    171                a = (num / d) % 10;
+   \                     ??n_3:
+   \   000024   EE           MOV     A,R6
+   \   000025   F8           MOV     R0,A
+   \   000026   EF           MOV     A,R7
+   \   000027   F9           MOV     R1,A
+   \   000028   EC           MOV     A,R4
+   \   000029   FA           MOV     R2,A
+   \   00002A   ED           MOV     A,R5
+   \   00002B   FB           MOV     R3,A
+   \   00002C   12....       LCALL   ?US_DIV_MOD
+   \   00002F   7A0A         MOV     R2,#0xa
+   \   000031   7B00         MOV     R3,#0x0
+   \   000033   12....       LCALL   ?US_DIV_MOD
+   \   000036   EA           MOV     A,R2
+   \   000037   F8           MOV     R0,A
+    172                if(f == 1 || a > 0) {
+   \   000038   7401         MOV     A,#0x1
+   \   00003A   65..         XRL     A,?V0 + 0
+   \   00003C   6006         JZ      ??n_4
+   \   00003E   E8           MOV     A,R0
+   \   00003F   C3           CLR     C
+   \   000040   9401         SUBB    A,#0x1
+   \   000042   4008         JC      ??n_5
+    173          	*ptr = a + '0';
+   \                     ??n_4:
+   \   000044   7430         MOV     A,#0x30
+   \   000046   28           ADD     A,R0
+   \   000047   F0           MOVX    @DPTR,A
+    174          	++ptr;
+   \   000048   A3           INC     DPTR
+    175          	f = 1;
+   \   000049   75..01       MOV     ?V0 + 0,#0x1
+    176                }
+    177              }
+   \                     ??n_5:
+   \   00004C   EC           MOV     A,R4
+   \   00004D   F8           MOV     R0,A
+   \   00004E   ED           MOV     A,R5
+   \   00004F   F9           MOV     R1,A
+   \   000050   7A0A         MOV     R2,#0xa
+   \   000052   7B00         MOV     R3,#0x0
+   \   000054   12....       LCALL   ?US_DIV_MOD
+   \   000057   88..         MOV     ?V0 + 2,R0
+   \   000059   89..         MOV     ?V0 + 3,R1
+   \   00005B   AC..         MOV     R4,?V0 + 2
+   \   00005D   AD..         MOV     R5,?V0 + 3
+   \                     ??n_2:
+   \   00005F   EC           MOV     A,R4
+   \   000060   4D           ORL     A,R5
+   \   000061   70C1         JNZ     ??n_3
+    178            }
+    179            return ptr;
+   \   000063   AA82         MOV     R2,DPL
+   \   000065   AB83         MOV     R3,DPH
+   \                     ??n_1:
+   \   000067   7F04         MOV     R7,#0x4
+   \   000069   02....       LJMP    ?BANKED_LEAVE_XDATA
+    180          }
+    181          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    182          static char * CC_FASTCALL
+    183          d(char *ptr)
+   \                     d:
+    184          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    185            *ptr = '.';
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   742E         MOV     A,#0x2e
+   \   00000A   F0           MOVX    @DPTR,A
+    186            return ptr + 1;
+   \   00000B   8A82         MOV     DPL,R2
+   \   00000D   8B83         MOV     DPH,R3
+   \   00000F   A3           INC     DPTR
+   \   000010   AA82         MOV     R2,DPL
+   \   000012   AB83         MOV     R3,DPH
+   \   000014   D083         POP     DPH
+   \   000016   D082         POP     DPL
+   \   000018   02....       LJMP    ?BRET
+    187          }
+    188          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    189          static char * CC_FASTCALL
+    190          s(char *str, char *ptr)
+   \                     `s`:
+    191          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   8C..         MOV     ?V0 + 0,R4
+   \   00000B   8D..         MOV     ?V0 + 1,R5
+    192            strcpy(ptr, str);
+   \   00000D                ; Setup parameters for call to function strcpy
+   \   00000D   EE           MOV     A,R6
+   \   00000E   FC           MOV     R4,A
+   \   00000F   EF           MOV     A,R7
+   \   000010   FD           MOV     R5,A
+   \   000011   AA..         MOV     R2,?V0 + 0
+   \   000013   AB..         MOV     R3,?V0 + 1
+   \   000015   12....       LCALL   ??strcpy?relay
+    193            return ptr + strlen(str);
+   \   000018                ; Setup parameters for call to function strlen
+   \   000018   EE           MOV     A,R6
+   \   000019   FA           MOV     R2,A
+   \   00001A   EF           MOV     A,R7
+   \   00001B   FB           MOV     R3,A
+   \   00001C   12....       LCALL   ??strlen?relay
+   \   00001F   8A..         MOV     ?V0 + 2,R2
+   \   000021   8B..         MOV     ?V0 + 3,R3
+   \   000023   E5..         MOV     A,?V0 + 0
+   \   000025   25..         ADD     A,?V0 + 2
+   \   000027   FA           MOV     R2,A
+   \   000028   E5..         MOV     A,?V0 + 1
+   \   00002A   35..         ADDC    A,?V0 + 3
+   \   00002C   FB           MOV     R3,A
+   \   00002D   7F04         MOV     R7,#0x4
+   \   00002F   02....       LJMP    ?BANKED_LEAVE_XDATA
+    194          }
+    195          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    196          int
+    197          tcpdump_format(uint8_t *packet, uint16_t packetlen,
+   \                     tcpdump_format:
+    198          	       char *buf, uint16_t buflen)
+    199          {
+   \   000000   74F2         MOV     A,#-0xe
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 14
+   \   000005                ; Auto size: 8
+   \   000005   74F8         MOV     A,#-0x8
+   \   000007   12....       LCALL   ?ALLOC_XSTACK8
+   \   00000A   8A..         MOV     ?V0 + 0,R2
+   \   00000C   8B..         MOV     ?V0 + 1,R3
+   \   00000E   7416         MOV     A,#0x16
+   \   000010   12....       LCALL   ?XSTACK_DISP0_8
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   F5..         MOV     ?V0 + 2,A
+   \   000016   A3           INC     DPTR
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   F5..         MOV     ?V0 + 3,A
+    200            char flags[8];
+    201            if(IPBUF->proto == UIP_PROTO_ICMP) {
+   \   00001A   85..82       MOV     DPL,?V0 + 0
+   \   00001D   85..83       MOV     DPH,?V0 + 1
+   \   000020   A3           INC     DPTR
+   \   000021   A3           INC     DPTR
+   \   000022   A3           INC     DPTR
+   \   000023   A3           INC     DPTR
+   \   000024   A3           INC     DPTR
+   \   000025   A3           INC     DPTR
+   \   000026   A3           INC     DPTR
+   \   000027   A3           INC     DPTR
+   \   000028   A3           INC     DPTR
+   \   000029   E0           MOVX    A,@DPTR
+   \   00002A   6401         XRL     A,#0x1
+   \   00002C   6003         JZ      $+5
+   \   00002E   02....       LJMP    ??tcpdump_format_0 & 0xFFFF
+    202              if(ICMPBUF->type == ICMP_ECHO) {
+   \   000031   E5..         MOV     A,?V0 + 0
+   \   000033   2414         ADD     A,#0x14
+   \   000035   F582         MOV     DPL,A
+   \   000037   E5..         MOV     A,?V0 + 1
+   \   000039   3400         ADDC    A,#0x0
+   \   00003B   F583         MOV     DPH,A
+   \   00003D   E0           MOVX    A,@DPTR
+   \   00003E   6408         XRL     A,#0x8
+   \   000040   6003         JZ      $+5
+   \   000042   02....       LJMP    ??tcpdump_format_1 & 0xFFFF
+    203                return s(" ping",
+    204          	     n(IPBUF->destipaddr[3], d(
+    205          	     n(IPBUF->destipaddr[2], d(
+    206          	     n(IPBUF->destipaddr[1], d(
+    207          	     n(IPBUF->destipaddr[0],
+    208                       s(" ",
+    209          	     n(IPBUF->srcipaddr[3], d(
+    210          	     n(IPBUF->srcipaddr[2], d(
+    211          	     n(IPBUF->srcipaddr[1], d(
+    212                       n(IPBUF->srcipaddr[0],
+    213          	     buf)))))))))))))))) - buf;
+   \   000045                ; Setup parameters for call to function s
+   \   000045                ; Setup parameters for call to function n
+   \   000045                ; Setup parameters for call to function d
+   \   000045                ; Setup parameters for call to function n
+   \   000045                ; Setup parameters for call to function d
+   \   000045                ; Setup parameters for call to function n
+   \   000045                ; Setup parameters for call to function d
+   \   000045                ; Setup parameters for call to function n
+   \   000045                ; Setup parameters for call to function s
+   \   000045                ; Setup parameters for call to function n
+   \   000045                ; Setup parameters for call to function d
+   \   000045                ; Setup parameters for call to function n
+   \   000045                ; Setup parameters for call to function d
+   \   000045                ; Setup parameters for call to function n
+   \   000045                ; Setup parameters for call to function d
+   \   000045                ; Setup parameters for call to function n
+   \   000045   AC..         MOV     R4,?V0 + 2
+   \   000047   AD..         MOV     R5,?V0 + 3
+   \   000049   E5..         MOV     A,?V0 + 0
+   \   00004B   240C         ADD     A,#0xc
+   \   00004D   F582         MOV     DPL,A
+   \   00004F   E5..         MOV     A,?V0 + 1
+   \   000051   3400         ADDC    A,#0x0
+   \   000053   F583         MOV     DPH,A
+   \   000055   E0           MOVX    A,@DPTR
+   \   000056   FA           MOV     R2,A
+   \   000057   7B00         MOV     R3,#0x0
+   \   000059   12....       LCALL   ??n?relay
+   \   00005C   12....       LCALL   ??d?relay
+   \   00005F   EA           MOV     A,R2
+   \   000060   FC           MOV     R4,A
+   \   000061   EB           MOV     A,R3
+   \   000062   FD           MOV     R5,A
+   \   000063   E5..         MOV     A,?V0 + 0
+   \   000065   240D         ADD     A,#0xd
+   \   000067   F582         MOV     DPL,A
+   \   000069   E5..         MOV     A,?V0 + 1
+   \   00006B   3400         ADDC    A,#0x0
+   \   00006D   F583         MOV     DPH,A
+   \   00006F   E0           MOVX    A,@DPTR
+   \   000070   FA           MOV     R2,A
+   \   000071   7B00         MOV     R3,#0x0
+   \   000073   12....       LCALL   ??n?relay
+   \   000076   12....       LCALL   ??d?relay
+   \   000079   EA           MOV     A,R2
+   \   00007A   FC           MOV     R4,A
+   \   00007B   EB           MOV     A,R3
+   \   00007C   FD           MOV     R5,A
+   \   00007D   E5..         MOV     A,?V0 + 0
+   \   00007F   240E         ADD     A,#0xe
+   \   000081   F582         MOV     DPL,A
+   \   000083   E5..         MOV     A,?V0 + 1
+   \   000085   3400         ADDC    A,#0x0
+   \   000087   F583         MOV     DPH,A
+   \   000089   E0           MOVX    A,@DPTR
+   \   00008A   FA           MOV     R2,A
+   \   00008B   7B00         MOV     R3,#0x0
+   \   00008D   12....       LCALL   ??n?relay
+   \   000090   12....       LCALL   ??d?relay
+   \   000093   EA           MOV     A,R2
+   \   000094   FC           MOV     R4,A
+   \   000095   EB           MOV     A,R3
+   \   000096   FD           MOV     R5,A
+   \   000097   E5..         MOV     A,?V0 + 0
+   \   000099   240F         ADD     A,#0xf
+   \   00009B   F582         MOV     DPL,A
+   \   00009D   E5..         MOV     A,?V0 + 1
+   \   00009F   3400         ADDC    A,#0x0
+   \   0000A1   F583         MOV     DPH,A
+   \   0000A3   E0           MOVX    A,@DPTR
+   \   0000A4   FA           MOV     R2,A
+   \   0000A5   7B00         MOV     R3,#0x0
+   \   0000A7   12....       LCALL   ??n?relay
+   \   0000AA   EA           MOV     A,R2
+   \   0000AB   FC           MOV     R4,A
+   \   0000AC   EB           MOV     A,R3
+   \   0000AD   FD           MOV     R5,A
+   \   0000AE   7A..         MOV     R2,#`?<Constant " ">` & 0xff
+   \   0000B0   7B..         MOV     R3,#(`?<Constant " ">` >> 8) & 0xff
+   \   0000B2   12....       LCALL   ??s?relay
+   \   0000B5   EA           MOV     A,R2
+   \   0000B6   FC           MOV     R4,A
+   \   0000B7   EB           MOV     A,R3
+   \   0000B8   FD           MOV     R5,A
+   \   0000B9   E5..         MOV     A,?V0 + 0
+   \   0000BB   2410         ADD     A,#0x10
+   \   0000BD   F582         MOV     DPL,A
+   \   0000BF   E5..         MOV     A,?V0 + 1
+   \   0000C1   3400         ADDC    A,#0x0
+   \   0000C3   F583         MOV     DPH,A
+   \   0000C5   E0           MOVX    A,@DPTR
+   \   0000C6   FA           MOV     R2,A
+   \   0000C7   7B00         MOV     R3,#0x0
+   \   0000C9   12....       LCALL   ??n?relay
+   \   0000CC   12....       LCALL   ??d?relay
+   \   0000CF   EA           MOV     A,R2
+   \   0000D0   FC           MOV     R4,A
+   \   0000D1   EB           MOV     A,R3
+   \   0000D2   FD           MOV     R5,A
+   \   0000D3   E5..         MOV     A,?V0 + 0
+   \   0000D5   2411         ADD     A,#0x11
+   \   0000D7   F582         MOV     DPL,A
+   \   0000D9   E5..         MOV     A,?V0 + 1
+   \   0000DB   3400         ADDC    A,#0x0
+   \   0000DD   F583         MOV     DPH,A
+   \   0000DF   E0           MOVX    A,@DPTR
+   \   0000E0   FA           MOV     R2,A
+   \   0000E1   7B00         MOV     R3,#0x0
+   \   0000E3   12....       LCALL   ??n?relay
+   \   0000E6   12....       LCALL   ??d?relay
+   \   0000E9   EA           MOV     A,R2
+   \   0000EA   FC           MOV     R4,A
+   \   0000EB   EB           MOV     A,R3
+   \   0000EC   FD           MOV     R5,A
+   \   0000ED   E5..         MOV     A,?V0 + 0
+   \   0000EF   2412         ADD     A,#0x12
+   \   0000F1   F582         MOV     DPL,A
+   \   0000F3   E5..         MOV     A,?V0 + 1
+   \   0000F5   3400         ADDC    A,#0x0
+   \   0000F7   F583         MOV     DPH,A
+   \   0000F9   E0           MOVX    A,@DPTR
+   \   0000FA   FA           MOV     R2,A
+   \   0000FB   7B00         MOV     R3,#0x0
+   \   0000FD   12....       LCALL   ??n?relay
+   \   000100   12....       LCALL   ??d?relay
+   \   000103   EA           MOV     A,R2
+   \   000104   FC           MOV     R4,A
+   \   000105   EB           MOV     A,R3
+   \   000106   FD           MOV     R5,A
+   \   000107   E5..         MOV     A,?V0 + 0
+   \   000109   2413         ADD     A,#0x13
+   \   00010B   F582         MOV     DPL,A
+   \   00010D   E5..         MOV     A,?V0 + 1
+   \   00010F   3400         ADDC    A,#0x0
+   \   000111   F583         MOV     DPH,A
+   \   000113   E0           MOVX    A,@DPTR
+   \   000114   FA           MOV     R2,A
+   \   000115   7B00         MOV     R3,#0x0
+   \   000117   12....       LCALL   ??n?relay
+   \   00011A   EA           MOV     A,R2
+   \   00011B   FC           MOV     R4,A
+   \   00011C   EB           MOV     A,R3
+   \   00011D   FD           MOV     R5,A
+   \   00011E   7A..         MOV     R2,#`?<Constant " ping">` & 0xff
+   \   000120   7B..         MOV     R3,#(`?<Constant " ping">` >> 8) & 0xff
+   \   000122   12....       LCALL   ??s?relay
+   \   000125   8A..         MOV     ?V0 + 0,R2
+   \   000127   8B..         MOV     ?V0 + 1,R3
+   \   000129   E5..         MOV     A,?V0 + 0
+   \   00012B   C3           CLR     C
+   \   00012C   95..         SUBB    A,?V0 + 2
+   \   00012E   FA           MOV     R2,A
+   \   00012F   E5..         MOV     A,?V0 + 1
+   \   000131   95..         SUBB    A,?V0 + 3
+   \   000133   FB           MOV     R3,A
+   \   000134   02....       LJMP    ??tcpdump_format_2 & 0xFFFF
+    214          	     
+    215                /*      return sprintf(buf, "%d.%d.%d.%d %d.%d.%d.%d ping",
+    216          		     IPBUF->srcipaddr[0], IPBUF->srcipaddr[1],
+    217          		     IPBUF->srcipaddr[2], IPBUF->srcipaddr[3],
+    218          		     IPBUF->destipaddr[0], IPBUF->destipaddr[1],
+    219          		     IPBUF->destipaddr[2], IPBUF->destipaddr[3]);*/
+    220              } else if(ICMPBUF->type == ICMP_ECHO_REPLY) {
+   \                     ??tcpdump_format_1:
+   \   000137   E5..         MOV     A,?V0 + 0
+   \   000139   2414         ADD     A,#0x14
+   \   00013B   F582         MOV     DPL,A
+   \   00013D   E5..         MOV     A,?V0 + 1
+   \   00013F   3400         ADDC    A,#0x0
+   \   000141   F583         MOV     DPH,A
+   \   000143   E0           MOVX    A,@DPTR
+   \   000144   6003         JZ      $+5
+   \   000146   02....       LJMP    ??tcpdump_format_3 & 0xFFFF
+    221                return s(" pong",
+    222          	     n(IPBUF->destipaddr[3], d(
+    223          	     n(IPBUF->destipaddr[2], d(
+    224          	     n(IPBUF->destipaddr[1], d(
+    225          	     n(IPBUF->destipaddr[0],
+    226                       s(" ",
+    227          	     n(IPBUF->srcipaddr[3], d(
+    228          	     n(IPBUF->srcipaddr[2], d(
+    229          	     n(IPBUF->srcipaddr[1], d(
+    230                       n(IPBUF->srcipaddr[0],
+    231          	     buf)))))))))))))))) - buf;
+   \   000149                ; Setup parameters for call to function s
+   \   000149                ; Setup parameters for call to function n
+   \   000149                ; Setup parameters for call to function d
+   \   000149                ; Setup parameters for call to function n
+   \   000149                ; Setup parameters for call to function d
+   \   000149                ; Setup parameters for call to function n
+   \   000149                ; Setup parameters for call to function d
+   \   000149                ; Setup parameters for call to function n
+   \   000149                ; Setup parameters for call to function s
+   \   000149                ; Setup parameters for call to function n
+   \   000149                ; Setup parameters for call to function d
+   \   000149                ; Setup parameters for call to function n
+   \   000149                ; Setup parameters for call to function d
+   \   000149                ; Setup parameters for call to function n
+   \   000149                ; Setup parameters for call to function d
+   \   000149                ; Setup parameters for call to function n
+   \   000149   AC..         MOV     R4,?V0 + 2
+   \   00014B   AD..         MOV     R5,?V0 + 3
+   \   00014D   E5..         MOV     A,?V0 + 0
+   \   00014F   240C         ADD     A,#0xc
+   \   000151   F582         MOV     DPL,A
+   \   000153   E5..         MOV     A,?V0 + 1
+   \   000155   3400         ADDC    A,#0x0
+   \   000157   F583         MOV     DPH,A
+   \   000159   E0           MOVX    A,@DPTR
+   \   00015A   FA           MOV     R2,A
+   \   00015B   7B00         MOV     R3,#0x0
+   \   00015D   12....       LCALL   ??n?relay
+   \   000160   12....       LCALL   ??d?relay
+   \   000163   EA           MOV     A,R2
+   \   000164   FC           MOV     R4,A
+   \   000165   EB           MOV     A,R3
+   \   000166   FD           MOV     R5,A
+   \   000167   E5..         MOV     A,?V0 + 0
+   \   000169   240D         ADD     A,#0xd
+   \   00016B   F582         MOV     DPL,A
+   \   00016D   E5..         MOV     A,?V0 + 1
+   \   00016F   3400         ADDC    A,#0x0
+   \   000171   F583         MOV     DPH,A
+   \   000173   E0           MOVX    A,@DPTR
+   \   000174   FA           MOV     R2,A
+   \   000175   7B00         MOV     R3,#0x0
+   \   000177   12....       LCALL   ??n?relay
+   \   00017A   12....       LCALL   ??d?relay
+   \   00017D   EA           MOV     A,R2
+   \   00017E   FC           MOV     R4,A
+   \   00017F   EB           MOV     A,R3
+   \   000180   FD           MOV     R5,A
+   \   000181   E5..         MOV     A,?V0 + 0
+   \   000183   240E         ADD     A,#0xe
+   \   000185   F582         MOV     DPL,A
+   \   000187   E5..         MOV     A,?V0 + 1
+   \   000189   3400         ADDC    A,#0x0
+   \   00018B   F583         MOV     DPH,A
+   \   00018D   E0           MOVX    A,@DPTR
+   \   00018E   FA           MOV     R2,A
+   \   00018F   7B00         MOV     R3,#0x0
+   \   000191   12....       LCALL   ??n?relay
+   \   000194   12....       LCALL   ??d?relay
+   \   000197   EA           MOV     A,R2
+   \   000198   FC           MOV     R4,A
+   \   000199   EB           MOV     A,R3
+   \   00019A   FD           MOV     R5,A
+   \   00019B   E5..         MOV     A,?V0 + 0
+   \   00019D   240F         ADD     A,#0xf
+   \   00019F   F582         MOV     DPL,A
+   \   0001A1   E5..         MOV     A,?V0 + 1
+   \   0001A3   3400         ADDC    A,#0x0
+   \   0001A5   F583         MOV     DPH,A
+   \   0001A7   E0           MOVX    A,@DPTR
+   \   0001A8   FA           MOV     R2,A
+   \   0001A9   7B00         MOV     R3,#0x0
+   \   0001AB   12....       LCALL   ??n?relay
+   \   0001AE   EA           MOV     A,R2
+   \   0001AF   FC           MOV     R4,A
+   \   0001B0   EB           MOV     A,R3
+   \   0001B1   FD           MOV     R5,A
+   \   0001B2   7A..         MOV     R2,#`?<Constant " ">` & 0xff
+   \   0001B4   7B..         MOV     R3,#(`?<Constant " ">` >> 8) & 0xff
+   \   0001B6   12....       LCALL   ??s?relay
+   \   0001B9   EA           MOV     A,R2
+   \   0001BA   FC           MOV     R4,A
+   \   0001BB   EB           MOV     A,R3
+   \   0001BC   FD           MOV     R5,A
+   \   0001BD   E5..         MOV     A,?V0 + 0
+   \   0001BF   2410         ADD     A,#0x10
+   \   0001C1   F582         MOV     DPL,A
+   \   0001C3   E5..         MOV     A,?V0 + 1
+   \   0001C5   3400         ADDC    A,#0x0
+   \   0001C7   F583         MOV     DPH,A
+   \   0001C9   E0           MOVX    A,@DPTR
+   \   0001CA   FA           MOV     R2,A
+   \   0001CB   7B00         MOV     R3,#0x0
+   \   0001CD   12....       LCALL   ??n?relay
+   \   0001D0   12....       LCALL   ??d?relay
+   \   0001D3   EA           MOV     A,R2
+   \   0001D4   FC           MOV     R4,A
+   \   0001D5   EB           MOV     A,R3
+   \   0001D6   FD           MOV     R5,A
+   \   0001D7   E5..         MOV     A,?V0 + 0
+   \   0001D9   2411         ADD     A,#0x11
+   \   0001DB   F582         MOV     DPL,A
+   \   0001DD   E5..         MOV     A,?V0 + 1
+   \   0001DF   3400         ADDC    A,#0x0
+   \   0001E1   F583         MOV     DPH,A
+   \   0001E3   E0           MOVX    A,@DPTR
+   \   0001E4   FA           MOV     R2,A
+   \   0001E5   7B00         MOV     R3,#0x0
+   \   0001E7   12....       LCALL   ??n?relay
+   \   0001EA   12....       LCALL   ??d?relay
+   \   0001ED   EA           MOV     A,R2
+   \   0001EE   FC           MOV     R4,A
+   \   0001EF   EB           MOV     A,R3
+   \   0001F0   FD           MOV     R5,A
+   \   0001F1   E5..         MOV     A,?V0 + 0
+   \   0001F3   2412         ADD     A,#0x12
+   \   0001F5   F582         MOV     DPL,A
+   \   0001F7   E5..         MOV     A,?V0 + 1
+   \   0001F9   3400         ADDC    A,#0x0
+   \   0001FB   F583         MOV     DPH,A
+   \   0001FD   E0           MOVX    A,@DPTR
+   \   0001FE   FA           MOV     R2,A
+   \   0001FF   7B00         MOV     R3,#0x0
+   \   000201   12....       LCALL   ??n?relay
+   \   000204   12....       LCALL   ??d?relay
+   \   000207   EA           MOV     A,R2
+   \   000208   FC           MOV     R4,A
+   \   000209   EB           MOV     A,R3
+   \   00020A   FD           MOV     R5,A
+   \   00020B   E5..         MOV     A,?V0 + 0
+   \   00020D   2413         ADD     A,#0x13
+   \   00020F   F582         MOV     DPL,A
+   \   000211   E5..         MOV     A,?V0 + 1
+   \   000213   3400         ADDC    A,#0x0
+   \   000215   F583         MOV     DPH,A
+   \   000217   E0           MOVX    A,@DPTR
+   \   000218   FA           MOV     R2,A
+   \   000219   7B00         MOV     R3,#0x0
+   \   00021B   12....       LCALL   ??n?relay
+   \   00021E   EA           MOV     A,R2
+   \   00021F   FC           MOV     R4,A
+   \   000220   EB           MOV     A,R3
+   \   000221   FD           MOV     R5,A
+   \   000222   7A..         MOV     R2,#`?<Constant " pong">` & 0xff
+   \   000224   7B..         MOV     R3,#(`?<Constant " pong">` >> 8) & 0xff
+   \   000226   12....       LCALL   ??s?relay
+   \   000229   8A..         MOV     ?V0 + 0,R2
+   \   00022B   8B..         MOV     ?V0 + 1,R3
+   \   00022D   E5..         MOV     A,?V0 + 0
+   \   00022F   C3           CLR     C
+   \   000230   95..         SUBB    A,?V0 + 2
+   \   000232   FA           MOV     R2,A
+   \   000233   E5..         MOV     A,?V0 + 1
+   \   000235   95..         SUBB    A,?V0 + 3
+   \   000237   FB           MOV     R3,A
+   \   000238   02....       LJMP    ??tcpdump_format_2 & 0xFFFF
+    232                /*      return sprintf(buf, "%d.%d.%d.%d %d.%d.%d.%d pong",
+    233          		     IPBUF->srcipaddr[0], IPBUF->srcipaddr[1],
+    234          		     IPBUF->srcipaddr[2], IPBUF->srcipaddr[3],
+    235          		     IPBUF->destipaddr[0], IPBUF->destipaddr[1],
+    236          		     IPBUF->destipaddr[2], IPBUF->destipaddr[3]);*/
+    237              }
+    238            } else if(IPBUF->proto == UIP_PROTO_UDP) {
+   \                     ??tcpdump_format_0:
+   \   00023B   85..82       MOV     DPL,?V0 + 0
+   \   00023E   85..83       MOV     DPH,?V0 + 1
+   \   000241   A3           INC     DPTR
+   \   000242   A3           INC     DPTR
+   \   000243   A3           INC     DPTR
+   \   000244   A3           INC     DPTR
+   \   000245   A3           INC     DPTR
+   \   000246   A3           INC     DPTR
+   \   000247   A3           INC     DPTR
+   \   000248   A3           INC     DPTR
+   \   000249   A3           INC     DPTR
+   \   00024A   E0           MOVX    A,@DPTR
+   \   00024B   6411         XRL     A,#0x11
+   \   00024D   6003         JZ      $+5
+   \   00024F   02....       LJMP    ??tcpdump_format_4 & 0xFFFF
+    239                return s(" UDP",
+    240          	     n(uip_htons(UDPBUF->destport), d(
+    241          	     n(IPBUF->destipaddr[3], d(
+    242          	     n(IPBUF->destipaddr[2], d(
+    243          	     n(IPBUF->destipaddr[1], d(
+    244          	     n(IPBUF->destipaddr[0],
+    245                       s(" ",
+    246          	     n(uip_htons(UDPBUF->srcport), d(
+    247          	     n(IPBUF->srcipaddr[3], d(
+    248          	     n(IPBUF->srcipaddr[2], d(
+    249          	     n(IPBUF->srcipaddr[1], d(
+    250                       n(IPBUF->srcipaddr[0],
+    251          	     buf)))))))))))))))))))) - buf;
+   \   000252                ; Setup parameters for call to function d
+   \   000252                ; Setup parameters for call to function n
+   \   000252                ; Setup parameters for call to function d
+   \   000252                ; Setup parameters for call to function n
+   \   000252                ; Setup parameters for call to function d
+   \   000252                ; Setup parameters for call to function n
+   \   000252                ; Setup parameters for call to function d
+   \   000252                ; Setup parameters for call to function n
+   \   000252   AC..         MOV     R4,?V0 + 2
+   \   000254   AD..         MOV     R5,?V0 + 3
+   \   000256   E5..         MOV     A,?V0 + 0
+   \   000258   240C         ADD     A,#0xc
+   \   00025A   F582         MOV     DPL,A
+   \   00025C   E5..         MOV     A,?V0 + 1
+   \   00025E   3400         ADDC    A,#0x0
+   \   000260   F583         MOV     DPH,A
+   \   000262   E0           MOVX    A,@DPTR
+   \   000263   FA           MOV     R2,A
+   \   000264   7B00         MOV     R3,#0x0
+   \   000266   12....       LCALL   ??n?relay
+   \   000269   12....       LCALL   ??d?relay
+   \   00026C   EA           MOV     A,R2
+   \   00026D   FC           MOV     R4,A
+   \   00026E   EB           MOV     A,R3
+   \   00026F   FD           MOV     R5,A
+   \   000270   E5..         MOV     A,?V0 + 0
+   \   000272   240D         ADD     A,#0xd
+   \   000274   F582         MOV     DPL,A
+   \   000276   E5..         MOV     A,?V0 + 1
+   \   000278   3400         ADDC    A,#0x0
+   \   00027A   F583         MOV     DPH,A
+   \   00027C   E0           MOVX    A,@DPTR
+   \   00027D   FA           MOV     R2,A
+   \   00027E   7B00         MOV     R3,#0x0
+   \   000280   12....       LCALL   ??n?relay
+   \   000283   12....       LCALL   ??d?relay
+   \   000286   EA           MOV     A,R2
+   \   000287   FC           MOV     R4,A
+   \   000288   EB           MOV     A,R3
+   \   000289   FD           MOV     R5,A
+   \   00028A   E5..         MOV     A,?V0 + 0
+   \   00028C   240E         ADD     A,#0xe
+   \   00028E   F582         MOV     DPL,A
+   \   000290   E5..         MOV     A,?V0 + 1
+   \   000292   3400         ADDC    A,#0x0
+   \   000294   F583         MOV     DPH,A
+   \   000296   E0           MOVX    A,@DPTR
+   \   000297   FA           MOV     R2,A
+   \   000298   7B00         MOV     R3,#0x0
+   \   00029A   12....       LCALL   ??n?relay
+   \   00029D   12....       LCALL   ??d?relay
+   \   0002A0   EA           MOV     A,R2
+   \   0002A1   FC           MOV     R4,A
+   \   0002A2   EB           MOV     A,R3
+   \   0002A3   FD           MOV     R5,A
+   \   0002A4   E5..         MOV     A,?V0 + 0
+   \   0002A6   240F         ADD     A,#0xf
+   \   0002A8   F582         MOV     DPL,A
+   \   0002AA   E5..         MOV     A,?V0 + 1
+   \   0002AC   3400         ADDC    A,#0x0
+   \   0002AE   F583         MOV     DPH,A
+   \   0002B0   E0           MOVX    A,@DPTR
+   \   0002B1   FA           MOV     R2,A
+   \   0002B2   7B00         MOV     R3,#0x0
+   \   0002B4   12....       LCALL   ??n?relay
+   \   0002B7   12....       LCALL   ??d?relay
+   \   0002BA   8A..         MOV     ?V0 + 4,R2
+   \   0002BC   8B..         MOV     ?V0 + 5,R3
+   \   0002BE   AC..         MOV     R4,?V0 + 4
+   \   0002C0   AD..         MOV     R5,?V0 + 5
+   \   0002C2                ; Setup parameters for call to function d
+   \   0002C2                ; Setup parameters for call to function n
+   \   0002C2                ; Setup parameters for call to function d
+   \   0002C2                ; Setup parameters for call to function n
+   \   0002C2                ; Setup parameters for call to function d
+   \   0002C2                ; Setup parameters for call to function n
+   \   0002C2                ; Setup parameters for call to function d
+   \   0002C2                ; Setup parameters for call to function n
+   \   0002C2                ; Setup parameters for call to function s
+   \   0002C2                ; Setup parameters for call to function n
+   \   0002C2   FF           MOV     R7,A
+   \   0002C3   E5..         MOV     A,?V0 + 4
+   \   0002C5   AE..         MOV     R6,?V0 + 4
+   \   0002C7   E5..         MOV     A,?V0 + 5
+   \   0002C9   AF..         MOV     R7,?V0 + 5
+   \   0002CB                ; Setup parameters for call to function uip_htons
+   \   0002CB   E5..         MOV     A,?V0 + 0
+   \   0002CD   2414         ADD     A,#0x14
+   \   0002CF   F582         MOV     DPL,A
+   \   0002D1   E5..         MOV     A,?V0 + 1
+   \   0002D3   3400         ADDC    A,#0x0
+   \   0002D5   F583         MOV     DPH,A
+   \   0002D7   E0           MOVX    A,@DPTR
+   \   0002D8   FA           MOV     R2,A
+   \   0002D9   A3           INC     DPTR
+   \   0002DA   E0           MOVX    A,@DPTR
+   \   0002DB   FB           MOV     R3,A
+   \   0002DC   12....       LCALL   ??uip_htons?relay
+   \   0002DF   FD           MOV     R5,A
+   \   0002E0   E5..         MOV     A,?V0 + 4
+   \   0002E2   AC..         MOV     R4,?V0 + 4
+   \   0002E4   E5..         MOV     A,?V0 + 5
+   \   0002E6   AD..         MOV     R5,?V0 + 5
+   \   0002E8   12....       LCALL   ??n?relay
+   \   0002EB   EA           MOV     A,R2
+   \   0002EC   FC           MOV     R4,A
+   \   0002ED   EB           MOV     A,R3
+   \   0002EE   FD           MOV     R5,A
+   \   0002EF   7A..         MOV     R2,#`?<Constant " ">` & 0xff
+   \   0002F1   7B..         MOV     R3,#(`?<Constant " ">` >> 8) & 0xff
+   \   0002F3   12....       LCALL   ??s?relay
+   \   0002F6   EA           MOV     A,R2
+   \   0002F7   FC           MOV     R4,A
+   \   0002F8   EB           MOV     A,R3
+   \   0002F9   FD           MOV     R5,A
+   \   0002FA   E5..         MOV     A,?V0 + 0
+   \   0002FC   2410         ADD     A,#0x10
+   \   0002FE   F582         MOV     DPL,A
+   \   000300   E5..         MOV     A,?V0 + 1
+   \   000302   3400         ADDC    A,#0x0
+   \   000304   F583         MOV     DPH,A
+   \   000306   E0           MOVX    A,@DPTR
+   \   000307   FA           MOV     R2,A
+   \   000308   7B00         MOV     R3,#0x0
+   \   00030A   12....       LCALL   ??n?relay
+   \   00030D   12....       LCALL   ??d?relay
+   \   000310   EA           MOV     A,R2
+   \   000311   FC           MOV     R4,A
+   \   000312   EB           MOV     A,R3
+   \   000313   FD           MOV     R5,A
+   \   000314   E5..         MOV     A,?V0 + 0
+   \   000316   2411         ADD     A,#0x11
+   \   000318   F582         MOV     DPL,A
+   \   00031A   E5..         MOV     A,?V0 + 1
+   \   00031C   3400         ADDC    A,#0x0
+   \   00031E   F583         MOV     DPH,A
+   \   000320   E0           MOVX    A,@DPTR
+   \   000321   FA           MOV     R2,A
+   \   000322   7B00         MOV     R3,#0x0
+   \   000324   12....       LCALL   ??n?relay
+   \   000327   12....       LCALL   ??d?relay
+   \   00032A   EA           MOV     A,R2
+   \   00032B   FC           MOV     R4,A
+   \   00032C   EB           MOV     A,R3
+   \   00032D   FD           MOV     R5,A
+   \   00032E   E5..         MOV     A,?V0 + 0
+   \   000330   2412         ADD     A,#0x12
+   \   000332   F582         MOV     DPL,A
+   \   000334   E5..         MOV     A,?V0 + 1
+   \   000336   3400         ADDC    A,#0x0
+   \   000338   F583         MOV     DPH,A
+   \   00033A   E0           MOVX    A,@DPTR
+   \   00033B   FA           MOV     R2,A
+   \   00033C   7B00         MOV     R3,#0x0
+   \   00033E   12....       LCALL   ??n?relay
+   \   000341   12....       LCALL   ??d?relay
+   \   000344   EA           MOV     A,R2
+   \   000345   FC           MOV     R4,A
+   \   000346   EB           MOV     A,R3
+   \   000347   FD           MOV     R5,A
+   \   000348   E5..         MOV     A,?V0 + 0
+   \   00034A   2413         ADD     A,#0x13
+   \   00034C   F582         MOV     DPL,A
+   \   00034E   E5..         MOV     A,?V0 + 1
+   \   000350   3400         ADDC    A,#0x0
+   \   000352   F583         MOV     DPH,A
+   \   000354   E0           MOVX    A,@DPTR
+   \   000355   FA           MOV     R2,A
+   \   000356   7B00         MOV     R3,#0x0
+   \   000358   12....       LCALL   ??n?relay
+   \   00035B   12....       LCALL   ??d?relay
+   \   00035E   8A..         MOV     ?V0 + 4,R2
+   \   000360   8B..         MOV     ?V0 + 5,R3
+   \   000362   AC..         MOV     R4,?V0 + 4
+   \   000364   AD..         MOV     R5,?V0 + 5
+   \   000366                ; Setup parameters for call to function s
+   \   000366                ; Setup parameters for call to function n
+   \   000366   FF           MOV     R7,A
+   \   000367   E5..         MOV     A,?V0 + 4
+   \   000369   AE..         MOV     R6,?V0 + 4
+   \   00036B   E5..         MOV     A,?V0 + 5
+   \   00036D   AF..         MOV     R7,?V0 + 5
+   \   00036F                ; Setup parameters for call to function uip_htons
+   \   00036F   E5..         MOV     A,?V0 + 0
+   \   000371   2416         ADD     A,#0x16
+   \   000373   F582         MOV     DPL,A
+   \   000375   E5..         MOV     A,?V0 + 1
+   \   000377   3400         ADDC    A,#0x0
+   \   000379   F583         MOV     DPH,A
+   \   00037B   E0           MOVX    A,@DPTR
+   \   00037C   FA           MOV     R2,A
+   \   00037D   A3           INC     DPTR
+   \   00037E   E0           MOVX    A,@DPTR
+   \   00037F   FB           MOV     R3,A
+   \   000380   12....       LCALL   ??uip_htons?relay
+   \   000383   FD           MOV     R5,A
+   \   000384   E5..         MOV     A,?V0 + 4
+   \   000386   AC..         MOV     R4,?V0 + 4
+   \   000388   E5..         MOV     A,?V0 + 5
+   \   00038A   AD..         MOV     R5,?V0 + 5
+   \   00038C   12....       LCALL   ??n?relay
+   \   00038F   EA           MOV     A,R2
+   \   000390   FC           MOV     R4,A
+   \   000391   EB           MOV     A,R3
+   \   000392   FD           MOV     R5,A
+   \   000393   7A..         MOV     R2,#`?<Constant " UDP">` & 0xff
+   \   000395   7B..         MOV     R3,#(`?<Constant " UDP">` >> 8) & 0xff
+   \   000397   12....       LCALL   ??s?relay
+   \   00039A   8A..         MOV     ?V0 + 0,R2
+   \   00039C   8B..         MOV     ?V0 + 1,R3
+   \   00039E   E5..         MOV     A,?V0 + 0
+   \   0003A0   C3           CLR     C
+   \   0003A1   95..         SUBB    A,?V0 + 2
+   \   0003A3   FA           MOV     R2,A
+   \   0003A4   E5..         MOV     A,?V0 + 1
+   \   0003A6   95..         SUBB    A,?V0 + 3
+   \   0003A8   FB           MOV     R3,A
+   \   0003A9   02....       LJMP    ??tcpdump_format_2 & 0xFFFF
+    252                /*    return sprintf(buf, "%d.%d.%d.%d.%d %d.%d.%d.%d.%d UDP",
+    253          		   IPBUF->srcipaddr[0], IPBUF->srcipaddr[1],
+    254          		   IPBUF->srcipaddr[2], IPBUF->srcipaddr[3],
+    255          		   uip_htons(UDPBUF->srcport),
+    256          		   IPBUF->destipaddr[0], IPBUF->destipaddr[1],
+    257          		   IPBUF->destipaddr[2], IPBUF->destipaddr[3],
+    258          		   uip_htons(UDPBUF->destport));*/
+    259            } else if(IPBUF->proto == UIP_PROTO_TCP) {
+   \                     ??tcpdump_format_4:
+   \   0003AC   85..82       MOV     DPL,?V0 + 0
+   \   0003AF   85..83       MOV     DPH,?V0 + 1
+   \   0003B2   A3           INC     DPTR
+   \   0003B3   A3           INC     DPTR
+   \   0003B4   A3           INC     DPTR
+   \   0003B5   A3           INC     DPTR
+   \   0003B6   A3           INC     DPTR
+   \   0003B7   A3           INC     DPTR
+   \   0003B8   A3           INC     DPTR
+   \   0003B9   A3           INC     DPTR
+   \   0003BA   A3           INC     DPTR
+   \   0003BB   E0           MOVX    A,@DPTR
+   \   0003BC   6406         XRL     A,#0x6
+   \   0003BE   6003         JZ      $+5
+   \   0003C0   02....       LJMP    ??tcpdump_format_5 & 0xFFFF
+    260              tcpflags(TCPBUF->flags, flags);
+   \   0003C3                ; Setup parameters for call to function tcpflags
+   \   0003C3   85..82       MOV     DPL,?XSP + 0
+   \   0003C6   85..83       MOV     DPH,?XSP + 1
+   \   0003C9   AA82         MOV     R2,DPL
+   \   0003CB   AB83         MOV     R3,DPH
+   \   0003CD   E5..         MOV     A,?V0 + 0
+   \   0003CF   2421         ADD     A,#0x21
+   \   0003D1   F582         MOV     DPL,A
+   \   0003D3   E5..         MOV     A,?V0 + 1
+   \   0003D5   3400         ADDC    A,#0x0
+   \   0003D7   F583         MOV     DPH,A
+   \   0003D9   E0           MOVX    A,@DPTR
+   \   0003DA   F9           MOV     R1,A
+   \   0003DB   12....       LCALL   ??tcpflags?relay
+    261                return s(flags,
+    262                       s(" ",
+    263          	     n(uip_htons(TCPBUF->destport), d(
+    264          	     n(IPBUF->destipaddr[3], d(
+    265          	     n(IPBUF->destipaddr[2], d(
+    266          	     n(IPBUF->destipaddr[1], d(
+    267          	     n(IPBUF->destipaddr[0],
+    268                       s(" ",
+    269          	     n(uip_htons(TCPBUF->srcport), d(
+    270          	     n(IPBUF->srcipaddr[3], d(
+    271          	     n(IPBUF->srcipaddr[2], d(
+    272          	     n(IPBUF->srcipaddr[1], d(
+    273                       n(IPBUF->srcipaddr[0],
+    274          	     buf))))))))))))))))))))) - buf;
+   \   0003DE                ; Setup parameters for call to function d
+   \   0003DE                ; Setup parameters for call to function n
+   \   0003DE                ; Setup parameters for call to function d
+   \   0003DE                ; Setup parameters for call to function n
+   \   0003DE                ; Setup parameters for call to function d
+   \   0003DE                ; Setup parameters for call to function n
+   \   0003DE                ; Setup parameters for call to function d
+   \   0003DE                ; Setup parameters for call to function n
+   \   0003DE   AC..         MOV     R4,?V0 + 2
+   \   0003E0   AD..         MOV     R5,?V0 + 3
+   \   0003E2   E5..         MOV     A,?V0 + 0
+   \   0003E4   240C         ADD     A,#0xc
+   \   0003E6   F582         MOV     DPL,A
+   \   0003E8   E5..         MOV     A,?V0 + 1
+   \   0003EA   3400         ADDC    A,#0x0
+   \   0003EC   F583         MOV     DPH,A
+   \   0003EE   E0           MOVX    A,@DPTR
+   \   0003EF   FA           MOV     R2,A
+   \   0003F0   7B00         MOV     R3,#0x0
+   \   0003F2   12....       LCALL   ??n?relay
+   \   0003F5   12....       LCALL   ??d?relay
+   \   0003F8   EA           MOV     A,R2
+   \   0003F9   FC           MOV     R4,A
+   \   0003FA   EB           MOV     A,R3
+   \   0003FB   FD           MOV     R5,A
+   \   0003FC   E5..         MOV     A,?V0 + 0
+   \   0003FE   240D         ADD     A,#0xd
+   \   000400   F582         MOV     DPL,A
+   \   000402   E5..         MOV     A,?V0 + 1
+   \   000404   3400         ADDC    A,#0x0
+   \   000406   F583         MOV     DPH,A
+   \   000408   E0           MOVX    A,@DPTR
+   \   000409   FA           MOV     R2,A
+   \   00040A   7B00         MOV     R3,#0x0
+   \   00040C   12....       LCALL   ??n?relay
+   \   00040F   12....       LCALL   ??d?relay
+   \   000412   EA           MOV     A,R2
+   \   000413   FC           MOV     R4,A
+   \   000414   EB           MOV     A,R3
+   \   000415   FD           MOV     R5,A
+   \   000416   E5..         MOV     A,?V0 + 0
+   \   000418   240E         ADD     A,#0xe
+   \   00041A   F582         MOV     DPL,A
+   \   00041C   E5..         MOV     A,?V0 + 1
+   \   00041E   3400         ADDC    A,#0x0
+   \   000420   F583         MOV     DPH,A
+   \   000422   E0           MOVX    A,@DPTR
+   \   000423   FA           MOV     R2,A
+   \   000424   7B00         MOV     R3,#0x0
+   \   000426   12....       LCALL   ??n?relay
+   \   000429   12....       LCALL   ??d?relay
+   \   00042C   EA           MOV     A,R2
+   \   00042D   FC           MOV     R4,A
+   \   00042E   EB           MOV     A,R3
+   \   00042F   FD           MOV     R5,A
+   \   000430   E5..         MOV     A,?V0 + 0
+   \   000432   240F         ADD     A,#0xf
+   \   000434   F582         MOV     DPL,A
+   \   000436   E5..         MOV     A,?V0 + 1
+   \   000438   3400         ADDC    A,#0x0
+   \   00043A   F583         MOV     DPH,A
+   \   00043C   E0           MOVX    A,@DPTR
+   \   00043D   FA           MOV     R2,A
+   \   00043E   7B00         MOV     R3,#0x0
+   \   000440   12....       LCALL   ??n?relay
+   \   000443   12....       LCALL   ??d?relay
+   \   000446   8A..         MOV     ?V0 + 4,R2
+   \   000448   8B..         MOV     ?V0 + 5,R3
+   \   00044A   AC..         MOV     R4,?V0 + 4
+   \   00044C   AD..         MOV     R5,?V0 + 5
+   \   00044E                ; Setup parameters for call to function d
+   \   00044E                ; Setup parameters for call to function n
+   \   00044E                ; Setup parameters for call to function d
+   \   00044E                ; Setup parameters for call to function n
+   \   00044E                ; Setup parameters for call to function d
+   \   00044E                ; Setup parameters for call to function n
+   \   00044E                ; Setup parameters for call to function d
+   \   00044E                ; Setup parameters for call to function n
+   \   00044E                ; Setup parameters for call to function s
+   \   00044E                ; Setup parameters for call to function n
+   \   00044E   FF           MOV     R7,A
+   \   00044F   E5..         MOV     A,?V0 + 4
+   \   000451   AE..         MOV     R6,?V0 + 4
+   \   000453   E5..         MOV     A,?V0 + 5
+   \   000455   AF..         MOV     R7,?V0 + 5
+   \   000457                ; Setup parameters for call to function uip_htons
+   \   000457   E5..         MOV     A,?V0 + 0
+   \   000459   2414         ADD     A,#0x14
+   \   00045B   F582         MOV     DPL,A
+   \   00045D   E5..         MOV     A,?V0 + 1
+   \   00045F   3400         ADDC    A,#0x0
+   \   000461   F583         MOV     DPH,A
+   \   000463   E0           MOVX    A,@DPTR
+   \   000464   FA           MOV     R2,A
+   \   000465   A3           INC     DPTR
+   \   000466   E0           MOVX    A,@DPTR
+   \   000467   FB           MOV     R3,A
+   \   000468   12....       LCALL   ??uip_htons?relay
+   \   00046B   FD           MOV     R5,A
+   \   00046C   E5..         MOV     A,?V0 + 4
+   \   00046E   AC..         MOV     R4,?V0 + 4
+   \   000470   E5..         MOV     A,?V0 + 5
+   \   000472   AD..         MOV     R5,?V0 + 5
+   \   000474   12....       LCALL   ??n?relay
+   \   000477   EA           MOV     A,R2
+   \   000478   FC           MOV     R4,A
+   \   000479   EB           MOV     A,R3
+   \   00047A   FD           MOV     R5,A
+   \   00047B   7A..         MOV     R2,#`?<Constant " ">` & 0xff
+   \   00047D   7B..         MOV     R3,#(`?<Constant " ">` >> 8) & 0xff
+   \   00047F   12....       LCALL   ??s?relay
+   \   000482   EA           MOV     A,R2
+   \   000483   FC           MOV     R4,A
+   \   000484   EB           MOV     A,R3
+   \   000485   FD           MOV     R5,A
+   \   000486   E5..         MOV     A,?V0 + 0
+   \   000488   2410         ADD     A,#0x10
+   \   00048A   F582         MOV     DPL,A
+   \   00048C   E5..         MOV     A,?V0 + 1
+   \   00048E   3400         ADDC    A,#0x0
+   \   000490   F583         MOV     DPH,A
+   \   000492   E0           MOVX    A,@DPTR
+   \   000493   FA           MOV     R2,A
+   \   000494   7B00         MOV     R3,#0x0
+   \   000496   12....       LCALL   ??n?relay
+   \   000499   12....       LCALL   ??d?relay
+   \   00049C   EA           MOV     A,R2
+   \   00049D   FC           MOV     R4,A
+   \   00049E   EB           MOV     A,R3
+   \   00049F   FD           MOV     R5,A
+   \   0004A0   E5..         MOV     A,?V0 + 0
+   \   0004A2   2411         ADD     A,#0x11
+   \   0004A4   F582         MOV     DPL,A
+   \   0004A6   E5..         MOV     A,?V0 + 1
+   \   0004A8   3400         ADDC    A,#0x0
+   \   0004AA   F583         MOV     DPH,A
+   \   0004AC   E0           MOVX    A,@DPTR
+   \   0004AD   FA           MOV     R2,A
+   \   0004AE   7B00         MOV     R3,#0x0
+   \   0004B0   12....       LCALL   ??n?relay
+   \   0004B3   12....       LCALL   ??d?relay
+   \   0004B6   EA           MOV     A,R2
+   \   0004B7   FC           MOV     R4,A
+   \   0004B8   EB           MOV     A,R3
+   \   0004B9   FD           MOV     R5,A
+   \   0004BA   E5..         MOV     A,?V0 + 0
+   \   0004BC   2412         ADD     A,#0x12
+   \   0004BE   F582         MOV     DPL,A
+   \   0004C0   E5..         MOV     A,?V0 + 1
+   \   0004C2   3400         ADDC    A,#0x0
+   \   0004C4   F583         MOV     DPH,A
+   \   0004C6   E0           MOVX    A,@DPTR
+   \   0004C7   FA           MOV     R2,A
+   \   0004C8   7B00         MOV     R3,#0x0
+   \   0004CA   12....       LCALL   ??n?relay
+   \   0004CD   12....       LCALL   ??d?relay
+   \   0004D0   EA           MOV     A,R2
+   \   0004D1   FC           MOV     R4,A
+   \   0004D2   EB           MOV     A,R3
+   \   0004D3   FD           MOV     R5,A
+   \   0004D4   E5..         MOV     A,?V0 + 0
+   \   0004D6   2413         ADD     A,#0x13
+   \   0004D8   F582         MOV     DPL,A
+   \   0004DA   E5..         MOV     A,?V0 + 1
+   \   0004DC   3400         ADDC    A,#0x0
+   \   0004DE   F583         MOV     DPH,A
+   \   0004E0   E0           MOVX    A,@DPTR
+   \   0004E1   FA           MOV     R2,A
+   \   0004E2   7B00         MOV     R3,#0x0
+   \   0004E4   12....       LCALL   ??n?relay
+   \   0004E7   12....       LCALL   ??d?relay
+   \   0004EA   8A..         MOV     ?V0 + 4,R2
+   \   0004EC   8B..         MOV     ?V0 + 5,R3
+   \   0004EE   AC..         MOV     R4,?V0 + 4
+   \   0004F0   AD..         MOV     R5,?V0 + 5
+   \   0004F2                ; Setup parameters for call to function s
+   \   0004F2                ; Setup parameters for call to function s
+   \   0004F2                ; Setup parameters for call to function n
+   \   0004F2   FF           MOV     R7,A
+   \   0004F3   E5..         MOV     A,?V0 + 4
+   \   0004F5   AE..         MOV     R6,?V0 + 4
+   \   0004F7   E5..         MOV     A,?V0 + 5
+   \   0004F9   AF..         MOV     R7,?V0 + 5
+   \   0004FB                ; Setup parameters for call to function uip_htons
+   \   0004FB   E5..         MOV     A,?V0 + 0
+   \   0004FD   2416         ADD     A,#0x16
+   \   0004FF   F582         MOV     DPL,A
+   \   000501   E5..         MOV     A,?V0 + 1
+   \   000503   3400         ADDC    A,#0x0
+   \   000505   F583         MOV     DPH,A
+   \   000507   E0           MOVX    A,@DPTR
+   \   000508   FA           MOV     R2,A
+   \   000509   A3           INC     DPTR
+   \   00050A   E0           MOVX    A,@DPTR
+   \   00050B   FB           MOV     R3,A
+   \   00050C   12....       LCALL   ??uip_htons?relay
+   \   00050F   FD           MOV     R5,A
+   \   000510   E5..         MOV     A,?V0 + 4
+   \   000512   AC..         MOV     R4,?V0 + 4
+   \   000514   E5..         MOV     A,?V0 + 5
+   \   000516   AD..         MOV     R5,?V0 + 5
+   \   000518   12....       LCALL   ??n?relay
+   \   00051B   EA           MOV     A,R2
+   \   00051C   FC           MOV     R4,A
+   \   00051D   EB           MOV     A,R3
+   \   00051E   FD           MOV     R5,A
+   \   00051F   7A..         MOV     R2,#`?<Constant " ">` & 0xff
+   \   000521   7B..         MOV     R3,#(`?<Constant " ">` >> 8) & 0xff
+   \   000523   12....       LCALL   ??s?relay
+   \   000526   EA           MOV     A,R2
+   \   000527   FC           MOV     R4,A
+   \   000528   EB           MOV     A,R3
+   \   000529   FD           MOV     R5,A
+   \   00052A   85..82       MOV     DPL,?XSP + 0
+   \   00052D   85..83       MOV     DPH,?XSP + 1
+   \   000530   AA82         MOV     R2,DPL
+   \   000532   AB83         MOV     R3,DPH
+   \   000534   12....       LCALL   ??s?relay
+   \   000537   8A..         MOV     ?V0 + 0,R2
+   \   000539   8B..         MOV     ?V0 + 1,R3
+   \   00053B   E5..         MOV     A,?V0 + 0
+   \   00053D   C3           CLR     C
+   \   00053E   95..         SUBB    A,?V0 + 2
+   \   000540   FA           MOV     R2,A
+   \   000541   E5..         MOV     A,?V0 + 1
+   \   000543   95..         SUBB    A,?V0 + 3
+   \   000545   FB           MOV     R3,A
+   \   000546   800F         SJMP    ??tcpdump_format_2
+    275              /*    return sprintf(buf, "%d.%d.%d.%d.%d %d.%d.%d.%d.%d %s",
+    276          		   IPBUF->srcipaddr[0], IPBUF->srcipaddr[1],
+    277          		   IPBUF->srcipaddr[2], IPBUF->srcipaddr[3],
+    278          		   uip_htons(TCPBUF->srcport),
+    279          		   IPBUF->destipaddr[0], IPBUF->destipaddr[1],
+    280          		   IPBUF->destipaddr[2], IPBUF->destipaddr[3],
+    281          		   uip_htons(TCPBUF->destport),
+    282          		   flags);  */
+    283            } else {
+    284              strcpy(buf, "Unrecognized protocol");
+   \                     ??tcpdump_format_5:
+   \   000548                ; Setup parameters for call to function strcpy
+   \   000548   7C..         MOV     R4,#`?<Constant "Unrecognized protocol">` & 0xff
+   \   00054A   7D..         MOV     R5,#(`?<Constant "Unrecognized protocol">` >> 8) & 0xff
+   \   00054C   AA..         MOV     R2,?V0 + 2
+   \   00054E   AB..         MOV     R3,?V0 + 3
+   \   000550   12....       LCALL   ??strcpy?relay
+    285            }
+    286          
+    287            return 0;
+   \                     ??tcpdump_format_3:
+   \   000553   7A00         MOV     R2,#0x0
+   \   000555   7B00         MOV     R3,#0x0
+   \                     ??tcpdump_format_2:
+   \   000557   7408         MOV     A,#0x8
+   \   000559   12....       LCALL   ?DEALLOC_XSTACK8
+   \   00055C   7F06         MOV     R7,#0x6
+   \   00055E   02....       LJMP    ?BANKED_LEAVE_XDATA
+    288          }
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant " ping">>`:
+   \   000000   2070696E     DB " ping"
+   \            6700    
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant " ">>`:
+   \   000000   2000         DB " "
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant " pong">>`:
+   \   000000   20706F6E     DB " pong"
+   \            6700    
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant " UDP">>`:
+   \   000000   20554450     DB " UDP"
+   \            00      
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "Unrecognized prot`:
+   \   000000   556E7265     DB "Unrecognized protocol"
+   \            636F676E
+   \            697A6564
+   \            2070726F
+   \            746F636F
+   \            6C00    
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??tcpflags?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    tcpflags
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??n?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    n
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??d?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    d
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??s?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    `s`
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??tcpdump_format?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    tcpdump_format
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant " ping">`:
+   \   000000                DS 6
+   \   000006                REQUIRE `?<Initializer for <Constant " ping">>`
+   \   000006                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant " ">`:
+   \   000000                DS 2
+   \   000002                REQUIRE `?<Initializer for <Constant " ">>`
+   \   000002                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant " pong">`:
+   \   000000                DS 6
+   \   000006                REQUIRE `?<Initializer for <Constant " pong">>`
+   \   000006                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant " UDP">`:
+   \   000000                DS 5
+   \   000005                REQUIRE `?<Initializer for <Constant " UDP">>`
+   \   000005                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "Unrecognized protocol">`:
+   \   000000                DS 22
+   \   000016                REQUIRE `?<Initializer for <Constant "Unrecognized prot`
+   \   000016                REQUIRE __INIT_XDATA_I
+    289          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       2      0     22  d
+       1      0     34  n
+       0      0     34  s
+                          0 0 12 -> strcpy
+                          0 0 12 -> strlen
+       0      0     26  tcpdump_format
+                          0 0 22 -> d
+                          0 0 22 -> n
+                          0 0 22 -> s
+                          0 0 22 -> strcpy
+                          0 0 22 -> tcpflags
+                          0 0 22 -> uip_htons
+       2      0     22  tcpflags
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       2  ?<Constant " ">
+       5  ?<Constant " UDP">
+       6  ?<Constant " ping">
+       6  ?<Constant " pong">
+      22  ?<Constant "Unrecognized protocol">
+       2  ?<Initializer for <Constant " ">>
+       5  ?<Initializer for <Constant " UDP">>
+       6  ?<Initializer for <Constant " ping">>
+       6  ?<Initializer for <Constant " pong">>
+      22  ?<Initializer for <Constant "Unrecognized prot
+       6  ??d?relay
+       6  ??n?relay
+       6  ??s?relay
+       6  ??tcpdump_format?relay
+       6  ??tcpflags?relay
+      27  d
+     108  n
+      50  s
+    1377  tcpdump_format
+     123  tcpflags
+
+ 
+ 1 685 bytes in segment BANKED_CODE
+    30 bytes in segment BANK_RELAYS
+    41 bytes in segment XDATA_I
+    41 bytes in segment XDATA_ID
+ 
+ 1 756 bytes of CODE  memory
+    41 bytes of XDATA memory
+
+Errors: none
+Warnings: none

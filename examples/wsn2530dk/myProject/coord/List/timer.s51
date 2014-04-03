@@ -1,0 +1,696 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:52 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\sys\timer.c                 /
+//    Command line       =  D:\myWork\myWork\core\sys\timer.c -D              /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\timer.s51                                 /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME timer
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?V0
+
+        PUBLIC ??timer_expired?relay
+        FUNCTION ??timer_expired?relay,0203H
+        PUBLIC ??timer_remaining?relay
+        FUNCTION ??timer_remaining?relay,0203H
+        PUBLIC ??timer_reset?relay
+        FUNCTION ??timer_reset?relay,0203H
+        PUBLIC ??timer_restart?relay
+        FUNCTION ??timer_restart?relay,0203H
+        PUBLIC ??timer_set?relay
+        FUNCTION ??timer_set?relay,0203H
+        PUBLIC timer_expired
+        FUNCTION timer_expired,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC timer_remaining
+        FUNCTION timer_remaining,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC timer_reset
+        FUNCTION timer_reset,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC timer_restart
+        FUNCTION timer_restart,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC timer_set
+        FUNCTION timer_set,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+clock_time          SYMBOL "clock_time"
+??clock_time?relay  SYMBOL "?relay", clock_time
+timer_expired       SYMBOL "timer_expired"
+??timer_expired?relay SYMBOL "?relay", timer_expired
+timer_remaining     SYMBOL "timer_remaining"
+??timer_remaining?relay SYMBOL "?relay", timer_remaining
+timer_reset         SYMBOL "timer_reset"
+??timer_reset?relay SYMBOL "?relay", timer_reset
+timer_restart       SYMBOL "timer_restart"
+??timer_restart?relay SYMBOL "?relay", timer_restart
+timer_set           SYMBOL "timer_set"
+??timer_set?relay   SYMBOL "?relay", timer_set
+
+        EXTERN ??clock_time?relay
+        FUNCTION ??clock_time?relay,00H
+        EXTERN clock_time
+        FUNCTION clock_time,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+// D:\myWork\myWork\core\sys\timer.c
+//    1 /**
+//    2  * \addtogroup timer
+//    3  * @{
+//    4  */
+//    5 
+//    6 /**
+//    7  * \file
+//    8  * Timer library implementation.
+//    9  * \author
+//   10  * Adam Dunkels <adam@sics.se>
+//   11  */
+//   12 
+//   13 /*
+//   14  * Copyright (c) 2004, Swedish Institute of Computer Science.
+//   15  * All rights reserved.
+//   16  *
+//   17  * Redistribution and use in source and binary forms, with or without
+//   18  * modification, are permitted provided that the following conditions
+//   19  * are met:
+//   20  * 1. Redistributions of source code must retain the above copyright
+//   21  *    notice, this list of conditions and the following disclaimer.
+//   22  * 2. Redistributions in binary form must reproduce the above copyright
+//   23  *    notice, this list of conditions and the following disclaimer in the
+//   24  *    documentation and/or other materials provided with the distribution.
+//   25  * 3. Neither the name of the Institute nor the names of its contributors
+//   26  *    may be used to endorse or promote products derived from this software
+//   27  *    without specific prior written permission.
+//   28  *
+//   29  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   30  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   31  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   32  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   33  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   34  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   35  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   36  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   37  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   38  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   39  * SUCH DAMAGE.
+//   40  *
+//   41  * This file is part of the Contiki operating system.
+//   42  *
+//   43  * Author: Adam Dunkels <adam@sics.se>
+//   44  *
+//   45  */
+//   46 
+//   47 #include "contiki-conf.h"
+//   48 #include "sys/clock.h"
+//   49 #include "sys/timer.h"
+//   50 
+//   51 /*---------------------------------------------------------------------------*/
+//   52 /**
+//   53  * Set a timer.
+//   54  *
+//   55  * This function is used to set a timer for a time sometime in the
+//   56  * future. The function timer_expired() will evaluate to true after
+//   57  * the timer has expired.
+//   58  *
+//   59  * \param t A pointer to the timer
+//   60  * \param interval The interval before the timer expires.
+//   61  *
+//   62  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   63 void
+//   64 timer_set(struct timer *t, clock_time_t interval)
+timer_set:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function timer_set
+        CODE
+//   65 {
+        FUNCALL timer_set, clock_time
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//   66   t->interval = interval;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        MOV     A,R4
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R5
+        MOVX    @DPTR,A
+//   67   t->start = clock_time();
+        ; Setup parameters for call to function clock_time
+        LCALL   ??clock_time?relay
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//   68 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock0
+//   69 /*---------------------------------------------------------------------------*/
+//   70 /**
+//   71  * Reset the timer with the same interval.
+//   72  *
+//   73  * This function resets the timer with the same interval that was
+//   74  * given to the timer_set() function. The start point of the interval
+//   75  * is the exact time that the timer last expired. Therefore, this
+//   76  * function will cause the timer to be stable over time, unlike the
+//   77  * timer_restart() function.
+//   78  *
+//   79  * \param t A pointer to the timer.
+//   80  *
+//   81  * \sa timer_restart()
+//   82  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   83 void
+//   84 timer_reset(struct timer *t)
+timer_reset:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function timer_reset
+        CODE
+//   85 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   86   t->start += t->interval;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        ADD     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,R1
+        MOVX    @DPTR,A
+//   87 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock1
+//   88 /*---------------------------------------------------------------------------*/
+//   89 /**
+//   90  * Restart the timer from the current point in time
+//   91  *
+//   92  * This function restarts a timer with the same interval that was
+//   93  * given to the timer_set() function. The timer will start at the
+//   94  * current time.
+//   95  *
+//   96  * \note A periodic timer will drift if this function is used to reset
+//   97  * it. For preioric timers, use the timer_reset() function instead.
+//   98  *
+//   99  * \param t A pointer to the timer.
+//  100  *
+//  101  * \sa timer_reset()
+//  102  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  103 void
+//  104 timer_restart(struct timer *t)
+timer_restart:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function timer_restart
+        CODE
+//  105 {
+        FUNCALL timer_restart, clock_time
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  106   t->start = clock_time();
+        ; Setup parameters for call to function clock_time
+        LCALL   ??clock_time?relay
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  107 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//  108 /*---------------------------------------------------------------------------*/
+//  109 /**
+//  110  * Check if a timer has expired.
+//  111  *
+//  112  * This function tests if a timer has expired and returns true or
+//  113  * false depending on its status.
+//  114  *
+//  115  * \param t A pointer to the timer
+//  116  *
+//  117  * \return Non-zero if the timer has expired, zero otherwise.
+//  118  *
+//  119  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  120 int
+//  121 timer_expired(struct timer *t)
+timer_expired:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function timer_expired
+        CODE
+//  122 {
+        FUNCALL timer_expired, clock_time
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  123   /* Note: Can not return diff >= t->interval so we add 1 to diff and return
+//  124      t->interval < diff - required to avoid an internal error in mspgcc. */
+//  125   clock_time_t diff = (clock_time() - t->start) + 1;
+        ; Setup parameters for call to function clock_time
+        LCALL   ??clock_time?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,?V0 + 0
+        CLR     C
+        SUBB    A,R0
+        MOV     R0,A
+        MOV     A,?V0 + 1
+        SUBB    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x1
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R1,A
+//  126   return t->interval < diff;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        CLR     C
+        MOVX    A,@DPTR
+        SUBB    A,R0
+        INC     DPTR
+        MOVX    A,@DPTR
+        SUBB    A,R1
+        JNC     ??timer_expired_0
+        SETB    B.0
+        SJMP    ??timer_expired_1
+??timer_expired_0:
+        CLR     B.0
+??timer_expired_1:
+        MOV     C,B.0
+        CLR     A
+        RLC     A
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock3
+//  127 
+//  128 }
+//  129 /*---------------------------------------------------------------------------*/
+//  130 /**
+//  131  * The time until the timer expires
+//  132  *
+//  133  * This function returns the time until the timer expires.
+//  134  *
+//  135  * \param t A pointer to the timer
+//  136  *
+//  137  * \return The time until the timer expires
+//  138  *
+//  139  */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  140 clock_time_t
+//  141 timer_remaining(struct timer *t)
+timer_remaining:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function timer_remaining
+        CODE
+//  142 {
+        FUNCALL timer_remaining, clock_time
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  143   return t->start + t->interval - clock_time();
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADD     A,R0
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,R1
+        MOV     R7,A
+        ; Setup parameters for call to function clock_time
+        LCALL   ??clock_time?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,R6
+        CLR     C
+        SUBB    A,?V0 + 0
+        MOV     R2,A
+        MOV     A,R7
+        SUBB    A,?V0 + 1
+        MOV     R3,A
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock4
+//  144 }
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??timer_set?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    timer_set
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??timer_reset?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    timer_reset
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??timer_restart?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    timer_restart
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??timer_expired?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    timer_expired
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??timer_remaining?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    timer_remaining
+
+        END
+//  145 /*---------------------------------------------------------------------------*/
+//  146 
+//  147 /** @} */
+// 
+// 218 bytes in segment BANKED_CODE
+//  30 bytes in segment BANK_RELAYS
+// 
+// 248 bytes of CODE memory
+//
+//Errors: none
+//Warnings: none

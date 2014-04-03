@@ -1,0 +1,2158 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:44 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\dev\slip.c                  /
+//    Command line       =  D:\myWork\myWork\core\dev\slip.c -D               /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\slip.s51                                  /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME slip
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?CALL_IND
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?US_SWITCH_SPARSE
+        EXTERN ?V0
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??process_thread_slip_process?relay,0203H
+        FUNCTION ??rxbuf_init?relay,0203H
+        PUBLIC ??slip_input_byte?relay
+        FUNCTION ??slip_input_byte?relay,0203H
+        FUNCTION ??slip_poll_handler?relay,0203H
+        PUBLIC ??slip_send?relay
+        FUNCTION ??slip_send?relay,0203H
+        PUBLIC ??slip_set_input_callback?relay
+        FUNCTION ??slip_set_input_callback?relay,0203H
+        PUBLIC ??slip_write?relay
+        FUNCTION ??slip_write?relay,0203H
+        FUNCTION process_thread_slip_process,0a1603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        FUNCTION rxbuf_init,0203H
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC slip_active
+        PUBLIC slip_input_byte
+        FUNCTION slip_input_byte,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 9, STACK
+        FUNCTION slip_poll_handler,021203H
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME XSTACK, 14, STACK
+        PUBLIC slip_process
+        PUBLIC slip_send
+        FUNCTION slip_send,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC slip_set_input_callback
+        FUNCTION slip_set_input_callback,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC slip_write
+        FUNCTION slip_write,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+memcmp              SYMBOL "memcmp"
+??memcmp?relay      SYMBOL "?relay", memcmp
+memcpy              SYMBOL "memcpy"
+??memcpy?relay      SYMBOL "?relay", memcpy
+memset              SYMBOL "memset"
+??memset?relay      SYMBOL "?relay", memset
+process_poll        SYMBOL "process_poll"
+??process_poll?relay SYMBOL "?relay", process_poll
+slip_arch_writeb    SYMBOL "slip_arch_writeb"
+??slip_arch_writeb?relay SYMBOL "?relay", slip_arch_writeb
+tcpip_input         SYMBOL "tcpip_input"
+??tcpip_input?relay SYMBOL "?relay", tcpip_input
+slip_input_byte     SYMBOL "slip_input_byte"
+??slip_input_byte?relay SYMBOL "?relay", slip_input_byte
+slip_send           SYMBOL "slip_send"
+??slip_send?relay   SYMBOL "?relay", slip_send
+slip_set_input_callback SYMBOL "slip_set_input_callback"
+??slip_set_input_callback?relay SYMBOL "?relay", slip_set_input_callback
+slip_write          SYMBOL "slip_write"
+??slip_write?relay  SYMBOL "?relay", slip_write
+
+        EXTERN ??memcmp?relay
+        FUNCTION ??memcmp?relay,00H
+        EXTERN ??memcpy?relay
+        FUNCTION ??memcpy?relay,00H
+        EXTERN ??memset?relay
+        FUNCTION ??memset?relay,00H
+        EXTERN ??process_poll?relay
+        FUNCTION ??process_poll?relay,00H
+        EXTERN ??slip_arch_writeb?relay
+        FUNCTION ??slip_arch_writeb?relay,00H
+        EXTERN ??tcpip_input?relay
+        FUNCTION ??tcpip_input?relay,00H
+        EXTERN memcmp
+        FUNCTION memcmp,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memcpy
+        FUNCTION memcpy,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memset
+        FUNCTION memset,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN process_poll
+        FUNCTION process_poll,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN slip_arch_writeb
+        FUNCTION slip_arch_writeb,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN tcpip_input
+        FUNCTION tcpip_input,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_aligned_buf
+        EXTERN uip_appdata
+        EXTERN uip_len
+
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "CLIENT">`:
+        DS 7
+        REQUIRE `?<Initializer for <Constant "CLIENT">>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "CLIENTSERVER\\300">`:
+        DS 14
+        REQUIRE `?<Initializer for <Constant "CLIENTSERVER\\300"`
+        REQUIRE __INIT_XDATA_I
+// D:\myWork\myWork\core\dev\slip.c
+//    1 /* -*- C -*- */
+//    2 /*
+//    3  * Copyright (c) 2005, Swedish Institute of Computer Science
+//    4  * All rights reserved.
+//    5  *
+//    6  * Redistribution and use in source and binary forms, with or without
+//    7  * modification, are permitted provided that the following conditions
+//    8  * are met:
+//    9  * 1. Redistributions of source code must retain the above copyright
+//   10  *    notice, this list of conditions and the following disclaimer.
+//   11  * 2. Redistributions in binary form must reproduce the above copyright
+//   12  *    notice, this list of conditions and the following disclaimer in the
+//   13  *    documentation and/or other materials provided with the distribution.
+//   14  * 3. Neither the name of the Institute nor the names of its contributors
+//   15  *    may be used to endorse or promote products derived from this software
+//   16  *    without specific prior written permission.
+//   17  *
+//   18  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   19  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   20  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   21  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   22  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   23  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   24  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   25  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   26  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   27  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   28  * SUCH DAMAGE.
+//   29  *
+//   30  * This file is part of the Contiki operating system.
+//   31  *
+//   32  */
+//   33 
+//   34 
+//   35 #include <stdio.h>
+//   36 #include <string.h>
+//   37 
+//   38 #include "contiki.h"
+//   39 
+//   40 #include "net/uip.h"
+//   41 #include "net/uip-fw.h"
+//   42 #define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+//   43 
+//   44 #include "dev/slip.h"
+//   45 
+//   46 #define SLIP_END     0300
+//   47 #define SLIP_ESC     0333
+//   48 #define SLIP_ESC_END 0334
+//   49 #define SLIP_ESC_ESC 0335
+//   50 
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+//   51 PROCESS(slip_process, "SLIP driver");
+slip_process:
+        DATA8
+        DS 8
+        REQUIRE `?<Initializer for slip_process>`
+        REQUIRE __INIT_XDATA_I
+//   52 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   53 uint8_t slip_active;
+slip_active:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+//   54 
+//   55 #if 1
+//   56 #define SLIP_STATISTICS(statement)
+//   57 #else
+//   58 uint16_t slip_rubbish, slip_twopackets, slip_overflow, slip_ip_drop;
+//   59 #define SLIP_STATISTICS(statement) statement
+//   60 #endif
+//   61 
+//   62 /* Must be at least one byte larger than UIP_BUFSIZE! */
+//   63 #define RX_BUFSIZE (UIP_BUFSIZE - UIP_LLH_LEN + 16)
+//   64 
+//   65 enum {
+//   66   STATE_TWOPACKETS = 0,	/* We have 2 packets and drop incoming data. */
+//   67   STATE_OK = 1,
+//   68   STATE_ESC = 2,
+//   69   STATE_RUBBISH = 3,
+//   70 };
+//   71 
+//   72 /*
+//   73  * Variables begin and end manage the buffer space in a cyclic
+//   74  * fashion. The first used byte is at begin and end is one byte past
+//   75  * the last. I.e. [begin, end) is the actively used space.
+//   76  *
+//   77  * If begin != pkt_end we have a packet at [begin, pkt_end),
+//   78  * furthermore, if state == STATE_TWOPACKETS we have one more packet at
+//   79  * [pkt_end, end). If more bytes arrive in state STATE_TWOPACKETS
+//   80  * they are discarded.
+//   81  */
+//   82 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   83 static uint8_t state = STATE_TWOPACKETS;
+state:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   84 static uint16_t begin, end;
+begin:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+end:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   85 static uint8_t rxbuf[RX_BUFSIZE];
+rxbuf:
+        DS 256
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   86 static uint16_t pkt_end;		/* SLIP_END tracker. */
+pkt_end:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//   87 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   88 static void (* input_callback)(void) = NULL;
+input_callback:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//   89 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   90 void
+//   91 slip_set_input_callback(void (*c)(void))
+slip_set_input_callback:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function slip_set_input_callback
+        CODE
+//   92 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   93   input_callback = c;
+        MOV     DPTR,#input_callback
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//   94 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock0
+//   95 /*---------------------------------------------------------------------------*/
+//   96 /* slip_send: forward (IPv4) packets with {UIP_FW_NETIF(..., slip_send)}
+//   97  * was used in slip-bridge.c
+//   98  */
+//   99 //#if WITH_UIP
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  100 uint8_t
+//  101 slip_send(void)
+slip_send:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function slip_send
+        CODE
+//  102 {
+        FUNCALL slip_send, slip_arch_writeb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL slip_send, slip_arch_writeb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL slip_send, slip_arch_writeb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL slip_send, slip_arch_writeb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL slip_send, slip_arch_writeb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  103   uint16_t i;
+//  104   uint8_t *ptr;
+//  105   uint8_t c;
+//  106 
+//  107   slip_arch_writeb(SLIP_END);
+        ; Setup parameters for call to function slip_arch_writeb
+        MOV     R1,#-0x40
+        LCALL   ??slip_arch_writeb?relay
+//  108 
+//  109   ptr = &uip_buf[UIP_LLH_LEN];
+        MOV     R6,#uip_aligned_buf & 0xff
+        MOV     R7,#(uip_aligned_buf >> 8) & 0xff
+//  110   for(i = 0; i < uip_len; ++i) {
+        MOV     ?V0 + 0,#0x0
+        MOV     ?V0 + 1,#0x0
+        SJMP    ??slip_send_0
+//  111     if(i == UIP_TCPIP_HLEN) {
+//  112       ptr = (uint8_t *)uip_appdata;
+//  113     }
+//  114     c = *ptr++;
+//  115     if(c == SLIP_END) {
+//  116       slip_arch_writeb(SLIP_ESC);
+//  117       c = SLIP_ESC_END;
+//  118     } else if(c == SLIP_ESC) {
+??slip_send_1:
+        MOV     A,#-0x25
+        XRL     A,R1
+        JNZ     ??slip_send_2
+//  119       slip_arch_writeb(SLIP_ESC);
+        ; Setup parameters for call to function slip_arch_writeb
+        MOV     R1,#-0x25
+        LCALL   ??slip_arch_writeb?relay
+//  120       c = SLIP_ESC_ESC;
+        MOV     R1,#-0x23
+//  121     }
+//  122     slip_arch_writeb(c);
+??slip_send_2:
+        ; Setup parameters for call to function slip_arch_writeb
+        LCALL   ??slip_arch_writeb?relay
+        MOV     A,?V0 + 0
+        ADD     A,#0x1
+        MOV     ?V0 + 0,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     ?V0 + 1,A
+??slip_send_0:
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        CLR     C
+        MOV     A,?V0 + 0
+        SUBB    A,R0
+        MOV     A,?V0 + 1
+        SUBB    A,R1
+        JNC     ??slip_send_3
+        MOV     A,#0x3c
+        XRL     A,?V0 + 0
+        JNZ     ??slip_send_4
+        MOV     A,#0x0
+        XRL     A,?V0 + 1
+??slip_send_4:
+        JNZ     ??slip_send_5
+        MOV     DPTR,#uip_appdata
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+??slip_send_5:
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        MOV     R6,DPL
+        MOV     R7,DPH
+        MOV     A,#-0x40
+        XRL     A,R1
+        JNZ     ??slip_send_1
+        ; Setup parameters for call to function slip_arch_writeb
+        MOV     R1,#-0x25
+        LCALL   ??slip_arch_writeb?relay
+        MOV     R1,#-0x24
+        SJMP    ??slip_send_2
+//  123   }
+//  124   slip_arch_writeb(SLIP_END);
+??slip_send_3:
+        ; Setup parameters for call to function slip_arch_writeb
+        MOV     R1,#-0x40
+        LCALL   ??slip_arch_writeb?relay
+//  125 
+//  126   return UIP_FW_OK;
+        MOV     R1,#0x0
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//  127 }
+//  128 //#endif /* WITH_UIP */
+//  129 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  130 uint8_t
+//  131 slip_write(const void *_ptr, int len)
+slip_write:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function slip_write
+        CODE
+//  132 {
+        FUNCALL slip_write, slip_arch_writeb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL slip_write, slip_arch_writeb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL slip_write, slip_arch_writeb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL slip_write, slip_arch_writeb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL slip_write, slip_arch_writeb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     ?V0 + 0,R4
+        MOV     ?V0 + 1,R5
+//  133   const uint8_t *ptr = _ptr;
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  134   uint16_t i;
+//  135   uint8_t c;
+//  136 
+//  137   slip_arch_writeb(SLIP_END);
+        ; Setup parameters for call to function slip_arch_writeb
+        MOV     R1,#-0x40
+        LCALL   ??slip_arch_writeb?relay
+//  138 
+//  139   for(i = 0; i < len; ++i) {
+        MOV     ?V0 + 2,#0x0
+        MOV     ?V0 + 3,#0x0
+        SJMP    ??slip_write_0
+//  140     c = *ptr++;
+//  141     if(c == SLIP_END) {
+//  142       slip_arch_writeb(SLIP_ESC);
+//  143       c = SLIP_ESC_END;
+//  144     } else if(c == SLIP_ESC) {
+??slip_write_1:
+        MOV     A,#-0x25
+        XRL     A,R1
+        JNZ     ??slip_write_2
+//  145       slip_arch_writeb(SLIP_ESC);
+        ; Setup parameters for call to function slip_arch_writeb
+        MOV     R1,#-0x25
+        LCALL   ??slip_arch_writeb?relay
+//  146       c = SLIP_ESC_ESC;
+        MOV     R1,#-0x23
+//  147     }
+//  148     slip_arch_writeb(c);
+??slip_write_2:
+        ; Setup parameters for call to function slip_arch_writeb
+        LCALL   ??slip_arch_writeb?relay
+        MOV     A,?V0 + 2
+        ADD     A,#0x1
+        MOV     ?V0 + 2,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     ?V0 + 3,A
+??slip_write_0:
+        CLR     C
+        MOV     A,?V0 + 2
+        SUBB    A,?V0 + 0
+        MOV     A,?V0 + 3
+        SUBB    A,?V0 + 1
+        JNC     ??slip_write_3
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        MOV     R6,DPL
+        MOV     R7,DPH
+        MOV     A,#-0x40
+        XRL     A,R1
+        JNZ     ??slip_write_1
+        ; Setup parameters for call to function slip_arch_writeb
+        MOV     R1,#-0x25
+        LCALL   ??slip_arch_writeb?relay
+        MOV     R1,#-0x24
+        SJMP    ??slip_write_2
+//  149   }
+//  150   slip_arch_writeb(SLIP_END);
+??slip_write_3:
+        ; Setup parameters for call to function slip_arch_writeb
+        MOV     R1,#-0x40
+        LCALL   ??slip_arch_writeb?relay
+//  151 
+//  152   return len;
+        MOV     R1,?V0 + 0
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//  153 }
+//  154 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  155 static void
+//  156 rxbuf_init(void)
+rxbuf_init:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function rxbuf_init
+        CODE
+//  157 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  158   begin = end = pkt_end = 0;
+        MOV     R0,#0x0
+        MOV     R1,#0x0
+        MOV     DPTR,#pkt_end
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        MOV     DPTR,#end
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        MOV     DPTR,#begin
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  159   state = STATE_OK;
+        MOV     DPTR,#state
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  160 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock3
+//  161 /*---------------------------------------------------------------------------*/
+//  162 /* Upper half does the polling. */
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  163 static uint16_t
+//  164 slip_poll_handler(uint8_t *outbuf, uint16_t blen)
+slip_poll_handler:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function slip_poll_handler
+        CODE
+//  165 {
+        FUNCALL slip_poll_handler, memcmp
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL slip_poll_handler, memset
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL slip_poll_handler, rxbuf_init
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL slip_poll_handler, slip_arch_writeb
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL slip_poll_handler, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL slip_poll_handler, process_poll
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     ?V0 + 0,R4
+        MOV     ?V0 + 1,R5
+//  166   /* This is a hack and won't work across buffer edge! */
+//  167   if(rxbuf[begin] == 'C') {
+        MOV     DPTR,#begin
+        MOVX    A,@DPTR
+        ADD     A,#rxbuf & 0xff
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#(rxbuf >> 8) & 0xff
+        MOV     R1,A
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOVX    A,@DPTR
+        XRL     A,#0x43
+        JZ      $+5
+        LJMP    ??slip_poll_handler_0 & 0xFFFF
+//  168     int i;
+//  169     if(begin < end && (end - begin) >= 6
+//  170        && memcmp(&rxbuf[begin], "CLIENT", 6) == 0) {
+        MOV     DPTR,#begin
+        PUSH    DPL
+          CFI CFA_SP SP+-1
+        PUSH    DPH
+          CFI CFA_SP SP+-2
+        MOV     DPTR,#end
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        POP     DPH
+          CFI CFA_SP SP+-1
+        POP     DPL
+          CFI CFA_SP SP+0
+        CLR     C
+        MOVX    A,@DPTR
+        SUBB    A,R0
+        INC     DPTR
+        MOVX    A,@DPTR
+        SUBB    A,R1
+        JC      $+5
+        LJMP    ??slip_poll_handler_0 & 0xFFFF
+        MOV     DPTR,#end
+        PUSH    DPL
+          CFI CFA_SP SP+-1
+        PUSH    DPH
+          CFI CFA_SP SP+-2
+        MOV     DPTR,#begin
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        POP     DPH
+          CFI CFA_SP SP+-1
+        POP     DPL
+          CFI CFA_SP SP+0
+        MOVX    A,@DPTR
+        CLR     C
+        SUBB    A,R0
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        SUBB    A,R1
+        MOV     R1,A
+        CLR     C
+        MOV     A,R0
+        SUBB    A,#0x6
+        MOV     A,R1
+        SUBB    A,#0x0
+        JNC     $+5
+        LJMP    ??slip_poll_handler_0 & 0xFFFF
+        ; Setup parameters for call to function memcmp
+        MOV     ?V0 + 2,#0x6
+        MOV     ?V0 + 3,#0x0
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     R4,#`?<Constant "CLIENT">` & 0xff
+        MOV     R5,#(`?<Constant "CLIENT">` >> 8) & 0xff
+        MOV     DPTR,#begin
+        MOVX    A,@DPTR
+        ADD     A,#rxbuf & 0xff
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#(rxbuf >> 8) & 0xff
+        MOV     R3,A
+        LCALL   ??memcmp?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JNZ     ??slip_poll_handler_0
+//  171       state = STATE_TWOPACKETS;	/* Interrupts do nothing. */
+        MOV     DPTR,#state
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  172       memset(&rxbuf[begin], 0x0, 6);
+        ; Setup parameters for call to function memset
+        MOV     ?V0 + 0,#0x6
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     DPTR,#begin
+        MOVX    A,@DPTR
+        ADD     A,#rxbuf & 0xff
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#(rxbuf >> 8) & 0xff
+        MOV     R3,A
+        LCALL   ??memset?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+//  173       
+//  174       rxbuf_init();
+        ; Setup parameters for call to function rxbuf_init
+        LCALL   ??rxbuf_init?relay
+//  175       
+//  176       for(i = 0; i < 13; i++) {
+        MOV     R6,#0x0
+        MOV     R7,#0x0
+        SJMP    ??slip_poll_handler_1
+//  177 	slip_arch_writeb("CLIENTSERVER\300"[i]);
+??slip_poll_handler_2:
+        ; Setup parameters for call to function slip_arch_writeb
+        MOV     A,#`?<Constant "CLIENTSERVER\\300">` & 0xff
+        ADD     A,R6
+        MOV     DPL,A
+        MOV     A,#(`?<Constant "CLIENTSERVER\\300">` >> 8) & 0xff
+        ADDC    A,R7
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R1,A
+        LCALL   ??slip_arch_writeb?relay
+//  178       }
+        MOV     A,R6
+        ADD     A,#0x1
+        MOV     R6,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R7,A
+??slip_poll_handler_1:
+        CLR     C
+        MOV     A,R6
+        SUBB    A,#0xd
+        MOV     A,R7
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JC      ??slip_poll_handler_2
+//  179       return 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LJMP    ??slip_poll_handler_3 & 0xFFFF
+//  180     }
+//  181   }
+//  182 #ifdef SLIP_CONF_ANSWER_MAC_REQUEST
+//  183   else if(rxbuf[begin] == '?') { 
+//  184     /* Used by tapslip6 to request mac for auto configure */
+//  185     int i, j;
+//  186     char* hexchar = "0123456789abcdef";
+//  187     if(begin < end && (end - begin) >= 2
+//  188        && rxbuf[begin + 1] == 'M') {
+//  189       state = STATE_TWOPACKETS; /* Interrupts do nothing. */
+//  190       rxbuf[begin] = 0;
+//  191       rxbuf[begin + 1] = 0;
+//  192       
+//  193       rxbuf_init();
+//  194       
+//  195       rimeaddr_t addr = get_mac_addr();
+//  196       /* this is just a test so far... just to see if it works */
+//  197       slip_arch_writeb('!');
+//  198       slip_arch_writeb('M');
+//  199       for(j = 0; j < 8; j++) {
+//  200         slip_arch_writeb(hexchar[addr.u8[j] >> 4]);
+//  201         slip_arch_writeb(hexchar[addr.u8[j] & 15]);
+//  202       }
+//  203       slip_arch_writeb(SLIP_END);
+//  204       return 0;
+//  205     }
+//  206   }
+//  207 #endif /* SLIP_CONF_ANSWER_MAC_REQUEST */
+//  208 
+//  209   /*
+//  210    * Interrupt can not change begin but may change pkt_end.
+//  211    * If pkt_end != begin it will not change again.
+//  212    */
+//  213   if(begin != pkt_end) {
+??slip_poll_handler_0:
+        MOV     DPTR,#begin
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#pkt_end
+        MOVX    A,@DPTR
+        XRL     A,R0
+        JNZ     ??slip_poll_handler_4
+        INC     DPTR
+        MOVX    A,@DPTR
+        XRL     A,R1
+??slip_poll_handler_4:
+        JNZ     $+5
+        LJMP    ??slip_poll_handler_5 & 0xFFFF
+//  214     uint16_t len;
+//  215 
+//  216     if(begin < pkt_end) {
+        MOV     DPTR,#begin
+        PUSH    DPL
+          CFI CFA_SP SP+-1
+        PUSH    DPH
+          CFI CFA_SP SP+-2
+        MOV     DPTR,#pkt_end
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        POP     DPH
+          CFI CFA_SP SP+-1
+        POP     DPL
+          CFI CFA_SP SP+0
+        CLR     C
+        MOVX    A,@DPTR
+        SUBB    A,R0
+        INC     DPTR
+        MOVX    A,@DPTR
+        SUBB    A,R1
+        JNC     ??slip_poll_handler_6
+//  217       len = pkt_end - begin;
+        MOV     DPTR,#pkt_end
+        PUSH    DPL
+          CFI CFA_SP SP+-1
+        PUSH    DPH
+          CFI CFA_SP SP+-2
+        MOV     DPTR,#begin
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        POP     DPH
+          CFI CFA_SP SP+-1
+        POP     DPL
+          CFI CFA_SP SP+0
+        MOVX    A,@DPTR
+        CLR     C
+        SUBB    A,R0
+        MOV     ?V0 + 2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        SUBB    A,R1
+        MOV     ?V0 + 3,A
+//  218       if(len > blen) {
+        CLR     C
+        MOV     A,?V0 + 0
+        SUBB    A,?V0 + 2
+        MOV     A,?V0 + 1
+        SUBB    A,?V0 + 3
+        JNC     ??slip_poll_handler_7
+//  219 	len = 0;
+        MOV     ?V0 + 2,#0x0
+        MOV     ?V0 + 3,#0x0
+        LJMP    ??slip_poll_handler_8 & 0xFFFF
+//  220       } else {
+//  221 	memcpy(outbuf, &rxbuf[begin], len);
+??slip_poll_handler_7:
+        ; Setup parameters for call to function memcpy
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     DPTR,#begin
+        MOVX    A,@DPTR
+        ADD     A,#rxbuf & 0xff
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#(rxbuf >> 8) & 0xff
+        MOV     R5,A
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+        LJMP    ??slip_poll_handler_8 & 0xFFFF
+//  222       }
+//  223     } else {
+//  224       len = (RX_BUFSIZE - begin) + (pkt_end - 0);
+??slip_poll_handler_6:
+        MOV     DPTR,#begin
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,#0x0
+        CLR     C
+        SUBB    A,R0
+        MOV     R0,A
+        MOV     A,#0x1
+        SUBB    A,R1
+        MOV     R1,A
+        MOV     DPTR,#pkt_end
+        MOVX    A,@DPTR
+        ADD     A,R0
+        MOV     ?V0 + 2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,R1
+        MOV     ?V0 + 3,A
+//  225       if(len > blen) {
+        CLR     C
+        MOV     A,?V0 + 0
+        SUBB    A,?V0 + 2
+        MOV     A,?V0 + 1
+        SUBB    A,?V0 + 3
+        JNC     ??slip_poll_handler_9
+//  226 	len = 0;
+        MOV     ?V0 + 2,#0x0
+        MOV     ?V0 + 3,#0x0
+        SJMP    ??slip_poll_handler_8
+//  227       } else {
+//  228 	unsigned i;
+//  229 	for(i = begin; i < RX_BUFSIZE; i++) {
+??slip_poll_handler_9:
+        MOV     DPTR,#begin
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        SJMP    ??slip_poll_handler_10
+//  230 	  *outbuf++ = rxbuf[i];
+??slip_poll_handler_11:
+        MOV     A,#rxbuf & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#(rxbuf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    @DPTR,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        MOV     R6,DPL
+        MOV     R7,DPH
+//  231 	}
+        MOV     A,R0
+        ADD     A,#0x1
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R1,A
+??slip_poll_handler_10:
+        CLR     C
+        MOV     A,R0
+        SUBB    A,#0x0
+        MOV     A,R1
+        SUBB    A,#0x1
+        JC      ??slip_poll_handler_11
+//  232 	for(i = 0; i < pkt_end; i++) {
+        MOV     R0,#0x0
+        MOV     R1,#0x0
+        SJMP    ??slip_poll_handler_12
+//  233 	  *outbuf++ = rxbuf[i];
+??slip_poll_handler_13:
+        MOV     A,#rxbuf & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#(rxbuf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    @DPTR,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        MOV     R6,DPL
+        MOV     R7,DPH
+//  234 	}
+        MOV     A,R0
+        ADD     A,#0x1
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R1,A
+??slip_poll_handler_12:
+        MOV     DPTR,#pkt_end
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        CLR     C
+        MOV     A,R0
+        SUBB    A,R2
+        MOV     A,R1
+        SUBB    A,R3
+        JC      ??slip_poll_handler_13
+//  235       }
+//  236     }
+//  237 
+//  238     /* Remove data from buffer together with the copied packet. */
+//  239     begin = pkt_end;
+??slip_poll_handler_8:
+        MOV     DPTR,#pkt_end
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#begin
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  240     if(state == STATE_TWOPACKETS) {
+        MOV     DPTR,#state
+        MOVX    A,@DPTR
+        JNZ     ??slip_poll_handler_14
+//  241       pkt_end = end;
+        MOV     DPTR,#end
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#pkt_end
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  242       state = STATE_OK;		/* Assume no bytes where lost! */
+        MOV     DPTR,#state
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  243       
+//  244       /* One more packet is buffered, need to be polled again! */
+//  245       process_poll(&slip_process);
+        ; Setup parameters for call to function process_poll
+        MOV     R2,#slip_process & 0xff
+        MOV     R3,#(slip_process >> 8) & 0xff
+        LCALL   ??process_poll?relay
+//  246     }
+//  247     return len;
+??slip_poll_handler_14:
+        MOV     R2,?V0 + 2
+        MOV     R3,?V0 + 3
+        SJMP    ??slip_poll_handler_3
+//  248   }
+//  249 
+//  250   return 0;
+??slip_poll_handler_5:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??slip_poll_handler_3:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock4
+//  251 }
+//  252 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  253 PROCESS_THREAD(slip_process, ev, data)
+process_thread_slip_process:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function process_thread_slip_process
+        CODE
+//  254 {
+        FUNCALL process_thread_slip_process, rxbuf_init
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_slip_process, slip_poll_handler
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_slip_process, tcpip_input
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     ?V0 + 0,R1
+//  255   PROCESS_BEGIN();
+        MOV     R2,#0x1
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     ?V0 + 2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 3,A
+        MOV     R0,#?V0 + 2
+        LCALL   ?US_SWITCH_SPARSE
+`?<Jumptable for process_thread_slip_process>_0`:
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        2
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_slip_process_0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        260
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_slip_process_1
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_slip_process_2
+        CODE
+//  256 
+//  257   rxbuf_init();
+??process_thread_slip_process_0:
+        ; Setup parameters for call to function rxbuf_init
+        LCALL   ??rxbuf_init?relay
+//  258 
+//  259   while(1) {
+//  260     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+??process_thread_slip_process_3:
+        MOV     R2,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#0x4
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+??process_thread_slip_process_1:
+        MOV     A,R2
+        JZ      ??process_thread_slip_process_4
+        MOV     A,#-0x7e
+        XRL     A,?V0 + 0
+        JZ      ??process_thread_slip_process_5
+??process_thread_slip_process_4:
+        MOV     R1,#0x1
+        SJMP    ??process_thread_slip_process_6
+//  261     
+//  262     slip_active = 1;
+??process_thread_slip_process_5:
+        MOV     DPTR,#slip_active
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  263 
+//  264     /* Move packet from rxbuf to buffer provided by uIP. */
+//  265     uip_len = slip_poll_handler(&uip_buf[UIP_LLH_LEN],
+//  266 				UIP_BUFSIZE - UIP_LLH_LEN);
+        ; Setup parameters for call to function slip_poll_handler
+        MOV     R4,#-0x10
+        MOV     R5,#0x0
+        MOV     R2,#uip_aligned_buf & 0xff
+        MOV     R3,#(uip_aligned_buf >> 8) & 0xff
+        LCALL   ??slip_poll_handler?relay
+        MOV     DPTR,#uip_len
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  267 #if !UIP_CONF_IPV6
+//  268     if(uip_len == 4 && strncmp((char*)&uip_buf[UIP_LLH_LEN], "?IPA", 4) == 0) {
+//  269       char buf[8];
+//  270       memcpy(&buf[0], "=IPA", 4);
+//  271       memcpy(&buf[4], &uip_hostaddr, 4);
+//  272       if(input_callback) {
+//  273 	input_callback();
+//  274       }
+//  275       slip_write(buf, 8);
+//  276     } else if(uip_len > 0
+//  277        && uip_len == (((uint16_t)(BUF->len[0]) << 8) + BUF->len[1])
+//  278        && uip_ipchksum() == 0xffff) {
+//  279 #define IP_DF   0x40
+//  280       if(BUF->ipid[0] == 0 && BUF->ipid[1] == 0 && BUF->ipoffset[0] & IP_DF) {
+//  281 	static uint16_t ip_id;
+//  282 	uint16_t nid = ip_id++;
+//  283 	BUF->ipid[0] = nid >> 8;
+//  284 	BUF->ipid[1] = nid;
+//  285 	nid = uip_htons(nid);
+//  286 	nid = ~nid;		/* negate */
+//  287 	BUF->ipchksum += nid;	/* add */
+//  288 	if(BUF->ipchksum < nid) { /* 1-complement overflow? */
+//  289 	  BUF->ipchksum++;
+//  290 	}
+//  291       }
+//  292 #ifdef SLIP_CONF_TCPIP_INPUT
+//  293       SLIP_CONF_TCPIP_INPUT();
+//  294 #else
+//  295       tcpip_input();
+//  296 #endif
+//  297     } else {
+//  298       uip_len = 0;
+//  299       SLIP_STATISTICS(slip_ip_drop++);
+//  300     }
+//  301 #else /* UIP_CONF_IPV6 */
+//  302     if(uip_len > 0) {
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??process_thread_slip_process_3
+//  303       if(input_callback) {
+        MOV     DPTR,#input_callback
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??process_thread_slip_process_7
+//  304         input_callback();
+        ; Setup parameters for indirect call
+        MOV     DPTR,#input_callback
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        LCALL   ?CALL_IND
+//  305       }
+//  306 #ifdef SLIP_CONF_TCPIP_INPUT
+//  307       SLIP_CONF_TCPIP_INPUT();
+//  308 #else
+//  309       tcpip_input();
+??process_thread_slip_process_7:
+        ; Setup parameters for call to function tcpip_input
+        LCALL   ??tcpip_input?relay
+        SJMP    ??process_thread_slip_process_3
+//  310 #endif
+//  311     }
+//  312 #endif /* UIP_CONF_IPV6 */
+//  313   }
+//  314 
+//  315   PROCESS_END();
+??process_thread_slip_process_2:
+        MOV     R2,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     R1,#0x3
+??process_thread_slip_process_6:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock5
+//  316 }
+//  317 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  318 int
+//  319 slip_input_byte(unsigned char c)
+slip_input_byte:
+          CFI Block cfiBlock6 Using cfiCommon0
+          CFI Function slip_input_byte
+        CODE
+//  320 {
+        FUNCALL slip_input_byte, process_poll
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL slip_input_byte, process_poll
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R6,A
+//  321   switch(state) {
+        MOV     DPTR,#state
+        MOVX    A,@DPTR
+        JZ      ??slip_input_byte_0
+        DEC     A
+        JZ      ??slip_input_byte_1
+        DEC     A
+        JZ      ??slip_input_byte_2
+        DEC     A
+        JZ      $+5
+        LJMP    ??slip_input_byte_3 & 0xFFFF
+//  322   case STATE_RUBBISH:
+//  323     if(c == SLIP_END) {
+        MOV     A,#-0x40
+        XRL     A,R6
+        JNZ     ??slip_input_byte_4
+//  324       state = STATE_OK;
+        MOV     DPTR,#state
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  325     }
+//  326     return 0;
+??slip_input_byte_4:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LJMP    ??slip_input_byte_5 & 0xFFFF
+//  327     
+//  328   case STATE_TWOPACKETS:       /* Two packets are already buffered! */
+//  329     return 0;
+??slip_input_byte_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LJMP    ??slip_input_byte_5 & 0xFFFF
+//  330 
+//  331   case STATE_ESC:
+//  332     if(c == SLIP_ESC_END) {
+??slip_input_byte_2:
+        MOV     A,#-0x24
+        XRL     A,R6
+        JNZ     ??slip_input_byte_6
+//  333       c = SLIP_END;
+        MOV     R6,#-0x40
+//  334     } else if(c == SLIP_ESC_ESC) {
+//  335       c = SLIP_ESC;
+//  336     } else {
+//  337       state = STATE_RUBBISH;
+//  338       SLIP_STATISTICS(slip_rubbish++);
+//  339       end = pkt_end;		/* remove rubbish */
+//  340       return 0;
+//  341     }
+//  342     state = STATE_OK;
+??slip_input_byte_7:
+        MOV     DPTR,#state
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  343     break;
+        LJMP    ??slip_input_byte_3 & 0xFFFF
+??slip_input_byte_6:
+        MOV     A,#-0x23
+        XRL     A,R6
+        JNZ     ??slip_input_byte_8
+        MOV     R6,#-0x25
+        SJMP    ??slip_input_byte_7
+??slip_input_byte_8:
+        MOV     DPTR,#state
+        MOV     A,#0x3
+        MOVX    @DPTR,A
+        MOV     DPTR,#pkt_end
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#end
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LJMP    ??slip_input_byte_5 & 0xFFFF
+//  344 
+//  345   case STATE_OK:
+//  346     if(c == SLIP_ESC) {
+??slip_input_byte_1:
+        MOV     A,#-0x25
+        XRL     A,R6
+        JNZ     ??slip_input_byte_9
+//  347       state = STATE_ESC;
+        MOV     DPTR,#state
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+//  348       return 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LJMP    ??slip_input_byte_5 & 0xFFFF
+//  349     } else if(c == SLIP_END) {
+??slip_input_byte_9:
+        MOV     A,#-0x40
+        XRL     A,R6
+        JNZ     ??slip_input_byte_3
+//  350 	/*
+//  351 	 * We have a new packet, possibly of zero length.
+//  352 	 *
+//  353 	 * There may already be one packet buffered.
+//  354 	 */
+//  355       if(end != pkt_end) {	/* Non zero length. */
+        MOV     DPTR,#end
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#pkt_end
+        MOVX    A,@DPTR
+        XRL     A,R0
+        JNZ     ??slip_input_byte_10
+        INC     DPTR
+        MOVX    A,@DPTR
+        XRL     A,R1
+??slip_input_byte_10:
+        JZ      ??slip_input_byte_11
+//  356 	if(begin == pkt_end) {	/* None buffered. */
+        MOV     DPTR,#begin
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#pkt_end
+        MOVX    A,@DPTR
+        XRL     A,R0
+        JNZ     ??slip_input_byte_12
+        INC     DPTR
+        MOVX    A,@DPTR
+        XRL     A,R1
+??slip_input_byte_12:
+        JNZ     ??slip_input_byte_13
+//  357 	  pkt_end = end;
+        MOV     DPTR,#end
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#pkt_end
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        SJMP    ??slip_input_byte_14
+//  358 	} else {
+//  359 	  state = STATE_TWOPACKETS;
+??slip_input_byte_13:
+        MOV     DPTR,#state
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  360 	  SLIP_STATISTICS(slip_twopackets++);
+//  361 	}
+//  362 	process_poll(&slip_process);
+??slip_input_byte_14:
+        ; Setup parameters for call to function process_poll
+        MOV     R2,#slip_process & 0xff
+        MOV     R3,#(slip_process >> 8) & 0xff
+        LCALL   ??process_poll?relay
+//  363 	return 1;
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+        LJMP    ??slip_input_byte_5 & 0xFFFF
+//  364       }
+//  365       return 0;
+??slip_input_byte_11:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LJMP    ??slip_input_byte_5 & 0xFFFF
+//  366     }
+//  367     break;
+//  368   }
+//  369 
+//  370   /* add_char: */
+//  371   {
+//  372     unsigned next;
+//  373     next = end + 1;
+??slip_input_byte_3:
+        MOV     DPTR,#end
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R1,A
+//  374     if(next == RX_BUFSIZE) {
+        MOV     A,#0x0
+        XRL     A,R0
+        JNZ     ??slip_input_byte_15
+        MOV     A,#0x1
+        XRL     A,R1
+??slip_input_byte_15:
+        JNZ     ??slip_input_byte_16
+//  375       next = 0;
+        MOV     R0,#0x0
+        MOV     R1,#0x0
+//  376     }
+//  377     if(next == begin) {		/* rxbuf is full */
+??slip_input_byte_16:
+        MOV     DPTR,#begin
+        MOVX    A,@DPTR
+        XRL     A,R0
+        JNZ     ??slip_input_byte_17
+        INC     DPTR
+        MOVX    A,@DPTR
+        XRL     A,R1
+??slip_input_byte_17:
+        JNZ     ??slip_input_byte_18
+//  378       state = STATE_RUBBISH;
+        MOV     DPTR,#state
+        MOV     A,#0x3
+        MOVX    @DPTR,A
+//  379       SLIP_STATISTICS(slip_overflow++);
+//  380       end = pkt_end;		/* remove rubbish */
+        MOV     DPTR,#pkt_end
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#end
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  381       return 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??slip_input_byte_5
+//  382     }
+//  383     rxbuf[end] = c;
+??slip_input_byte_18:
+        MOV     A,R6
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     DPTR,#end
+        MOVX    A,@DPTR
+        ADD     A,#rxbuf & 0xff
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#(rxbuf >> 8) & 0xff
+        MOV     R3,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  384     end = next;
+        MOV     DPTR,#end
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  385   }
+//  386 
+//  387   /* There could be a separate poll routine for this. */
+//  388   if(c == 'T' && rxbuf[begin] == 'C') {
+        MOV     A,#0x54
+        XRL     A,R6
+        JNZ     ??slip_input_byte_19
+        MOV     DPTR,#begin
+        MOVX    A,@DPTR
+        ADD     A,#rxbuf & 0xff
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#(rxbuf >> 8) & 0xff
+        MOV     R1,A
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOVX    A,@DPTR
+        XRL     A,#0x43
+        JNZ     ??slip_input_byte_19
+//  389     process_poll(&slip_process);
+        ; Setup parameters for call to function process_poll
+        MOV     R2,#slip_process & 0xff
+        MOV     R3,#(slip_process >> 8) & 0xff
+        LCALL   ??process_poll?relay
+//  390     return 1;
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+        SJMP    ??slip_input_byte_5
+//  391   }
+//  392 
+//  393   return 0;
+??slip_input_byte_19:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??slip_input_byte_5:
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock6
+//  394 }
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "CLIENT">>`:
+        DB "CLIENT"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "CLIENTSERVER\\300"`:
+        DB "CLIENTSERVER\300"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for slip_process>`:
+        DATA16
+        DW 0H
+        DW ??process_thread_slip_process?relay
+        DB 0, 0, 0, 0
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??slip_set_input_callback?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    slip_set_input_callback
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??slip_send?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    slip_send
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??slip_write?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    slip_write
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??rxbuf_init?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    rxbuf_init
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??slip_poll_handler?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    slip_poll_handler
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_thread_slip_process?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_thread_slip_process
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??slip_input_byte?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    slip_input_byte
+
+        END
+//  395 /*---------------------------------------------------------------------------*/
+// 
+// 1 408 bytes in segment BANKED_CODE
+//    42 bytes in segment BANK_RELAYS
+//    29 bytes in segment XDATA_I
+//    29 bytes in segment XDATA_ID
+//   266 bytes in segment XDATA_Z
+// 
+// 1 479 bytes of CODE  memory
+//   295 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

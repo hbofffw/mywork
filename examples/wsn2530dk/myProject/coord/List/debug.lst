@@ -1,0 +1,356 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:47 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\platform\wsn2530dk\debug.c        #
+#    Command line       =  D:\myWork\myWork\platform\wsn2530dk\debug.c -D     #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\debug.lst                                   #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\debug.r51                                    #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\platform\wsn2530dk\debug.c
+      1          /**
+      2           * \file
+      3           *
+      4           *   Definition of some debugging functions.
+      5           *
+      6           *   putstring() and puthex() are from msp430/watchdog.c
+      7           *
+      8           * \author
+      9           *         George Oikonomou - <oikonomou@users.sourceforge.net>
+     10           */
+     11          
+     12          #include "8051def.h"
+     13          #include "debug.h"
+     14          
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     15          static const char hexconv[] = "0123456789abcdef";
+   \                     hexconv:
+   \   000000                DS 17
+   \   000011                REQUIRE `?<Initializer for hexconv>`
+   \   000011                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     16          static const char binconv[] = "01";
+   \                     binconv:
+   \   000000                DS 3
+   \   000003                REQUIRE `?<Initializer for binconv>`
+   \   000003                REQUIRE __INIT_XDATA_I
+     17          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     18          void
+     19          putstring(char *s)
+   \                     putstring:
+     20          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   8008         SJMP    ??putstring_0
+     21            while(*s) {
+     22              putchar(*s++);
+   \                     ??putstring_1:
+   \   00000A                ; Setup parameters for call to function putchar
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   FA           MOV     R2,A
+   \   00000C   7B00         MOV     R3,#0x0
+   \   00000E   12....       LCALL   putchar & 0xFFFF
+   \   000011   A3           INC     DPTR
+     23            }
+   \                     ??putstring_0:
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   70F5         JNZ     ??putstring_1
+     24          }
+   \   000015   D083         POP     DPH
+   \   000017   D082         POP     DPL
+   \   000019   02....       LJMP    ?BRET
+     25          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     26          void
+     27          puthex(uint8_t c)
+   \                     puthex:
+     28          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   E9           MOV     A,R1
+   \   000006   FE           MOV     R6,A
+     29            putchar(hexconv[c >> 4]);
+   \   000007                ; Setup parameters for call to function putchar
+   \   000007   EE           MOV     A,R6
+   \   000008   C4           SWAP    A
+   \   000009   540F         ANL     A,#0xf
+   \   00000B   F8           MOV     R0,A
+   \   00000C   7900         MOV     R1,#0x0
+   \   00000E   74..         MOV     A,#hexconv & 0xff
+   \   000010   28           ADD     A,R0
+   \   000011   F582         MOV     DPL,A
+   \   000013   74..         MOV     A,#(hexconv >> 8) & 0xff
+   \   000015   39           ADDC    A,R1
+   \   000016   F583         MOV     DPH,A
+   \   000018   E0           MOVX    A,@DPTR
+   \   000019   FA           MOV     R2,A
+   \   00001A   7B00         MOV     R3,#0x0
+   \   00001C   12....       LCALL   putchar & 0xFFFF
+     30            putchar(hexconv[c & 0x0f]);
+   \   00001F                ; Setup parameters for call to function putchar
+   \   00001F   8E..         MOV     ?V0 + 0,R6
+   \   000021   75..00       MOV     ?V0 + 1,#0x0
+   \   000024   E5..         MOV     A,?V0 + 0
+   \   000026   540F         ANL     A,#0xf
+   \   000028   F8           MOV     R0,A
+   \   000029   E5..         MOV     A,?V0 + 1
+   \   00002B   5400         ANL     A,#0x0
+   \   00002D   F9           MOV     R1,A
+   \   00002E   74..         MOV     A,#hexconv & 0xff
+   \   000030   28           ADD     A,R0
+   \   000031   F582         MOV     DPL,A
+   \   000033   74..         MOV     A,#(hexconv >> 8) & 0xff
+   \   000035   39           ADDC    A,R1
+   \   000036   F583         MOV     DPH,A
+   \   000038   E0           MOVX    A,@DPTR
+   \   000039   FA           MOV     R2,A
+   \   00003A   7B00         MOV     R3,#0x0
+   \   00003C   12....       LCALL   putchar & 0xFFFF
+     31          }
+   \   00003F   7F02         MOV     R7,#0x2
+   \   000041   02....       LJMP    ?BANKED_LEAVE_XDATA
+     32          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     33          void
+     34          putbin(uint8_t c)
+   \                     putbin:
+     35          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   E9           MOV     A,R1
+   \   000006   FE           MOV     R6,A
+     36            unsigned char i = 0x80;
+   \   000007   7F80         MOV     R7,#-0x80
+   \   000009   801E         SJMP    ??putbin_0
+     37            while(i) {
+     38              putchar(binconv[(c & i) != 0]);
+   \                     ??putbin_1:
+   \   00000B   C2F0         CLR     B.0
+   \                     ??putbin_2:
+   \   00000D                ; Setup parameters for call to function putchar
+   \   00000D   A2F0         MOV     C,B.0
+   \   00000F   E4           CLR     A
+   \   000010   33           RLC     A
+   \   000011   F8           MOV     R0,A
+   \   000012   7900         MOV     R1,#0x0
+   \   000014   74..         MOV     A,#binconv & 0xff
+   \   000016   28           ADD     A,R0
+   \   000017   F582         MOV     DPL,A
+   \   000019   74..         MOV     A,#(binconv >> 8) & 0xff
+   \   00001B   39           ADDC    A,R1
+   \   00001C   F583         MOV     DPH,A
+   \   00001E   E0           MOVX    A,@DPTR
+   \   00001F   FA           MOV     R2,A
+   \   000020   7B00         MOV     R3,#0x0
+   \   000022   12....       LCALL   putchar & 0xFFFF
+     39              i >>= 1;
+   \   000025   EF           MOV     A,R7
+   \   000026   C3           CLR     C
+   \   000027   13           RRC     A
+   \   000028   FF           MOV     R7,A
+   \                     ??putbin_0:
+   \   000029   EF           MOV     A,R7
+   \   00002A   6008         JZ      ??putbin_3
+   \   00002C   EE           MOV     A,R6
+   \   00002D   5F           ANL     A,R7
+   \   00002E   60DB         JZ      ??putbin_1
+   \   000030   D2F0         SETB    B.0
+   \   000032   80D9         SJMP    ??putbin_2
+     40            }
+     41          }
+   \                     ??putbin_3:
+   \   000034   7F01         MOV     R7,#0x1
+   \   000036   02....       LJMP    ?BANKED_LEAVE_XDATA
+     42          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     43          void
+     44          putdec(uint8_t c)
+   \                     putdec:
+     45          {
+   \   000000   74F5         MOV     A,#-0xb
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 11
+   \   000005                ; Auto size: 0
+   \   000005   E9           MOV     A,R1
+   \   000006   FE           MOV     R6,A
+     46            uint8_t div;
+     47            uint8_t hassent = 0;
+   \   000007   75..00       MOV     ?V0 + 2,#0x0
+     48            for(div = 100; div > 0; div /= 10) {
+   \   00000A   7F64         MOV     R7,#0x64
+   \   00000C   803A         SJMP    ??putdec_0
+     49              uint8_t disp = c / div;
+   \                     ??putdec_1:
+   \   00000E   EF           MOV     A,R7
+   \   00000F   F5F0         MOV     B,A
+   \   000011   EE           MOV     A,R6
+   \   000012   84           DIV     AB
+   \   000013   F5..         MOV     ?V0 + 0,A
+     50              c %= div;
+   \   000015   EE           MOV     A,R6
+   \   000016   C0E0         PUSH    A
+   \   000018   EF           MOV     A,R7
+   \   000019   F5F0         MOV     B,A
+   \   00001B   D0E0         POP     A
+   \   00001D   84           DIV     AB
+   \   00001E   E5F0         MOV     A,B
+   \   000020   AEF0         MOV     R6,B
+     51              if((disp != 0) || (hassent) || (div == 1)) {
+   \   000022   E5..         MOV     A,?V0 + 0
+   \   000024   7009         JNZ     ??putdec_2
+   \   000026   E5..         MOV     A,?V0 + 2
+   \   000028   7005         JNZ     ??putdec_2
+   \   00002A   7401         MOV     A,#0x1
+   \   00002C   6F           XRL     A,R7
+   \   00002D   7013         JNZ     ??putdec_3
+     52                hassent = 1;
+   \                     ??putdec_2:
+   \   00002F   75..01       MOV     ?V0 + 2,#0x1
+     53                putchar('0' + disp);
+   \   000032                ; Setup parameters for call to function putchar
+   \   000032   75..00       MOV     ?V0 + 1,#0x0
+   \   000035   E5..         MOV     A,?V0 + 0
+   \   000037   2430         ADD     A,#0x30
+   \   000039   FA           MOV     R2,A
+   \   00003A   E5..         MOV     A,?V0 + 1
+   \   00003C   3400         ADDC    A,#0x0
+   \   00003E   FB           MOV     R3,A
+   \   00003F   12....       LCALL   putchar & 0xFFFF
+     54              }
+     55            }
+   \                     ??putdec_3:
+   \   000042   75F00A       MOV     B,#0xa
+   \   000045   EF           MOV     A,R7
+   \   000046   84           DIV     AB
+   \   000047   FF           MOV     R7,A
+   \                     ??putdec_0:
+   \   000048   EF           MOV     A,R7
+   \   000049   C3           CLR     C
+   \   00004A   9401         SUBB    A,#0x1
+   \   00004C   50C0         JNC     ??putdec_1
+     56          }
+   \   00004E   7F03         MOV     R7,#0x3
+   \   000050   02....       LJMP    ?BANKED_LEAVE_XDATA
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for hexconv>`:
+   \   000000   30313233     DB "0123456789abcdef"
+   \            34353637
+   \            38396162
+   \            63646566
+   \            00      
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for binconv>`:
+   \   000000   303100       DB "01"
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??putstring?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    putstring
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??puthex?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    puthex
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??putbin?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    putbin
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??putdec?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    putdec
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0      9  putbin
+                          0 0  9 -> putchar
+       1      0     11  putdec
+                          0 0 11 -> putchar
+       0      0     10  puthex
+                          0 0 10 -> putchar
+       2      0      0  putstring
+                          2 0  0 -> putchar
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       3  ?<Initializer for binconv>
+      17  ?<Initializer for hexconv>
+       6  ??putbin?relay
+       6  ??putdec?relay
+       6  ??puthex?relay
+       6  ??putstring?relay
+       3  binconv
+      17  hexconv
+      57  putbin
+      83  putdec
+      68  puthex
+      28  putstring
+
+ 
+ 236 bytes in segment BANKED_CODE
+  24 bytes in segment BANK_RELAYS
+  20 bytes in segment XDATA_I
+  20 bytes in segment XDATA_ID
+ 
+ 280 bytes of CODE  memory
+  20 bytes of XDATA memory
+
+Errors: none
+Warnings: none

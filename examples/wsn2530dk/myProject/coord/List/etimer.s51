@@ -1,0 +1,2268 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:48 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\sys\etimer.c                /
+//    Command line       =  D:\myWork\myWork\core\sys\etimer.c -D             /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\etimer.s51                                /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME etimer
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?US_SWITCH_SPARSE
+        EXTERN ?V0
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??add_timer?relay,0203H
+        PUBLIC ??etimer_adjust?relay
+        FUNCTION ??etimer_adjust?relay,0203H
+        PUBLIC ??etimer_expiration_time?relay
+        FUNCTION ??etimer_expiration_time?relay,0203H
+        PUBLIC ??etimer_expired?relay
+        FUNCTION ??etimer_expired?relay,0203H
+        PUBLIC ??etimer_next_expiration_time?relay
+        FUNCTION ??etimer_next_expiration_time?relay,0203H
+        PUBLIC ??etimer_pending?relay
+        FUNCTION ??etimer_pending?relay,0203H
+        PUBLIC ??etimer_request_poll?relay
+        FUNCTION ??etimer_request_poll?relay,0203H
+        PUBLIC ??etimer_reset?relay
+        FUNCTION ??etimer_reset?relay,0203H
+        PUBLIC ??etimer_restart?relay
+        FUNCTION ??etimer_restart?relay,0203H
+        PUBLIC ??etimer_set?relay
+        FUNCTION ??etimer_set?relay,0203H
+        PUBLIC ??etimer_start_time?relay
+        FUNCTION ??etimer_start_time?relay,0203H
+        PUBLIC ??etimer_stop?relay
+        FUNCTION ??etimer_stop?relay,0203H
+        FUNCTION ??process_thread_etimer_process?relay,0203H
+        FUNCTION ??update_time?relay,0203H
+        FUNCTION add_timer,021203H
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC etimer_adjust
+        FUNCTION etimer_adjust,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC etimer_expiration_time
+        FUNCTION etimer_expiration_time,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC etimer_expired
+        FUNCTION etimer_expired,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC etimer_next_expiration_time
+        FUNCTION etimer_next_expiration_time,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC etimer_pending
+        FUNCTION etimer_pending,0203H
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC etimer_process
+        PUBLIC etimer_request_poll
+        FUNCTION etimer_request_poll,021203H
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC etimer_reset
+        FUNCTION etimer_reset,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC etimer_restart
+        FUNCTION etimer_restart,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC etimer_set
+        FUNCTION etimer_set,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC etimer_start_time
+        FUNCTION etimer_start_time,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC etimer_stop
+        FUNCTION etimer_stop,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        FUNCTION process_thread_etimer_process,0a1603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        FUNCTION update_time,021203H
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 10, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+clock_time          SYMBOL "clock_time"
+??clock_time?relay  SYMBOL "?relay", clock_time
+process_poll        SYMBOL "process_poll"
+??process_poll?relay SYMBOL "?relay", process_poll
+process_post        SYMBOL "process_post"
+??process_post?relay SYMBOL "?relay", process_post
+timer_expired       SYMBOL "timer_expired"
+??timer_expired?relay SYMBOL "?relay", timer_expired
+timer_reset         SYMBOL "timer_reset"
+??timer_reset?relay SYMBOL "?relay", timer_reset
+timer_restart       SYMBOL "timer_restart"
+??timer_restart?relay SYMBOL "?relay", timer_restart
+timer_set           SYMBOL "timer_set"
+??timer_set?relay   SYMBOL "?relay", timer_set
+etimer_adjust       SYMBOL "etimer_adjust"
+??etimer_adjust?relay SYMBOL "?relay", etimer_adjust
+etimer_expiration_time SYMBOL "etimer_expiration_time"
+??etimer_expiration_time?relay SYMBOL "?relay", etimer_expiration_time
+etimer_expired      SYMBOL "etimer_expired"
+??etimer_expired?relay SYMBOL "?relay", etimer_expired
+etimer_next_expiration_time SYMBOL "etimer_next_expiration_time"
+??etimer_next_expiration_time?relay SYMBOL "?relay", etimer_next_expiration_time
+etimer_pending      SYMBOL "etimer_pending"
+??etimer_pending?relay SYMBOL "?relay", etimer_pending
+etimer_request_poll SYMBOL "etimer_request_poll"
+??etimer_request_poll?relay SYMBOL "?relay", etimer_request_poll
+etimer_reset        SYMBOL "etimer_reset"
+??etimer_reset?relay SYMBOL "?relay", etimer_reset
+etimer_restart      SYMBOL "etimer_restart"
+??etimer_restart?relay SYMBOL "?relay", etimer_restart
+etimer_set          SYMBOL "etimer_set"
+??etimer_set?relay  SYMBOL "?relay", etimer_set
+etimer_start_time   SYMBOL "etimer_start_time"
+??etimer_start_time?relay SYMBOL "?relay", etimer_start_time
+etimer_stop         SYMBOL "etimer_stop"
+??etimer_stop?relay SYMBOL "?relay", etimer_stop
+
+        EXTERN ??clock_time?relay
+        FUNCTION ??clock_time?relay,00H
+        EXTERN ??process_poll?relay
+        FUNCTION ??process_poll?relay,00H
+        EXTERN ??process_post?relay
+        FUNCTION ??process_post?relay,00H
+        EXTERN ??timer_expired?relay
+        FUNCTION ??timer_expired?relay,00H
+        EXTERN ??timer_reset?relay
+        FUNCTION ??timer_reset?relay,00H
+        EXTERN ??timer_restart?relay
+        FUNCTION ??timer_restart?relay,00H
+        EXTERN ??timer_set?relay
+        FUNCTION ??timer_set?relay,00H
+        EXTERN clock_time
+        FUNCTION clock_time,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN process_current
+        EXTERN process_poll
+        FUNCTION process_poll,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN process_post
+        FUNCTION process_post,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN timer_expired
+        FUNCTION timer_expired,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN timer_reset
+        FUNCTION timer_reset,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN timer_restart
+        FUNCTION timer_restart,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN timer_set
+        FUNCTION timer_set,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+// D:\myWork\myWork\core\sys\etimer.c
+//    1 /**
+//    2  * \addtogroup etimer
+//    3  * @{
+//    4  */
+//    5 
+//    6 /**
+//    7  * \file
+//    8  * Event timer library implementation.
+//    9  * \author
+//   10  * Adam Dunkels <adam@sics.se>
+//   11  */
+//   12 
+//   13 /*
+//   14  * Copyright (c) 2004, Swedish Institute of Computer Science.
+//   15  * All rights reserved.
+//   16  *
+//   17  * Redistribution and use in source and binary forms, with or without
+//   18  * modification, are permitted provided that the following conditions
+//   19  * are met:
+//   20  * 1. Redistributions of source code must retain the above copyright
+//   21  *    notice, this list of conditions and the following disclaimer.
+//   22  * 2. Redistributions in binary form must reproduce the above copyright
+//   23  *    notice, this list of conditions and the following disclaimer in the
+//   24  *    documentation and/or other materials provided with the distribution.
+//   25  * 3. Neither the name of the Institute nor the names of its contributors
+//   26  *    may be used to endorse or promote products derived from this software
+//   27  *    without specific prior written permission.
+//   28  *
+//   29  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   30  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   31  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   32  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   33  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   34  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   35  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   36  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   37  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   38  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   39  * SUCH DAMAGE.
+//   40  *
+//   41  * This file is part of the Contiki operating system.
+//   42  *
+//   43  * Author: Adam Dunkels <adam@sics.se>
+//   44  *
+//   45  */
+//   46 
+//   47 #include "contiki-conf.h"
+//   48 
+//   49 #include "sys/etimer.h"
+//   50 #include "sys/process.h"
+//   51 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   52 static struct etimer *timerlist;
+timerlist:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   53 static clock_time_t next_expiration;
+next_expiration:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//   54 
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+//   55 PROCESS(etimer_process, "Event timer");
+etimer_process:
+        DATA8
+        DS 8
+        REQUIRE `?<Initializer for etimer_process>`
+        REQUIRE __INIT_XDATA_I
+//   56 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   57 static void
+//   58 update_time(void)
+update_time:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function update_time
+        CODE
+//   59 {
+        FUNCALL update_time, clock_time
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//   60   clock_time_t tdist;
+//   61   clock_time_t now;
+//   62   struct etimer *t;
+//   63 
+//   64   if (timerlist == NULL) {
+        MOV     DPTR,#timerlist
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??update_time_0
+//   65     next_expiration = 0;
+        MOV     DPTR,#next_expiration
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        LJMP    ??update_time_1 & 0xFFFF
+//   66   } else {
+//   67     now = clock_time();
+??update_time_0:
+        ; Setup parameters for call to function clock_time
+        LCALL   ??clock_time?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+//   68     t = timerlist;
+        MOV     DPTR,#timerlist
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+//   69     /* Must calculate distance to next time into account due to wraps */
+//   70     tdist = t->timer.start + t->timer.interval - now;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADD     A,R0
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        CLR     C
+        SUBB    A,R4
+        MOV     R0,A
+        MOV     A,R1
+        SUBB    A,R5
+        MOV     R1,A
+//   71     for(t = t->next; t != NULL; t = t->next) {
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        SJMP    ??update_time_2
+//   72       if(t->timer.start + t->timer.interval - now < tdist) {
+??update_time_3:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADD     A,R6
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,R7
+        MOV     R7,A
+        MOV     A,R6
+        CLR     C
+        SUBB    A,R4
+        MOV     R6,A
+        MOV     A,R7
+        SUBB    A,R5
+        MOV     R7,A
+        CLR     C
+        MOV     A,R6
+        SUBB    A,R0
+        MOV     A,R7
+        SUBB    A,R1
+        JNC     ??update_time_4
+//   73 	tdist = t->timer.start + t->timer.interval - now;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADD     A,R0
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        CLR     C
+        SUBB    A,R4
+        MOV     R0,A
+        MOV     A,R1
+        SUBB    A,R5
+        MOV     R1,A
+//   74       }
+//   75     }
+??update_time_4:
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+??update_time_2:
+        MOV     A,R2
+        ORL     A,R3
+        JNZ     ??update_time_3
+//   76     next_expiration = now + tdist;
+        MOV     A,R4
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,R5
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     DPTR,#next_expiration
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//   77   }
+//   78 }
+??update_time_1:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock0
+//   79 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   80 PROCESS_THREAD(etimer_process, ev, data)
+process_thread_etimer_process:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function process_thread_etimer_process
+        CODE
+//   81 {
+        FUNCALL process_thread_etimer_process, update_time
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_etimer_process, etimer_request_poll
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_etimer_process, timer_expired
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_etimer_process, process_post
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 18, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 18, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x12
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V9 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V8 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V7 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-16)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-17)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-18)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 18)
+        ; Saved register size: 18
+        ; Auto size: 0
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 6,R1
+        MOV     ?V0 + 4,R4
+        MOV     ?V0 + 5,R5
+//   82   struct etimer *t, *u;
+//   83 	
+//   84   PROCESS_BEGIN();
+        MOV     R2,#0x1
+        MOV     DPL,?V0 + 2
+        MOV     DPH,?V0 + 3
+        MOVX    A,@DPTR
+        MOV     ?V0 + 0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 1,A
+        MOV     R0,#?V0 + 0
+        LCALL   ?US_SWITCH_SPARSE
+`?<Jumptable for process_thread_etimer_process>_0`:
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        2
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_etimer_process_0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        89
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_etimer_process_1
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_etimer_process_2
+        CODE
+//   85 
+//   86   timerlist = NULL;
+??process_thread_etimer_process_0:
+        MOV     DPTR,#timerlist
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   87   
+//   88   while(1) {
+//   89     PROCESS_YIELD();
+??process_thread_etimer_process_3:
+        MOV     R2,#0x0
+        MOV     DPL,?V0 + 2
+        MOV     DPH,?V0 + 3
+        MOV     A,#0x59
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+??process_thread_etimer_process_1:
+        MOV     A,R2
+        JNZ     ??process_thread_etimer_process_4
+        MOV     R1,#0x1
+        LJMP    ??process_thread_etimer_process_5 & 0xFFFF
+//   90 
+//   91     if(ev == PROCESS_EVENT_EXITED) {
+??process_thread_etimer_process_4:
+        MOV     A,#-0x79
+        XRL     A,?V0 + 6
+        JZ      $+5
+        LJMP    ??process_thread_etimer_process_6 & 0xFFFF
+//   92       struct process *p = data;
+        MOV     R2,?V0 + 4
+        MOV     R3,?V0 + 5
+        SJMP    ??process_thread_etimer_process_7
+//   93 
+//   94       while(timerlist != NULL && timerlist->p == p) {
+//   95 	timerlist = timerlist->next;
+??process_thread_etimer_process_8:
+        MOV     DPTR,#timerlist
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#timerlist
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//   96       }
+??process_thread_etimer_process_7:
+        MOV     DPTR,#timerlist
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??process_thread_etimer_process_9
+        MOV     DPTR,#timerlist
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x6
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R2
+        XRL     A,R0
+        JNZ     ??process_thread_etimer_process_10
+        MOV     A,R3
+        XRL     A,R1
+??process_thread_etimer_process_10:
+        JZ      ??process_thread_etimer_process_8
+//   97 
+//   98       if(timerlist != NULL) {
+??process_thread_etimer_process_9:
+        MOV     DPTR,#timerlist
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??process_thread_etimer_process_3
+//   99 	t = timerlist;
+        MOV     DPTR,#timerlist
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+        SJMP    ??process_thread_etimer_process_11
+//  100 	while(t->next != NULL) {
+//  101 	  if(t->next->p == p) {
+//  102 	    t->next = t->next->next;
+??process_thread_etimer_process_12:
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  103 	  } else
+??process_thread_etimer_process_11:
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??process_thread_etimer_process_13
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x6
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R2
+        XRL     A,R0
+        JNZ     ??process_thread_etimer_process_14
+        MOV     A,R3
+        XRL     A,R1
+??process_thread_etimer_process_14:
+        JZ      ??process_thread_etimer_process_12
+//  104 	    t = t->next;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+        SJMP    ??process_thread_etimer_process_11
+//  105 	}
+//  106       }
+//  107       continue;
+??process_thread_etimer_process_13:
+        LJMP    ??process_thread_etimer_process_3 & 0xFFFF
+//  108     } else if(ev != PROCESS_EVENT_POLL) {
+??process_thread_etimer_process_6:
+        MOV     A,#-0x7e
+        XRL     A,?V0 + 6
+        JZ      ??process_thread_etimer_process_15
+//  109       continue;
+        LJMP    ??process_thread_etimer_process_3 & 0xFFFF
+//  110     }
+//  111 
+//  112   again:
+//  113     
+//  114     u = NULL;
+//  115     
+//  116     for(t = timerlist; t != NULL; t = t->next) {
+//  117       if(timer_expired(&t->timer)) {
+//  118 	if(process_post(t->p, PROCESS_EVENT_TIMER, t) == PROCESS_ERR_OK) {
+//  119 	  
+//  120 	  /* Reset the process ID of the event timer, to signal that the
+//  121 	     etimer has expired. This is later checked in the
+//  122 	     etimer_expired() function. */
+//  123 	  t->p = PROCESS_NONE;
+//  124 	  if(u != NULL) {
+//  125 	    u->next = t->next;
+//  126 	  } else {
+//  127 	    timerlist = t->next;
+??process_thread_etimer_process_16:
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#timerlist
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  128 	  }
+//  129 	  t->next = NULL;
+??process_thread_etimer_process_17:
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  130 	  update_time();
+        ; Setup parameters for call to function update_time
+        LCALL   ??update_time?relay
+//  131 	  goto again;
+??process_thread_etimer_process_15:
+        MOV     ?V0 + 0,#0x0
+        MOV     ?V0 + 1,#0x0
+        MOV     DPTR,#timerlist
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+        SJMP    ??process_thread_etimer_process_18
+//  132 	} else {
+//  133 	  etimer_request_poll();
+??process_thread_etimer_process_19:
+        ; Setup parameters for call to function etimer_request_poll
+        LCALL   ??etimer_request_poll?relay
+//  134 	}
+//  135       }
+//  136       u = t;
+??process_thread_etimer_process_20:
+        MOV     ?V0 + 0,R6
+        MOV     ?V0 + 1,R7
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+??process_thread_etimer_process_18:
+        MOV     A,R6
+        ORL     A,R7
+        JNZ     $+5
+        LJMP    ??process_thread_etimer_process_3 & 0xFFFF
+        ; Setup parameters for call to function timer_expired
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??timer_expired?relay
+        MOV     ?V0 + 8,R2
+        MOV     ?V0 + 9,R3
+        MOV     A,?V0 + 8
+        ORL     A,?V0 + 9
+        JZ      ??process_thread_etimer_process_20
+        ; Setup parameters for call to function process_post
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R1,#-0x78
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??process_post?relay
+        MOV     ?V0 + 8,R2
+        MOV     ?V0 + 9,R3
+        MOV     A,?V0 + 8
+        ORL     A,?V0 + 9
+        JNZ     ??process_thread_etimer_process_19
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     $+5
+        LJMP    ??process_thread_etimer_process_16 & 0xFFFF
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,?V0 + 0
+        MOV     DPH,?V0 + 1
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        LJMP    ??process_thread_etimer_process_17 & 0xFFFF
+//  137     }
+//  138     
+//  139   }
+//  140   
+//  141   PROCESS_END();
+??process_thread_etimer_process_2:
+        MOV     R2,#0x0
+        MOV     DPL,?V0 + 2
+        MOV     DPH,?V0 + 3
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     R1,#0x3
+??process_thread_etimer_process_5:
+        MOV     R7,#0xa
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//  142 }
+//  143 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  144 void
+//  145 etimer_request_poll(void)
+etimer_request_poll:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function etimer_request_poll
+        CODE
+//  146 {
+        FUNCALL etimer_request_poll, process_poll
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  147   process_poll(&etimer_process);
+        ; Setup parameters for call to function process_poll
+        MOV     R2,#etimer_process & 0xff
+        MOV     R3,#(etimer_process >> 8) & 0xff
+        LCALL   ??process_poll?relay
+//  148 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock2
+//  149 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  150 static void
+//  151 add_timer(struct etimer *timer)
+add_timer:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function add_timer
+        CODE
+//  152 {
+        FUNCALL add_timer, etimer_request_poll
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL add_timer, update_time
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL add_timer, update_time
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  153   struct etimer *t;
+//  154 
+//  155   etimer_request_poll();
+        ; Setup parameters for call to function etimer_request_poll
+        LCALL   ??etimer_request_poll?relay
+//  156 
+//  157   if(timer->p != PROCESS_NONE) {
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??add_timer_0
+//  158     for(t = timerlist; t != NULL; t = t->next) {
+        MOV     DPTR,#timerlist
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R0
+        MOV     DPH,R1
+        SJMP    ??add_timer_1
+??add_timer_2:
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R0
+        MOV     DPH,R1
+??add_timer_1:
+        MOV     A,DPL
+        ORL     A,DPH
+        JZ      ??add_timer_0
+//  159       if(t == timer) {
+        MOV     A,R6
+        XRL     A,DPL
+        JNZ     ??add_timer_3
+        MOV     A,R7
+        XRL     A,DPH
+??add_timer_3:
+        JNZ     ??add_timer_2
+//  160 	/* Timer already on list, bail out. */
+//  161         timer->p = PROCESS_CURRENT();
+        MOV     DPTR,#process_current
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  162 	update_time();
+        ; Setup parameters for call to function update_time
+        LCALL   ??update_time?relay
+//  163 	return;
+        SJMP    ??add_timer_4
+//  164       }
+//  165     }
+//  166   }
+//  167 
+//  168   /* Timer not on list. */
+//  169   timer->p = PROCESS_CURRENT();
+??add_timer_0:
+        MOV     DPTR,#process_current
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  170   timer->next = timerlist;
+        MOV     DPTR,#timerlist
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  171   timerlist = timer;
+        MOV     DPTR,#timerlist
+        MOV     A,R6
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R7
+        MOVX    @DPTR,A
+//  172 
+//  173   update_time();
+        ; Setup parameters for call to function update_time
+        LCALL   ??update_time?relay
+//  174 }
+??add_timer_4:
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock3
+//  175 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  176 void
+//  177 etimer_set(struct etimer *et, clock_time_t interval)
+etimer_set:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function etimer_set
+        CODE
+//  178 {
+        FUNCALL etimer_set, timer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL etimer_set, add_timer
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  179   timer_set(&et->timer, interval);
+        ; Setup parameters for call to function timer_set
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??timer_set?relay
+//  180   add_timer(et);
+        ; Setup parameters for call to function add_timer
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??add_timer?relay
+//  181 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock4
+//  182 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  183 void
+//  184 etimer_reset(struct etimer *et)
+etimer_reset:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function etimer_reset
+        CODE
+//  185 {
+        FUNCALL etimer_reset, timer_reset
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL etimer_reset, add_timer
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  186   timer_reset(&et->timer);
+        ; Setup parameters for call to function timer_reset
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??timer_reset?relay
+//  187   add_timer(et);
+        ; Setup parameters for call to function add_timer
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??add_timer?relay
+//  188 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock5
+//  189 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  190 void
+//  191 etimer_restart(struct etimer *et)
+etimer_restart:
+          CFI Block cfiBlock6 Using cfiCommon0
+          CFI Function etimer_restart
+        CODE
+//  192 {
+        FUNCALL etimer_restart, timer_restart
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL etimer_restart, add_timer
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  193   timer_restart(&et->timer);
+        ; Setup parameters for call to function timer_restart
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??timer_restart?relay
+//  194   add_timer(et);
+        ; Setup parameters for call to function add_timer
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??add_timer?relay
+//  195 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock6
+//  196 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  197 void
+//  198 etimer_adjust(struct etimer *et, int timediff)
+etimer_adjust:
+          CFI Block cfiBlock7 Using cfiCommon0
+          CFI Function etimer_adjust
+        CODE
+//  199 {
+        FUNCALL etimer_adjust, update_time
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  200   et->timer.start += timediff;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        ADD     A,R4
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,R5
+        MOVX    @DPTR,A
+//  201   update_time();
+        ; Setup parameters for call to function update_time
+        LCALL   ??update_time?relay
+//  202 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock7
+//  203 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  204 int
+//  205 etimer_expired(struct etimer *et)
+etimer_expired:
+          CFI Block cfiBlock8 Using cfiCommon0
+          CFI Function etimer_expired
+        CODE
+//  206 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  207   return et->p == PROCESS_NONE;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??etimer_expired_0
+        SETB    B.0
+        SJMP    ??etimer_expired_1
+??etimer_expired_0:
+        CLR     B.0
+??etimer_expired_1:
+        MOV     C,B.0
+        CLR     A
+        RLC     A
+        MOV     R2,A
+        MOV     R3,#0x0
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock8
+//  208 }
+//  209 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  210 clock_time_t
+//  211 etimer_expiration_time(struct etimer *et)
+etimer_expiration_time:
+          CFI Block cfiBlock9 Using cfiCommon0
+          CFI Function etimer_expiration_time
+        CODE
+//  212 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  213   return et->timer.start + et->timer.interval;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADD     A,R0
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,R1
+        MOV     R3,A
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock9
+//  214 }
+//  215 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  216 clock_time_t
+//  217 etimer_start_time(struct etimer *et)
+etimer_start_time:
+          CFI Block cfiBlock10 Using cfiCommon0
+          CFI Function etimer_start_time
+        CODE
+//  218 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  219   return et->timer.start;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock10
+//  220 }
+//  221 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  222 int
+//  223 etimer_pending(void)
+etimer_pending:
+          CFI Block cfiBlock11 Using cfiCommon0
+          CFI Function etimer_pending
+        CODE
+//  224 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  225   return timerlist != NULL;
+        MOV     DPTR,#timerlist
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??etimer_pending_0
+        SETB    B.0
+        SJMP    ??etimer_pending_1
+??etimer_pending_0:
+        CLR     B.0
+??etimer_pending_1:
+        MOV     C,B.0
+        CLR     A
+        RLC     A
+        MOV     R2,A
+        MOV     R3,#0x0
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock11
+//  226 }
+//  227 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  228 clock_time_t
+//  229 etimer_next_expiration_time(void)
+etimer_next_expiration_time:
+          CFI Block cfiBlock12 Using cfiCommon0
+          CFI Function etimer_next_expiration_time
+        CODE
+//  230 {
+        FUNCALL etimer_next_expiration_time, etimer_pending
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  231   return etimer_pending() ? next_expiration : 0;
+        ; Setup parameters for call to function etimer_pending
+        LCALL   ??etimer_pending?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??etimer_next_expiration_time_0
+        MOV     DPTR,#next_expiration
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        SJMP    ??etimer_next_expiration_time_1
+??etimer_next_expiration_time_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??etimer_next_expiration_time_1:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock12
+//  232 }
+//  233 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  234 void
+//  235 etimer_stop(struct etimer *et)
+etimer_stop:
+          CFI Block cfiBlock13 Using cfiCommon0
+          CFI Function etimer_stop
+        CODE
+//  236 {
+        FUNCALL etimer_stop, update_time
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL etimer_stop, update_time
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  237   struct etimer *t;
+//  238 
+//  239   /* First check if et is the first event timer on the list. */
+//  240   if(et == timerlist) {
+        MOV     DPTR,#timerlist
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R6
+        XRL     A,R0
+        JNZ     ??etimer_stop_0
+        MOV     A,R7
+        XRL     A,R1
+??etimer_stop_0:
+        JNZ     ??etimer_stop_1
+//  241     timerlist = timerlist->next;
+        MOV     DPTR,#timerlist
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#timerlist
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  242     update_time();
+        ; Setup parameters for call to function update_time
+        LCALL   ??update_time?relay
+        SJMP    ??etimer_stop_2
+//  243   } else {
+//  244     /* Else walk through the list and try to find the item before the
+//  245        et timer. */
+//  246     for(t = timerlist; t != NULL && t->next != et; t = t->next);
+??etimer_stop_1:
+        MOV     DPTR,#timerlist
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        SJMP    ??etimer_stop_3
+??etimer_stop_4:
+        MOV     DPL,R0
+        MOV     DPH,R1
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+??etimer_stop_3:
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??etimer_stop_5
+        MOV     DPL,R0
+        MOV     DPH,R1
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        MOV     A,R6
+        XRL     A,R2
+        JNZ     ??etimer_stop_6
+        MOV     A,R7
+        XRL     A,R3
+??etimer_stop_6:
+        JNZ     ??etimer_stop_4
+//  247 
+//  248     if(t != NULL) {
+??etimer_stop_5:
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??etimer_stop_2
+//  249       /* We've found the item before the event timer that we are about
+//  250 	 to remove. We point the items next pointer to the event after
+//  251 	 the removed item. */
+//  252       t->next = et->next;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        MOV     DPL,R0
+        MOV     DPH,R1
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  253 
+//  254       update_time();
+        ; Setup parameters for call to function update_time
+        LCALL   ??update_time?relay
+//  255     }
+//  256   }
+//  257 
+//  258   /* Remove the next pointer from the item to be removed. */
+//  259   et->next = NULL;
+??etimer_stop_2:
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  260   /* Set the timer as expired */
+//  261   et->p = PROCESS_NONE;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  262 }
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock13
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for etimer_process>`:
+        DATA16
+        DW 0H
+        DW ??process_thread_etimer_process?relay
+        DB 0, 0, 0, 0
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??update_time?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    update_time
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_thread_etimer_process?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_thread_etimer_process
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??etimer_request_poll?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    etimer_request_poll
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??add_timer?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    add_timer
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??etimer_set?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    etimer_set
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??etimer_reset?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    etimer_reset
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??etimer_restart?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    etimer_restart
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??etimer_adjust?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    etimer_adjust
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??etimer_expired?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    etimer_expired
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??etimer_expiration_time?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    etimer_expiration_time
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??etimer_start_time?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    etimer_start_time
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??etimer_pending?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    etimer_pending
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??etimer_next_expiration_time?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    etimer_next_expiration_time
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??etimer_stop?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    etimer_stop
+
+        END
+//  263 /*---------------------------------------------------------------------------*/
+//  264 /** @} */
+// 
+// 1 346 bytes in segment BANKED_CODE
+//    84 bytes in segment BANK_RELAYS
+//     8 bytes in segment XDATA_I
+//     8 bytes in segment XDATA_ID
+//     4 bytes in segment XDATA_Z
+// 
+// 1 438 bytes of CODE  memory
+//    12 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

@@ -1,0 +1,1768 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:38 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\sys\process.c                #
+#    Command line       =  D:\myWork\myWork\core\sys\process.c -D             #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\process.lst                                 #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\process.r51                                  #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\sys\process.c
+      1          /*
+      2           * Copyright (c) 2005, Swedish Institute of Computer Science
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           */
+     32          
+     33          /**
+     34           * \addtogroup process
+     35           * @{
+     36           */
+     37          
+     38          /**
+     39           * \file
+     40           *         Implementation of the Contiki process kernel.
+     41           * \author
+     42           *         Adam Dunkels <adam@sics.se>
+     43           *
+     44           */
+     45          
+     46          #include <stdio.h>
+     47          
+     48          #include "sys/process.h"
+     49          #include "sys/arg.h"
+     50          
+     51          /*
+     52           * Pointer to the currently running process structure.
+     53           */
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     54          struct process *process_list = NULL;
+   \                     process_list:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     55          struct process *process_current = NULL;
+   \                     process_current:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     56           
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     57          static process_event_t lastevent;
+   \                     lastevent:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+     58          
+     59          /*
+     60           * Structure used for keeping the queue of active events.
+     61           */
+     62          struct event_data {
+     63            process_event_t ev;
+     64            process_data_t data;
+     65            struct process *p;
+     66          };
+     67          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     68          static process_num_events_t nevents, fevent;
+   \                     nevents:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \                     fevent:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     69          static struct event_data events[PROCESS_CONF_NUMEVENTS];
+   \                     events:
+   \   000000                DS 160
+   \   0000A0                REQUIRE __INIT_XDATA_Z
+     70          
+     71          #if PROCESS_CONF_STATS
+     72          process_num_events_t process_maxevents;
+     73          #endif
+     74          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     75          static volatile unsigned char poll_requested;
+   \                     poll_requested:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+     76          
+     77          #define PROCESS_STATE_NONE        0
+     78          #define PROCESS_STATE_RUNNING     1
+     79          #define PROCESS_STATE_CALLED      2
+     80          
+     81          static void call_process(struct process *p, process_event_t ev, process_data_t data);
+     82          
+     83          #define DEBUG 0
+     84          #if DEBUG
+     85          #include <stdio.h>
+     86          #define PRINTF(...) printf(__VA_ARGS__)
+     87          #else
+     88          #define PRINTF(...)
+     89          #endif
+     90          
+     91          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     92          process_event_t
+     93          process_alloc_event(void)
+   \                     process_alloc_event:
+     94          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     95            return lastevent++;
+   \   000004   90....       MOV     DPTR,#lastevent
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   F9           MOV     R1,A
+   \   000009   7401         MOV     A,#0x1
+   \   00000B   29           ADD     A,R1
+   \   00000C   90....       MOV     DPTR,#lastevent
+   \   00000F   F0           MOVX    @DPTR,A
+   \   000010   D083         POP     DPH
+   \   000012   D082         POP     DPL
+   \   000014   02....       LJMP    ?BRET
+     96          }
+     97          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     98          void
+     99          process_start(struct process *p, const char *arg)
+   \                     process_start:
+    100          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+    101            struct process *q;
+    102          
+    103            /* First make sure that we don't try to start a process that is
+    104               already running. */
+    105            for(q = process_list; q != p && q != NULL; q = q->next);
+   \   000005   90....       MOV     DPTR,#process_list
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   F8           MOV     R0,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   F9           MOV     R1,A
+   \   00000D   8882         MOV     DPL,R0
+   \   00000F   8983         MOV     DPH,R1
+   \   000011   8009         SJMP    ??process_start_0
+   \                     ??process_start_1:
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   F8           MOV     R0,A
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F9           MOV     R1,A
+   \   000018   8882         MOV     DPL,R0
+   \   00001A   8983         MOV     DPH,R1
+   \                     ??process_start_0:
+   \   00001C   EA           MOV     A,R2
+   \   00001D   6582         XRL     A,DPL
+   \   00001F   7003         JNZ     ??process_start_2
+   \   000021   EB           MOV     A,R3
+   \   000022   6583         XRL     A,DPH
+   \                     ??process_start_2:
+   \   000024   6006         JZ      ??process_start_3
+   \   000026   E582         MOV     A,DPL
+   \   000028   4583         ORL     A,DPH
+   \   00002A   70E7         JNZ     ??process_start_1
+    106          
+    107            /* If we found the process on the process list, we bail out. */
+    108            if(q == p) {
+   \                     ??process_start_3:
+   \   00002C   EA           MOV     A,R2
+   \   00002D   6582         XRL     A,DPL
+   \   00002F   7003         JNZ     ??process_start_4
+   \   000031   EB           MOV     A,R3
+   \   000032   6583         XRL     A,DPH
+   \                     ??process_start_4:
+   \   000034   603A         JZ      ??process_start_5
+    109              return;
+    110            }
+    111            /* Put on the procs list.*/
+    112            p->next = process_list;
+   \   000036   90....       MOV     DPTR,#process_list
+   \   000039   E0           MOVX    A,@DPTR
+   \   00003A   F8           MOV     R0,A
+   \   00003B   A3           INC     DPTR
+   \   00003C   E0           MOVX    A,@DPTR
+   \   00003D   F9           MOV     R1,A
+   \   00003E   8A82         MOV     DPL,R2
+   \   000040   8B83         MOV     DPH,R3
+   \   000042   E8           MOV     A,R0
+   \   000043   F0           MOVX    @DPTR,A
+   \   000044   A3           INC     DPTR
+   \   000045   E9           MOV     A,R1
+   \   000046   F0           MOVX    @DPTR,A
+    113            process_list = p;
+   \   000047   90....       MOV     DPTR,#process_list
+   \   00004A   EA           MOV     A,R2
+   \   00004B   F0           MOVX    @DPTR,A
+   \   00004C   A3           INC     DPTR
+   \   00004D   EB           MOV     A,R3
+   \   00004E   F0           MOVX    @DPTR,A
+    114            p->state = PROCESS_STATE_RUNNING;
+   \   00004F   8A82         MOV     DPL,R2
+   \   000051   8B83         MOV     DPH,R3
+   \   000053   A3           INC     DPTR
+   \   000054   A3           INC     DPTR
+   \   000055   A3           INC     DPTR
+   \   000056   A3           INC     DPTR
+   \   000057   A3           INC     DPTR
+   \   000058   A3           INC     DPTR
+   \   000059   7401         MOV     A,#0x1
+   \   00005B   F0           MOVX    @DPTR,A
+    115            PT_INIT(&p->pt);
+   \   00005C   8A82         MOV     DPL,R2
+   \   00005E   8B83         MOV     DPH,R3
+   \   000060   A3           INC     DPTR
+   \   000061   A3           INC     DPTR
+   \   000062   A3           INC     DPTR
+   \   000063   A3           INC     DPTR
+   \   000064   7400         MOV     A,#0x0
+   \   000066   F0           MOVX    @DPTR,A
+   \   000067   A3           INC     DPTR
+   \   000068   7400         MOV     A,#0x0
+   \   00006A   F0           MOVX    @DPTR,A
+    116          
+    117            PRINTF("process: starting '%s'\n", PROCESS_NAME_STRING(p));
+    118          
+    119            /* Post a synchronous initialization event to the process. */
+    120            process_post_synch(p, PROCESS_EVENT_INIT, (process_data_t)arg);
+   \   00006B                ; Setup parameters for call to function process_post_synch
+   \   00006B   7981         MOV     R1,#-0x7f
+   \   00006D   12....       LCALL   ??process_post_synch?relay
+    121          }
+   \                     ??process_start_5:
+   \   000070   7F01         MOV     R7,#0x1
+   \   000072   02....       LJMP    ?BANKED_LEAVE_XDATA
+    122          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    123          static void
+    124          exit_process(struct process *p, struct process *fromprocess)
+   \                     exit_process:
+    125          {
+   \   000000   74F2         MOV     A,#-0xe
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 14
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   8C..         MOV     ?V0 + 2,R4
+   \   00000B   8D..         MOV     ?V0 + 3,R5
+    126            register struct process *q;
+    127            struct process *old_current = process_current;
+   \   00000D   90....       MOV     DPTR,#process_current
+   \   000010   E0           MOVX    A,@DPTR
+   \   000011   F5..         MOV     ?V0 + 0,A
+   \   000013   A3           INC     DPTR
+   \   000014   E0           MOVX    A,@DPTR
+   \   000015   F5..         MOV     ?V0 + 1,A
+    128          
+    129            PRINTF("process: exit_process '%s'\n", PROCESS_NAME_STRING(p));
+    130          
+    131            /* Make sure the process is in the process list before we try to
+    132               exit it. */
+    133            for(q = process_list; q != p && q != NULL; q = q->next);
+   \   000017   90....       MOV     DPTR,#process_list
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   F5..         MOV     ?V0 + 4,A
+   \   00001D   A3           INC     DPTR
+   \   00001E   E0           MOVX    A,@DPTR
+   \   00001F   F5..         MOV     ?V0 + 5,A
+   \   000021   800D         SJMP    ??exit_process_0
+   \                     ??exit_process_1:
+   \   000023   85..82       MOV     DPL,?V0 + 4
+   \   000026   85..83       MOV     DPH,?V0 + 5
+   \   000029   E0           MOVX    A,@DPTR
+   \   00002A   F5..         MOV     ?V0 + 4,A
+   \   00002C   A3           INC     DPTR
+   \   00002D   E0           MOVX    A,@DPTR
+   \   00002E   F5..         MOV     ?V0 + 5,A
+   \                     ??exit_process_0:
+   \   000030   EE           MOV     A,R6
+   \   000031   65..         XRL     A,?V0 + 4
+   \   000033   7003         JNZ     ??exit_process_2
+   \   000035   EF           MOV     A,R7
+   \   000036   65..         XRL     A,?V0 + 5
+   \                     ??exit_process_2:
+   \   000038   6006         JZ      ??exit_process_3
+   \   00003A   E5..         MOV     A,?V0 + 4
+   \   00003C   45..         ORL     A,?V0 + 5
+   \   00003E   70E3         JNZ     ??exit_process_1
+    134            if(q == NULL) {
+   \                     ??exit_process_3:
+   \   000040   E5..         MOV     A,?V0 + 4
+   \   000042   45..         ORL     A,?V0 + 5
+   \   000044   7003         JNZ     $+5
+   \   000046   02....       LJMP    ??exit_process_4 & 0xFFFF
+    135              return;
+    136            }
+    137          
+    138            if(process_is_running(p)) {
+   \   000049                ; Setup parameters for call to function process_is_running
+   \   000049   EE           MOV     A,R6
+   \   00004A   FA           MOV     R2,A
+   \   00004B   EF           MOV     A,R7
+   \   00004C   FB           MOV     R3,A
+   \   00004D   12....       LCALL   ??process_is_running?relay
+   \   000050   8A..         MOV     ?V0 + 4,R2
+   \   000052   8B..         MOV     ?V0 + 5,R3
+   \   000054   E5..         MOV     A,?V0 + 4
+   \   000056   45..         ORL     A,?V0 + 5
+   \   000058   7003         JNZ     $+5
+   \   00005A   02....       LJMP    ??exit_process_5 & 0xFFFF
+    139              /* Process was running */
+    140              p->state = PROCESS_STATE_NONE;
+   \   00005D   8E82         MOV     DPL,R6
+   \   00005F   8F83         MOV     DPH,R7
+   \   000061   A3           INC     DPTR
+   \   000062   A3           INC     DPTR
+   \   000063   A3           INC     DPTR
+   \   000064   A3           INC     DPTR
+   \   000065   A3           INC     DPTR
+   \   000066   A3           INC     DPTR
+   \   000067   7400         MOV     A,#0x0
+   \   000069   F0           MOVX    @DPTR,A
+    141          
+    142              /*
+    143               * Post a synchronous event to all processes to inform them that
+    144               * this process is about to exit. This will allow services to
+    145               * deallocate state associated with this process.
+    146               */
+    147              for(q = process_list; q != NULL; q = q->next) {
+   \   00006A   90....       MOV     DPTR,#process_list
+   \   00006D   E0           MOVX    A,@DPTR
+   \   00006E   F5..         MOV     ?V0 + 4,A
+   \   000070   A3           INC     DPTR
+   \   000071   E0           MOVX    A,@DPTR
+   \   000072   F5..         MOV     ?V0 + 5,A
+   \   000074   8024         SJMP    ??exit_process_6
+    148                if(p != q) {
+   \                     ??exit_process_7:
+   \   000076   E5..         MOV     A,?V0 + 4
+   \   000078   6E           XRL     A,R6
+   \   000079   7003         JNZ     ??exit_process_8
+   \   00007B   E5..         MOV     A,?V0 + 5
+   \   00007D   6F           XRL     A,R7
+   \                     ??exit_process_8:
+   \   00007E   600D         JZ      ??exit_process_9
+    149          	call_process(q, PROCESS_EVENT_EXITED, (process_data_t)p);
+   \   000080                ; Setup parameters for call to function call_process
+   \   000080   EE           MOV     A,R6
+   \   000081   FC           MOV     R4,A
+   \   000082   EF           MOV     A,R7
+   \   000083   FD           MOV     R5,A
+   \   000084   7987         MOV     R1,#-0x79
+   \   000086   AA..         MOV     R2,?V0 + 4
+   \   000088   AB..         MOV     R3,?V0 + 5
+   \   00008A   12....       LCALL   ??call_process?relay
+    150                }
+    151              }
+   \                     ??exit_process_9:
+   \   00008D   85..82       MOV     DPL,?V0 + 4
+   \   000090   85..83       MOV     DPH,?V0 + 5
+   \   000093   E0           MOVX    A,@DPTR
+   \   000094   F5..         MOV     ?V0 + 4,A
+   \   000096   A3           INC     DPTR
+   \   000097   E0           MOVX    A,@DPTR
+   \   000098   F5..         MOV     ?V0 + 5,A
+   \                     ??exit_process_6:
+   \   00009A   E5..         MOV     A,?V0 + 4
+   \   00009C   45..         ORL     A,?V0 + 5
+   \   00009E   70D6         JNZ     ??exit_process_7
+    152          
+    153              if(p->thread != NULL && p != fromprocess) {
+   \   0000A0   8E82         MOV     DPL,R6
+   \   0000A2   8F83         MOV     DPH,R7
+   \   0000A4   A3           INC     DPTR
+   \   0000A5   A3           INC     DPTR
+   \   0000A6   E0           MOVX    A,@DPTR
+   \   0000A7   F8           MOV     R0,A
+   \   0000A8   A3           INC     DPTR
+   \   0000A9   E0           MOVX    A,@DPTR
+   \   0000AA   F9           MOV     R1,A
+   \   0000AB   E8           MOV     A,R0
+   \   0000AC   49           ORL     A,R1
+   \   0000AD   6032         JZ      ??exit_process_5
+   \   0000AF   E5..         MOV     A,?V0 + 2
+   \   0000B1   6E           XRL     A,R6
+   \   0000B2   7003         JNZ     ??exit_process_10
+   \   0000B4   E5..         MOV     A,?V0 + 3
+   \   0000B6   6F           XRL     A,R7
+   \                     ??exit_process_10:
+   \   0000B7   6028         JZ      ??exit_process_5
+    154                /* Post the exit event to the process that is about to exit. */
+    155                process_current = p;
+   \   0000B9   90....       MOV     DPTR,#process_current
+   \   0000BC   EE           MOV     A,R6
+   \   0000BD   F0           MOVX    @DPTR,A
+   \   0000BE   A3           INC     DPTR
+   \   0000BF   EF           MOV     A,R7
+   \   0000C0   F0           MOVX    @DPTR,A
+    156                p->thread(&p->pt, PROCESS_EVENT_EXIT, NULL);
+   \   0000C1                ; Setup parameters for indirect call
+   \   0000C1   7C00         MOV     R4,#0x0
+   \   0000C3   7D00         MOV     R5,#0x0
+   \   0000C5   7983         MOV     R1,#-0x7d
+   \   0000C7   EE           MOV     A,R6
+   \   0000C8   2404         ADD     A,#0x4
+   \   0000CA   FA           MOV     R2,A
+   \   0000CB   EF           MOV     A,R7
+   \   0000CC   3400         ADDC    A,#0x0
+   \   0000CE   FB           MOV     R3,A
+   \   0000CF   8E82         MOV     DPL,R6
+   \   0000D1   8F83         MOV     DPH,R7
+   \   0000D3   A3           INC     DPTR
+   \   0000D4   A3           INC     DPTR
+   \   0000D5   E0           MOVX    A,@DPTR
+   \   0000D6   F8           MOV     R0,A
+   \   0000D7   A3           INC     DPTR
+   \   0000D8   E0           MOVX    A,@DPTR
+   \   0000D9   F583         MOV     DPH,A
+   \   0000DB   8882         MOV     DPL,R0
+   \   0000DD   12....       LCALL   ?CALL_IND
+   \   0000E0   E9           MOV     A,R1
+    157              }
+    158            }
+    159          
+    160            if(p == process_list) {
+   \                     ??exit_process_5:
+   \   0000E1   90....       MOV     DPTR,#process_list
+   \   0000E4   E0           MOVX    A,@DPTR
+   \   0000E5   F8           MOV     R0,A
+   \   0000E6   A3           INC     DPTR
+   \   0000E7   E0           MOVX    A,@DPTR
+   \   0000E8   F9           MOV     R1,A
+   \   0000E9   EE           MOV     A,R6
+   \   0000EA   68           XRL     A,R0
+   \   0000EB   7002         JNZ     ??exit_process_11
+   \   0000ED   EF           MOV     A,R7
+   \   0000EE   69           XRL     A,R1
+   \                     ??exit_process_11:
+   \   0000EF   701A         JNZ     ??exit_process_12
+    161              process_list = process_list->next;
+   \   0000F1   90....       MOV     DPTR,#process_list
+   \   0000F4   E0           MOVX    A,@DPTR
+   \   0000F5   F8           MOV     R0,A
+   \   0000F6   A3           INC     DPTR
+   \   0000F7   E0           MOVX    A,@DPTR
+   \   0000F8   F583         MOV     DPH,A
+   \   0000FA   8882         MOV     DPL,R0
+   \   0000FC   E0           MOVX    A,@DPTR
+   \   0000FD   F8           MOV     R0,A
+   \   0000FE   A3           INC     DPTR
+   \   0000FF   E0           MOVX    A,@DPTR
+   \   000100   F9           MOV     R1,A
+   \   000101   90....       MOV     DPTR,#process_list
+   \   000104   E8           MOV     A,R0
+   \   000105   F0           MOVX    @DPTR,A
+   \   000106   A3           INC     DPTR
+   \   000107   E9           MOV     A,R1
+   \   000108   F0           MOVX    @DPTR,A
+   \   000109   8046         SJMP    ??exit_process_13
+    162            } else {
+    163              for(q = process_list; q != NULL; q = q->next) {
+   \                     ??exit_process_12:
+   \   00010B   90....       MOV     DPTR,#process_list
+   \   00010E   E0           MOVX    A,@DPTR
+   \   00010F   F5..         MOV     ?V0 + 4,A
+   \   000111   A3           INC     DPTR
+   \   000112   E0           MOVX    A,@DPTR
+   \   000113   F5..         MOV     ?V0 + 5,A
+   \   000115   800D         SJMP    ??exit_process_14
+   \                     ??exit_process_15:
+   \   000117   85..82       MOV     DPL,?V0 + 4
+   \   00011A   85..83       MOV     DPH,?V0 + 5
+   \   00011D   E0           MOVX    A,@DPTR
+   \   00011E   F5..         MOV     ?V0 + 4,A
+   \   000120   A3           INC     DPTR
+   \   000121   E0           MOVX    A,@DPTR
+   \   000122   F5..         MOV     ?V0 + 5,A
+   \                     ??exit_process_14:
+   \   000124   E5..         MOV     A,?V0 + 4
+   \   000126   45..         ORL     A,?V0 + 5
+   \   000128   6027         JZ      ??exit_process_13
+    164                if(q->next == p) {
+   \   00012A   85..82       MOV     DPL,?V0 + 4
+   \   00012D   85..83       MOV     DPH,?V0 + 5
+   \   000130   E0           MOVX    A,@DPTR
+   \   000131   F8           MOV     R0,A
+   \   000132   A3           INC     DPTR
+   \   000133   E0           MOVX    A,@DPTR
+   \   000134   F9           MOV     R1,A
+   \   000135   EE           MOV     A,R6
+   \   000136   68           XRL     A,R0
+   \   000137   7002         JNZ     ??exit_process_16
+   \   000139   EF           MOV     A,R7
+   \   00013A   69           XRL     A,R1
+   \                     ??exit_process_16:
+   \   00013B   70DA         JNZ     ??exit_process_15
+    165          	q->next = p->next;
+   \   00013D   8E82         MOV     DPL,R6
+   \   00013F   8F83         MOV     DPH,R7
+   \   000141   E0           MOVX    A,@DPTR
+   \   000142   F8           MOV     R0,A
+   \   000143   A3           INC     DPTR
+   \   000144   E0           MOVX    A,@DPTR
+   \   000145   F9           MOV     R1,A
+   \   000146   85..82       MOV     DPL,?V0 + 4
+   \   000149   85..83       MOV     DPH,?V0 + 5
+   \   00014C   E8           MOV     A,R0
+   \   00014D   F0           MOVX    @DPTR,A
+   \   00014E   A3           INC     DPTR
+   \   00014F   E9           MOV     A,R1
+   \   000150   F0           MOVX    @DPTR,A
+    166          	break;
+    167                }
+    168              }
+    169            }
+    170          
+    171            process_current = old_current;
+   \                     ??exit_process_13:
+   \   000151   90....       MOV     DPTR,#process_current
+   \   000154   E5..         MOV     A,?V0 + 0
+   \   000156   F0           MOVX    @DPTR,A
+   \   000157   A3           INC     DPTR
+   \   000158   E5..         MOV     A,?V0 + 1
+   \   00015A   F0           MOVX    @DPTR,A
+    172          }
+   \                     ??exit_process_4:
+   \   00015B   7F06         MOV     R7,#0x6
+   \   00015D   02....       LJMP    ?BANKED_LEAVE_XDATA
+    173          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    174          static void
+    175          call_process(struct process *p, process_event_t ev, process_data_t data)
+   \                     call_process:
+    176          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   89..         MOV     ?V0 + 0,R1
+    177            int ret;
+    178          
+    179          #if DEBUG
+    180            if(p->state == PROCESS_STATE_CALLED) {
+    181              printf("process: process '%s' called again with event %d\n", PROCESS_NAME_STRING(p), ev);
+    182            }
+    183          #endif /* DEBUG */
+    184            
+    185            if((p->state & PROCESS_STATE_RUNNING) &&
+    186               p->thread != NULL) {
+   \   00000B   8E82         MOV     DPL,R6
+   \   00000D   8F83         MOV     DPH,R7
+   \   00000F   A3           INC     DPTR
+   \   000010   A3           INC     DPTR
+   \   000011   A3           INC     DPTR
+   \   000012   A3           INC     DPTR
+   \   000013   A3           INC     DPTR
+   \   000014   A3           INC     DPTR
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   A2E0         MOV     C,0xE0 /* A   */.0
+   \   000018   5077         JNC     ??call_process_0
+   \   00001A   8E82         MOV     DPL,R6
+   \   00001C   8F83         MOV     DPH,R7
+   \   00001E   A3           INC     DPTR
+   \   00001F   A3           INC     DPTR
+   \   000020   E0           MOVX    A,@DPTR
+   \   000021   F8           MOV     R0,A
+   \   000022   A3           INC     DPTR
+   \   000023   E0           MOVX    A,@DPTR
+   \   000024   F9           MOV     R1,A
+   \   000025   E8           MOV     A,R0
+   \   000026   49           ORL     A,R1
+   \   000027   6068         JZ      ??call_process_0
+    187              PRINTF("process: calling process '%s' with event %d\n", PROCESS_NAME_STRING(p), ev);
+    188              process_current = p;
+   \   000029   90....       MOV     DPTR,#process_current
+   \   00002C   EE           MOV     A,R6
+   \   00002D   F0           MOVX    @DPTR,A
+   \   00002E   A3           INC     DPTR
+   \   00002F   EF           MOV     A,R7
+   \   000030   F0           MOVX    @DPTR,A
+    189              p->state = PROCESS_STATE_CALLED;
+   \   000031   8E82         MOV     DPL,R6
+   \   000033   8F83         MOV     DPH,R7
+   \   000035   A3           INC     DPTR
+   \   000036   A3           INC     DPTR
+   \   000037   A3           INC     DPTR
+   \   000038   A3           INC     DPTR
+   \   000039   A3           INC     DPTR
+   \   00003A   A3           INC     DPTR
+   \   00003B   7402         MOV     A,#0x2
+   \   00003D   F0           MOVX    @DPTR,A
+    190              ret = p->thread(&p->pt, ev, data);
+   \   00003E                ; Setup parameters for indirect call
+   \   00003E   A9..         MOV     R1,?V0 + 0
+   \   000040   EE           MOV     A,R6
+   \   000041   2404         ADD     A,#0x4
+   \   000043   FA           MOV     R2,A
+   \   000044   EF           MOV     A,R7
+   \   000045   3400         ADDC    A,#0x0
+   \   000047   FB           MOV     R3,A
+   \   000048   8E82         MOV     DPL,R6
+   \   00004A   8F83         MOV     DPH,R7
+   \   00004C   A3           INC     DPTR
+   \   00004D   A3           INC     DPTR
+   \   00004E   E0           MOVX    A,@DPTR
+   \   00004F   F8           MOV     R0,A
+   \   000050   A3           INC     DPTR
+   \   000051   E0           MOVX    A,@DPTR
+   \   000052   F583         MOV     DPH,A
+   \   000054   8882         MOV     DPL,R0
+   \   000056   12....       LCALL   ?CALL_IND
+   \   000059   E9           MOV     A,R1
+   \   00005A   F8           MOV     R0,A
+   \   00005B   7900         MOV     R1,#0x0
+    191              if(ret == PT_EXITED ||
+    192                 ret == PT_ENDED ||
+    193                 ev == PROCESS_EVENT_EXIT) {
+   \   00005D   7402         MOV     A,#0x2
+   \   00005F   68           XRL     A,R0
+   \   000060   7003         JNZ     ??call_process_1
+   \   000062   7400         MOV     A,#0x0
+   \   000064   69           XRL     A,R1
+   \                     ??call_process_1:
+   \   000065   6010         JZ      ??call_process_2
+   \   000067   7403         MOV     A,#0x3
+   \   000069   68           XRL     A,R0
+   \   00006A   7003         JNZ     ??call_process_3
+   \   00006C   7400         MOV     A,#0x0
+   \   00006E   69           XRL     A,R1
+   \                     ??call_process_3:
+   \   00006F   6006         JZ      ??call_process_2
+   \   000071   7483         MOV     A,#-0x7d
+   \   000073   65..         XRL     A,?V0 + 0
+   \   000075   700D         JNZ     ??call_process_4
+    194                exit_process(p, p);
+   \                     ??call_process_2:
+   \   000077                ; Setup parameters for call to function exit_process
+   \   000077   EE           MOV     A,R6
+   \   000078   FC           MOV     R4,A
+   \   000079   EF           MOV     A,R7
+   \   00007A   FD           MOV     R5,A
+   \   00007B   EE           MOV     A,R6
+   \   00007C   FA           MOV     R2,A
+   \   00007D   EF           MOV     A,R7
+   \   00007E   FB           MOV     R3,A
+   \   00007F   12....       LCALL   ??exit_process?relay
+   \   000082   800D         SJMP    ??call_process_0
+    195              } else {
+    196                p->state = PROCESS_STATE_RUNNING;
+   \                     ??call_process_4:
+   \   000084   8E82         MOV     DPL,R6
+   \   000086   8F83         MOV     DPH,R7
+   \   000088   A3           INC     DPTR
+   \   000089   A3           INC     DPTR
+   \   00008A   A3           INC     DPTR
+   \   00008B   A3           INC     DPTR
+   \   00008C   A3           INC     DPTR
+   \   00008D   A3           INC     DPTR
+   \   00008E   7401         MOV     A,#0x1
+   \   000090   F0           MOVX    @DPTR,A
+    197              }
+    198            }
+    199          }
+   \                     ??call_process_0:
+   \   000091   7F01         MOV     R7,#0x1
+   \   000093   02....       LJMP    ?BANKED_LEAVE_XDATA
+    200          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    201          void
+    202          process_exit(struct process *p)
+   \                     process_exit:
+    203          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    204            exit_process(p, PROCESS_CURRENT());
+   \   000004                ; Setup parameters for call to function exit_process
+   \   000004   90....       MOV     DPTR,#process_current
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   FC           MOV     R4,A
+   \   000009   A3           INC     DPTR
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   FD           MOV     R5,A
+   \   00000C   12....       LCALL   ??exit_process?relay
+    205          }
+   \   00000F   D083         POP     DPH
+   \   000011   D082         POP     DPL
+   \   000013   02....       LJMP    ?BRET
+    206          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    207          void
+    208          process_init(void)
+   \                     process_init:
+    209          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    210            lastevent = PROCESS_EVENT_MAX;
+   \   000004   90....       MOV     DPTR,#lastevent
+   \   000007   748A         MOV     A,#-0x76
+   \   000009   F0           MOVX    @DPTR,A
+    211          
+    212            nevents = fevent = 0;
+   \   00000A   7400         MOV     A,#0x0
+   \   00000C   90....       MOV     DPTR,#fevent
+   \   00000F   F0           MOVX    @DPTR,A
+   \   000010   90....       MOV     DPTR,#nevents
+   \   000013   F0           MOVX    @DPTR,A
+    213          #if PROCESS_CONF_STATS
+    214            process_maxevents = 0;
+    215          #endif /* PROCESS_CONF_STATS */
+    216          
+    217            process_current = process_list = NULL;
+   \   000014   7800         MOV     R0,#0x0
+   \   000016   7900         MOV     R1,#0x0
+   \   000018   90....       MOV     DPTR,#process_list
+   \   00001B   E8           MOV     A,R0
+   \   00001C   F0           MOVX    @DPTR,A
+   \   00001D   A3           INC     DPTR
+   \   00001E   E9           MOV     A,R1
+   \   00001F   F0           MOVX    @DPTR,A
+   \   000020   90....       MOV     DPTR,#process_current
+   \   000023   E8           MOV     A,R0
+   \   000024   F0           MOVX    @DPTR,A
+   \   000025   A3           INC     DPTR
+   \   000026   E9           MOV     A,R1
+   \   000027   F0           MOVX    @DPTR,A
+    218          }
+   \   000028   D083         POP     DPH
+   \   00002A   D082         POP     DPL
+   \   00002C   02....       LJMP    ?BRET
+    219          /*---------------------------------------------------------------------------*/
+    220          /*
+    221           * Call each process' poll handler.
+    222           */
+    223          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    224          static void
+    225          do_poll(void)
+   \                     do_poll:
+    226          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+    227            struct process *p;
+    228          
+    229            poll_requested = 0;
+   \   000005   90....       MOV     DPTR,#poll_requested
+   \   000008   7400         MOV     A,#0x0
+   \   00000A   F0           MOVX    @DPTR,A
+    230            /* Call the processes that needs to be polled. */
+    231            for(p = process_list; p != NULL; p = p->next) {
+   \   00000B   90....       MOV     DPTR,#process_list
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   FE           MOV     R6,A
+   \   000010   A3           INC     DPTR
+   \   000011   E0           MOVX    A,@DPTR
+   \   000012   FF           MOV     R7,A
+   \   000013   803F         SJMP    ??do_poll_0
+    232              if(p->needspoll) {
+   \                     ??do_poll_1:
+   \   000015   8E82         MOV     DPL,R6
+   \   000017   8F83         MOV     DPH,R7
+   \   000019   A3           INC     DPTR
+   \   00001A   A3           INC     DPTR
+   \   00001B   A3           INC     DPTR
+   \   00001C   A3           INC     DPTR
+   \   00001D   A3           INC     DPTR
+   \   00001E   A3           INC     DPTR
+   \   00001F   A3           INC     DPTR
+   \   000020   E0           MOVX    A,@DPTR
+   \   000021   6028         JZ      ??do_poll_2
+    233                p->state = PROCESS_STATE_RUNNING;
+   \   000023   8E82         MOV     DPL,R6
+   \   000025   8F83         MOV     DPH,R7
+   \   000027   A3           INC     DPTR
+   \   000028   A3           INC     DPTR
+   \   000029   A3           INC     DPTR
+   \   00002A   A3           INC     DPTR
+   \   00002B   A3           INC     DPTR
+   \   00002C   A3           INC     DPTR
+   \   00002D   7401         MOV     A,#0x1
+   \   00002F   F0           MOVX    @DPTR,A
+    234                p->needspoll = 0;
+   \   000030   8E82         MOV     DPL,R6
+   \   000032   8F83         MOV     DPH,R7
+   \   000034   A3           INC     DPTR
+   \   000035   A3           INC     DPTR
+   \   000036   A3           INC     DPTR
+   \   000037   A3           INC     DPTR
+   \   000038   A3           INC     DPTR
+   \   000039   A3           INC     DPTR
+   \   00003A   A3           INC     DPTR
+   \   00003B   7400         MOV     A,#0x0
+   \   00003D   F0           MOVX    @DPTR,A
+    235                call_process(p, PROCESS_EVENT_POLL, NULL);
+   \   00003E                ; Setup parameters for call to function call_process
+   \   00003E   7C00         MOV     R4,#0x0
+   \   000040   7D00         MOV     R5,#0x0
+   \   000042   7982         MOV     R1,#-0x7e
+   \   000044   EE           MOV     A,R6
+   \   000045   FA           MOV     R2,A
+   \   000046   EF           MOV     A,R7
+   \   000047   FB           MOV     R3,A
+   \   000048   12....       LCALL   ??call_process?relay
+    236              }
+    237            }
+   \                     ??do_poll_2:
+   \   00004B   8E82         MOV     DPL,R6
+   \   00004D   8F83         MOV     DPH,R7
+   \   00004F   E0           MOVX    A,@DPTR
+   \   000050   FE           MOV     R6,A
+   \   000051   A3           INC     DPTR
+   \   000052   E0           MOVX    A,@DPTR
+   \   000053   FF           MOV     R7,A
+   \                     ??do_poll_0:
+   \   000054   EE           MOV     A,R6
+   \   000055   4F           ORL     A,R7
+   \   000056   70BD         JNZ     ??do_poll_1
+    238          }
+   \   000058   7F01         MOV     R7,#0x1
+   \   00005A   02....       LJMP    ?BANKED_LEAVE_XDATA
+    239          /*---------------------------------------------------------------------------*/
+    240          /*
+    241           * Process the next event in the event queue and deliver it to
+    242           * listening processes.
+    243           */
+    244          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    245          static void
+    246          do_event(void)
+   \                     do_event:
+    247          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    248            static process_event_t ev;
+    249            static process_data_t data;
+    250            static struct process *receiver;
+    251            static struct process *p;
+    252            
+    253            /*
+    254             * If there are any events in the queue, take the first one and walk
+    255             * through the list of processes to see if the event should be
+    256             * delivered to any of them. If so, we call the event handler
+    257             * function for the process. We only process one event at a time and
+    258             * call the poll handlers inbetween.
+    259             */
+    260          
+    261            if(nevents > 0) {
+   \   000004   90....       MOV     DPTR,#nevents
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   C3           CLR     C
+   \   000009   9401         SUBB    A,#0x1
+   \   00000B   5003         JNC     $+5
+   \   00000D   02....       LJMP    ??do_event_0 & 0xFFFF
+    262              
+    263              /* There are events that we should deliver. */
+    264              ev = events[fevent].ev;
+   \   000010   90....       MOV     DPTR,#fevent
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   F8           MOV     R0,A
+   \   000015   7900         MOV     R1,#0x0
+   \   000017   E8           MOV     A,R0
+   \   000018   75F005       MOV     B,#0x5
+   \   00001B   A4           MUL     AB
+   \   00001C   C8           XCH     A,R0
+   \   00001D   AAF0         MOV     R2,B
+   \   00001F   75F000       MOV     B,#0x0
+   \   000022   A4           MUL     AB
+   \   000023   2A           ADD     A,R2
+   \   000024   FA           MOV     R2,A
+   \   000025   75F005       MOV     B,#0x5
+   \   000028   E9           MOV     A,R1
+   \   000029   A4           MUL     AB
+   \   00002A   2A           ADD     A,R2
+   \   00002B   F9           MOV     R1,A
+   \   00002C   74..         MOV     A,#events & 0xff
+   \   00002E   28           ADD     A,R0
+   \   00002F   F582         MOV     DPL,A
+   \   000031   74..         MOV     A,#(events >> 8) & 0xff
+   \   000033   39           ADDC    A,R1
+   \   000034   F583         MOV     DPH,A
+   \   000036   E0           MOVX    A,@DPTR
+   \   000037   90....       MOV     DPTR,#??ev
+   \   00003A   F0           MOVX    @DPTR,A
+    265              
+    266              data = events[fevent].data;
+   \   00003B   90....       MOV     DPTR,#fevent
+   \   00003E   E0           MOVX    A,@DPTR
+   \   00003F   F8           MOV     R0,A
+   \   000040   7900         MOV     R1,#0x0
+   \   000042   E8           MOV     A,R0
+   \   000043   75F005       MOV     B,#0x5
+   \   000046   A4           MUL     AB
+   \   000047   C8           XCH     A,R0
+   \   000048   AAF0         MOV     R2,B
+   \   00004A   75F000       MOV     B,#0x0
+   \   00004D   A4           MUL     AB
+   \   00004E   2A           ADD     A,R2
+   \   00004F   FA           MOV     R2,A
+   \   000050   75F005       MOV     B,#0x5
+   \   000053   E9           MOV     A,R1
+   \   000054   A4           MUL     AB
+   \   000055   2A           ADD     A,R2
+   \   000056   F9           MOV     R1,A
+   \   000057   74..         MOV     A,#(events + 1) & 0xff
+   \   000059   28           ADD     A,R0
+   \   00005A   F582         MOV     DPL,A
+   \   00005C   74..         MOV     A,#((events + 1) >> 8) & 0xff
+   \   00005E   39           ADDC    A,R1
+   \   00005F   F583         MOV     DPH,A
+   \   000061   E0           MOVX    A,@DPTR
+   \   000062   F8           MOV     R0,A
+   \   000063   A3           INC     DPTR
+   \   000064   E0           MOVX    A,@DPTR
+   \   000065   F9           MOV     R1,A
+   \   000066   90....       MOV     DPTR,#??data
+   \   000069   E8           MOV     A,R0
+   \   00006A   F0           MOVX    @DPTR,A
+   \   00006B   A3           INC     DPTR
+   \   00006C   E9           MOV     A,R1
+   \   00006D   F0           MOVX    @DPTR,A
+    267              receiver = events[fevent].p;
+   \   00006E   90....       MOV     DPTR,#fevent
+   \   000071   E0           MOVX    A,@DPTR
+   \   000072   F8           MOV     R0,A
+   \   000073   7900         MOV     R1,#0x0
+   \   000075   E8           MOV     A,R0
+   \   000076   75F005       MOV     B,#0x5
+   \   000079   A4           MUL     AB
+   \   00007A   C8           XCH     A,R0
+   \   00007B   AAF0         MOV     R2,B
+   \   00007D   75F000       MOV     B,#0x0
+   \   000080   A4           MUL     AB
+   \   000081   2A           ADD     A,R2
+   \   000082   FA           MOV     R2,A
+   \   000083   75F005       MOV     B,#0x5
+   \   000086   E9           MOV     A,R1
+   \   000087   A4           MUL     AB
+   \   000088   2A           ADD     A,R2
+   \   000089   F9           MOV     R1,A
+   \   00008A   74..         MOV     A,#(events + 3) & 0xff
+   \   00008C   28           ADD     A,R0
+   \   00008D   F582         MOV     DPL,A
+   \   00008F   74..         MOV     A,#((events + 3) >> 8) & 0xff
+   \   000091   39           ADDC    A,R1
+   \   000092   F583         MOV     DPH,A
+   \   000094   E0           MOVX    A,@DPTR
+   \   000095   F8           MOV     R0,A
+   \   000096   A3           INC     DPTR
+   \   000097   E0           MOVX    A,@DPTR
+   \   000098   F9           MOV     R1,A
+   \   000099   90....       MOV     DPTR,#??receiver
+   \   00009C   E8           MOV     A,R0
+   \   00009D   F0           MOVX    @DPTR,A
+   \   00009E   A3           INC     DPTR
+   \   00009F   E9           MOV     A,R1
+   \   0000A0   F0           MOVX    @DPTR,A
+    268          
+    269              /* Since we have seen the new event, we move pointer upwards
+    270                 and decrese the number of events. */
+    271              fevent = (fevent + 1) % PROCESS_CONF_NUMEVENTS;
+   \   0000A1   90....       MOV     DPTR,#fevent
+   \   0000A4   E0           MOVX    A,@DPTR
+   \   0000A5   F8           MOV     R0,A
+   \   0000A6   7900         MOV     R1,#0x0
+   \   0000A8   2401         ADD     A,#0x1
+   \   0000AA   F8           MOV     R0,A
+   \   0000AB   E9           MOV     A,R1
+   \   0000AC   3400         ADDC    A,#0x0
+   \   0000AE   F9           MOV     R1,A
+   \   0000AF   7A20         MOV     R2,#0x20
+   \   0000B1   7B00         MOV     R3,#0x0
+   \   0000B3   12....       LCALL   ?S_DIV_MOD
+   \   0000B6   EA           MOV     A,R2
+   \   0000B7   90....       MOV     DPTR,#fevent
+   \   0000BA   F0           MOVX    @DPTR,A
+    272              --nevents;
+   \   0000BB   90....       MOV     DPTR,#nevents
+   \   0000BE   E0           MOVX    A,@DPTR
+   \   0000BF   24FF         ADD     A,#-0x1
+   \   0000C1   F0           MOVX    @DPTR,A
+    273          
+    274              /* If this is a broadcast event, we deliver it to all events, in
+    275                 order of their priority. */
+    276              if(receiver == PROCESS_BROADCAST) {
+   \   0000C2   90....       MOV     DPTR,#??receiver
+   \   0000C5   E0           MOVX    A,@DPTR
+   \   0000C6   F8           MOV     R0,A
+   \   0000C7   A3           INC     DPTR
+   \   0000C8   E0           MOVX    A,@DPTR
+   \   0000C9   F9           MOV     R1,A
+   \   0000CA   E8           MOV     A,R0
+   \   0000CB   49           ORL     A,R1
+   \   0000CC   7057         JNZ     ??do_event_1
+    277                for(p = process_list; p != NULL; p = p->next) {
+   \   0000CE   90....       MOV     DPTR,#process_list
+   \   0000D1   E0           MOVX    A,@DPTR
+   \   0000D2   F8           MOV     R0,A
+   \   0000D3   A3           INC     DPTR
+   \   0000D4   E0           MOVX    A,@DPTR
+   \   0000D5   F9           MOV     R1,A
+   \   0000D6   90....       MOV     DPTR,#??p
+   \   0000D9   E8           MOV     A,R0
+   \   0000DA   F0           MOVX    @DPTR,A
+   \   0000DB   A3           INC     DPTR
+   \   0000DC   E9           MOV     A,R1
+   \   0000DD   F0           MOVX    @DPTR,A
+   \                     ??do_event_2:
+   \   0000DE   90....       MOV     DPTR,#??p
+   \   0000E1   E0           MOVX    A,@DPTR
+   \   0000E2   F8           MOV     R0,A
+   \   0000E3   A3           INC     DPTR
+   \   0000E4   E0           MOVX    A,@DPTR
+   \   0000E5   F9           MOV     R1,A
+   \   0000E6   E8           MOV     A,R0
+   \   0000E7   49           ORL     A,R1
+   \   0000E8   606F         JZ      ??do_event_0
+    278          
+    279          	/* If we have been requested to poll a process, we do this in
+    280          	   between processing the broadcast event. */
+    281          	if(poll_requested) {
+   \   0000EA   90....       MOV     DPTR,#poll_requested
+   \   0000ED   E0           MOVX    A,@DPTR
+   \   0000EE   6003         JZ      ??do_event_3
+    282          	  do_poll();
+   \   0000F0                ; Setup parameters for call to function do_poll
+   \   0000F0   12....       LCALL   ??do_poll?relay
+    283          	}
+    284          	call_process(p, ev, data);
+   \                     ??do_event_3:
+   \   0000F3                ; Setup parameters for call to function call_process
+   \   0000F3   90....       MOV     DPTR,#??data
+   \   0000F6   E0           MOVX    A,@DPTR
+   \   0000F7   FC           MOV     R4,A
+   \   0000F8   A3           INC     DPTR
+   \   0000F9   E0           MOVX    A,@DPTR
+   \   0000FA   FD           MOV     R5,A
+   \   0000FB   90....       MOV     DPTR,#??ev
+   \   0000FE   E0           MOVX    A,@DPTR
+   \   0000FF   F9           MOV     R1,A
+   \   000100   90....       MOV     DPTR,#??p
+   \   000103   E0           MOVX    A,@DPTR
+   \   000104   FA           MOV     R2,A
+   \   000105   A3           INC     DPTR
+   \   000106   E0           MOVX    A,@DPTR
+   \   000107   FB           MOV     R3,A
+   \   000108   12....       LCALL   ??call_process?relay
+    285                }
+   \   00010B   90....       MOV     DPTR,#??p
+   \   00010E   E0           MOVX    A,@DPTR
+   \   00010F   F8           MOV     R0,A
+   \   000110   A3           INC     DPTR
+   \   000111   E0           MOVX    A,@DPTR
+   \   000112   F583         MOV     DPH,A
+   \   000114   8882         MOV     DPL,R0
+   \   000116   E0           MOVX    A,@DPTR
+   \   000117   F8           MOV     R0,A
+   \   000118   A3           INC     DPTR
+   \   000119   E0           MOVX    A,@DPTR
+   \   00011A   F9           MOV     R1,A
+   \   00011B   90....       MOV     DPTR,#??p
+   \   00011E   E8           MOV     A,R0
+   \   00011F   F0           MOVX    @DPTR,A
+   \   000120   A3           INC     DPTR
+   \   000121   E9           MOV     A,R1
+   \   000122   F0           MOVX    @DPTR,A
+   \   000123   80B9         SJMP    ??do_event_2
+    286              } else {
+    287                /* This is not a broadcast event, so we deliver it to the
+    288          	 specified process. */
+    289                /* If the event was an INIT event, we should also update the
+    290          	 state of the process. */
+    291                if(ev == PROCESS_EVENT_INIT) {
+   \                     ??do_event_1:
+   \   000125   90....       MOV     DPTR,#??ev
+   \   000128   E0           MOVX    A,@DPTR
+   \   000129   6481         XRL     A,#0x81
+   \   00012B   7014         JNZ     ??do_event_4
+    292          	receiver->state = PROCESS_STATE_RUNNING;
+   \   00012D   90....       MOV     DPTR,#??receiver
+   \   000130   E0           MOVX    A,@DPTR
+   \   000131   F8           MOV     R0,A
+   \   000132   A3           INC     DPTR
+   \   000133   E0           MOVX    A,@DPTR
+   \   000134   C8           XCH     A,R0
+   \   000135   2406         ADD     A,#0x6
+   \   000137   F582         MOV     DPL,A
+   \   000139   E8           MOV     A,R0
+   \   00013A   3400         ADDC    A,#0x0
+   \   00013C   F583         MOV     DPH,A
+   \   00013E   7401         MOV     A,#0x1
+   \   000140   F0           MOVX    @DPTR,A
+    293                }
+    294          
+    295                /* Make sure that the process actually is running. */
+    296                call_process(receiver, ev, data);
+   \                     ??do_event_4:
+   \   000141                ; Setup parameters for call to function call_process
+   \   000141   90....       MOV     DPTR,#??data
+   \   000144   E0           MOVX    A,@DPTR
+   \   000145   FC           MOV     R4,A
+   \   000146   A3           INC     DPTR
+   \   000147   E0           MOVX    A,@DPTR
+   \   000148   FD           MOV     R5,A
+   \   000149   90....       MOV     DPTR,#??ev
+   \   00014C   E0           MOVX    A,@DPTR
+   \   00014D   F9           MOV     R1,A
+   \   00014E   90....       MOV     DPTR,#??receiver
+   \   000151   E0           MOVX    A,@DPTR
+   \   000152   FA           MOV     R2,A
+   \   000153   A3           INC     DPTR
+   \   000154   E0           MOVX    A,@DPTR
+   \   000155   FB           MOV     R3,A
+   \   000156   12....       LCALL   ??call_process?relay
+    297              }
+    298            }
+    299          }
+   \                     ??do_event_0:
+   \   000159   D083         POP     DPH
+   \   00015B   D082         POP     DPL
+   \   00015D   02....       LJMP    ?BRET
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \                     ??ev:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \                     ??data:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \                     ??receiver:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \                     ??p:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+    300          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    301          int
+    302          process_run(void)
+   \                     process_run:
+    303          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    304            /* Process poll events. */
+    305            if(poll_requested) {
+   \   000004   90....       MOV     DPTR,#poll_requested
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   6003         JZ      ??process_run_0
+    306              do_poll();
+   \   00000A                ; Setup parameters for call to function do_poll
+   \   00000A   12....       LCALL   ??do_poll?relay
+    307            }
+    308          
+    309            /* Process one event from the queue */
+    310            do_event();
+   \                     ??process_run_0:
+   \   00000D                ; Setup parameters for call to function do_event
+   \   00000D   12....       LCALL   ??do_event?relay
+    311          
+    312            return nevents + poll_requested;
+   \   000010   90....       MOV     DPTR,#nevents
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   F8           MOV     R0,A
+   \   000015   7900         MOV     R1,#0x0
+   \   000017   90....       MOV     DPTR,#poll_requested
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   FA           MOV     R2,A
+   \   00001C   7B00         MOV     R3,#0x0
+   \   00001E   E8           MOV     A,R0
+   \   00001F   2A           ADD     A,R2
+   \   000020   FA           MOV     R2,A
+   \   000021   E9           MOV     A,R1
+   \   000022   3B           ADDC    A,R3
+   \   000023   FB           MOV     R3,A
+   \   000024   D083         POP     DPH
+   \   000026   D082         POP     DPL
+   \   000028   02....       LJMP    ?BRET
+    313          }
+    314          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    315          int
+    316          process_nevents(void)
+   \                     process_nevents:
+    317          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    318            return nevents + poll_requested;
+   \   000004   90....       MOV     DPTR,#nevents
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   F8           MOV     R0,A
+   \   000009   7900         MOV     R1,#0x0
+   \   00000B   90....       MOV     DPTR,#poll_requested
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   FA           MOV     R2,A
+   \   000010   7B00         MOV     R3,#0x0
+   \   000012   E8           MOV     A,R0
+   \   000013   2A           ADD     A,R2
+   \   000014   FA           MOV     R2,A
+   \   000015   E9           MOV     A,R1
+   \   000016   3B           ADDC    A,R3
+   \   000017   FB           MOV     R3,A
+   \   000018   D083         POP     DPH
+   \   00001A   D082         POP     DPL
+   \   00001C   02....       LJMP    ?BRET
+    319          }
+    320          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    321          int
+    322          process_post(struct process *p, process_event_t ev, process_data_t data)
+   \                     process_post:
+    323          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+    324            static process_num_events_t snum;
+    325          
+    326            if(PROCESS_CURRENT() == NULL) {
+    327              PRINTF("process_post: NULL process posts event %d to process '%s', nevents %d\n",
+    328          	   ev,PROCESS_NAME_STRING(p), nevents);
+    329            } else {
+    330              PRINTF("process_post: Process '%s' posts event %d to process '%s', nevents %d\n",
+    331          	   PROCESS_NAME_STRING(PROCESS_CURRENT()), ev,
+    332          	   p == PROCESS_BROADCAST? "<broadcast>": PROCESS_NAME_STRING(p), nevents);
+    333            }
+    334            
+    335            if(nevents == PROCESS_CONF_NUMEVENTS) {
+   \   000005   90....       MOV     DPTR,#nevents
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   6420         XRL     A,#0x20
+   \   00000B   7007         JNZ     ??process_post_0
+    336          #if DEBUG
+    337              if(p == PROCESS_BROADCAST) {
+    338                printf("soft panic: event queue is full when broadcast event %d was posted from %s\n", ev, PROCESS_NAME_STRING(process_current));
+    339              } else {
+    340                printf("soft panic: event queue is full when event %d was posted to %s frpm %s\n", ev, PROCESS_NAME_STRING(p), PROCESS_NAME_STRING(process_current));
+    341              }
+    342          #endif /* DEBUG */
+    343              return PROCESS_ERR_FULL;
+   \   00000D   7A01         MOV     R2,#0x1
+   \   00000F   7B00         MOV     R3,#0x0
+   \   000011   02....       LJMP    ??process_post_1 & 0xFFFF
+    344            }
+    345            
+    346            snum = (process_num_events_t)(fevent + nevents) % PROCESS_CONF_NUMEVENTS;
+   \                     ??process_post_0:
+   \   000014   90....       MOV     DPTR,#nevents
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   F8           MOV     R0,A
+   \   000019   90....       MOV     DPTR,#fevent
+   \   00001C   E0           MOVX    A,@DPTR
+   \   00001D   28           ADD     A,R0
+   \   00001E   75F020       MOV     B,#0x20
+   \   000021   84           DIV     AB
+   \   000022   E5F0         MOV     A,B
+   \   000024   90....       MOV     DPTR,#??snum
+   \   000027   F0           MOVX    @DPTR,A
+    347            events[snum].ev = ev;
+   \   000028   E9           MOV     A,R1
+   \   000029   C0E0         PUSH    A
+   \   00002B   90....       MOV     DPTR,#??snum
+   \   00002E   E0           MOVX    A,@DPTR
+   \   00002F   FE           MOV     R6,A
+   \   000030   7F00         MOV     R7,#0x0
+   \   000032   EE           MOV     A,R6
+   \   000033   75F005       MOV     B,#0x5
+   \   000036   A4           MUL     AB
+   \   000037   CE           XCH     A,R6
+   \   000038   A8F0         MOV     R0,B
+   \   00003A   75F000       MOV     B,#0x0
+   \   00003D   A4           MUL     AB
+   \   00003E   28           ADD     A,R0
+   \   00003F   F8           MOV     R0,A
+   \   000040   75F005       MOV     B,#0x5
+   \   000043   EF           MOV     A,R7
+   \   000044   A4           MUL     AB
+   \   000045   28           ADD     A,R0
+   \   000046   FF           MOV     R7,A
+   \   000047   74..         MOV     A,#events & 0xff
+   \   000049   2E           ADD     A,R6
+   \   00004A   F582         MOV     DPL,A
+   \   00004C   74..         MOV     A,#(events >> 8) & 0xff
+   \   00004E   3F           ADDC    A,R7
+   \   00004F   F583         MOV     DPH,A
+   \   000051   D0E0         POP     A
+   \   000053   F0           MOVX    @DPTR,A
+    348            events[snum].data = data;
+   \   000054   90....       MOV     DPTR,#??snum
+   \   000057   E0           MOVX    A,@DPTR
+   \   000058   FE           MOV     R6,A
+   \   000059   7F00         MOV     R7,#0x0
+   \   00005B   EE           MOV     A,R6
+   \   00005C   75F005       MOV     B,#0x5
+   \   00005F   A4           MUL     AB
+   \   000060   CE           XCH     A,R6
+   \   000061   A8F0         MOV     R0,B
+   \   000063   75F000       MOV     B,#0x0
+   \   000066   A4           MUL     AB
+   \   000067   28           ADD     A,R0
+   \   000068   F8           MOV     R0,A
+   \   000069   75F005       MOV     B,#0x5
+   \   00006C   EF           MOV     A,R7
+   \   00006D   A4           MUL     AB
+   \   00006E   28           ADD     A,R0
+   \   00006F   FF           MOV     R7,A
+   \   000070   74..         MOV     A,#(events + 1) & 0xff
+   \   000072   2E           ADD     A,R6
+   \   000073   F582         MOV     DPL,A
+   \   000075   74..         MOV     A,#((events + 1) >> 8) & 0xff
+   \   000077   3F           ADDC    A,R7
+   \   000078   F583         MOV     DPH,A
+   \   00007A   EC           MOV     A,R4
+   \   00007B   F0           MOVX    @DPTR,A
+   \   00007C   A3           INC     DPTR
+   \   00007D   ED           MOV     A,R5
+   \   00007E   F0           MOVX    @DPTR,A
+    349            events[snum].p = p;
+   \   00007F   90....       MOV     DPTR,#??snum
+   \   000082   E0           MOVX    A,@DPTR
+   \   000083   FC           MOV     R4,A
+   \   000084   7D00         MOV     R5,#0x0
+   \   000086   EC           MOV     A,R4
+   \   000087   75F005       MOV     B,#0x5
+   \   00008A   A4           MUL     AB
+   \   00008B   CC           XCH     A,R4
+   \   00008C   A8F0         MOV     R0,B
+   \   00008E   75F000       MOV     B,#0x0
+   \   000091   A4           MUL     AB
+   \   000092   28           ADD     A,R0
+   \   000093   F8           MOV     R0,A
+   \   000094   75F005       MOV     B,#0x5
+   \   000097   ED           MOV     A,R5
+   \   000098   A4           MUL     AB
+   \   000099   28           ADD     A,R0
+   \   00009A   FD           MOV     R5,A
+   \   00009B   74..         MOV     A,#(events + 3) & 0xff
+   \   00009D   2C           ADD     A,R4
+   \   00009E   F582         MOV     DPL,A
+   \   0000A0   74..         MOV     A,#((events + 3) >> 8) & 0xff
+   \   0000A2   3D           ADDC    A,R5
+   \   0000A3   F583         MOV     DPH,A
+   \   0000A5   EA           MOV     A,R2
+   \   0000A6   F0           MOVX    @DPTR,A
+   \   0000A7   A3           INC     DPTR
+   \   0000A8   EB           MOV     A,R3
+   \   0000A9   F0           MOVX    @DPTR,A
+    350            ++nevents;
+   \   0000AA   90....       MOV     DPTR,#nevents
+   \   0000AD   E0           MOVX    A,@DPTR
+   \   0000AE   2401         ADD     A,#0x1
+   \   0000B0   F0           MOVX    @DPTR,A
+    351          
+    352          #if PROCESS_CONF_STATS
+    353            if(nevents > process_maxevents) {
+    354              process_maxevents = nevents;
+    355            }
+    356          #endif /* PROCESS_CONF_STATS */
+    357            
+    358            return PROCESS_ERR_OK;
+   \   0000B1   7A00         MOV     R2,#0x0
+   \   0000B3   7B00         MOV     R3,#0x0
+   \                     ??process_post_1:
+   \   0000B5   7F01         MOV     R7,#0x1
+   \   0000B7   02....       LJMP    ?BANKED_LEAVE_XDATA
+    359          }
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \                     ??snum:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+    360          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    361          void
+    362          process_post_synch(struct process *p, process_event_t ev, process_data_t data)
+   \                     process_post_synch:
+    363          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   89..         MOV     ?V0 + 0,R1
+    364            struct process *caller = process_current;
+   \   000007   90....       MOV     DPTR,#process_current
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   FE           MOV     R6,A
+   \   00000C   A3           INC     DPTR
+   \   00000D   E0           MOVX    A,@DPTR
+   \   00000E   FF           MOV     R7,A
+    365          
+    366            call_process(p, ev, data);
+   \   00000F                ; Setup parameters for call to function call_process
+   \   00000F   A9..         MOV     R1,?V0 + 0
+   \   000011   12....       LCALL   ??call_process?relay
+    367            process_current = caller;
+   \   000014   EE           MOV     A,R6
+   \   000015   F8           MOV     R0,A
+   \   000016   EF           MOV     A,R7
+   \   000017   F9           MOV     R1,A
+   \   000018   90....       MOV     DPTR,#process_current
+   \   00001B   E8           MOV     A,R0
+   \   00001C   F0           MOVX    @DPTR,A
+   \   00001D   A3           INC     DPTR
+   \   00001E   E9           MOV     A,R1
+   \   00001F   F0           MOVX    @DPTR,A
+    368          }
+   \   000020   7F01         MOV     R7,#0x1
+   \   000022   02....       LJMP    ?BANKED_LEAVE_XDATA
+    369          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    370          void
+    371          process_poll(struct process *p)
+   \                     process_poll:
+    372          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    373            if(p != NULL) {
+   \   000004   EA           MOV     A,R2
+   \   000005   4B           ORL     A,R3
+   \   000006   6032         JZ      ??process_poll_0
+    374              if(p->state == PROCESS_STATE_RUNNING ||
+    375                 p->state == PROCESS_STATE_CALLED) {
+   \   000008   8A82         MOV     DPL,R2
+   \   00000A   8B83         MOV     DPH,R3
+   \   00000C   A3           INC     DPTR
+   \   00000D   A3           INC     DPTR
+   \   00000E   A3           INC     DPTR
+   \   00000F   A3           INC     DPTR
+   \   000010   A3           INC     DPTR
+   \   000011   A3           INC     DPTR
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   6401         XRL     A,#0x1
+   \   000015   600F         JZ      ??process_poll_1
+   \   000017   8A82         MOV     DPL,R2
+   \   000019   8B83         MOV     DPH,R3
+   \   00001B   A3           INC     DPTR
+   \   00001C   A3           INC     DPTR
+   \   00001D   A3           INC     DPTR
+   \   00001E   A3           INC     DPTR
+   \   00001F   A3           INC     DPTR
+   \   000020   A3           INC     DPTR
+   \   000021   E0           MOVX    A,@DPTR
+   \   000022   6402         XRL     A,#0x2
+   \   000024   7014         JNZ     ??process_poll_0
+    376                p->needspoll = 1;
+   \                     ??process_poll_1:
+   \   000026   8A82         MOV     DPL,R2
+   \   000028   8B83         MOV     DPH,R3
+   \   00002A   A3           INC     DPTR
+   \   00002B   A3           INC     DPTR
+   \   00002C   A3           INC     DPTR
+   \   00002D   A3           INC     DPTR
+   \   00002E   A3           INC     DPTR
+   \   00002F   A3           INC     DPTR
+   \   000030   A3           INC     DPTR
+   \   000031   7401         MOV     A,#0x1
+   \   000033   F0           MOVX    @DPTR,A
+    377                poll_requested = 1;
+   \   000034   90....       MOV     DPTR,#poll_requested
+   \   000037   7401         MOV     A,#0x1
+   \   000039   F0           MOVX    @DPTR,A
+    378              }
+    379            }
+    380          }
+   \                     ??process_poll_0:
+   \   00003A   D083         POP     DPH
+   \   00003C   D082         POP     DPL
+   \   00003E   02....       LJMP    ?BRET
+    381          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    382          int
+    383          process_is_running(struct process *p)
+   \                     process_is_running:
+    384          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    385            return p->state != PROCESS_STATE_NONE;
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   A3           INC     DPTR
+   \   000009   A3           INC     DPTR
+   \   00000A   A3           INC     DPTR
+   \   00000B   A3           INC     DPTR
+   \   00000C   A3           INC     DPTR
+   \   00000D   A3           INC     DPTR
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   6004         JZ      ??process_is_running_0
+   \   000011   D2F0         SETB    B.0
+   \   000013   8002         SJMP    ??process_is_running_1
+   \                     ??process_is_running_0:
+   \   000015   C2F0         CLR     B.0
+   \                     ??process_is_running_1:
+   \   000017   A2F0         MOV     C,B.0
+   \   000019   E4           CLR     A
+   \   00001A   33           RLC     A
+   \   00001B   FA           MOV     R2,A
+   \   00001C   7B00         MOV     R3,#0x0
+   \   00001E   D083         POP     DPH
+   \   000020   D082         POP     DPL
+   \   000022   02....       LJMP    ?BRET
+    386          }
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_alloc_event?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_alloc_event
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_start?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_start
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??exit_process?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    exit_process
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??call_process?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    call_process
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_exit?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_exit
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??do_poll?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    do_poll
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??do_event?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    do_event
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_run?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_run
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_nevents?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_nevents
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_post?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_post
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_post_synch?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_post_synch
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_poll?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_poll
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_is_running?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_is_running
+    387          /*---------------------------------------------------------------------------*/
+    388          /** @} */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     23  call_process
+                          0 0  9 -> exit_process
+       2      0      0  do_event
+                          2 0  0 -> call_process
+                          2 0  0 -> do_poll
+       0      0      9  do_poll
+                          0 0  9 -> call_process
+       0      0     23  exit_process
+                          0 0 14 -> call_process
+                          0 0 14 -> process_is_running
+       2      0      0  process_alloc_event
+       2      0      0  process_exit
+                          2 0  0 -> exit_process
+       2      0      0  process_init
+       2      0     14  process_is_running
+       2      0      0  process_nevents
+       2      0      0  process_poll
+       1      0      9  process_post
+       0      0     18  process_post_synch
+                          0 0  9 -> call_process
+       2      0      0  process_run
+                          2 0  0 -> do_event
+                          2 0  0 -> do_poll
+       0      0      9  process_start
+                          0 0  9 -> process_post_synch
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??call_process?relay
+       6  ??do_event?relay
+       6  ??do_poll?relay
+       6  ??exit_process?relay
+       6  ??process_alloc_event?relay
+       6  ??process_exit?relay
+       6  ??process_init?relay
+       6  ??process_is_running?relay
+       6  ??process_nevents?relay
+       6  ??process_poll?relay
+       6  ??process_post?relay
+       6  ??process_post_synch?relay
+       6  ??process_run?relay
+       6  ??process_start?relay
+     150  call_process
+       2  data
+     352  do_event
+      93  do_poll
+       1  ev
+     160  events
+     352  exit_process
+       1  fevent
+       1  lastevent
+       1  nevents
+       2  p
+       1  poll_requested
+      23  process_alloc_event
+       2  process_current
+      22  process_exit
+      47  process_init
+      37  process_is_running
+       2  process_list
+      31  process_nevents
+      65  process_poll
+     186  process_post
+      37  process_post_synch
+      43  process_run
+     117  process_start
+       2  receiver
+       1  snum
+
+ 
+ 1 555 bytes in segment BANKED_CODE
+    84 bytes in segment BANK_RELAYS
+   176 bytes in segment XDATA_Z
+ 
+ 1 639 bytes of CODE  memory
+   176 bytes of XDATA memory
+
+Errors: none
+Warnings: none

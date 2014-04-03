@@ -1,0 +1,1111 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:45 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\mac\phase.c              #
+#    Command line       =  D:\myWork\myWork\core\net\mac\phase.c -D           #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\phase.lst                                   #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\phase.r51                                    #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
+   \                                 In  segment SFR_AN, at 0xe2
+   \   unsigned char volatile __sfr T1CNTL
+   \                     T1CNTL:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe3
+   \   unsigned char volatile __sfr T1CNTH
+   \                     T1CNTH:
+   \   000000                DS 1
+D:\myWork\myWork\core\net\mac\phase.c
+      1          /*
+      2           * Copyright (c) 2010, Swedish Institute of Computer Science.
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           */
+     32          
+     33          /**
+     34           * \file
+     35           *         Common functionality for phase optimization in duty cycling radio protocols
+     36           * \author
+     37           *         Adam Dunkels <adam@sics.se>
+     38           */
+     39          
+     40          #include "net/mac/phase.h"
+     41          #include "net/packetbuf.h"
+     42          #include "sys/clock.h"
+     43          #include "sys/ctimer.h"
+     44          #include "net/queuebuf.h"
+     45          #include "net/nbr-table.h"
+     46          
+     47          #if PHASE_CONF_DRIFT_CORRECT
+     48          #define PHASE_DRIFT_CORRECT PHASE_CONF_DRIFT_CORRECT
+     49          #else
+     50          #define PHASE_DRIFT_CORRECT 0
+     51          #endif
+     52          
+     53          struct phase {
+     54            rtimer_clock_t time;
+     55          #if PHASE_DRIFT_CORRECT
+     56            rtimer_clock_t drift;
+     57          #endif
+     58            uint8_t noacks;
+     59            struct timer noacks_timer;
+     60          };
+     61          
+     62          struct phase_queueitem {
+     63            struct ctimer timer;
+     64            mac_callback_t mac_callback;
+     65            void *mac_callback_ptr;
+     66            struct queuebuf *q;
+     67            struct rdc_buf_list *buf_list;
+     68          };
+     69          
+     70          #define PHASE_DEFER_THRESHOLD 1
+     71          #define PHASE_QUEUESIZE       8
+     72          
+     73          #define MAX_NOACKS            16
+     74          
+     75          #define MAX_NOACKS_TIME       CLOCK_SECOND * 30
+     76          
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     77          MEMB(queued_packets_memb, struct phase_queueitem, PHASE_QUEUESIZE);
+   \                     queued_packets_memb:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for queued_packets_memb>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static char queued_packets_memb_memb_count[8]
+   \                     queued_packets_memb_memb_count:
+   \   000000                DS 8
+   \   000008                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static struct phase_queueitem queued_packets_memb_memb_mem[8]
+   \                     queued_packets_memb_memb_mem:
+   \   000000                DS 192
+   \   0000C0                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     78          NBR_TABLE(struct phase, nbr_phase);
+   \                     _nbr_phase_mem:
+   \   000000                DS 28
+   \   00001C                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \   static nbr_table_t nbr_phase_struct
+   \                     nbr_phase_struct:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for nbr_phase_struct>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \   static nbr_table_t *__xdata nbr_phase
+   \                     nbr_phase:
+   \   000000                DS 2
+   \   000002                REQUIRE `?<Initializer for nbr_phase>`
+   \   000002                REQUIRE __INIT_XDATA_I
+     79          
+     80          #define DEBUG 0
+     81          #if DEBUG
+     82          #include <stdio.h>
+     83          #define PRINTF(...) printf(__VA_ARGS__)
+     84          #define PRINTDEBUG(...) printf(__VA_ARGS__)
+     85          #else
+     86          #define PRINTF(...)
+     87          #define PRINTDEBUG(...)
+     88          #endif
+     89          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     90          void
+     91          phase_update(const rimeaddr_t *neighbor, rtimer_clock_t time,
+   \                     phase_update:
+     92                       int mac_status)
+     93          {
+   \   000000   74F2         MOV     A,#-0xe
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 14
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   8C..         MOV     ?V0 + 2,R4
+   \   00000B   8D..         MOV     ?V0 + 3,R5
+     94            struct phase *e;
+     95          
+     96            /* If we have an entry for this neighbor already, we renew it. */
+     97            e = nbr_table_get_from_lladdr(nbr_phase, neighbor);
+   \   00000D                ; Setup parameters for call to function nbr_table_get_from_lladdr
+   \   00000D   EE           MOV     A,R6
+   \   00000E   FC           MOV     R4,A
+   \   00000F   EF           MOV     A,R7
+   \   000010   FD           MOV     R5,A
+   \   000011   90....       MOV     DPTR,#nbr_phase
+   \   000014   E0           MOVX    A,@DPTR
+   \   000015   FA           MOV     R2,A
+   \   000016   A3           INC     DPTR
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   FB           MOV     R3,A
+   \   000019   12....       LCALL   ??nbr_table_get_from_lladdr?relay
+   \   00001C   8A..         MOV     ?V0 + 4,R2
+   \   00001E   8B..         MOV     ?V0 + 5,R3
+   \   000020   85....       MOV     ?V0 + 0,?V0 + 4
+   \   000023   85....       MOV     ?V0 + 1,?V0 + 5
+   \   000026   740E         MOV     A,#0xe
+   \   000028   12....       LCALL   ?XSTACK_DISP0_8
+   \   00002B   E0           MOVX    A,@DPTR
+   \   00002C   F8           MOV     R0,A
+   \   00002D   A3           INC     DPTR
+   \   00002E   E0           MOVX    A,@DPTR
+   \   00002F   F9           MOV     R1,A
+     98            if(e != NULL) {
+   \   000030   E5..         MOV     A,?V0 + 0
+   \   000032   45..         ORL     A,?V0 + 1
+   \   000034   7003         JNZ     $+5
+   \   000036   02....       LJMP    ??phase_update_0 & 0xFFFF
+     99              if(mac_status == MAC_TX_OK) {
+   \   000039   E8           MOV     A,R0
+   \   00003A   49           ORL     A,R1
+   \   00003B   700D         JNZ     ??phase_update_1
+    100          #if PHASE_DRIFT_CORRECT
+    101                e->drift = time-e->time;
+    102          #endif
+    103                e->time = time;
+   \   00003D   85..82       MOV     DPL,?V0 + 0
+   \   000040   85..83       MOV     DPH,?V0 + 1
+   \   000043   E5..         MOV     A,?V0 + 2
+   \   000045   F0           MOVX    @DPTR,A
+   \   000046   A3           INC     DPTR
+   \   000047   E5..         MOV     A,?V0 + 3
+   \   000049   F0           MOVX    @DPTR,A
+    104              }
+    105              /* If the neighbor didn't reply to us, it may have switched
+    106                 phase (rebooted). We try a number of transmissions to it
+    107                 before we drop it from the phase list. */
+    108              if(mac_status == MAC_TX_NOACK) {
+   \                     ??phase_update_1:
+   \   00004A   7402         MOV     A,#0x2
+   \   00004C   68           XRL     A,R0
+   \   00004D   7003         JNZ     ??phase_update_2
+   \   00004F   7400         MOV     A,#0x0
+   \   000051   69           XRL     A,R1
+   \                     ??phase_update_2:
+   \   000052   7060         JNZ     ??phase_update_3
+    109                PRINTF("phase noacks %d to %d.%d\n", e->noacks, neighbor->u8[0], neighbor->u8[1]);
+    110                e->noacks++;
+   \   000054   85..82       MOV     DPL,?V0 + 0
+   \   000057   85..83       MOV     DPH,?V0 + 1
+   \   00005A   A3           INC     DPTR
+   \   00005B   A3           INC     DPTR
+   \   00005C   E0           MOVX    A,@DPTR
+   \   00005D   2401         ADD     A,#0x1
+   \   00005F   F0           MOVX    @DPTR,A
+    111                if(e->noacks == 1) {
+   \   000060   85..82       MOV     DPL,?V0 + 0
+   \   000063   85..83       MOV     DPH,?V0 + 1
+   \   000066   A3           INC     DPTR
+   \   000067   A3           INC     DPTR
+   \   000068   E0           MOVX    A,@DPTR
+   \   000069   6401         XRL     A,#0x1
+   \   00006B   7011         JNZ     ??phase_update_4
+    112                  timer_set(&e->noacks_timer, MAX_NOACKS_TIME);
+   \   00006D                ; Setup parameters for call to function timer_set
+   \   00006D   7C00         MOV     R4,#0x0
+   \   00006F   7D0F         MOV     R5,#0xf
+   \   000071   E5..         MOV     A,?V0 + 0
+   \   000073   2403         ADD     A,#0x3
+   \   000075   FA           MOV     R2,A
+   \   000076   E5..         MOV     A,?V0 + 1
+   \   000078   3400         ADDC    A,#0x0
+   \   00007A   FB           MOV     R3,A
+   \   00007B   12....       LCALL   ??timer_set?relay
+    113                }
+    114                if(e->noacks >= MAX_NOACKS || timer_expired(&e->noacks_timer)) {
+   \                     ??phase_update_4:
+   \   00007E   85..82       MOV     DPL,?V0 + 0
+   \   000081   85..83       MOV     DPH,?V0 + 1
+   \   000084   A3           INC     DPTR
+   \   000085   A3           INC     DPTR
+   \   000086   E0           MOVX    A,@DPTR
+   \   000087   C3           CLR     C
+   \   000088   9410         SUBB    A,#0x10
+   \   00008A   5017         JNC     ??phase_update_5
+   \   00008C                ; Setup parameters for call to function timer_expired
+   \   00008C   E5..         MOV     A,?V0 + 0
+   \   00008E   2403         ADD     A,#0x3
+   \   000090   FA           MOV     R2,A
+   \   000091   E5..         MOV     A,?V0 + 1
+   \   000093   3400         ADDC    A,#0x0
+   \   000095   FB           MOV     R3,A
+   \   000096   12....       LCALL   ??timer_expired?relay
+   \   000099   8A..         MOV     ?V0 + 2,R2
+   \   00009B   8B..         MOV     ?V0 + 3,R3
+   \   00009D   E5..         MOV     A,?V0 + 2
+   \   00009F   45..         ORL     A,?V0 + 3
+   \   0000A1   6063         JZ      ??phase_update_6
+    115                  PRINTF("drop %d\n", neighbor->u8[0]);
+    116                  nbr_table_remove(nbr_phase, e);
+   \                     ??phase_update_5:
+   \   0000A3                ; Setup parameters for call to function nbr_table_remove
+   \   0000A3   AC..         MOV     R4,?V0 + 0
+   \   0000A5   AD..         MOV     R5,?V0 + 1
+   \   0000A7   90....       MOV     DPTR,#nbr_phase
+   \   0000AA   E0           MOVX    A,@DPTR
+   \   0000AB   FA           MOV     R2,A
+   \   0000AC   A3           INC     DPTR
+   \   0000AD   E0           MOVX    A,@DPTR
+   \   0000AE   FB           MOV     R3,A
+   \   0000AF   12....       LCALL   ??nbr_table_remove?relay
+    117                  return;
+   \   0000B2   8052         SJMP    ??phase_update_6
+    118                }
+    119              } else if(mac_status == MAC_TX_OK) {
+   \                     ??phase_update_3:
+   \   0000B4   E8           MOV     A,R0
+   \   0000B5   49           ORL     A,R1
+   \   0000B6   704E         JNZ     ??phase_update_6
+    120                e->noacks = 0;
+   \   0000B8   85..82       MOV     DPL,?V0 + 0
+   \   0000BB   85..83       MOV     DPH,?V0 + 1
+   \   0000BE   A3           INC     DPTR
+   \   0000BF   A3           INC     DPTR
+   \   0000C0   7400         MOV     A,#0x0
+   \   0000C2   F0           MOVX    @DPTR,A
+   \   0000C3   8041         SJMP    ??phase_update_6
+    121              }
+    122            } else {
+    123              /* No matching phase was found, so we allocate a new one. */
+    124              if(mac_status == MAC_TX_OK && e == NULL) {
+   \                     ??phase_update_0:
+   \   0000C5   E8           MOV     A,R0
+   \   0000C6   49           ORL     A,R1
+   \   0000C7   703D         JNZ     ??phase_update_6
+   \   0000C9   E5..         MOV     A,?V0 + 0
+   \   0000CB   45..         ORL     A,?V0 + 1
+   \   0000CD   7037         JNZ     ??phase_update_6
+    125                e = nbr_table_add_lladdr(nbr_phase, neighbor);
+   \   0000CF                ; Setup parameters for call to function nbr_table_add_lladdr
+   \   0000CF   EE           MOV     A,R6
+   \   0000D0   FC           MOV     R4,A
+   \   0000D1   EF           MOV     A,R7
+   \   0000D2   FD           MOV     R5,A
+   \   0000D3   90....       MOV     DPTR,#nbr_phase
+   \   0000D6   E0           MOVX    A,@DPTR
+   \   0000D7   FA           MOV     R2,A
+   \   0000D8   A3           INC     DPTR
+   \   0000D9   E0           MOVX    A,@DPTR
+   \   0000DA   FB           MOV     R3,A
+   \   0000DB   12....       LCALL   ??nbr_table_add_lladdr?relay
+   \   0000DE   8A..         MOV     ?V0 + 4,R2
+   \   0000E0   8B..         MOV     ?V0 + 5,R3
+   \   0000E2   85....       MOV     ?V0 + 0,?V0 + 4
+   \   0000E5   85....       MOV     ?V0 + 1,?V0 + 5
+    126                if(e) {
+   \   0000E8   E5..         MOV     A,?V0 + 0
+   \   0000EA   45..         ORL     A,?V0 + 1
+   \   0000EC   6018         JZ      ??phase_update_6
+    127                  e->time = time;
+   \   0000EE   85..82       MOV     DPL,?V0 + 0
+   \   0000F1   85..83       MOV     DPH,?V0 + 1
+   \   0000F4   E5..         MOV     A,?V0 + 2
+   \   0000F6   F0           MOVX    @DPTR,A
+   \   0000F7   A3           INC     DPTR
+   \   0000F8   E5..         MOV     A,?V0 + 3
+   \   0000FA   F0           MOVX    @DPTR,A
+    128          #if PHASE_DRIFT_CORRECT
+    129                e->drift = 0;
+    130          #endif
+    131                e->noacks = 0;
+   \   0000FB   85..82       MOV     DPL,?V0 + 0
+   \   0000FE   85..83       MOV     DPH,?V0 + 1
+   \   000101   A3           INC     DPTR
+   \   000102   A3           INC     DPTR
+   \   000103   7400         MOV     A,#0x0
+   \   000105   F0           MOVX    @DPTR,A
+    132                }
+    133              }
+    134            }
+    135          }
+   \                     ??phase_update_6:
+   \   000106   7F06         MOV     R7,#0x6
+   \   000108   02....       LJMP    ?BANKED_LEAVE_XDATA
+    136          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    137          static void
+    138          send_packet(void *ptr)
+   \                     send_packet:
+    139          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+    140            struct phase_queueitem *p = ptr;
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    141          
+    142            if(p->buf_list == NULL) {
+   \   000009   EE           MOV     A,R6
+   \   00000A   2416         ADD     A,#0x16
+   \   00000C   F582         MOV     DPL,A
+   \   00000E   EF           MOV     A,R7
+   \   00000F   3400         ADDC    A,#0x0
+   \   000011   F583         MOV     DPH,A
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   F8           MOV     R0,A
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F9           MOV     R1,A
+   \   000018   E8           MOV     A,R0
+   \   000019   49           ORL     A,R1
+   \   00001A   7052         JNZ     ??send_packet_0
+    143              queuebuf_to_packetbuf(p->q);
+   \   00001C                ; Setup parameters for call to function queuebuf_to_packetbuf
+   \   00001C   EE           MOV     A,R6
+   \   00001D   2414         ADD     A,#0x14
+   \   00001F   F582         MOV     DPL,A
+   \   000021   EF           MOV     A,R7
+   \   000022   3400         ADDC    A,#0x0
+   \   000024   F583         MOV     DPH,A
+   \   000026   E0           MOVX    A,@DPTR
+   \   000027   FA           MOV     R2,A
+   \   000028   A3           INC     DPTR
+   \   000029   E0           MOVX    A,@DPTR
+   \   00002A   FB           MOV     R3,A
+   \   00002B   12....       LCALL   ??queuebuf_to_packetbuf?relay
+    144              queuebuf_free(p->q);
+   \   00002E                ; Setup parameters for call to function queuebuf_free
+   \   00002E   EE           MOV     A,R6
+   \   00002F   2414         ADD     A,#0x14
+   \   000031   F582         MOV     DPL,A
+   \   000033   EF           MOV     A,R7
+   \   000034   3400         ADDC    A,#0x0
+   \   000036   F583         MOV     DPH,A
+   \   000038   E0           MOVX    A,@DPTR
+   \   000039   FA           MOV     R2,A
+   \   00003A   A3           INC     DPTR
+   \   00003B   E0           MOVX    A,@DPTR
+   \   00003C   FB           MOV     R3,A
+   \   00003D   12....       LCALL   ??queuebuf_free?relay
+    145              NETSTACK_RDC.send(p->mac_callback, p->mac_callback_ptr);
+   \   000040                ; Setup parameters for indirect call
+   \   000040   EE           MOV     A,R6
+   \   000041   2412         ADD     A,#0x12
+   \   000043   F582         MOV     DPL,A
+   \   000045   EF           MOV     A,R7
+   \   000046   3400         ADDC    A,#0x0
+   \   000048   F583         MOV     DPH,A
+   \   00004A   E0           MOVX    A,@DPTR
+   \   00004B   FC           MOV     R4,A
+   \   00004C   A3           INC     DPTR
+   \   00004D   E0           MOVX    A,@DPTR
+   \   00004E   FD           MOV     R5,A
+   \   00004F   EE           MOV     A,R6
+   \   000050   2410         ADD     A,#0x10
+   \   000052   F582         MOV     DPL,A
+   \   000054   EF           MOV     A,R7
+   \   000055   3400         ADDC    A,#0x0
+   \   000057   F583         MOV     DPH,A
+   \   000059   E0           MOVX    A,@DPTR
+   \   00005A   FA           MOV     R2,A
+   \   00005B   A3           INC     DPTR
+   \   00005C   E0           MOVX    A,@DPTR
+   \   00005D   FB           MOV     R3,A
+   \   00005E   90....       MOV     DPTR,#nullrdc_driver + 4
+   \   000061   E0           MOVX    A,@DPTR
+   \   000062   F8           MOV     R0,A
+   \   000063   A3           INC     DPTR
+   \   000064   E0           MOVX    A,@DPTR
+   \   000065   F583         MOV     DPH,A
+   \   000067   8882         MOV     DPL,R0
+   \   000069   12....       LCALL   ?CALL_IND
+   \   00006C   803E         SJMP    ??send_packet_1
+    146            } else {
+    147              NETSTACK_RDC.send_list(p->mac_callback, p->mac_callback_ptr, p->buf_list);
+   \                     ??send_packet_0:
+   \   00006E                ; Setup parameters for indirect call
+   \   00006E   EE           MOV     A,R6
+   \   00006F   2416         ADD     A,#0x16
+   \   000071   F582         MOV     DPL,A
+   \   000073   EF           MOV     A,R7
+   \   000074   3400         ADDC    A,#0x0
+   \   000076   F583         MOV     DPH,A
+   \   000078   12....       LCALL   ?PUSH_XSTACK8_X_TWO
+   \   00007B   EE           MOV     A,R6
+   \   00007C   2412         ADD     A,#0x12
+   \   00007E   F582         MOV     DPL,A
+   \   000080   EF           MOV     A,R7
+   \   000081   3400         ADDC    A,#0x0
+   \   000083   F583         MOV     DPH,A
+   \   000085   E0           MOVX    A,@DPTR
+   \   000086   FC           MOV     R4,A
+   \   000087   A3           INC     DPTR
+   \   000088   E0           MOVX    A,@DPTR
+   \   000089   FD           MOV     R5,A
+   \   00008A   EE           MOV     A,R6
+   \   00008B   2410         ADD     A,#0x10
+   \   00008D   F582         MOV     DPL,A
+   \   00008F   EF           MOV     A,R7
+   \   000090   3400         ADDC    A,#0x0
+   \   000092   F583         MOV     DPH,A
+   \   000094   E0           MOVX    A,@DPTR
+   \   000095   FA           MOV     R2,A
+   \   000096   A3           INC     DPTR
+   \   000097   E0           MOVX    A,@DPTR
+   \   000098   FB           MOV     R3,A
+   \   000099   90....       MOV     DPTR,#nullrdc_driver + 6
+   \   00009C   E0           MOVX    A,@DPTR
+   \   00009D   F8           MOV     R0,A
+   \   00009E   A3           INC     DPTR
+   \   00009F   E0           MOVX    A,@DPTR
+   \   0000A0   F583         MOV     DPH,A
+   \   0000A2   8882         MOV     DPL,R0
+   \   0000A4   12....       LCALL   ?CALL_IND
+   \   0000A7   7402         MOV     A,#0x2
+   \   0000A9   12....       LCALL   ?DEALLOC_XSTACK8
+    148            }
+    149          
+    150            memb_free(&queued_packets_memb, p);
+   \                     ??send_packet_1:
+   \   0000AC                ; Setup parameters for call to function memb_free
+   \   0000AC   EE           MOV     A,R6
+   \   0000AD   FC           MOV     R4,A
+   \   0000AE   EF           MOV     A,R7
+   \   0000AF   FD           MOV     R5,A
+   \   0000B0   7A..         MOV     R2,#queued_packets_memb & 0xff
+   \   0000B2   7B..         MOV     R3,#(queued_packets_memb >> 8) & 0xff
+   \   0000B4   12....       LCALL   ??memb_free?relay
+   \   0000B7   E9           MOV     A,R1
+    151          }
+   \   0000B8   7F01         MOV     R7,#0x1
+   \   0000BA   02....       LJMP    ?BANKED_LEAVE_XDATA
+    152          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    153          phase_status_t
+    154          phase_wait(const rimeaddr_t *neighbor, rtimer_clock_t cycle_time,
+   \                     phase_wait:
+    155                     rtimer_clock_t guard_time,
+    156                     mac_callback_t mac_callback, void *mac_callback_ptr,
+    157                     struct rdc_buf_list *buf_list)
+    158          {
+   \   000000   74EA         MOV     A,#-0x16
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 22
+   \   000005                ; Auto size: 0
+   \   000005   EC           MOV     A,R4
+   \   000006   FE           MOV     R6,A
+   \   000007   ED           MOV     A,R5
+   \   000008   FF           MOV     R7,A
+   \   000009   7418         MOV     A,#0x18
+   \   00000B   12....       LCALL   ?XSTACK_DISP0_8
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   F5..         MOV     ?V0 + 8,A
+   \   000011   A3           INC     DPTR
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   F5..         MOV     ?V0 + 9,A
+   \   000015   741A         MOV     A,#0x1a
+   \   000017   12....       LCALL   ?XSTACK_DISP0_8
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   F5..         MOV     ?V0 + 6,A
+   \   00001D   A3           INC     DPTR
+   \   00001E   E0           MOVX    A,@DPTR
+   \   00001F   F5..         MOV     ?V0 + 7,A
+    159            struct phase *e;
+    160            //  const rimeaddr_t *neighbor = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+    161            /* We go through the list of phases to find if we have recorded a
+    162               phase for this particular neighbor. If so, we can compute the
+    163               time for the next expected phase and setup a ctimer to switch on
+    164               the radio just before the phase. */
+    165            e = nbr_table_get_from_lladdr(nbr_phase, neighbor);
+   \   000021                ; Setup parameters for call to function nbr_table_get_from_lladdr
+   \   000021   EA           MOV     A,R2
+   \   000022   FC           MOV     R4,A
+   \   000023   EB           MOV     A,R3
+   \   000024   FD           MOV     R5,A
+   \   000025   90....       MOV     DPTR,#nbr_phase
+   \   000028   E0           MOVX    A,@DPTR
+   \   000029   FA           MOV     R2,A
+   \   00002A   A3           INC     DPTR
+   \   00002B   E0           MOVX    A,@DPTR
+   \   00002C   FB           MOV     R3,A
+   \   00002D   12....       LCALL   ??nbr_table_get_from_lladdr?relay
+   \   000030   8A..         MOV     ?V0 + 0,R2
+   \   000032   8B..         MOV     ?V0 + 1,R3
+   \   000034   85..82       MOV     DPL,?V0 + 0
+   \   000037   85..83       MOV     DPH,?V0 + 1
+    166            if(e != NULL) {
+   \   00003A   E582         MOV     A,DPL
+   \   00003C   4583         ORL     A,DPH
+   \   00003E   7003         JNZ     $+5
+   \   000040   02....       LJMP    ??phase_wait_0 & 0xFFFF
+    167              rtimer_clock_t wait, now, expected, sync;
+    168              clock_time_t ctimewait;
+    169              
+    170              /* We expect phases to happen every CYCLE_TIME time
+    171                 units. The next expected phase is at time e->time +
+    172                 CYCLE_TIME. To compute a relative offset, we subtract
+    173                 with clock_time(). Because we are only interested in turning
+    174                 on the radio within the CYCLE_TIME period, we compute the
+    175                 waiting time with modulo CYCLE_TIME. */
+    176              
+    177              /*      printf("neighbor phase 0x%02x (cycle 0x%02x)\n", e->time & (cycle_time - 1),
+    178                      cycle_time);*/
+    179          
+    180              /*      if(e->noacks > 0) {
+    181                      printf("additional wait %d\n", additional_wait);
+    182                      }*/
+    183              
+    184              now = RTIMER_NOW();
+   \   000043   E5E2         MOV     A,0xe2
+   \   000045   FA           MOV     R2,A
+   \   000046   7B00         MOV     R3,#0x0
+   \   000048   E5E3         MOV     A,0xe3
+   \   00004A   F8           MOV     R0,A
+   \   00004B   7900         MOV     R1,#0x0
+   \   00004D   E4           CLR     A
+   \   00004E   C8           XCH     A,R0
+   \   00004F   F9           MOV     R1,A
+   \   000050   EA           MOV     A,R2
+   \   000051   28           ADD     A,R0
+   \   000052   F5..         MOV     ?V0 + 2,A
+   \   000054   EB           MOV     A,R3
+   \   000055   39           ADDC    A,R1
+   \   000056   F5..         MOV     ?V0 + 3,A
+    185          
+    186              sync = (e == NULL) ? now : e->time;
+   \   000058   E582         MOV     A,DPL
+   \   00005A   4583         ORL     A,DPH
+   \   00005C   7006         JNZ     ??phase_wait_1
+   \   00005E   A8..         MOV     R0,?V0 + 2
+   \   000060   A9..         MOV     R1,?V0 + 3
+   \   000062   8005         SJMP    ??phase_wait_2
+   \                     ??phase_wait_1:
+   \   000064   E0           MOVX    A,@DPTR
+   \   000065   F8           MOV     R0,A
+   \   000066   A3           INC     DPTR
+   \   000067   E0           MOVX    A,@DPTR
+   \   000068   F9           MOV     R1,A
+    187          
+    188          #if PHASE_DRIFT_CORRECT
+    189              {
+    190                int32_t s;
+    191                if(e->drift > cycle_time) {
+    192                  s = e->drift % cycle_time / (e->drift / cycle_time);  /* drift per cycle */
+    193                  s = s * (now - sync) / cycle_time;                    /* estimated drift to now */
+    194                  sync += s;                                            /* add it in */
+    195                }
+    196              }
+    197          #endif
+    198          
+    199              /* Check if cycle_time is a power of two */
+    200              if(!(cycle_time & (cycle_time - 1))) {
+   \                     ??phase_wait_2:
+   \   000069   EE           MOV     A,R6
+   \   00006A   24FF         ADD     A,#-0x1
+   \   00006C   FA           MOV     R2,A
+   \   00006D   EF           MOV     A,R7
+   \   00006E   34FF         ADDC    A,#-0x1
+   \   000070   FB           MOV     R3,A
+   \   000071   EE           MOV     A,R6
+   \   000072   5A           ANL     A,R2
+   \   000073   FA           MOV     R2,A
+   \   000074   EF           MOV     A,R7
+   \   000075   5B           ANL     A,R3
+   \   000076   FB           MOV     R3,A
+   \   000077   EA           MOV     A,R2
+   \   000078   4B           ORL     A,R3
+   \   000079   701B         JNZ     ??phase_wait_3
+    201                /* Faster if cycle_time is a power of two */
+    202                wait = (rtimer_clock_t)((sync - now) & (cycle_time - 1));
+   \   00007B   E8           MOV     A,R0
+   \   00007C   C3           CLR     C
+   \   00007D   95..         SUBB    A,?V0 + 2
+   \   00007F   FA           MOV     R2,A
+   \   000080   E9           MOV     A,R1
+   \   000081   95..         SUBB    A,?V0 + 3
+   \   000083   FB           MOV     R3,A
+   \   000084   EE           MOV     A,R6
+   \   000085   24FF         ADD     A,#-0x1
+   \   000087   F8           MOV     R0,A
+   \   000088   EF           MOV     A,R7
+   \   000089   34FF         ADDC    A,#-0x1
+   \   00008B   F9           MOV     R1,A
+   \   00008C   EA           MOV     A,R2
+   \   00008D   58           ANL     A,R0
+   \   00008E   F5..         MOV     ?V0 + 0,A
+   \   000090   EB           MOV     A,R3
+   \   000091   59           ANL     A,R1
+   \   000092   F5..         MOV     ?V0 + 1,A
+   \   000094   801F         SJMP    ??phase_wait_4
+    203              } else {
+    204                /* Works generally */
+    205                wait = cycle_time - (rtimer_clock_t)((now - sync) % cycle_time);
+   \                     ??phase_wait_3:
+   \   000096   E5..         MOV     A,?V0 + 2
+   \   000098   C3           CLR     C
+   \   000099   98           SUBB    A,R0
+   \   00009A   F8           MOV     R0,A
+   \   00009B   E5..         MOV     A,?V0 + 3
+   \   00009D   99           SUBB    A,R1
+   \   00009E   F9           MOV     R1,A
+   \   00009F   EE           MOV     A,R6
+   \   0000A0   FA           MOV     R2,A
+   \   0000A1   EF           MOV     A,R7
+   \   0000A2   FB           MOV     R3,A
+   \   0000A3   12....       LCALL   ?US_DIV_MOD
+   \   0000A6   8A..         MOV     ?V0 + 0,R2
+   \   0000A8   8B..         MOV     ?V0 + 1,R3
+   \   0000AA   EE           MOV     A,R6
+   \   0000AB   C3           CLR     C
+   \   0000AC   95..         SUBB    A,?V0 + 0
+   \   0000AE   F5..         MOV     ?V0 + 0,A
+   \   0000B0   EF           MOV     A,R7
+   \   0000B1   95..         SUBB    A,?V0 + 1
+   \   0000B3   F5..         MOV     ?V0 + 1,A
+   \                     ??phase_wait_4:
+   \   0000B5   7416         MOV     A,#0x16
+   \   0000B7   12....       LCALL   ?XSTACK_DISP0_8
+   \   0000BA   E0           MOVX    A,@DPTR
+   \   0000BB   F5..         MOV     ?V0 + 4,A
+   \   0000BD   A3           INC     DPTR
+   \   0000BE   E0           MOVX    A,@DPTR
+   \   0000BF   F5..         MOV     ?V0 + 5,A
+    206              }
+    207          
+    208              if(wait < guard_time) {
+   \   0000C1   C3           CLR     C
+   \   0000C2   E5..         MOV     A,?V0 + 0
+   \   0000C4   95..         SUBB    A,?V0 + 4
+   \   0000C6   E5..         MOV     A,?V0 + 1
+   \   0000C8   95..         SUBB    A,?V0 + 5
+   \   0000CA   500A         JNC     ??phase_wait_5
+    209                wait += cycle_time;
+   \   0000CC   E5..         MOV     A,?V0 + 0
+   \   0000CE   2E           ADD     A,R6
+   \   0000CF   F5..         MOV     ?V0 + 0,A
+   \   0000D1   E5..         MOV     A,?V0 + 1
+   \   0000D3   3F           ADDC    A,R7
+   \   0000D4   F5..         MOV     ?V0 + 1,A
+    210              }
+    211          
+    212              ctimewait = (CLOCK_SECOND * (wait - guard_time)) / RTIMER_ARCH_SECOND;
+   \                     ??phase_wait_5:
+   \   0000D6   E5..         MOV     A,?V0 + 0
+   \   0000D8   C3           CLR     C
+   \   0000D9   95..         SUBB    A,?V0 + 4
+   \   0000DB   F8           MOV     R0,A
+   \   0000DC   E5..         MOV     A,?V0 + 1
+   \   0000DE   95..         SUBB    A,?V0 + 5
+   \   0000E0   F9           MOV     R1,A
+   \   0000E1   E8           MOV     A,R0
+   \   0000E2   75F080       MOV     B,#-0x80
+   \   0000E5   A4           MUL     AB
+   \   0000E6   C8           XCH     A,R0
+   \   0000E7   AAF0         MOV     R2,B
+   \   0000E9   75F000       MOV     B,#0x0
+   \   0000EC   A4           MUL     AB
+   \   0000ED   2A           ADD     A,R2
+   \   0000EE   FA           MOV     R2,A
+   \   0000EF   75F080       MOV     B,#-0x80
+   \   0000F2   E9           MOV     A,R1
+   \   0000F3   A4           MUL     AB
+   \   0000F4   2A           ADD     A,R2
+   \   0000F5   F9           MOV     R1,A
+   \   0000F6   7A09         MOV     R2,#0x9
+   \   0000F8   7B3D         MOV     R3,#0x3d
+   \   0000FA   12....       LCALL   ?US_DIV_MOD
+   \   0000FD   88..         MOV     ?V0 + 10,R0
+   \   0000FF   89..         MOV     ?V0 + 11,R1
+   \   000101   AE..         MOV     R6,?V0 + 10
+   \   000103   AF..         MOV     R7,?V0 + 11
+    213          
+    214              if(ctimewait > PHASE_DEFER_THRESHOLD) {
+   \   000105   C3           CLR     C
+   \   000106   EE           MOV     A,R6
+   \   000107   9402         SUBB    A,#0x2
+   \   000109   EF           MOV     A,R7
+   \   00010A   9400         SUBB    A,#0x0
+   \   00010C   5003         JNC     $+5
+   \   00010E   02....       LJMP    ??phase_wait_6 & 0xFFFF
+    215                struct phase_queueitem *p;
+    216                
+    217                p = memb_alloc(&queued_packets_memb);
+   \   000111                ; Setup parameters for call to function memb_alloc
+   \   000111   7A..         MOV     R2,#queued_packets_memb & 0xff
+   \   000113   7B..         MOV     R3,#(queued_packets_memb >> 8) & 0xff
+   \   000115   12....       LCALL   ??memb_alloc?relay
+   \   000118   8A..         MOV     ?V0 + 12,R2
+   \   00011A   8B..         MOV     ?V0 + 13,R3
+   \   00011C   85....       MOV     ?V0 + 10,?V0 + 12
+   \   00011F   85....       MOV     ?V0 + 11,?V0 + 13
+    218                if(p != NULL) {
+   \   000122   E5..         MOV     A,?V0 + 10
+   \   000124   45..         ORL     A,?V0 + 11
+   \   000126   7003         JNZ     $+5
+   \   000128   02....       LJMP    ??phase_wait_6 & 0xFFFF
+   \   00012B   741C         MOV     A,#0x1c
+   \   00012D   12....       LCALL   ?XSTACK_DISP0_8
+   \   000130   E0           MOVX    A,@DPTR
+   \   000131   F5..         MOV     ?V0 + 0,A
+   \   000133   A3           INC     DPTR
+   \   000134   E0           MOVX    A,@DPTR
+   \   000135   F5..         MOV     ?V0 + 1,A
+    219                  if(buf_list == NULL) {
+   \   000137   E5..         MOV     A,?V0 + 0
+   \   000139   45..         ORL     A,?V0 + 1
+   \   00013B   7014         JNZ     ??phase_wait_7
+    220                    p->q = queuebuf_new_from_packetbuf();
+   \   00013D                ; Setup parameters for call to function queuebuf_new_from_packetbuf
+   \   00013D   12....       LCALL   ??queuebuf_new_from_packetbuf?relay
+   \   000140   E5..         MOV     A,?V0 + 10
+   \   000142   2414         ADD     A,#0x14
+   \   000144   F582         MOV     DPL,A
+   \   000146   E5..         MOV     A,?V0 + 11
+   \   000148   3400         ADDC    A,#0x0
+   \   00014A   F583         MOV     DPH,A
+   \   00014C   EA           MOV     A,R2
+   \   00014D   F0           MOVX    @DPTR,A
+   \   00014E   A3           INC     DPTR
+   \   00014F   EB           MOV     A,R3
+   \   000150   F0           MOVX    @DPTR,A
+    221                  }
+    222                  p->mac_callback = mac_callback;
+   \                     ??phase_wait_7:
+   \   000151   E5..         MOV     A,?V0 + 10
+   \   000153   2410         ADD     A,#0x10
+   \   000155   F582         MOV     DPL,A
+   \   000157   E5..         MOV     A,?V0 + 11
+   \   000159   3400         ADDC    A,#0x0
+   \   00015B   F583         MOV     DPH,A
+   \   00015D   E5..         MOV     A,?V0 + 8
+   \   00015F   F0           MOVX    @DPTR,A
+   \   000160   A3           INC     DPTR
+   \   000161   E5..         MOV     A,?V0 + 9
+   \   000163   F0           MOVX    @DPTR,A
+    223                  p->mac_callback_ptr = mac_callback_ptr;
+   \   000164   E5..         MOV     A,?V0 + 10
+   \   000166   2412         ADD     A,#0x12
+   \   000168   F582         MOV     DPL,A
+   \   00016A   E5..         MOV     A,?V0 + 11
+   \   00016C   3400         ADDC    A,#0x0
+   \   00016E   F583         MOV     DPH,A
+   \   000170   E5..         MOV     A,?V0 + 6
+   \   000172   F0           MOVX    @DPTR,A
+   \   000173   A3           INC     DPTR
+   \   000174   E5..         MOV     A,?V0 + 7
+   \   000176   F0           MOVX    @DPTR,A
+    224                  p->buf_list = buf_list;
+   \   000177   E5..         MOV     A,?V0 + 10
+   \   000179   2416         ADD     A,#0x16
+   \   00017B   F582         MOV     DPL,A
+   \   00017D   E5..         MOV     A,?V0 + 11
+   \   00017F   3400         ADDC    A,#0x0
+   \   000181   F583         MOV     DPH,A
+   \   000183   E5..         MOV     A,?V0 + 0
+   \   000185   F0           MOVX    @DPTR,A
+   \   000186   A3           INC     DPTR
+   \   000187   E5..         MOV     A,?V0 + 1
+   \   000189   F0           MOVX    @DPTR,A
+    225                  ctimer_set(&p->timer, ctimewait, send_packet, p);
+   \   00018A                ; Setup parameters for call to function ctimer_set
+   \   00018A   78..         MOV     R0,#?V0 + 10
+   \   00018C   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00018F   75....       MOV     ?V0 + 0,#??send_packet?relay & 0xff
+   \   000192   75....       MOV     ?V0 + 1,#(??send_packet?relay >> 8) & 0xff
+   \   000195   78..         MOV     R0,#?V0 + 0
+   \   000197   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00019A   EE           MOV     A,R6
+   \   00019B   FC           MOV     R4,A
+   \   00019C   EF           MOV     A,R7
+   \   00019D   FD           MOV     R5,A
+   \   00019E   AA..         MOV     R2,?V0 + 10
+   \   0001A0   AB..         MOV     R3,?V0 + 11
+   \   0001A2   12....       LCALL   ??ctimer_set?relay
+   \   0001A5   7404         MOV     A,#0x4
+   \   0001A7   12....       LCALL   ?DEALLOC_XSTACK8
+    226                  return PHASE_DEFERRED;
+   \   0001AA   7902         MOV     R1,#0x2
+   \   0001AC   8058         SJMP    ??phase_wait_8
+    227                }
+    228              }
+    229          
+    230              expected = now + wait - guard_time;
+   \                     ??phase_wait_6:
+   \   0001AE   E5..         MOV     A,?V0 + 2
+   \   0001B0   25..         ADD     A,?V0 + 0
+   \   0001B2   F8           MOV     R0,A
+   \   0001B3   E5..         MOV     A,?V0 + 3
+   \   0001B5   35..         ADDC    A,?V0 + 1
+   \   0001B7   F9           MOV     R1,A
+   \   0001B8   E8           MOV     A,R0
+   \   0001B9   C3           CLR     C
+   \   0001BA   95..         SUBB    A,?V0 + 4
+   \   0001BC   F8           MOV     R0,A
+   \   0001BD   E9           MOV     A,R1
+   \   0001BE   95..         SUBB    A,?V0 + 5
+   \   0001C0   F9           MOV     R1,A
+    231              if(!RTIMER_CLOCK_LT(expected, now)) {
+   \   0001C1   E8           MOV     A,R0
+   \   0001C2   C3           CLR     C
+   \   0001C3   95..         SUBB    A,?V0 + 2
+   \   0001C5   FA           MOV     R2,A
+   \   0001C6   E9           MOV     A,R1
+   \   0001C7   95..         SUBB    A,?V0 + 3
+   \   0001C9   FB           MOV     R3,A
+   \   0001CA   C3           CLR     C
+   \   0001CB   EA           MOV     A,R2
+   \   0001CC   9400         SUBB    A,#0x0
+   \   0001CE   EB           MOV     A,R3
+   \   0001CF   9400         SUBB    A,#0x0
+   \   0001D1   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   0001D3   65D0         XRL     A,PSW
+   \   0001D5   33           RLC     A
+   \   0001D6   4028         JC      ??phase_wait_9
+    232                /* Wait until the receiver is expected to be awake */
+    233                while(RTIMER_CLOCK_LT(RTIMER_NOW(), expected));
+   \                     ??phase_wait_10:
+   \   0001D8   E5E2         MOV     A,0xe2
+   \   0001DA   FC           MOV     R4,A
+   \   0001DB   7D00         MOV     R5,#0x0
+   \   0001DD   E5E3         MOV     A,0xe3
+   \   0001DF   FA           MOV     R2,A
+   \   0001E0   7B00         MOV     R3,#0x0
+   \   0001E2   E4           CLR     A
+   \   0001E3   CA           XCH     A,R2
+   \   0001E4   FB           MOV     R3,A
+   \   0001E5   EC           MOV     A,R4
+   \   0001E6   2A           ADD     A,R2
+   \   0001E7   FA           MOV     R2,A
+   \   0001E8   ED           MOV     A,R5
+   \   0001E9   3B           ADDC    A,R3
+   \   0001EA   FB           MOV     R3,A
+   \   0001EB   EA           MOV     A,R2
+   \   0001EC   C3           CLR     C
+   \   0001ED   98           SUBB    A,R0
+   \   0001EE   FA           MOV     R2,A
+   \   0001EF   EB           MOV     A,R3
+   \   0001F0   99           SUBB    A,R1
+   \   0001F1   FB           MOV     R3,A
+   \   0001F2   C3           CLR     C
+   \   0001F3   EA           MOV     A,R2
+   \   0001F4   9400         SUBB    A,#0x0
+   \   0001F6   EB           MOV     A,R3
+   \   0001F7   9400         SUBB    A,#0x0
+   \   0001F9   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   0001FB   65D0         XRL     A,PSW
+   \   0001FD   33           RLC     A
+   \   0001FE   40D8         JC      ??phase_wait_10
+    234              }
+    235              return PHASE_SEND_NOW;
+   \                     ??phase_wait_9:
+   \   000200   7901         MOV     R1,#0x1
+   \   000202   8002         SJMP    ??phase_wait_8
+    236            }
+    237            return PHASE_UNKNOWN;
+   \                     ??phase_wait_0:
+   \   000204   7900         MOV     R1,#0x0
+   \                     ??phase_wait_8:
+   \   000206   7F0E         MOV     R7,#0xe
+   \   000208   02....       LJMP    ?BANKED_LEAVE_XDATA
+   \   00020B                REQUIRE T1CNTL
+   \   00020B                REQUIRE T1CNTH
+    238          }
+    239          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    240          void
+    241          phase_init(void)
+   \                     phase_init:
+    242          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    243            memb_init(&queued_packets_memb);
+   \   000004                ; Setup parameters for call to function memb_init
+   \   000004   7A..         MOV     R2,#queued_packets_memb & 0xff
+   \   000006   7B..         MOV     R3,#(queued_packets_memb >> 8) & 0xff
+   \   000008   12....       LCALL   ??memb_init?relay
+    244            nbr_table_register(nbr_phase, NULL);
+   \   00000B                ; Setup parameters for call to function nbr_table_register
+   \   00000B   7C00         MOV     R4,#0x0
+   \   00000D   7D00         MOV     R5,#0x0
+   \   00000F   90....       MOV     DPTR,#nbr_phase
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   FA           MOV     R2,A
+   \   000014   A3           INC     DPTR
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   FB           MOV     R3,A
+   \   000017   12....       LCALL   ??nbr_table_register?relay
+    245          }
+   \   00001A   D083         POP     DPH
+   \   00001C   D082         POP     DPL
+   \   00001E   02....       LJMP    ?BRET
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for queued_packets_memb>`:
+   \   000000   1800         DW 24
+   \   000002   0800         DW 8
+   \   000004   ....         DW queued_packets_memb_memb_count
+   \   000006   ....         DW queued_packets_memb_memb_mem
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for nbr_phase_struct>`:
+   \   000000   0000         DW 0
+   \   000002   0700         DW 7
+   \   000004   0000         DW 0H
+   \   000006   ....         DW _nbr_phase_mem
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for nbr_phase>`:
+   \   000000   ....         DW nbr_phase_struct
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??phase_update?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    phase_update
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??send_packet?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    send_packet
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??phase_wait?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    phase_wait
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??phase_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    phase_init
+    246          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       2      0      0  phase_init
+                          2 0  0 -> memb_init
+                          2 0  0 -> nbr_table_register
+       0      0     16  phase_update
+                          0 0 14 -> nbr_table_add_lladdr
+                          0 0 14 -> nbr_table_get_from_lladdr
+                          0 0 14 -> nbr_table_remove
+                          0 0 14 -> timer_expired
+                          0 0 14 -> timer_set
+       0      0     34  phase_wait
+                          0 0 26 -> ctimer_set
+                          0 0 22 -> memb_alloc
+                          0 0 22 -> nbr_table_get_from_lladdr
+                          0 0 22 -> queuebuf_new_from_packetbuf
+       0      0     11  send_packet
+                          0 0  9 -> memb_free
+                          0 0  9 -> queuebuf_free
+                          0 0  9 -> queuebuf_to_packetbuf
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       2  ?<Initializer for nbr_phase>
+       8  ?<Initializer for nbr_phase_struct>
+       8  ?<Initializer for queued_packets_memb>
+       6  ??phase_init?relay
+       6  ??phase_update?relay
+       6  ??phase_wait?relay
+       6  ??send_packet?relay
+       1  T1CNTH
+       1  T1CNTL
+      28  _nbr_phase_mem
+       2  nbr_phase
+       8  nbr_phase_struct
+      33  phase_init
+     267  phase_update
+     523  phase_wait
+       8  queued_packets_memb
+       8  queued_packets_memb_memb_count
+     192  queued_packets_memb_memb_mem
+     189  send_packet
+
+ 
+ 1 012 bytes in segment BANKED_CODE
+    24 bytes in segment BANK_RELAYS
+     2 bytes in segment SFR_AN
+    18 bytes in segment XDATA_I
+    18 bytes in segment XDATA_ID
+   228 bytes in segment XDATA_Z
+ 
+ 1 054 bytes of CODE  memory
+     0 bytes of DATA  memory (+ 2 bytes shared)
+   246 bytes of XDATA memory
+
+Errors: none
+Warnings: none

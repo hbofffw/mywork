@@ -1,0 +1,842 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:50 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\sys\mt.c                    /
+//    Command line       =  D:\myWork\myWork\core\sys\mt.c -D                 /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\mt.s51                                    /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME mt
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?V0
+        EXTERN ?XSTACK_DISP0_8
+        EXTERN __INIT_XDATA_Z
+
+        PUBLIC ??mt_exec?relay
+        FUNCTION ??mt_exec?relay,0203H
+        PUBLIC ??mt_exit?relay
+        FUNCTION ??mt_exit?relay,0203H
+        PUBLIC ??mt_init?relay
+        FUNCTION ??mt_init?relay,0203H
+        PUBLIC ??mt_remove?relay
+        FUNCTION ??mt_remove?relay,0203H
+        PUBLIC ??mt_start?relay
+        FUNCTION ??mt_start?relay,0203H
+        PUBLIC ??mt_stop?relay
+        FUNCTION ??mt_stop?relay,0203H
+        PUBLIC ??mt_yield?relay
+        FUNCTION ??mt_yield?relay,0203H
+        PUBLIC mt_exec
+        FUNCTION mt_exec,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC mt_exit
+        FUNCTION mt_exit,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC mt_init
+        FUNCTION mt_init,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC mt_remove
+        FUNCTION mt_remove,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC mt_start
+        FUNCTION mt_start,021203H
+        ARGFRAME XSTACK, 2, STACK
+        LOCFRAME XSTACK, 12, STACK
+        PUBLIC mt_stop
+        FUNCTION mt_stop,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC mt_yield
+        FUNCTION mt_yield,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+mtarch_exec         SYMBOL "mtarch_exec"
+??mtarch_exec?relay SYMBOL "?relay", mtarch_exec
+mtarch_init         SYMBOL "mtarch_init"
+??mtarch_init?relay SYMBOL "?relay", mtarch_init
+mtarch_pstop        SYMBOL "mtarch_pstop"
+??mtarch_pstop?relay SYMBOL "?relay", mtarch_pstop
+mtarch_remove       SYMBOL "mtarch_remove"
+??mtarch_remove?relay SYMBOL "?relay", mtarch_remove
+mtarch_start        SYMBOL "mtarch_start"
+??mtarch_start?relay SYMBOL "?relay", mtarch_start
+mtarch_stop         SYMBOL "mtarch_stop"
+??mtarch_stop?relay SYMBOL "?relay", mtarch_stop
+mtarch_yield        SYMBOL "mtarch_yield"
+??mtarch_yield?relay SYMBOL "?relay", mtarch_yield
+mt_exec             SYMBOL "mt_exec"
+??mt_exec?relay     SYMBOL "?relay", mt_exec
+mt_exit             SYMBOL "mt_exit"
+??mt_exit?relay     SYMBOL "?relay", mt_exit
+mt_init             SYMBOL "mt_init"
+??mt_init?relay     SYMBOL "?relay", mt_init
+mt_remove           SYMBOL "mt_remove"
+??mt_remove?relay   SYMBOL "?relay", mt_remove
+mt_start            SYMBOL "mt_start"
+??mt_start?relay    SYMBOL "?relay", mt_start
+mt_stop             SYMBOL "mt_stop"
+??mt_stop?relay     SYMBOL "?relay", mt_stop
+mt_yield            SYMBOL "mt_yield"
+??mt_yield?relay    SYMBOL "?relay", mt_yield
+
+        EXTERN ??mtarch_exec?relay
+        FUNCTION ??mtarch_exec?relay,00H
+        EXTERN ??mtarch_init?relay
+        FUNCTION ??mtarch_init?relay,00H
+        EXTERN ??mtarch_pstop?relay
+        FUNCTION ??mtarch_pstop?relay,00H
+        EXTERN ??mtarch_remove?relay
+        FUNCTION ??mtarch_remove?relay,00H
+        EXTERN ??mtarch_start?relay
+        FUNCTION ??mtarch_start?relay,00H
+        EXTERN ??mtarch_stop?relay
+        FUNCTION ??mtarch_stop?relay,00H
+        EXTERN ??mtarch_yield?relay
+        FUNCTION ??mtarch_yield?relay,00H
+        EXTERN mtarch_exec
+        FUNCTION mtarch_exec,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN mtarch_init
+        FUNCTION mtarch_init,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN mtarch_pstop
+        FUNCTION mtarch_pstop,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN mtarch_remove
+        FUNCTION mtarch_remove,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN mtarch_start
+        FUNCTION mtarch_start,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN mtarch_stop
+        FUNCTION mtarch_stop,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN mtarch_yield
+        FUNCTION mtarch_yield,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+// D:\myWork\myWork\core\sys\mt.c
+//    1 /*
+//    2  * Copyright (c) 2006, Swedish Institute of Computer Science.
+//    3  * All rights reserved.
+//    4  *
+//    5  * Redistribution and use in source and binary forms, with or without
+//    6  * modification, are permitted provided that the following conditions
+//    7  * are met:
+//    8  * 1. Redistributions of source code must retain the above copyright
+//    9  *    notice, this list of conditions and the following disclaimer.
+//   10  * 2. Redistributions in binary form must reproduce the above copyright
+//   11  *    notice, this list of conditions and the following disclaimer in the
+//   12  *    documentation and/or other materials provided with the distribution.
+//   13  * 3. Neither the name of the Institute nor the names of its contributors
+//   14  *    may be used to endorse or promote products derived from this software
+//   15  *    without specific prior written permission.
+//   16  *
+//   17  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   18  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   19  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   20  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   21  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   22  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   23  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   24  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   25  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   26  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   27  * SUCH DAMAGE.
+//   28  *
+//   29  * This file is part of the Contiki operating system.
+//   30  *
+//   31  * Author: Adam Dunkels <adam@sics.se>
+//   32  *
+//   33  */
+//   34 
+//   35 /**
+//   36  * \file
+//   37  * Implementation of the archtecture agnostic parts of the preemptive
+//   38  * multithreading library for Contiki.
+//   39  *
+//   40  * \author
+//   41  * Adam Dunkels <adam@sics.se>
+//   42  *
+//   43  */
+//   44 
+//   45 #include "contiki.h"
+//   46 #include "sys/mt.h"
+//   47 #include "sys/cc.h"
+//   48 
+//   49 #define MT_STATE_READY   1
+//   50 #define MT_STATE_RUNNING 2
+//   51 #define MT_STATE_EXITED  5
+//   52 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   53 static struct mt_thread *current;
+current:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//   54 
+//   55 /*--------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   56 void
+//   57 mt_init(void)
+mt_init:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function mt_init
+        CODE
+//   58 {
+        FUNCALL mt_init, mtarch_init
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   59   mtarch_init();
+        ; Setup parameters for call to function mtarch_init
+        LCALL   ??mtarch_init?relay
+//   60 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock0
+//   61 /*--------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   62 void
+//   63 mt_remove(void)
+mt_remove:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function mt_remove
+        CODE
+//   64 {
+        FUNCALL mt_remove, mtarch_remove
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   65   mtarch_remove();
+        ; Setup parameters for call to function mtarch_remove
+        LCALL   ??mtarch_remove?relay
+//   66 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock1
+//   67 /*--------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   68 void
+//   69 mt_start(struct mt_thread *thread, void (* function)(void *), void *data)
+mt_start:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function mt_start
+        CODE
+//   70 {
+        FUNCALL mt_start, mtarch_start
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     A,#0xa
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     ?V0 + 0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 1,A
+//   71   /* Call the architecture dependant function to set up the processor
+//   72      stack with the correct parameters. */
+//   73   mtarch_start(&thread->thread, function, data);
+        ; Setup parameters for call to function mtarch_start
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     A,R6
+        ADD     A,#0x6
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??mtarch_start?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+//   74 
+//   75   thread->state = MT_STATE_READY;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   76 }
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//   77 /*--------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   78 void
+//   79 mt_exec(struct mt_thread *thread)
+mt_exec:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function mt_exec
+        CODE
+//   80 {
+        FUNCALL mt_exec, mtarch_exec
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   81   if(thread->state == MT_STATE_READY) {
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOVX    A,@DPTR
+        XRL     A,#0x1
+        JNZ     ??mt_exec_0
+        INC     DPTR
+        MOVX    A,@DPTR
+        XRL     A,#0x0
+??mt_exec_0:
+        JNZ     ??mt_exec_1
+//   82     thread->state = MT_STATE_RUNNING;
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   83     current = thread;
+        MOV     DPTR,#current
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//   84     /* Switch context to the thread. The function call will not return
+//   85        until the the thread has yielded, or is preempted. */
+//   86     mtarch_exec(&thread->thread);
+        ; Setup parameters for call to function mtarch_exec
+        MOV     A,R2
+        ADD     A,#0x6
+        MOV     R2,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??mtarch_exec?relay
+//   87   }
+//   88 }
+??mt_exec_1:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock3
+//   89 /*--------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   90 void
+//   91 mt_yield(void)
+mt_yield:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function mt_yield
+        CODE
+//   92 {
+        FUNCALL mt_yield, mtarch_pstop
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL mt_yield, mtarch_yield
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   93   mtarch_pstop();
+        ; Setup parameters for call to function mtarch_pstop
+        LCALL   ??mtarch_pstop?relay
+//   94   current->state = MT_STATE_READY;
+        MOV     DPTR,#current
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   95   current = NULL;
+        MOV     DPTR,#current
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   96   /* This function is called from the running thread, and we call the
+//   97      switch function in order to switch the thread to the main Contiki
+//   98      program instead. For us, the switch function will not return
+//   99      until the next time we are scheduled to run. */
+//  100   mtarch_yield();
+        ; Setup parameters for call to function mtarch_yield
+        LCALL   ??mtarch_yield?relay
+//  101   
+//  102 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock4
+//  103 /*--------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  104 void
+//  105 mt_exit(void)
+mt_exit:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function mt_exit
+        CODE
+//  106 {
+        FUNCALL mt_exit, mtarch_yield
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  107   current->state = MT_STATE_EXITED;
+        MOV     DPTR,#current
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R0
+        MOV     A,#0x5
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  108   current = NULL;
+        MOV     DPTR,#current
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  109   mtarch_yield();
+        ; Setup parameters for call to function mtarch_yield
+        LCALL   ??mtarch_yield?relay
+//  110 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock5
+//  111 /*--------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  112 void
+//  113 mt_stop(struct mt_thread *thread)
+mt_stop:
+          CFI Block cfiBlock6 Using cfiCommon0
+          CFI Function mt_stop
+        CODE
+//  114 {
+        FUNCALL mt_stop, mtarch_stop
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  115   mtarch_stop(&thread->thread);
+        ; Setup parameters for call to function mtarch_stop
+        MOV     A,R2
+        ADD     A,#0x6
+        MOV     R2,A
+        MOV     A,R3
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??mtarch_stop?relay
+//  116 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock6
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??mt_init?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    mt_init
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??mt_remove?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    mt_remove
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??mt_start?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    mt_start
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??mt_exec?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    mt_exec
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??mt_yield?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    mt_yield
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??mt_exit?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    mt_exit
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??mt_stop?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    mt_stop
+
+        END
+//  117 /*--------------------------------------------------------------------------*/
+// 
+// 251 bytes in segment BANKED_CODE
+//  42 bytes in segment BANK_RELAYS
+//   2 bytes in segment XDATA_Z
+// 
+// 293 bytes of CODE  memory
+//   2 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

@@ -1,0 +1,119 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:39 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\platform\wsn2530dk\putchar.c      #
+#    Command line       =  D:\myWork\myWork\platform\wsn2530dk\putchar.c -D   #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\putchar.lst                                 #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\putchar.r51                                  #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\platform\wsn2530dk\putchar.c
+      1          /**
+      2           * \file
+      3           *         hardware-specific putchar() routine for TI SmartRF05EB
+      4           *
+      5           * \author
+      6           *         George Oikonomou - <oikonomou@users.sourceforge.net>
+      7           */
+      8          
+      9          #include "contiki-conf.h"
+     10          #include "dev/io-arch.h"
+     11          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment NEAR_CODE, align 1, keep-with-next
+     12          __near_func int
+     13          putchar(int c)
+   \                     putchar:
+     14          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     15          #if SLIP_ARCH_CONF_ENABLE
+     16          #define SLIP_END     0300
+     17            static char debug_frame = 0;
+     18          
+     19            if(!debug_frame) {            /* Start of debug output */
+     20              io_arch_writeb(SLIP_END);
+     21              io_arch_writeb('\r');     /* Type debug line == '\r' */
+     22              debug_frame = 1;
+     23            }
+     24          #endif
+     25          
+     26            io_arch_writeb((char)c);
+   \   000004                ; Setup parameters for call to function uart0_writeb
+   \   000004   EA           MOV     A,R2
+   \   000005   F9           MOV     R1,A
+   \   000006   12....       LCALL   ??uart0_writeb?relay
+     27          
+     28          #if SLIP_ARCH_CONF_ENABLE
+     29            /*
+     30             * Line buffered output, a newline marks the end of debug output and
+     31             * implicitly flushes debug output.
+     32             */
+     33            if(c == '\n') {
+     34              io_arch_writeb(SLIP_END);
+     35              debug_frame = 0;
+     36            }
+     37          #endif
+     38          }
+                 ^
+Warning[Pe940]: missing return statement at end of non-void function "putchar"
+   \   000009   D083         POP     DPH
+   \   00000B   D082         POP     DPL
+   \   00000D   22           RET
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       2      0      0  putchar
+                          2 0 0 -> uart0_writeb
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+      14  putchar
+
+ 
+ 14 bytes in segment NEAR_CODE
+ 
+ 14 bytes of CODE memory
+
+Errors: none
+Warnings: 1

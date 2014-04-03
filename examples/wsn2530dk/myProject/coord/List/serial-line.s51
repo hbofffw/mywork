@@ -1,0 +1,987 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:43 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\dev\serial-line.c           /
+//    Command line       =  D:\myWork\myWork\core\dev\serial-line.c -D        /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\serial-line.s51                           /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME `serial-line`
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?US_SWITCH_SPARSE
+        EXTERN ?V0
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??process_thread_serial_line_process?relay,0203H
+        PUBLIC ??serial_line_init?relay
+        FUNCTION ??serial_line_init?relay,0203H
+        PUBLIC ??serial_line_input_byte?relay
+        FUNCTION ??serial_line_input_byte?relay,0203H
+        FUNCTION process_thread_serial_line_process,0a1603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 12, STACK
+        PUBLIC serial_line_event_message
+        PUBLIC serial_line_init
+        FUNCTION serial_line_init,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC serial_line_input_byte
+        FUNCTION serial_line_input_byte,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC serial_line_process
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+process_alloc_event SYMBOL "process_alloc_event"
+??process_alloc_event?relay SYMBOL "?relay", process_alloc_event
+process_poll        SYMBOL "process_poll"
+??process_poll?relay SYMBOL "?relay", process_poll
+process_post        SYMBOL "process_post"
+??process_post?relay SYMBOL "?relay", process_post
+process_start       SYMBOL "process_start"
+??process_start?relay SYMBOL "?relay", process_start
+ringbuf_get         SYMBOL "ringbuf_get"
+??ringbuf_get?relay SYMBOL "?relay", ringbuf_get
+ringbuf_init        SYMBOL "ringbuf_init"
+??ringbuf_init?relay SYMBOL "?relay", ringbuf_init
+ringbuf_put         SYMBOL "ringbuf_put"
+??ringbuf_put?relay SYMBOL "?relay", ringbuf_put
+serial_line_init    SYMBOL "serial_line_init"
+??serial_line_init?relay SYMBOL "?relay", serial_line_init
+serial_line_input_byte SYMBOL "serial_line_input_byte"
+??serial_line_input_byte?relay SYMBOL "?relay", serial_line_input_byte
+
+        EXTERN ??process_alloc_event?relay
+        FUNCTION ??process_alloc_event?relay,00H
+        EXTERN ??process_poll?relay
+        FUNCTION ??process_poll?relay,00H
+        EXTERN ??process_post?relay
+        FUNCTION ??process_post?relay,00H
+        EXTERN ??process_start?relay
+        FUNCTION ??process_start?relay,00H
+        EXTERN ??ringbuf_get?relay
+        FUNCTION ??ringbuf_get?relay,00H
+        EXTERN ??ringbuf_init?relay
+        FUNCTION ??ringbuf_init?relay,00H
+        EXTERN ??ringbuf_put?relay
+        FUNCTION ??ringbuf_put?relay,00H
+        EXTERN process_alloc_event
+        FUNCTION process_alloc_event,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN process_current
+        EXTERN process_poll
+        FUNCTION process_poll,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN process_post
+        FUNCTION process_post,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN process_start
+        FUNCTION process_start,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN ringbuf_get
+        FUNCTION ringbuf_get,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN ringbuf_init
+        FUNCTION ringbuf_init,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN ringbuf_put
+        FUNCTION ringbuf_put,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+// D:\myWork\myWork\core\dev\serial-line.c
+//    1 /*
+//    2  * Copyright (c) 2005, Swedish Institute of Computer Science
+//    3  * All rights reserved.
+//    4  *
+//    5  * Redistribution and use in source and binary forms, with or without
+//    6  * modification, are permitted provided that the following conditions
+//    7  * are met:
+//    8  * 1. Redistributions of source code must retain the above copyright
+//    9  *    notice, this list of conditions and the following disclaimer.
+//   10  * 2. Redistributions in binary form must reproduce the above copyright
+//   11  *    notice, this list of conditions and the following disclaimer in the
+//   12  *    documentation and/or other materials provided with the distribution.
+//   13  * 3. Neither the name of the Institute nor the names of its contributors
+//   14  *    may be used to endorse or promote products derived from this software
+//   15  *    without specific prior written permission.
+//   16  *
+//   17  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   18  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   19  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   20  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   21  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   22  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   23  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   24  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   25  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   26  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   27  * SUCH DAMAGE.
+//   28  *
+//   29  * This file is part of the Contiki operating system.
+//   30  *
+//   31  */
+//   32 #include "dev/serial-line.h"
+//   33 #include <string.h> /* for memcpy() */
+//   34 
+//   35 #include "lib/ringbuf.h"
+//   36 
+//   37 #ifdef SERIAL_LINE_CONF_BUFSIZE
+//   38 #define BUFSIZE SERIAL_LINE_CONF_BUFSIZE
+//   39 #else /* SERIAL_LINE_CONF_BUFSIZE */
+//   40 #define BUFSIZE 128
+//   41 #endif /* SERIAL_LINE_CONF_BUFSIZE */
+//   42 
+//   43 #if (BUFSIZE & (BUFSIZE - 1)) != 0
+//   44 #pragma error SERIAL_LINE_CONF_BUFSIZE must be a power of two (i.e., 1, 2, 4, 8, 16, 32, 64, ...).
+//   45 #pragma error Change SERIAL_LINE_CONF_BUFSIZE in contiki-conf.h.
+//   46 #endif
+//   47 
+//   48 #define IGNORE_CHAR(c) (c == 0x0d)
+//   49 #define END 0x0a
+//   50 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   51 static struct ringbuf rxbuf;
+rxbuf:
+        DS 5
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   52 static uint8_t rxbuf_data[BUFSIZE];
+rxbuf_data:
+        DS 128
+        REQUIRE __INIT_XDATA_Z
+//   53 
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+//   54 PROCESS(serial_line_process, "Serial driver");
+serial_line_process:
+        DATA8
+        DS 8
+        REQUIRE `?<Initializer for serial_line_process>`
+        REQUIRE __INIT_XDATA_I
+//   55 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   56 process_event_t serial_line_event_message;
+serial_line_event_message:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+//   57 
+//   58 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   59 int
+//   60 serial_line_input_byte(unsigned char c)
+serial_line_input_byte:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function serial_line_input_byte
+        CODE
+//   61 {
+        FUNCALL serial_line_input_byte, ringbuf_put
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL serial_line_input_byte, ringbuf_put
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL serial_line_input_byte, process_poll
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R6,A
+//   62   static uint8_t overflow = 0; /* Buffer overflow: ignore until END */
+//   63   
+//   64   if(IGNORE_CHAR(c)) {
+        MOV     A,#0xd
+        XRL     A,R6
+        JNZ     ??serial_line_input_byte_0
+//   65     return 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??serial_line_input_byte_1
+//   66   }
+//   67 
+//   68   if(!overflow) {
+??serial_line_input_byte_0:
+        MOV     DPTR,#??overflow
+        MOVX    A,@DPTR
+        JNZ     ??serial_line_input_byte_2
+//   69     /* Add character */
+//   70     if(ringbuf_put(&rxbuf, c) == 0) {
+        ; Setup parameters for call to function ringbuf_put
+        MOV     A,R6
+        MOV     R1,A
+        MOV     R2,#rxbuf & 0xff
+        MOV     R3,#(rxbuf >> 8) & 0xff
+        LCALL   ??ringbuf_put?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     ??serial_line_input_byte_3
+//   71       /* Buffer overflow: ignore the rest of the line */
+//   72       overflow = 1;
+        MOV     DPTR,#??overflow
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+        SJMP    ??serial_line_input_byte_3
+//   73     }
+//   74   } else {
+//   75     /* Buffer overflowed:
+//   76      * Only (try to) add terminator characters, otherwise skip */
+//   77     if(c == END && ringbuf_put(&rxbuf, c) != 0) {
+??serial_line_input_byte_2:
+        MOV     A,#0xa
+        XRL     A,R6
+        JNZ     ??serial_line_input_byte_3
+        ; Setup parameters for call to function ringbuf_put
+        MOV     A,R6
+        MOV     R1,A
+        MOV     R2,#rxbuf & 0xff
+        MOV     R3,#(rxbuf >> 8) & 0xff
+        LCALL   ??ringbuf_put?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??serial_line_input_byte_3
+//   78       overflow = 0;
+        MOV     DPTR,#??overflow
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//   79     }
+//   80   }
+//   81 
+//   82   /* Wake up consumer process */
+//   83   process_poll(&serial_line_process);
+??serial_line_input_byte_3:
+        ; Setup parameters for call to function process_poll
+        MOV     R2,#serial_line_process & 0xff
+        MOV     R3,#(serial_line_process >> 8) & 0xff
+        LCALL   ??process_poll?relay
+//   84   return 1;
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+??serial_line_input_byte_1:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock0
+//   85 }
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+??overflow:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+//   86 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   87 PROCESS_THREAD(serial_line_process, ev, data)
+process_thread_serial_line_process:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function process_thread_serial_line_process
+        CODE
+//   88 {
+        FUNCALL process_thread_serial_line_process, process_alloc_event
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_serial_line_process, ringbuf_get
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_serial_line_process, process_post
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL process_thread_serial_line_process, process_post
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     ?V0 + 0,R1
+//   89   static char buf[BUFSIZE];
+//   90   static int ptr;
+//   91   static int c;
+//   92 
+//   93   PROCESS_BEGIN();
+        MOV     R2,#0x1
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOVX    A,@DPTR
+        MOV     ?V0 + 2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 3,A
+        MOV     R0,#?V0 + 2
+        LCALL   ?US_SWITCH_SPARSE
+`?<Jumptable for process_thread_serial_line_pro_0`:
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        3
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_serial_line_process_0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        104
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_serial_line_process_1
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        122
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_serial_line_process_2
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??process_thread_serial_line_process_3
+        CODE
+//   94 
+//   95   serial_line_event_message = process_alloc_event();
+??process_thread_serial_line_process_0:
+        ; Setup parameters for call to function process_alloc_event
+        LCALL   ??process_alloc_event?relay
+        MOV     A,R1
+        MOV     DPTR,#serial_line_event_message
+        MOVX    @DPTR,A
+//   96   ptr = 0;
+        MOV     DPTR,#??ptr
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        SJMP    ??process_thread_serial_line_process_4
+//   97 
+//   98   while(1) {
+//   99     /* Fill application buffer until newline or empty */
+//  100     c = ringbuf_get(&rxbuf);
+//  101     
+//  102     if(c == -1) {
+//  103       /* Buffer empty, wait for poll */
+//  104       PROCESS_YIELD();
+//  105     } else {
+//  106       if(c != END) {
+//  107         if(ptr < BUFSIZE-1) {
+??process_thread_serial_line_process_5:
+        MOV     DPTR,#??ptr
+        CLR     C
+        MOVX    A,@DPTR
+        SUBB    A,#0x7f
+        INC     DPTR
+        MOVX    A,@DPTR
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     ??process_thread_serial_line_process_4
+//  108           buf[ptr++] = (uint8_t)c;
+        MOV     DPTR,#??c
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     DPTR,#??ptr
+        MOVX    A,@DPTR
+        ADD     A,#??buf & 0xff
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#(??buf >> 8) & 0xff
+        MOV     R1,A
+        MOV     DPL,R0
+        MOV     DPH,R1
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+        MOV     DPTR,#??ptr
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOVX    @DPTR,A
+//  109         } else {
+//  110           /* Ignore character (wait for EOL) */
+//  111         }
+//  112       } else {
+??process_thread_serial_line_process_4:
+        ; Setup parameters for call to function ringbuf_get
+        MOV     R2,#rxbuf & 0xff
+        MOV     R3,#(rxbuf >> 8) & 0xff
+        LCALL   ??ringbuf_get?relay
+        MOV     DPTR,#??c
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+        MOV     DPTR,#??c
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+        JNZ     ??process_thread_serial_line_process_6
+        INC     DPTR
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+??process_thread_serial_line_process_6:
+        JNZ     ??process_thread_serial_line_process_7
+        MOV     R2,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#0x68
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+??process_thread_serial_line_process_1:
+        MOV     A,R2
+        JNZ     ??process_thread_serial_line_process_4
+        MOV     R1,#0x1
+        LJMP    ??process_thread_serial_line_process_8 & 0xFFFF
+??process_thread_serial_line_process_7:
+        MOV     DPTR,#??c
+        MOVX    A,@DPTR
+        XRL     A,#0xa
+        JNZ     ??process_thread_serial_line_process_9
+        INC     DPTR
+        MOVX    A,@DPTR
+        XRL     A,#0x0
+??process_thread_serial_line_process_9:
+        JNZ     ??process_thread_serial_line_process_5
+//  113         /* Terminate */
+//  114         buf[ptr++] = (uint8_t)'\0';
+        MOV     DPTR,#??ptr
+        MOVX    A,@DPTR
+        ADD     A,#??buf & 0xff
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#(??buf >> 8) & 0xff
+        MOV     R1,A
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#??ptr
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOVX    @DPTR,A
+//  115 
+//  116         /* Broadcast event */
+//  117         process_post(PROCESS_BROADCAST, serial_line_event_message, buf);
+        ; Setup parameters for call to function process_post
+        MOV     R4,#??buf & 0xff
+        MOV     R5,#(??buf >> 8) & 0xff
+        MOV     DPTR,#serial_line_event_message
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LCALL   ??process_post?relay
+//  118 
+//  119         /* Wait until all processes have handled the serial line event */
+//  120         if(PROCESS_ERR_OK ==
+//  121           process_post(PROCESS_CURRENT(), PROCESS_EVENT_CONTINUE, NULL)) {
+        ; Setup parameters for call to function process_post
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R1,#-0x7b
+        MOV     DPTR,#process_current
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??process_post?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JNZ     ??process_thread_serial_line_process_10
+//  122           PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
+        MOV     R2,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#0x7a
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+??process_thread_serial_line_process_2:
+        MOV     A,R2
+        JZ      ??process_thread_serial_line_process_11
+        MOV     A,#-0x7b
+        XRL     A,?V0 + 0
+        JZ      ??process_thread_serial_line_process_10
+??process_thread_serial_line_process_11:
+        MOV     R1,#0x1
+        SJMP    ??process_thread_serial_line_process_8
+//  123         }
+//  124         ptr = 0;
+??process_thread_serial_line_process_10:
+        MOV     DPTR,#??ptr
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        LJMP    ??process_thread_serial_line_process_4 & 0xFFFF
+//  125       }
+//  126     }
+//  127   }
+//  128 
+//  129   PROCESS_END();
+??process_thread_serial_line_process_3:
+        MOV     R2,#0x0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     R1,#0x3
+??process_thread_serial_line_process_8:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//  130 }
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+??buf:
+        DS 128
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+??ptr:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+??c:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//  131 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  132 void
+//  133 serial_line_init(void)
+serial_line_init:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function serial_line_init
+        CODE
+//  134 {
+        FUNCALL serial_line_init, ringbuf_init
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL serial_line_init, process_start
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  135   ringbuf_init(&rxbuf, rxbuf_data, sizeof(rxbuf_data));
+        ; Setup parameters for call to function ringbuf_init
+        MOV     R1,#-0x80
+        MOV     R4,#rxbuf_data & 0xff
+        MOV     R5,#(rxbuf_data >> 8) & 0xff
+        MOV     R2,#rxbuf & 0xff
+        MOV     R3,#(rxbuf >> 8) & 0xff
+        LCALL   ??ringbuf_init?relay
+//  136   process_start(&serial_line_process, NULL);
+        ; Setup parameters for call to function process_start
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R2,#serial_line_process & 0xff
+        MOV     R3,#(serial_line_process >> 8) & 0xff
+        LCALL   ??process_start?relay
+//  137 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock2
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for serial_line_process>`:
+        DATA16
+        DW 0H
+        DW ??process_thread_serial_line_process?relay
+        DB 0, 0, 0, 0
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??serial_line_input_byte?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    serial_line_input_byte
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??process_thread_serial_line_process?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    process_thread_serial_line_process
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??serial_line_init?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    serial_line_init
+
+        END
+//  138 /*---------------------------------------------------------------------------*/
+// 
+// 456 bytes in segment BANKED_CODE
+//  18 bytes in segment BANK_RELAYS
+//   8 bytes in segment XDATA_I
+//   8 bytes in segment XDATA_ID
+// 267 bytes in segment XDATA_Z
+// 
+// 482 bytes of CODE  memory
+// 275 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

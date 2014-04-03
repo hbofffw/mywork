@@ -1,0 +1,718 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:48 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\sys\energest.c               #
+#    Command line       =  D:\myWork\myWork\core\sys\energest.c -D            #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\energest.lst                                #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\energest.r51                                 #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
+   \                                 In  segment SFR_AN, at 0xe2
+   \   unsigned char volatile __sfr T1CNTL
+   \                     T1CNTL:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe3
+   \   unsigned char volatile __sfr T1CNTH
+   \                     T1CNTH:
+   \   000000                DS 1
+D:\myWork\myWork\core\sys\energest.c
+      1          /*
+      2           * Copyright (c) 2007, Swedish Institute of Computer Science.
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           */
+     32          
+     33          /**
+     34           * \file
+     35           *         Implementation of the energy estimation module
+     36           * \author
+     37           *         Adam Dunkels <adam@sics.se>
+     38           */
+     39          
+     40          #include "sys/energest.h"
+     41          #include "contiki-conf.h"
+     42          
+     43          #if ENERGEST_CONF_ON
+     44          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     45          int energest_total_count;
+   \                     energest_total_count:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     46          energest_t energest_total_time[ENERGEST_TYPE_MAX];
+   \                     energest_total_time:
+   \   000000                DS 48
+   \   000030                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     47          rtimer_clock_t energest_current_time[ENERGEST_TYPE_MAX];
+   \                     energest_current_time:
+   \   000000                DS 24
+   \   000018                REQUIRE __INIT_XDATA_Z
+     48          #ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
+     49          energest_t energest_leveldevice_current_leveltime[ENERGEST_CONF_LEVELDEVICE_LEVELS];
+     50          #endif
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     51          unsigned char energest_current_mode[ENERGEST_TYPE_MAX];
+   \                     energest_current_mode:
+   \   000000                DS 12
+   \   00000C                REQUIRE __INIT_XDATA_Z
+     52          
+     53          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     54          void
+     55          energest_init(void)
+   \                     energest_init:
+     56          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+     57            int i;
+     58            for(i = 0; i < ENERGEST_TYPE_MAX; ++i) {
+   \   000005   7A00         MOV     R2,#0x0
+   \   000007   7B00         MOV     R3,#0x0
+   \   000009   8076         SJMP    ??energest_init_0
+     59              energest_total_time[i].current = energest_current_time[i] = 0;
+   \                     ??energest_init_1:
+   \   00000B   7C00         MOV     R4,#0x0
+   \   00000D   7D00         MOV     R5,#0x0
+   \   00000F   EA           MOV     A,R2
+   \   000010   F8           MOV     R0,A
+   \   000011   EB           MOV     A,R3
+   \   000012   F9           MOV     R1,A
+   \   000013   E8           MOV     A,R0
+   \   000014   75F002       MOV     B,#0x2
+   \   000017   A4           MUL     AB
+   \   000018   C8           XCH     A,R0
+   \   000019   AEF0         MOV     R6,B
+   \   00001B   75F000       MOV     B,#0x0
+   \   00001E   A4           MUL     AB
+   \   00001F   2E           ADD     A,R6
+   \   000020   FE           MOV     R6,A
+   \   000021   75F002       MOV     B,#0x2
+   \   000024   E9           MOV     A,R1
+   \   000025   A4           MUL     AB
+   \   000026   2E           ADD     A,R6
+   \   000027   F9           MOV     R1,A
+   \   000028   74..         MOV     A,#energest_current_time & 0xff
+   \   00002A   28           ADD     A,R0
+   \   00002B   F582         MOV     DPL,A
+   \   00002D   74..         MOV     A,#(energest_current_time >> 8) & 0xff
+   \   00002F   39           ADDC    A,R1
+   \   000030   F583         MOV     DPH,A
+   \   000032   EC           MOV     A,R4
+   \   000033   F0           MOVX    @DPTR,A
+   \   000034   A3           INC     DPTR
+   \   000035   ED           MOV     A,R5
+   \   000036   F0           MOVX    @DPTR,A
+   \   000037   E4           CLR     A
+   \   000038   FE           MOV     R6,A
+   \   000039   FF           MOV     R7,A
+   \   00003A   EA           MOV     A,R2
+   \   00003B   F8           MOV     R0,A
+   \   00003C   EB           MOV     A,R3
+   \   00003D   F9           MOV     R1,A
+   \   00003E   E8           MOV     A,R0
+   \   00003F   75F004       MOV     B,#0x4
+   \   000042   A4           MUL     AB
+   \   000043   C8           XCH     A,R0
+   \   000044   85F0..       MOV     ?V0 + 0,B
+   \   000047   75F000       MOV     B,#0x0
+   \   00004A   A4           MUL     AB
+   \   00004B   25..         ADD     A,?V0 + 0
+   \   00004D   F5..         MOV     ?V0 + 0,A
+   \   00004F   75F004       MOV     B,#0x4
+   \   000052   E9           MOV     A,R1
+   \   000053   A4           MUL     AB
+   \   000054   25..         ADD     A,?V0 + 0
+   \   000056   F9           MOV     R1,A
+   \   000057   74..         MOV     A,#energest_total_time & 0xff
+   \   000059   28           ADD     A,R0
+   \   00005A   F582         MOV     DPL,A
+   \   00005C   74..         MOV     A,#(energest_total_time >> 8) & 0xff
+   \   00005E   39           ADDC    A,R1
+   \   00005F   F583         MOV     DPH,A
+   \   000061   EC           MOV     A,R4
+   \   000062   F0           MOVX    @DPTR,A
+   \   000063   A3           INC     DPTR
+   \   000064   ED           MOV     A,R5
+   \   000065   F0           MOVX    @DPTR,A
+   \   000066   A3           INC     DPTR
+   \   000067   EE           MOV     A,R6
+   \   000068   F0           MOVX    @DPTR,A
+   \   000069   A3           INC     DPTR
+   \   00006A   EF           MOV     A,R7
+   \   00006B   F0           MOVX    @DPTR,A
+     60              energest_current_mode[i] = 0;
+   \   00006C   74..         MOV     A,#energest_current_mode & 0xff
+   \   00006E   2A           ADD     A,R2
+   \   00006F   F582         MOV     DPL,A
+   \   000071   74..         MOV     A,#(energest_current_mode >> 8) & 0xff
+   \   000073   3B           ADDC    A,R3
+   \   000074   F583         MOV     DPH,A
+   \   000076   7400         MOV     A,#0x0
+   \   000078   F0           MOVX    @DPTR,A
+     61            }
+   \   000079   EA           MOV     A,R2
+   \   00007A   2401         ADD     A,#0x1
+   \   00007C   FA           MOV     R2,A
+   \   00007D   EB           MOV     A,R3
+   \   00007E   3400         ADDC    A,#0x0
+   \   000080   FB           MOV     R3,A
+   \                     ??energest_init_0:
+   \   000081   C3           CLR     C
+   \   000082   EA           MOV     A,R2
+   \   000083   940C         SUBB    A,#0xc
+   \   000085   EB           MOV     A,R3
+   \   000086   9400         SUBB    A,#0x0
+   \   000088   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   00008A   65D0         XRL     A,PSW
+   \   00008C   33           RLC     A
+   \   00008D   5003         JNC     $+5
+   \   00008F   02....       LJMP    ??energest_init_1 & 0xFFFF
+     62          #ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
+     63            for(i = 0; i < ENERGEST_CONF_LEVELDEVICE_LEVELS; ++i) {
+     64              energest_leveldevice_current_leveltime[i].current = 0;
+     65            }
+     66          #endif
+     67          }
+   \   000092   7F01         MOV     R7,#0x1
+   \   000094   02....       LJMP    ?BANKED_LEAVE_XDATA
+     68          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     69          unsigned long
+     70          energest_type_time(int type)
+   \                     energest_type_time:
+     71          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+     72            /* Note: does not support ENERGEST_CONF_LEVELDEVICE_LEVELS! */
+     73          #ifndef ENERGEST_CONF_LEVELDEVICE_LEVELS
+     74            if(energest_current_mode[type]) {
+   \   000005   74..         MOV     A,#energest_current_mode & 0xff
+   \   000007   2A           ADD     A,R2
+   \   000008   F582         MOV     DPL,A
+   \   00000A   74..         MOV     A,#(energest_current_mode >> 8) & 0xff
+   \   00000C   3B           ADDC    A,R3
+   \   00000D   F583         MOV     DPH,A
+   \   00000F   E0           MOVX    A,@DPTR
+   \   000010   7003         JNZ     $+5
+   \   000012   02....       LJMP    ??energest_type_time_0 & 0xFFFF
+     75              rtimer_clock_t now = RTIMER_NOW();
+   \   000015   E5E2         MOV     A,0xe2
+   \   000017   FC           MOV     R4,A
+   \   000018   7D00         MOV     R5,#0x0
+   \   00001A   E5E3         MOV     A,0xe3
+   \   00001C   F8           MOV     R0,A
+   \   00001D   7900         MOV     R1,#0x0
+   \   00001F   E4           CLR     A
+   \   000020   C8           XCH     A,R0
+   \   000021   F9           MOV     R1,A
+   \   000022   EC           MOV     A,R4
+   \   000023   28           ADD     A,R0
+   \   000024   FC           MOV     R4,A
+   \   000025   ED           MOV     A,R5
+   \   000026   39           ADDC    A,R1
+   \   000027   FD           MOV     R5,A
+     76              energest_total_time[type].current += (rtimer_clock_t)
+     77                (now - energest_current_time[type]);
+   \   000028   EA           MOV     A,R2
+   \   000029   F8           MOV     R0,A
+   \   00002A   EB           MOV     A,R3
+   \   00002B   F9           MOV     R1,A
+   \   00002C   E8           MOV     A,R0
+   \   00002D   75F002       MOV     B,#0x2
+   \   000030   A4           MUL     AB
+   \   000031   C8           XCH     A,R0
+   \   000032   AEF0         MOV     R6,B
+   \   000034   75F000       MOV     B,#0x0
+   \   000037   A4           MUL     AB
+   \   000038   2E           ADD     A,R6
+   \   000039   FE           MOV     R6,A
+   \   00003A   75F002       MOV     B,#0x2
+   \   00003D   E9           MOV     A,R1
+   \   00003E   A4           MUL     AB
+   \   00003F   2E           ADD     A,R6
+   \   000040   F9           MOV     R1,A
+   \   000041   74..         MOV     A,#energest_current_time & 0xff
+   \   000043   28           ADD     A,R0
+   \   000044   F582         MOV     DPL,A
+   \   000046   74..         MOV     A,#(energest_current_time >> 8) & 0xff
+   \   000048   39           ADDC    A,R1
+   \   000049   F583         MOV     DPH,A
+   \   00004B   E0           MOVX    A,@DPTR
+   \   00004C   F8           MOV     R0,A
+   \   00004D   A3           INC     DPTR
+   \   00004E   E0           MOVX    A,@DPTR
+   \   00004F   F9           MOV     R1,A
+   \   000050   EC           MOV     A,R4
+   \   000051   C3           CLR     C
+   \   000052   98           SUBB    A,R0
+   \   000053   F5..         MOV     ?V0 + 0,A
+   \   000055   ED           MOV     A,R5
+   \   000056   99           SUBB    A,R1
+   \   000057   F5..         MOV     ?V0 + 1,A
+   \   000059   E4           CLR     A
+   \   00005A   F5..         MOV     ?V0 + 2,A
+   \   00005C   F5..         MOV     ?V0 + 3,A
+   \   00005E   EA           MOV     A,R2
+   \   00005F   F8           MOV     R0,A
+   \   000060   EB           MOV     A,R3
+   \   000061   F9           MOV     R1,A
+   \   000062   E8           MOV     A,R0
+   \   000063   75F004       MOV     B,#0x4
+   \   000066   A4           MUL     AB
+   \   000067   C8           XCH     A,R0
+   \   000068   AEF0         MOV     R6,B
+   \   00006A   75F000       MOV     B,#0x0
+   \   00006D   A4           MUL     AB
+   \   00006E   2E           ADD     A,R6
+   \   00006F   FE           MOV     R6,A
+   \   000070   75F004       MOV     B,#0x4
+   \   000073   E9           MOV     A,R1
+   \   000074   A4           MUL     AB
+   \   000075   2E           ADD     A,R6
+   \   000076   F9           MOV     R1,A
+   \   000077   74..         MOV     A,#energest_total_time & 0xff
+   \   000079   28           ADD     A,R0
+   \   00007A   F582         MOV     DPL,A
+   \   00007C   74..         MOV     A,#(energest_total_time >> 8) & 0xff
+   \   00007E   39           ADDC    A,R1
+   \   00007F   F583         MOV     DPH,A
+   \   000081   78..         MOV     R0,#?V0 + 0
+   \   000083   12....       LCALL   ?L_ADD_TO_X
+     78              energest_current_time[type] = now;
+   \   000086   EA           MOV     A,R2
+   \   000087   F8           MOV     R0,A
+   \   000088   EB           MOV     A,R3
+   \   000089   F9           MOV     R1,A
+   \   00008A   E8           MOV     A,R0
+   \   00008B   75F002       MOV     B,#0x2
+   \   00008E   A4           MUL     AB
+   \   00008F   C8           XCH     A,R0
+   \   000090   AEF0         MOV     R6,B
+   \   000092   75F000       MOV     B,#0x0
+   \   000095   A4           MUL     AB
+   \   000096   2E           ADD     A,R6
+   \   000097   FE           MOV     R6,A
+   \   000098   75F002       MOV     B,#0x2
+   \   00009B   E9           MOV     A,R1
+   \   00009C   A4           MUL     AB
+   \   00009D   2E           ADD     A,R6
+   \   00009E   F9           MOV     R1,A
+   \   00009F   74..         MOV     A,#energest_current_time & 0xff
+   \   0000A1   28           ADD     A,R0
+   \   0000A2   F582         MOV     DPL,A
+   \   0000A4   74..         MOV     A,#(energest_current_time >> 8) & 0xff
+   \   0000A6   39           ADDC    A,R1
+   \   0000A7   F583         MOV     DPH,A
+   \   0000A9   EC           MOV     A,R4
+   \   0000AA   F0           MOVX    @DPTR,A
+   \   0000AB   A3           INC     DPTR
+   \   0000AC   ED           MOV     A,R5
+   \   0000AD   F0           MOVX    @DPTR,A
+     79            }
+     80          #endif /* ENERGEST_CONF_LEVELDEVICE_LEVELS */
+     81            return energest_total_time[type].current;
+   \                     ??energest_type_time_0:
+   \   0000AE   EA           MOV     A,R2
+   \   0000AF   75F004       MOV     B,#0x4
+   \   0000B2   A4           MUL     AB
+   \   0000B3   CA           XCH     A,R2
+   \   0000B4   A8F0         MOV     R0,B
+   \   0000B6   75F000       MOV     B,#0x0
+   \   0000B9   A4           MUL     AB
+   \   0000BA   28           ADD     A,R0
+   \   0000BB   F8           MOV     R0,A
+   \   0000BC   75F004       MOV     B,#0x4
+   \   0000BF   EB           MOV     A,R3
+   \   0000C0   A4           MUL     AB
+   \   0000C1   28           ADD     A,R0
+   \   0000C2   FB           MOV     R3,A
+   \   0000C3   74..         MOV     A,#energest_total_time & 0xff
+   \   0000C5   2A           ADD     A,R2
+   \   0000C6   F582         MOV     DPL,A
+   \   0000C8   74..         MOV     A,#(energest_total_time >> 8) & 0xff
+   \   0000CA   3B           ADDC    A,R3
+   \   0000CB   F583         MOV     DPH,A
+   \   0000CD   12....       LCALL   ?XLOAD_R2345
+   \   0000D0   7F04         MOV     R7,#0x4
+   \   0000D2   02....       LJMP    ?BANKED_LEAVE_XDATA
+   \   0000D5                REQUIRE T1CNTL
+   \   0000D5                REQUIRE T1CNTH
+     82          }
+     83          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     84          unsigned long
+     85          energest_leveldevice_leveltime(int powerlevel)
+   \                     energest_leveldevice_leveltime:
+     86          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+     87          #ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
+     88            return energest_leveldevice_current_leveltime[powerlevel].current;
+     89          #else
+     90            return 0;
+   \   000000   7A00         MOV     R2,#0x0
+   \   000002   7B00         MOV     R3,#0x0
+   \   000004   7C00         MOV     R4,#0x0
+   \   000006   7D00         MOV     R5,#0x0
+   \   000008   02....       LJMP    ?BRET
+     91          #endif
+     92          }
+     93          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     94          void
+     95          energest_type_set(int type, unsigned long val)
+   \                     energest_type_set:
+     96          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   740C         MOV     A,#0xc
+   \   000007   12....       LCALL   ?XSTACK_DISP0_8
+   \   00000A   78..         MOV     R0,#?V0 + 0
+   \   00000C   12....       LCALL   ?L_MOV_X
+     97            energest_total_time[type].current = val;
+   \   00000F   EA           MOV     A,R2
+   \   000010   75F004       MOV     B,#0x4
+   \   000013   A4           MUL     AB
+   \   000014   CA           XCH     A,R2
+   \   000015   A8F0         MOV     R0,B
+   \   000017   75F000       MOV     B,#0x0
+   \   00001A   A4           MUL     AB
+   \   00001B   28           ADD     A,R0
+   \   00001C   F8           MOV     R0,A
+   \   00001D   75F004       MOV     B,#0x4
+   \   000020   EB           MOV     A,R3
+   \   000021   A4           MUL     AB
+   \   000022   28           ADD     A,R0
+   \   000023   FB           MOV     R3,A
+   \   000024   74..         MOV     A,#energest_total_time & 0xff
+   \   000026   2A           ADD     A,R2
+   \   000027   F582         MOV     DPL,A
+   \   000029   74..         MOV     A,#(energest_total_time >> 8) & 0xff
+   \   00002B   3B           ADDC    A,R3
+   \   00002C   F583         MOV     DPH,A
+   \   00002E   78..         MOV     R0,#?V0 + 0
+   \   000030   12....       LCALL   ?L_MOV_TO_X
+     98          }
+   \   000033   7F04         MOV     R7,#0x4
+   \   000035   02....       LJMP    ?BANKED_LEAVE_XDATA
+     99          /*---------------------------------------------------------------------------*/
+    100          /* Note: does not support ENERGEST_CONF_LEVELDEVICE_LEVELS! */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    101          void
+    102          energest_flush(void)
+   \                     energest_flush:
+    103          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+    104            rtimer_clock_t now;
+    105            int i;
+    106            for(i = 0; i < ENERGEST_TYPE_MAX; i++) {
+   \   000005   7A00         MOV     R2,#0x0
+   \   000007   7B00         MOV     R3,#0x0
+   \   000009   02....       LJMP    ??energest_flush_0 & 0xFFFF
+    107              if(energest_current_mode[i]) {
+   \                     ??energest_flush_1:
+   \   00000C   74..         MOV     A,#energest_current_mode & 0xff
+   \   00000E   2A           ADD     A,R2
+   \   00000F   F582         MOV     DPL,A
+   \   000011   74..         MOV     A,#(energest_current_mode >> 8) & 0xff
+   \   000013   3B           ADDC    A,R3
+   \   000014   F583         MOV     DPH,A
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   7003         JNZ     $+5
+   \   000019   02....       LJMP    ??energest_flush_2 & 0xFFFF
+    108                now = RTIMER_NOW();
+   \   00001C   E5E2         MOV     A,0xe2
+   \   00001E   FC           MOV     R4,A
+   \   00001F   7D00         MOV     R5,#0x0
+   \   000021   E5E3         MOV     A,0xe3
+   \   000023   F8           MOV     R0,A
+   \   000024   7900         MOV     R1,#0x0
+   \   000026   E4           CLR     A
+   \   000027   C8           XCH     A,R0
+   \   000028   F9           MOV     R1,A
+   \   000029   EC           MOV     A,R4
+   \   00002A   28           ADD     A,R0
+   \   00002B   FC           MOV     R4,A
+   \   00002C   ED           MOV     A,R5
+   \   00002D   39           ADDC    A,R1
+   \   00002E   FD           MOV     R5,A
+    109                energest_total_time[i].current += (rtimer_clock_t)
+    110          	(now - energest_current_time[i]);
+   \   00002F   EA           MOV     A,R2
+   \   000030   F8           MOV     R0,A
+   \   000031   EB           MOV     A,R3
+   \   000032   F9           MOV     R1,A
+   \   000033   E8           MOV     A,R0
+   \   000034   75F002       MOV     B,#0x2
+   \   000037   A4           MUL     AB
+   \   000038   C8           XCH     A,R0
+   \   000039   AEF0         MOV     R6,B
+   \   00003B   75F000       MOV     B,#0x0
+   \   00003E   A4           MUL     AB
+   \   00003F   2E           ADD     A,R6
+   \   000040   FE           MOV     R6,A
+   \   000041   75F002       MOV     B,#0x2
+   \   000044   E9           MOV     A,R1
+   \   000045   A4           MUL     AB
+   \   000046   2E           ADD     A,R6
+   \   000047   F9           MOV     R1,A
+   \   000048   74..         MOV     A,#energest_current_time & 0xff
+   \   00004A   28           ADD     A,R0
+   \   00004B   F582         MOV     DPL,A
+   \   00004D   74..         MOV     A,#(energest_current_time >> 8) & 0xff
+   \   00004F   39           ADDC    A,R1
+   \   000050   F583         MOV     DPH,A
+   \   000052   E0           MOVX    A,@DPTR
+   \   000053   F8           MOV     R0,A
+   \   000054   A3           INC     DPTR
+   \   000055   E0           MOVX    A,@DPTR
+   \   000056   F9           MOV     R1,A
+   \   000057   EC           MOV     A,R4
+   \   000058   C3           CLR     C
+   \   000059   98           SUBB    A,R0
+   \   00005A   F5..         MOV     ?V0 + 0,A
+   \   00005C   ED           MOV     A,R5
+   \   00005D   99           SUBB    A,R1
+   \   00005E   F5..         MOV     ?V0 + 1,A
+   \   000060   E4           CLR     A
+   \   000061   F5..         MOV     ?V0 + 2,A
+   \   000063   F5..         MOV     ?V0 + 3,A
+   \   000065   EA           MOV     A,R2
+   \   000066   F8           MOV     R0,A
+   \   000067   EB           MOV     A,R3
+   \   000068   F9           MOV     R1,A
+   \   000069   E8           MOV     A,R0
+   \   00006A   75F004       MOV     B,#0x4
+   \   00006D   A4           MUL     AB
+   \   00006E   C8           XCH     A,R0
+   \   00006F   AEF0         MOV     R6,B
+   \   000071   75F000       MOV     B,#0x0
+   \   000074   A4           MUL     AB
+   \   000075   2E           ADD     A,R6
+   \   000076   FE           MOV     R6,A
+   \   000077   75F004       MOV     B,#0x4
+   \   00007A   E9           MOV     A,R1
+   \   00007B   A4           MUL     AB
+   \   00007C   2E           ADD     A,R6
+   \   00007D   F9           MOV     R1,A
+   \   00007E   74..         MOV     A,#energest_total_time & 0xff
+   \   000080   28           ADD     A,R0
+   \   000081   F582         MOV     DPL,A
+   \   000083   74..         MOV     A,#(energest_total_time >> 8) & 0xff
+   \   000085   39           ADDC    A,R1
+   \   000086   F583         MOV     DPH,A
+   \   000088   78..         MOV     R0,#?V0 + 0
+   \   00008A   12....       LCALL   ?L_ADD_TO_X
+    111                energest_current_time[i] = now;
+   \   00008D   EA           MOV     A,R2
+   \   00008E   F8           MOV     R0,A
+   \   00008F   EB           MOV     A,R3
+   \   000090   F9           MOV     R1,A
+   \   000091   E8           MOV     A,R0
+   \   000092   75F002       MOV     B,#0x2
+   \   000095   A4           MUL     AB
+   \   000096   C8           XCH     A,R0
+   \   000097   AEF0         MOV     R6,B
+   \   000099   75F000       MOV     B,#0x0
+   \   00009C   A4           MUL     AB
+   \   00009D   2E           ADD     A,R6
+   \   00009E   FE           MOV     R6,A
+   \   00009F   75F002       MOV     B,#0x2
+   \   0000A2   E9           MOV     A,R1
+   \   0000A3   A4           MUL     AB
+   \   0000A4   2E           ADD     A,R6
+   \   0000A5   F9           MOV     R1,A
+   \   0000A6   74..         MOV     A,#energest_current_time & 0xff
+   \   0000A8   28           ADD     A,R0
+   \   0000A9   F582         MOV     DPL,A
+   \   0000AB   74..         MOV     A,#(energest_current_time >> 8) & 0xff
+   \   0000AD   39           ADDC    A,R1
+   \   0000AE   F583         MOV     DPH,A
+   \   0000B0   EC           MOV     A,R4
+   \   0000B1   F0           MOVX    @DPTR,A
+   \   0000B2   A3           INC     DPTR
+   \   0000B3   ED           MOV     A,R5
+   \   0000B4   F0           MOVX    @DPTR,A
+    112              }
+    113            }
+   \                     ??energest_flush_2:
+   \   0000B5   EA           MOV     A,R2
+   \   0000B6   2401         ADD     A,#0x1
+   \   0000B8   FA           MOV     R2,A
+   \   0000B9   EB           MOV     A,R3
+   \   0000BA   3400         ADDC    A,#0x0
+   \   0000BC   FB           MOV     R3,A
+   \                     ??energest_flush_0:
+   \   0000BD   C3           CLR     C
+   \   0000BE   EA           MOV     A,R2
+   \   0000BF   940C         SUBB    A,#0xc
+   \   0000C1   EB           MOV     A,R3
+   \   0000C2   9400         SUBB    A,#0x0
+   \   0000C4   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   0000C6   65D0         XRL     A,PSW
+   \   0000C8   33           RLC     A
+   \   0000C9   5003         JNC     $+5
+   \   0000CB   02....       LJMP    ??energest_flush_1 & 0xFFFF
+    114          }
+   \   0000CE   7F04         MOV     R7,#0x4
+   \   0000D0   02....       LJMP    ?BANKED_LEAVE_XDATA
+   \   0000D3                REQUIRE T1CNTL
+   \   0000D3                REQUIRE T1CNTH
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??energest_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    energest_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??energest_type_time?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    energest_type_time
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??energest_leveldevice_leveltime?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    energest_leveldevice_leveltime
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??energest_type_set?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    energest_type_set
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??energest_flush?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    energest_flush
+    115          /*---------------------------------------------------------------------------*/
+    116          #else /* ENERGEST_CONF_ON */
+    117          void energest_type_set(int type, unsigned long val) {}
+    118          void energest_init(void) {}
+    119          unsigned long energest_type_time(int type) { return 0; }
+    120          void energest_flush(void) {}
+    121          #endif /* ENERGEST_CONF_ON */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     12  energest_flush
+       0      0      9  energest_init
+       0      0      0  energest_leveldevice_leveltime
+       0      0     16  energest_type_set
+       0      0     12  energest_type_time
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??energest_flush?relay
+       6  ??energest_init?relay
+       6  ??energest_leveldevice_leveltime?relay
+       6  ??energest_type_set?relay
+       6  ??energest_type_time?relay
+       1  T1CNTH
+       1  T1CNTL
+      12  energest_current_mode
+      24  energest_current_time
+     211  energest_flush
+     151  energest_init
+      11  energest_leveldevice_leveltime
+       2  energest_total_count
+      48  energest_total_time
+      56  energest_type_set
+     213  energest_type_time
+
+ 
+ 642 bytes in segment BANKED_CODE
+  30 bytes in segment BANK_RELAYS
+   2 bytes in segment SFR_AN
+  86 bytes in segment XDATA_Z
+ 
+ 672 bytes of CODE  memory
+   0 bytes of DATA  memory (+ 2 bytes shared)
+  86 bytes of XDATA memory
+
+Errors: none
+Warnings: none

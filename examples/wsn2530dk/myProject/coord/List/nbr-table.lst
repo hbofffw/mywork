@@ -1,0 +1,2121 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:50 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\nbr-table.c              #
+#    Command line       =  D:\myWork\myWork\core\net\nbr-table.c -D           #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\nbr-table.lst                               #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\nbr-table.r51                                #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\nbr-table.c
+      1          /*
+      2           * Copyright (c) 2013, Swedish Institute of Computer Science
+      3           * Copyright (c) 2010, Vrije Universiteit Brussel
+      4           * All rights reserved.
+      5           *
+      6           * Redistribution and use in source and binary forms, with or without
+      7           * modification, are permitted provided that the following conditions
+      8           * are met:
+      9           * 1. Redistributions of source code must retain the above copyright
+     10           *    notice, this list of conditions and the following disclaimer.
+     11           * 2. Redistributions in binary form must reproduce the above copyright
+     12           *    notice, this list of conditions and the following disclaimer in the
+     13           *    documentation and/or other materials provided with the distribution.
+     14           * 3. Neither the name of the Institute nor the names of its contributors
+     15           *    may be used to endorse or promote products derived from this software
+     16           *    without specific prior written permission.
+     17           *
+     18           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     19           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     20           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     21           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     22           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     23           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     24           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     25           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     26           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     27           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     28           * SUCH DAMAGE.
+     29           *
+     30           *
+     31           * Authors: Simon Duquennoy <simonduq@sics.se>
+     32           *          Joris Borms <joris.borms@vub.ac.be>
+     33           */
+     34          
+     35          #include "contiki.h"
+     36          
+     37          #include <stddef.h>
+     38          #include <string.h>
+     39          #include "lib/memb.h"
+     40          #include "lib/list.h"
+     41          #include "net/nbr-table.h"
+     42          
+     43          /* List of link-layer addresses of the neighbors, used as key in the tables */
+     44          typedef struct nbr_table_key {
+     45            struct nbr_table_key *next;
+     46            rimeaddr_t lladdr;
+     47          } nbr_table_key_t;
+     48          
+     49          /* For each neighbor, a map of the tables that use the neighbor.
+     50           * As we are using uint8_t, we have a maximum of 8 tables in the system */
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     51          static uint8_t used_map[NBR_TABLE_MAX_NEIGHBORS];
+   \                     used_map:
+   \   000000                DS 4
+   \   000004                REQUIRE __INIT_XDATA_Z
+     52          /* For each neighbor, a map of the tables that lock the neighbor */
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     53          static uint8_t locked_map[NBR_TABLE_MAX_NEIGHBORS];
+   \                     locked_map:
+   \   000000                DS 4
+   \   000004                REQUIRE __INIT_XDATA_Z
+     54          /* The maximum number of tables */
+     55          #define MAX_NUM_TABLES 8
+     56          /* A list of pointers to tables in use */
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     57          static struct nbr_table *all_tables[MAX_NUM_TABLES];
+   \                     all_tables:
+   \   000000                DS 16
+   \   000010                REQUIRE __INIT_XDATA_Z
+     58          /* The current number of tables */
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     59          static unsigned num_tables;
+   \                     num_tables:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     60          
+     61          /* The neighbor address table */
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     62          MEMB(neighbor_addr_mem, nbr_table_key_t, NBR_TABLE_MAX_NEIGHBORS);
+   \                     neighbor_addr_mem:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for neighbor_addr_mem>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static char neighbor_addr_mem_memb_count[4]
+   \                     neighbor_addr_mem_memb_count:
+   \   000000                DS 4
+   \   000004                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static nbr_table_key_t neighbor_addr_mem_memb_mem[4]
+   \                     neighbor_addr_mem_memb_mem:
+   \   000000                DS 16
+   \   000010                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     63          LIST(nbr_table_keys);
+   \                     nbr_table_keys:
+   \   000000                DS 2
+   \   000002                REQUIRE `?<Initializer for nbr_table_keys>`
+   \   000002                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static void *__xdata nbr_table_keys_list
+   \                     nbr_table_keys_list:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     64          
+     65          /*---------------------------------------------------------------------------*/
+     66          /* Get a key from a neighbor index */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     67          static nbr_table_key_t *
+     68          key_from_index(int index)
+   \                     key_from_index:
+     69          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     70            return index != -1 ? &((nbr_table_key_t *)neighbor_addr_mem.mem)[index] : NULL;
+   \   000004   74FF         MOV     A,#-0x1
+   \   000006   6A           XRL     A,R2
+   \   000007   7003         JNZ     ??key_from_index_0
+   \   000009   74FF         MOV     A,#-0x1
+   \   00000B   6B           XRL     A,R3
+   \                     ??key_from_index_0:
+   \   00000C   6021         JZ      ??key_from_index_1
+   \   00000E   EA           MOV     A,R2
+   \   00000F   75F004       MOV     B,#0x4
+   \   000012   A4           MUL     AB
+   \   000013   CA           XCH     A,R2
+   \   000014   A8F0         MOV     R0,B
+   \   000016   75F000       MOV     B,#0x0
+   \   000019   A4           MUL     AB
+   \   00001A   28           ADD     A,R0
+   \   00001B   F8           MOV     R0,A
+   \   00001C   75F004       MOV     B,#0x4
+   \   00001F   EB           MOV     A,R3
+   \   000020   A4           MUL     AB
+   \   000021   28           ADD     A,R0
+   \   000022   FB           MOV     R3,A
+   \   000023   90....       MOV     DPTR,#neighbor_addr_mem + 6
+   \   000026   E0           MOVX    A,@DPTR
+   \   000027   2A           ADD     A,R2
+   \   000028   FA           MOV     R2,A
+   \   000029   A3           INC     DPTR
+   \   00002A   E0           MOVX    A,@DPTR
+   \   00002B   3B           ADDC    A,R3
+   \   00002C   FB           MOV     R3,A
+   \   00002D   8004         SJMP    ??key_from_index_2
+   \                     ??key_from_index_1:
+   \   00002F   7A00         MOV     R2,#0x0
+   \   000031   7B00         MOV     R3,#0x0
+   \                     ??key_from_index_2:
+   \   000033   D083         POP     DPH
+   \   000035   D082         POP     DPL
+   \   000037   02....       LJMP    ?BRET
+     71          }
+     72          /*---------------------------------------------------------------------------*/
+     73          /* Get an item from its neighbor index */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     74          static nbr_table_item_t *
+     75          item_from_index(nbr_table_t *table, int index)
+   \                     item_from_index:
+     76          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     77            return table != NULL && index != -1 ? (char *)table->data + index * table->item_size : NULL;
+   \   000005   EA           MOV     A,R2
+   \   000006   4B           ORL     A,R3
+   \   000007   603F         JZ      ??item_from_index_0
+   \   000009   74FF         MOV     A,#-0x1
+   \   00000B   6C           XRL     A,R4
+   \   00000C   7003         JNZ     ??item_from_index_1
+   \   00000E   74FF         MOV     A,#-0x1
+   \   000010   6D           XRL     A,R5
+   \                     ??item_from_index_1:
+   \   000011   6035         JZ      ??item_from_index_0
+   \   000013   8A82         MOV     DPL,R2
+   \   000015   8B83         MOV     DPH,R3
+   \   000017   A3           INC     DPTR
+   \   000018   A3           INC     DPTR
+   \   000019   E0           MOVX    A,@DPTR
+   \   00001A   F5..         MOV     ?V0 + 0,A
+   \   00001C   A3           INC     DPTR
+   \   00001D   E0           MOVX    A,@DPTR
+   \   00001E   F5..         MOV     ?V0 + 1,A
+   \   000020   EC           MOV     A,R4
+   \   000021   85..F0       MOV     B,?V0 + 0
+   \   000024   A4           MUL     AB
+   \   000025   CC           XCH     A,R4
+   \   000026   A8F0         MOV     R0,B
+   \   000028   85..F0       MOV     B,?V0 + 1
+   \   00002B   A4           MUL     AB
+   \   00002C   28           ADD     A,R0
+   \   00002D   F8           MOV     R0,A
+   \   00002E   85..F0       MOV     B,?V0 + 0
+   \   000031   ED           MOV     A,R5
+   \   000032   A4           MUL     AB
+   \   000033   28           ADD     A,R0
+   \   000034   FD           MOV     R5,A
+   \   000035   8A82         MOV     DPL,R2
+   \   000037   8B83         MOV     DPH,R3
+   \   000039   A3           INC     DPTR
+   \   00003A   A3           INC     DPTR
+   \   00003B   A3           INC     DPTR
+   \   00003C   A3           INC     DPTR
+   \   00003D   A3           INC     DPTR
+   \   00003E   A3           INC     DPTR
+   \   00003F   E0           MOVX    A,@DPTR
+   \   000040   2C           ADD     A,R4
+   \   000041   FA           MOV     R2,A
+   \   000042   A3           INC     DPTR
+   \   000043   E0           MOVX    A,@DPTR
+   \   000044   3D           ADDC    A,R5
+   \   000045   FB           MOV     R3,A
+   \   000046   8004         SJMP    ??item_from_index_2
+   \                     ??item_from_index_0:
+   \   000048   7A00         MOV     R2,#0x0
+   \   00004A   7B00         MOV     R3,#0x0
+   \                     ??item_from_index_2:
+   \   00004C   7F02         MOV     R7,#0x2
+   \   00004E   02....       LJMP    ?BANKED_LEAVE_XDATA
+     78          }
+     79          /*---------------------------------------------------------------------------*/
+     80          /* Get the neighbor index of an item */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     81          static int
+     82          index_from_key(nbr_table_key_t *key)
+   \                     index_from_key:
+     83          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+     84            return key != NULL ? key - (nbr_table_key_t *)neighbor_addr_mem.mem : -1;
+   \   000005   EA           MOV     A,R2
+   \   000006   4B           ORL     A,R3
+   \   000007   6029         JZ      ??index_from_key_0
+   \   000009   8A..         MOV     ?V0 + 0,R2
+   \   00000B   8B..         MOV     ?V0 + 1,R3
+   \   00000D   7402         MOV     A,#0x2
+   \   00000F   78..         MOV     R0,#?V0 + 0
+   \   000011   12....       LCALL   ?US_SHR
+   \   000014   90....       MOV     DPTR,#neighbor_addr_mem + 6
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   F5..         MOV     ?V0 + 2,A
+   \   00001A   A3           INC     DPTR
+   \   00001B   E0           MOVX    A,@DPTR
+   \   00001C   F5..         MOV     ?V0 + 3,A
+   \   00001E   7402         MOV     A,#0x2
+   \   000020   78..         MOV     R0,#?V0 + 2
+   \   000022   12....       LCALL   ?US_SHR
+   \   000025   E5..         MOV     A,?V0 + 0
+   \   000027   C3           CLR     C
+   \   000028   95..         SUBB    A,?V0 + 2
+   \   00002A   FA           MOV     R2,A
+   \   00002B   E5..         MOV     A,?V0 + 1
+   \   00002D   95..         SUBB    A,?V0 + 3
+   \   00002F   FB           MOV     R3,A
+   \   000030   8004         SJMP    ??index_from_key_1
+   \                     ??index_from_key_0:
+   \   000032   7AFF         MOV     R2,#-0x1
+   \   000034   7BFF         MOV     R3,#-0x1
+   \                     ??index_from_key_1:
+   \   000036   7F04         MOV     R7,#0x4
+   \   000038   02....       LJMP    ?BANKED_LEAVE_XDATA
+     85          }
+     86          /*---------------------------------------------------------------------------*/
+     87          /* Get the neighbor index of an item */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     88          static int
+     89          index_from_item(nbr_table_t *table, nbr_table_item_t *item)
+   \                     index_from_item:
+     90          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     91            return table != NULL && item != NULL ? ((int)((char *)item - (char *)table->data)) / table->item_size : -1;
+   \   000005   EA           MOV     A,R2
+   \   000006   4B           ORL     A,R3
+   \   000007   6032         JZ      ??index_from_item_0
+   \   000009   EC           MOV     A,R4
+   \   00000A   4D           ORL     A,R5
+   \   00000B   602E         JZ      ??index_from_item_0
+   \   00000D   8A82         MOV     DPL,R2
+   \   00000F   8B83         MOV     DPH,R3
+   \   000011   A3           INC     DPTR
+   \   000012   A3           INC     DPTR
+   \   000013   A3           INC     DPTR
+   \   000014   A3           INC     DPTR
+   \   000015   A3           INC     DPTR
+   \   000016   A3           INC     DPTR
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   F8           MOV     R0,A
+   \   000019   A3           INC     DPTR
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   F9           MOV     R1,A
+   \   00001C   EC           MOV     A,R4
+   \   00001D   C3           CLR     C
+   \   00001E   98           SUBB    A,R0
+   \   00001F   F8           MOV     R0,A
+   \   000020   ED           MOV     A,R5
+   \   000021   99           SUBB    A,R1
+   \   000022   F9           MOV     R1,A
+   \   000023   8A82         MOV     DPL,R2
+   \   000025   8B83         MOV     DPH,R3
+   \   000027   A3           INC     DPTR
+   \   000028   A3           INC     DPTR
+   \   000029   E0           MOVX    A,@DPTR
+   \   00002A   FA           MOV     R2,A
+   \   00002B   A3           INC     DPTR
+   \   00002C   E0           MOVX    A,@DPTR
+   \   00002D   FB           MOV     R3,A
+   \   00002E   12....       LCALL   ?S_DIV_MOD
+   \   000031   88..         MOV     ?V0 + 0,R0
+   \   000033   89..         MOV     ?V0 + 1,R1
+   \   000035   AA..         MOV     R2,?V0 + 0
+   \   000037   AB..         MOV     R3,?V0 + 1
+   \   000039   8004         SJMP    ??index_from_item_1
+   \                     ??index_from_item_0:
+   \   00003B   7AFF         MOV     R2,#-0x1
+   \   00003D   7BFF         MOV     R3,#-0x1
+   \                     ??index_from_item_1:
+   \   00003F   7F02         MOV     R7,#0x2
+   \   000041   02....       LJMP    ?BANKED_LEAVE_XDATA
+     92          }
+     93          /*---------------------------------------------------------------------------*/
+     94          /* Get an item from its key */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     95          static nbr_table_item_t *
+     96          item_from_key(nbr_table_t *table, nbr_table_key_t *key)
+   \                     item_from_key:
+     97          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   EC           MOV     A,R4
+   \   00000A   FA           MOV     R2,A
+   \   00000B   ED           MOV     A,R5
+   \   00000C   FB           MOV     R3,A
+     98            return item_from_index(table, index_from_key(key));
+   \   00000D                ; Setup parameters for call to function item_from_index
+   \   00000D                ; Setup parameters for call to function index_from_key
+   \   00000D   12....       LCALL   ??index_from_key?relay
+   \   000010   EA           MOV     A,R2
+   \   000011   FC           MOV     R4,A
+   \   000012   EB           MOV     A,R3
+   \   000013   FD           MOV     R5,A
+   \   000014   EE           MOV     A,R6
+   \   000015   FA           MOV     R2,A
+   \   000016   EF           MOV     A,R7
+   \   000017   FB           MOV     R3,A
+   \   000018   12....       LCALL   ??item_from_index?relay
+   \   00001B   7F01         MOV     R7,#0x1
+   \   00001D   02....       LJMP    ?BANKED_LEAVE_XDATA
+     99          }
+    100          /*---------------------------------------------------------------------------*/
+    101          /* Get the key af an item */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    102          static nbr_table_key_t *
+    103          key_from_item(nbr_table_t *table, nbr_table_item_t *item)
+   \                     key_from_item:
+    104          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    105            return key_from_index(index_from_item(table, item));
+   \   000004                ; Setup parameters for call to function key_from_index
+   \   000004                ; Setup parameters for call to function index_from_item
+   \   000004   12....       LCALL   ??index_from_item?relay
+   \   000007   12....       LCALL   ??key_from_index?relay
+   \   00000A   D083         POP     DPH
+   \   00000C   D082         POP     DPL
+   \   00000E   02....       LJMP    ?BRET
+    106          }
+    107          /*---------------------------------------------------------------------------*/
+    108          /* Get the index of a neighbor from its link-layer address */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    109          static int
+    110          index_from_lladdr(const rimeaddr_t *lladdr)
+   \                     index_from_lladdr:
+    111          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    112            nbr_table_key_t *key;
+    113            /* Allow lladdr-free insertion, useful e.g. for IPv6 ND.
+    114             * Only one such entry is possible at a time, indexed by rimeaddr_null. */
+    115            if(lladdr == NULL) {
+   \   000009   EE           MOV     A,R6
+   \   00000A   4F           ORL     A,R7
+   \   00000B   7004         JNZ     ??index_from_lladdr_0
+    116              lladdr = &rimeaddr_null;
+   \   00000D   7E..         MOV     R6,#rimeaddr_null & 0xff
+   \   00000F   7F..         MOV     R7,#(rimeaddr_null >> 8) & 0xff
+    117            }
+    118            key = list_head(nbr_table_keys);
+   \                     ??index_from_lladdr_0:
+   \   000011                ; Setup parameters for call to function list_head
+   \   000011   90....       MOV     DPTR,#nbr_table_keys
+   \   000014   E0           MOVX    A,@DPTR
+   \   000015   FA           MOV     R2,A
+   \   000016   A3           INC     DPTR
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   FB           MOV     R3,A
+   \   000019   12....       LCALL   ??list_head?relay
+   \   00001C   8A..         MOV     ?V0 + 2,R2
+   \   00001E   8B..         MOV     ?V0 + 3,R3
+   \   000020   85....       MOV     ?V0 + 0,?V0 + 2
+   \   000023   85....       MOV     ?V0 + 1,?V0 + 3
+   \   000026   8011         SJMP    ??index_from_lladdr_1
+    119            while(key != NULL) {
+    120              if(lladdr && rimeaddr_cmp(lladdr, &key->lladdr)) {
+    121                return index_from_key(key);
+    122              }
+    123              key = list_item_next(key);
+   \                     ??index_from_lladdr_2:
+   \   000028                ; Setup parameters for call to function list_item_next
+   \   000028   AA..         MOV     R2,?V0 + 0
+   \   00002A   AB..         MOV     R3,?V0 + 1
+   \   00002C   12....       LCALL   ??list_item_next?relay
+   \   00002F   8A..         MOV     ?V0 + 2,R2
+   \   000031   8B..         MOV     ?V0 + 3,R3
+   \   000033   85....       MOV     ?V0 + 0,?V0 + 2
+   \   000036   85....       MOV     ?V0 + 1,?V0 + 3
+   \                     ??index_from_lladdr_1:
+   \   000039   E5..         MOV     A,?V0 + 0
+   \   00003B   45..         ORL     A,?V0 + 1
+   \   00003D   6028         JZ      ??index_from_lladdr_3
+   \   00003F   EE           MOV     A,R6
+   \   000040   4F           ORL     A,R7
+   \   000041   60E5         JZ      ??index_from_lladdr_2
+   \   000043                ; Setup parameters for call to function rimeaddr_cmp
+   \   000043   E5..         MOV     A,?V0 + 0
+   \   000045   2402         ADD     A,#0x2
+   \   000047   FC           MOV     R4,A
+   \   000048   E5..         MOV     A,?V0 + 1
+   \   00004A   3400         ADDC    A,#0x0
+   \   00004C   FD           MOV     R5,A
+   \   00004D   EE           MOV     A,R6
+   \   00004E   FA           MOV     R2,A
+   \   00004F   EF           MOV     A,R7
+   \   000050   FB           MOV     R3,A
+   \   000051   12....       LCALL   ??rimeaddr_cmp?relay
+   \   000054   8A..         MOV     ?V0 + 2,R2
+   \   000056   8B..         MOV     ?V0 + 3,R3
+   \   000058   E5..         MOV     A,?V0 + 2
+   \   00005A   45..         ORL     A,?V0 + 3
+   \   00005C   60CA         JZ      ??index_from_lladdr_2
+   \   00005E                ; Setup parameters for call to function index_from_key
+   \   00005E   AA..         MOV     R2,?V0 + 0
+   \   000060   AB..         MOV     R3,?V0 + 1
+   \   000062   12....       LCALL   ??index_from_key?relay
+   \   000065   8004         SJMP    ??index_from_lladdr_4
+    124            }
+    125            return -1;
+   \                     ??index_from_lladdr_3:
+   \   000067   7AFF         MOV     R2,#-0x1
+   \   000069   7BFF         MOV     R3,#-0x1
+   \                     ??index_from_lladdr_4:
+   \   00006B   7F04         MOV     R7,#0x4
+   \   00006D   02....       LJMP    ?BANKED_LEAVE_XDATA
+    126          }
+    127          /*---------------------------------------------------------------------------*/
+    128          /* Get bit from "used" or "locked" bitmap */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    129          static int
+    130          nbr_get_bit(uint8_t *bitmap, nbr_table_t *table, nbr_table_item_t *item)
+   \                     nbr_get_bit:
+    131          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   EC           MOV     A,R4
+   \   00000A   FE           MOV     R6,A
+   \   00000B   ED           MOV     A,R5
+   \   00000C   FF           MOV     R7,A
+   \   00000D   740C         MOV     A,#0xc
+   \   00000F   12....       LCALL   ?XSTACK_DISP0_8
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   FC           MOV     R4,A
+   \   000014   A3           INC     DPTR
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   FD           MOV     R5,A
+    132            int item_index = index_from_item(table, item);
+   \   000017                ; Setup parameters for call to function index_from_item
+   \   000017   EE           MOV     A,R6
+   \   000018   FA           MOV     R2,A
+   \   000019   EF           MOV     A,R7
+   \   00001A   FB           MOV     R3,A
+   \   00001B   12....       LCALL   ??index_from_item?relay
+   \   00001E   8A..         MOV     ?V0 + 2,R2
+   \   000020   8B..         MOV     ?V0 + 3,R3
+   \   000022   AA..         MOV     R2,?V0 + 2
+   \   000024   AB..         MOV     R3,?V0 + 3
+    133            if(table != NULL && item_index != -1) {
+   \   000026   EE           MOV     A,R6
+   \   000027   4F           ORL     A,R7
+   \   000028   603D         JZ      ??nbr_get_bit_0
+   \   00002A   74FF         MOV     A,#-0x1
+   \   00002C   6A           XRL     A,R2
+   \   00002D   7003         JNZ     ??nbr_get_bit_1
+   \   00002F   74FF         MOV     A,#-0x1
+   \   000031   6B           XRL     A,R3
+   \                     ??nbr_get_bit_1:
+   \   000032   6033         JZ      ??nbr_get_bit_0
+    134              return (bitmap[item_index] & (1 << table->index)) != 0;
+   \   000034   75..01       MOV     ?V0 + 2,#0x1
+   \   000037   75..00       MOV     ?V0 + 3,#0x0
+   \   00003A   8E82         MOV     DPL,R6
+   \   00003C   8F83         MOV     DPH,R7
+   \   00003E   E0           MOVX    A,@DPTR
+   \   00003F   F8           MOV     R0,A
+   \   000040   A3           INC     DPTR
+   \   000041   E0           MOVX    A,@DPTR
+   \   000042   F9           MOV     R1,A
+   \   000043   E8           MOV     A,R0
+   \   000044   78..         MOV     R0,#?V0 + 2
+   \   000046   12....       LCALL   ?S_SHL
+   \   000049   E5..         MOV     A,?V0 + 0
+   \   00004B   2A           ADD     A,R2
+   \   00004C   F582         MOV     DPL,A
+   \   00004E   E5..         MOV     A,?V0 + 1
+   \   000050   3B           ADDC    A,R3
+   \   000051   F583         MOV     DPH,A
+   \   000053   E0           MOVX    A,@DPTR
+   \   000054   55..         ANL     A,?V0 + 2
+   \   000056   6004         JZ      ??nbr_get_bit_2
+   \   000058   D2F0         SETB    B.0
+   \   00005A   8002         SJMP    ??nbr_get_bit_3
+   \                     ??nbr_get_bit_2:
+   \   00005C   C2F0         CLR     B.0
+   \                     ??nbr_get_bit_3:
+   \   00005E   A2F0         MOV     C,B.0
+   \   000060   E4           CLR     A
+   \   000061   33           RLC     A
+   \   000062   FA           MOV     R2,A
+   \   000063   7B00         MOV     R3,#0x0
+   \   000065   8004         SJMP    ??nbr_get_bit_4
+    135            } else {
+    136              return 0;
+   \                     ??nbr_get_bit_0:
+   \   000067   7A00         MOV     R2,#0x0
+   \   000069   7B00         MOV     R3,#0x0
+   \                     ??nbr_get_bit_4:
+   \   00006B   7F04         MOV     R7,#0x4
+   \   00006D   02....       LJMP    ?BANKED_LEAVE_XDATA
+    137            }
+    138            return 0;
+                   ^
+Warning[Pe111]: statement is unreachable
+    139          }
+    140          /*---------------------------------------------------------------------------*/
+    141          /* Set bit in "used" or "locked" bitmap */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    142          static int
+    143          nbr_set_bit(uint8_t *bitmap, nbr_table_t *table, nbr_table_item_t *item, int value)
+   \                     nbr_set_bit:
+    144          {
+   \   000000   74F2         MOV     A,#-0xe
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 14
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   EC           MOV     A,R4
+   \   00000A   FE           MOV     R6,A
+   \   00000B   ED           MOV     A,R5
+   \   00000C   FF           MOV     R7,A
+   \   00000D   740E         MOV     A,#0xe
+   \   00000F   12....       LCALL   ?XSTACK_DISP0_8
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   FC           MOV     R4,A
+   \   000014   A3           INC     DPTR
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   FD           MOV     R5,A
+   \   000017   7410         MOV     A,#0x10
+   \   000019   12....       LCALL   ?XSTACK_DISP0_8
+   \   00001C   E0           MOVX    A,@DPTR
+   \   00001D   F5..         MOV     ?V0 + 2,A
+   \   00001F   A3           INC     DPTR
+   \   000020   E0           MOVX    A,@DPTR
+   \   000021   F5..         MOV     ?V0 + 3,A
+    145            int item_index = index_from_item(table, item);
+   \   000023                ; Setup parameters for call to function index_from_item
+   \   000023   EE           MOV     A,R6
+   \   000024   FA           MOV     R2,A
+   \   000025   EF           MOV     A,R7
+   \   000026   FB           MOV     R3,A
+   \   000027   12....       LCALL   ??index_from_item?relay
+   \   00002A   8A..         MOV     ?V0 + 4,R2
+   \   00002C   8B..         MOV     ?V0 + 5,R3
+   \   00002E   AA..         MOV     R2,?V0 + 4
+   \   000030   AB..         MOV     R3,?V0 + 5
+    146            if(table != NULL && item_index != -1) {
+   \   000032   EE           MOV     A,R6
+   \   000033   4F           ORL     A,R7
+   \   000034   6061         JZ      ??nbr_set_bit_0
+   \   000036   74FF         MOV     A,#-0x1
+   \   000038   6A           XRL     A,R2
+   \   000039   7003         JNZ     ??nbr_set_bit_1
+   \   00003B   74FF         MOV     A,#-0x1
+   \   00003D   6B           XRL     A,R3
+   \                     ??nbr_set_bit_1:
+   \   00003E   6057         JZ      ??nbr_set_bit_0
+    147              if(value) {
+   \   000040   E5..         MOV     A,?V0 + 2
+   \   000042   45..         ORL     A,?V0 + 3
+   \   000044   6025         JZ      ??nbr_set_bit_2
+    148                bitmap[item_index] |= 1 << table->index;
+   \   000046   75..01       MOV     ?V0 + 2,#0x1
+   \   000049   75..00       MOV     ?V0 + 3,#0x0
+   \   00004C   8E82         MOV     DPL,R6
+   \   00004E   8F83         MOV     DPH,R7
+   \   000050   E0           MOVX    A,@DPTR
+   \   000051   F8           MOV     R0,A
+   \   000052   A3           INC     DPTR
+   \   000053   E0           MOVX    A,@DPTR
+   \   000054   F9           MOV     R1,A
+   \   000055   E8           MOV     A,R0
+   \   000056   78..         MOV     R0,#?V0 + 2
+   \   000058   12....       LCALL   ?S_SHL
+   \   00005B   E5..         MOV     A,?V0 + 0
+   \   00005D   2A           ADD     A,R2
+   \   00005E   F582         MOV     DPL,A
+   \   000060   E5..         MOV     A,?V0 + 1
+   \   000062   3B           ADDC    A,R3
+   \   000063   F583         MOV     DPH,A
+   \   000065   E0           MOVX    A,@DPTR
+   \   000066   45..         ORL     A,?V0 + 2
+   \   000068   F0           MOVX    @DPTR,A
+   \   000069   8026         SJMP    ??nbr_set_bit_3
+    149              } else {
+    150                bitmap[item_index] &= ~(1 << table->index);
+   \                     ??nbr_set_bit_2:
+   \   00006B   75..01       MOV     ?V0 + 2,#0x1
+   \   00006E   75..00       MOV     ?V0 + 3,#0x0
+   \   000071   8E82         MOV     DPL,R6
+   \   000073   8F83         MOV     DPH,R7
+   \   000075   E0           MOVX    A,@DPTR
+   \   000076   F8           MOV     R0,A
+   \   000077   A3           INC     DPTR
+   \   000078   E0           MOVX    A,@DPTR
+   \   000079   F9           MOV     R1,A
+   \   00007A   E8           MOV     A,R0
+   \   00007B   78..         MOV     R0,#?V0 + 2
+   \   00007D   12....       LCALL   ?S_SHL
+   \   000080   E5..         MOV     A,?V0 + 2
+   \   000082   F4           CPL     A
+   \   000083   F8           MOV     R0,A
+   \   000084   E5..         MOV     A,?V0 + 0
+   \   000086   2A           ADD     A,R2
+   \   000087   F582         MOV     DPL,A
+   \   000089   E5..         MOV     A,?V0 + 1
+   \   00008B   3B           ADDC    A,R3
+   \   00008C   F583         MOV     DPH,A
+   \   00008E   E0           MOVX    A,@DPTR
+   \   00008F   58           ANL     A,R0
+   \   000090   F0           MOVX    @DPTR,A
+    151              }
+    152              return 1;
+   \                     ??nbr_set_bit_3:
+   \   000091   7A01         MOV     R2,#0x1
+   \   000093   7B00         MOV     R3,#0x0
+   \   000095   8004         SJMP    ??nbr_set_bit_4
+    153            } else {
+    154              return 0;
+   \                     ??nbr_set_bit_0:
+   \   000097   7A00         MOV     R2,#0x0
+   \   000099   7B00         MOV     R3,#0x0
+   \                     ??nbr_set_bit_4:
+   \   00009B   7F06         MOV     R7,#0x6
+   \   00009D   02....       LJMP    ?BANKED_LEAVE_XDATA
+    155            }
+    156            return 0;
+                   ^
+Warning[Pe111]: statement is unreachable
+    157          }
+    158          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    159          static nbr_table_key_t *
+    160          nbr_table_allocate(void)
+   \                     nbr_table_allocate:
+    161          {
+   \   000000   74F2         MOV     A,#-0xe
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 14
+   \   000005                ; Auto size: 0
+    162            nbr_table_key_t *key;
+    163            int least_used_count = 0;
+   \   000005   75..00       MOV     ?V0 + 2,#0x0
+   \   000008   75..00       MOV     ?V0 + 3,#0x0
+    164            nbr_table_key_t *least_used_key = NULL;
+   \   00000B   75..00       MOV     ?V0 + 0,#0x0
+   \   00000E   75..00       MOV     ?V0 + 1,#0x0
+    165          
+    166            key = memb_alloc(&neighbor_addr_mem);
+   \   000011                ; Setup parameters for call to function memb_alloc
+   \   000011   7A..         MOV     R2,#neighbor_addr_mem & 0xff
+   \   000013   7B..         MOV     R3,#(neighbor_addr_mem >> 8) & 0xff
+   \   000015   12....       LCALL   ??memb_alloc?relay
+   \   000018   8A..         MOV     ?V0 + 4,R2
+   \   00001A   8B..         MOV     ?V0 + 5,R3
+   \   00001C   AE..         MOV     R6,?V0 + 4
+   \   00001E   AF..         MOV     R7,?V0 + 5
+    167            if(key != NULL) {
+   \   000020   EE           MOV     A,R6
+   \   000021   4F           ORL     A,R7
+   \   000022   6007         JZ      ??nbr_table_allocate_0
+    168              return key;
+   \   000024   EE           MOV     A,R6
+   \   000025   FA           MOV     R2,A
+   \   000026   EF           MOV     A,R7
+   \   000027   FB           MOV     R3,A
+   \   000028   02....       LJMP    ??nbr_table_allocate_1 & 0xFFFF
+    169            } else { /* No more space, try to free a neighbor.
+    170                      * The replacement policy is the following: remove neighbor that is:
+    171                      * (1) not locked
+    172                      * (2) used by fewest tables
+    173                      * (3) oldest (the list is ordered by insertion time)
+    174                      * */
+    175              /* Get item from first key */
+    176              key = list_head(nbr_table_keys);
+   \                     ??nbr_table_allocate_0:
+   \   00002B                ; Setup parameters for call to function list_head
+   \   00002B   90....       MOV     DPTR,#nbr_table_keys
+   \   00002E   E0           MOVX    A,@DPTR
+   \   00002F   FA           MOV     R2,A
+   \   000030   A3           INC     DPTR
+   \   000031   E0           MOVX    A,@DPTR
+   \   000032   FB           MOV     R3,A
+   \   000033   12....       LCALL   ??list_head?relay
+   \   000036   8A..         MOV     ?V0 + 4,R2
+   \   000038   8B..         MOV     ?V0 + 5,R3
+   \   00003A   AE..         MOV     R6,?V0 + 4
+   \   00003C   AF..         MOV     R7,?V0 + 5
+   \   00003E   800F         SJMP    ??nbr_table_allocate_2
+    177              while(key != NULL) {
+    178                int item_index = index_from_key(key);
+    179                int locked = locked_map[item_index];
+    180                /* Never delete a locked item */
+    181                if(!locked) {
+    182                  int used = used_map[item_index];
+    183                  int used_count = 0;
+    184                  /* Count how many tables are using this item */
+    185                  while(used != 0) {
+    186                    if((used & 1) == 1) {
+    187                      used_count++;
+    188                    }
+    189                    used >>= 1;
+    190                  }
+    191                  /* Find least used item */
+    192                  if(least_used_key == NULL || used_count < least_used_count) {
+    193                    least_used_key = key;
+    194                    least_used_count = used_count;
+    195                    if(used_count == 0) { /* We won't find any least used item */
+    196                      break;
+    197                    }
+    198                  }
+    199                }
+    200                key = list_item_next(key);
+   \                     ??nbr_table_allocate_3:
+   \   000040                ; Setup parameters for call to function list_item_next
+   \   000040   EE           MOV     A,R6
+   \   000041   FA           MOV     R2,A
+   \   000042   EF           MOV     A,R7
+   \   000043   FB           MOV     R3,A
+   \   000044   12....       LCALL   ??list_item_next?relay
+   \   000047   8A..         MOV     ?V0 + 4,R2
+   \   000049   8B..         MOV     ?V0 + 5,R3
+   \   00004B   AE..         MOV     R6,?V0 + 4
+   \   00004D   AF..         MOV     R7,?V0 + 5
+   \                     ??nbr_table_allocate_2:
+   \   00004F   EE           MOV     A,R6
+   \   000050   4F           ORL     A,R7
+   \   000051   6077         JZ      ??nbr_table_allocate_4
+   \   000053                ; Setup parameters for call to function index_from_key
+   \   000053   EE           MOV     A,R6
+   \   000054   FA           MOV     R2,A
+   \   000055   EF           MOV     A,R7
+   \   000056   FB           MOV     R3,A
+   \   000057   12....       LCALL   ??index_from_key?relay
+   \   00005A   8A..         MOV     ?V0 + 4,R2
+   \   00005C   8B..         MOV     ?V0 + 5,R3
+   \   00005E   AA..         MOV     R2,?V0 + 4
+   \   000060   AB..         MOV     R3,?V0 + 5
+   \   000062   74..         MOV     A,#locked_map & 0xff
+   \   000064   2A           ADD     A,R2
+   \   000065   F582         MOV     DPL,A
+   \   000067   74..         MOV     A,#(locked_map >> 8) & 0xff
+   \   000069   3B           ADDC    A,R3
+   \   00006A   F583         MOV     DPH,A
+   \   00006C   E0           MOVX    A,@DPTR
+   \   00006D   F8           MOV     R0,A
+   \   00006E   7900         MOV     R1,#0x0
+   \   000070   49           ORL     A,R1
+   \   000071   70CD         JNZ     ??nbr_table_allocate_3
+   \   000073   74..         MOV     A,#used_map & 0xff
+   \   000075   2A           ADD     A,R2
+   \   000076   F582         MOV     DPL,A
+   \   000078   74..         MOV     A,#(used_map >> 8) & 0xff
+   \   00007A   3B           ADDC    A,R3
+   \   00007B   F583         MOV     DPH,A
+   \   00007D   E0           MOVX    A,@DPTR
+   \   00007E   F8           MOV     R0,A
+   \   00007F   7900         MOV     R1,#0x0
+   \   000081   7A00         MOV     R2,#0x0
+   \   000083   7B00         MOV     R3,#0x0
+   \   000085   801C         SJMP    ??nbr_table_allocate_5
+   \                     ??nbr_table_allocate_6:
+   \   000087   E8           MOV     A,R0
+   \   000088   A2E0         MOV     C,0xE0 /* A   */.0
+   \   00008A   5008         JNC     ??nbr_table_allocate_7
+   \   00008C   EA           MOV     A,R2
+   \   00008D   2401         ADD     A,#0x1
+   \   00008F   FA           MOV     R2,A
+   \   000090   EB           MOV     A,R3
+   \   000091   3400         ADDC    A,#0x0
+   \   000093   FB           MOV     R3,A
+   \                     ??nbr_table_allocate_7:
+   \   000094   88..         MOV     ?V0 + 4,R0
+   \   000096   89..         MOV     ?V0 + 5,R1
+   \   000098   7401         MOV     A,#0x1
+   \   00009A   78..         MOV     R0,#?V0 + 4
+   \   00009C   12....       LCALL   ?SS_SHR
+   \   00009F   A8..         MOV     R0,?V0 + 4
+   \   0000A1   A9..         MOV     R1,?V0 + 5
+   \                     ??nbr_table_allocate_5:
+   \   0000A3   E8           MOV     A,R0
+   \   0000A4   49           ORL     A,R1
+   \   0000A5   70E0         JNZ     ??nbr_table_allocate_6
+   \   0000A7   E5..         MOV     A,?V0 + 0
+   \   0000A9   45..         ORL     A,?V0 + 1
+   \   0000AB   600E         JZ      ??nbr_table_allocate_8
+   \   0000AD   C3           CLR     C
+   \   0000AE   EA           MOV     A,R2
+   \   0000AF   95..         SUBB    A,?V0 + 2
+   \   0000B1   EB           MOV     A,R3
+   \   0000B2   95..         SUBB    A,?V0 + 3
+   \   0000B4   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   0000B6   65D0         XRL     A,PSW
+   \   0000B8   33           RLC     A
+   \   0000B9   5085         JNC     ??nbr_table_allocate_3
+   \                     ??nbr_table_allocate_8:
+   \   0000BB   8E..         MOV     ?V0 + 0,R6
+   \   0000BD   8F..         MOV     ?V0 + 1,R7
+   \   0000BF   8A..         MOV     ?V0 + 2,R2
+   \   0000C1   8B..         MOV     ?V0 + 3,R3
+   \   0000C3   EA           MOV     A,R2
+   \   0000C4   4B           ORL     A,R3
+   \   0000C5   6003         JZ      $+5
+   \   0000C7   02....       LJMP    ??nbr_table_allocate_3 & 0xFFFF
+    201              }
+    202              if(least_used_key == NULL) {
+   \                     ??nbr_table_allocate_4:
+   \   0000CA   E5..         MOV     A,?V0 + 0
+   \   0000CC   45..         ORL     A,?V0 + 1
+   \   0000CE   7007         JNZ     ??nbr_table_allocate_9
+    203                /* We haven't found any unlocked item, allocation fails */
+    204                return NULL;
+   \   0000D0   7A00         MOV     R2,#0x0
+   \   0000D2   7B00         MOV     R3,#0x0
+   \   0000D4   02....       LJMP    ??nbr_table_allocate_1 & 0xFFFF
+    205              } else {
+    206                /* Reuse least used item */
+    207                int i;
+    208                for(i = 0; i<MAX_NUM_TABLES; i++) {
+   \                     ??nbr_table_allocate_9:
+   \   0000D7   7E00         MOV     R6,#0x0
+   \   0000D9   7F00         MOV     R7,#0x0
+   \   0000DB   02....       LJMP    ??nbr_table_allocate_10 & 0xFFFF
+    209                  if(all_tables[i] != NULL && all_tables[i]->callback != NULL) {
+   \                     ??nbr_table_allocate_11:
+   \   0000DE   EE           MOV     A,R6
+   \   0000DF   F8           MOV     R0,A
+   \   0000E0   EF           MOV     A,R7
+   \   0000E1   F9           MOV     R1,A
+   \   0000E2   E8           MOV     A,R0
+   \   0000E3   75F002       MOV     B,#0x2
+   \   0000E6   A4           MUL     AB
+   \   0000E7   C8           XCH     A,R0
+   \   0000E8   AAF0         MOV     R2,B
+   \   0000EA   75F000       MOV     B,#0x0
+   \   0000ED   A4           MUL     AB
+   \   0000EE   2A           ADD     A,R2
+   \   0000EF   FA           MOV     R2,A
+   \   0000F0   75F002       MOV     B,#0x2
+   \   0000F3   E9           MOV     A,R1
+   \   0000F4   A4           MUL     AB
+   \   0000F5   2A           ADD     A,R2
+   \   0000F6   F9           MOV     R1,A
+   \   0000F7   74..         MOV     A,#all_tables & 0xff
+   \   0000F9   28           ADD     A,R0
+   \   0000FA   F582         MOV     DPL,A
+   \   0000FC   74..         MOV     A,#(all_tables >> 8) & 0xff
+   \   0000FE   39           ADDC    A,R1
+   \   0000FF   F583         MOV     DPH,A
+   \   000101   E0           MOVX    A,@DPTR
+   \   000102   F8           MOV     R0,A
+   \   000103   A3           INC     DPTR
+   \   000104   E0           MOVX    A,@DPTR
+   \   000105   F9           MOV     R1,A
+   \   000106   E8           MOV     A,R0
+   \   000107   49           ORL     A,R1
+   \   000108   7003         JNZ     $+5
+   \   00010A   02....       LJMP    ??nbr_table_allocate_12 & 0xFFFF
+   \   00010D   EE           MOV     A,R6
+   \   00010E   F8           MOV     R0,A
+   \   00010F   EF           MOV     A,R7
+   \   000110   F9           MOV     R1,A
+   \   000111   E8           MOV     A,R0
+   \   000112   75F002       MOV     B,#0x2
+   \   000115   A4           MUL     AB
+   \   000116   C8           XCH     A,R0
+   \   000117   AAF0         MOV     R2,B
+   \   000119   75F000       MOV     B,#0x0
+   \   00011C   A4           MUL     AB
+   \   00011D   2A           ADD     A,R2
+   \   00011E   FA           MOV     R2,A
+   \   00011F   75F002       MOV     B,#0x2
+   \   000122   E9           MOV     A,R1
+   \   000123   A4           MUL     AB
+   \   000124   2A           ADD     A,R2
+   \   000125   F9           MOV     R1,A
+   \   000126   74..         MOV     A,#all_tables & 0xff
+   \   000128   28           ADD     A,R0
+   \   000129   F582         MOV     DPL,A
+   \   00012B   74..         MOV     A,#(all_tables >> 8) & 0xff
+   \   00012D   39           ADDC    A,R1
+   \   00012E   F583         MOV     DPH,A
+   \   000130   E0           MOVX    A,@DPTR
+   \   000131   F8           MOV     R0,A
+   \   000132   A3           INC     DPTR
+   \   000133   E0           MOVX    A,@DPTR
+   \   000134   F583         MOV     DPH,A
+   \   000136   8882         MOV     DPL,R0
+   \   000138   A3           INC     DPTR
+   \   000139   A3           INC     DPTR
+   \   00013A   A3           INC     DPTR
+   \   00013B   A3           INC     DPTR
+   \   00013C   E0           MOVX    A,@DPTR
+   \   00013D   F8           MOV     R0,A
+   \   00013E   A3           INC     DPTR
+   \   00013F   E0           MOVX    A,@DPTR
+   \   000140   F9           MOV     R1,A
+   \   000141   E8           MOV     A,R0
+   \   000142   49           ORL     A,R1
+   \   000143   7003         JNZ     $+5
+   \   000145   02....       LJMP    ??nbr_table_allocate_12 & 0xFFFF
+    210                    /* Call table callback for each table that uses this item */
+    211                    nbr_table_item_t *removed_item = item_from_key(all_tables[i], least_used_key);
+   \   000148                ; Setup parameters for call to function item_from_key
+   \   000148   AC..         MOV     R4,?V0 + 0
+   \   00014A   AD..         MOV     R5,?V0 + 1
+   \   00014C   EE           MOV     A,R6
+   \   00014D   F8           MOV     R0,A
+   \   00014E   EF           MOV     A,R7
+   \   00014F   F9           MOV     R1,A
+   \   000150   E8           MOV     A,R0
+   \   000151   75F002       MOV     B,#0x2
+   \   000154   A4           MUL     AB
+   \   000155   C8           XCH     A,R0
+   \   000156   AAF0         MOV     R2,B
+   \   000158   75F000       MOV     B,#0x0
+   \   00015B   A4           MUL     AB
+   \   00015C   2A           ADD     A,R2
+   \   00015D   FA           MOV     R2,A
+   \   00015E   75F002       MOV     B,#0x2
+   \   000161   E9           MOV     A,R1
+   \   000162   A4           MUL     AB
+   \   000163   2A           ADD     A,R2
+   \   000164   F9           MOV     R1,A
+   \   000165   74..         MOV     A,#all_tables & 0xff
+   \   000167   28           ADD     A,R0
+   \   000168   F582         MOV     DPL,A
+   \   00016A   74..         MOV     A,#(all_tables >> 8) & 0xff
+   \   00016C   39           ADDC    A,R1
+   \   00016D   F583         MOV     DPH,A
+   \   00016F   E0           MOVX    A,@DPTR
+   \   000170   FA           MOV     R2,A
+   \   000171   A3           INC     DPTR
+   \   000172   E0           MOVX    A,@DPTR
+   \   000173   FB           MOV     R3,A
+   \   000174   12....       LCALL   ??item_from_key?relay
+   \   000177   8A..         MOV     ?V0 + 4,R2
+   \   000179   8B..         MOV     ?V0 + 5,R3
+   \   00017B   85....       MOV     ?V0 + 2,?V0 + 4
+   \   00017E   85....       MOV     ?V0 + 3,?V0 + 5
+    212                    if(nbr_get_bit(used_map, all_tables[i], removed_item) == 1) {
+   \   000181                ; Setup parameters for call to function nbr_get_bit
+   \   000181   78..         MOV     R0,#?V0 + 2
+   \   000183   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000186   EE           MOV     A,R6
+   \   000187   F8           MOV     R0,A
+   \   000188   EF           MOV     A,R7
+   \   000189   F9           MOV     R1,A
+   \   00018A   E8           MOV     A,R0
+   \   00018B   75F002       MOV     B,#0x2
+   \   00018E   A4           MUL     AB
+   \   00018F   C8           XCH     A,R0
+   \   000190   AAF0         MOV     R2,B
+   \   000192   75F000       MOV     B,#0x0
+   \   000195   A4           MUL     AB
+   \   000196   2A           ADD     A,R2
+   \   000197   FA           MOV     R2,A
+   \   000198   75F002       MOV     B,#0x2
+   \   00019B   E9           MOV     A,R1
+   \   00019C   A4           MUL     AB
+   \   00019D   2A           ADD     A,R2
+   \   00019E   F9           MOV     R1,A
+   \   00019F   74..         MOV     A,#all_tables & 0xff
+   \   0001A1   28           ADD     A,R0
+   \   0001A2   F582         MOV     DPL,A
+   \   0001A4   74..         MOV     A,#(all_tables >> 8) & 0xff
+   \   0001A6   39           ADDC    A,R1
+   \   0001A7   F583         MOV     DPH,A
+   \   0001A9   E0           MOVX    A,@DPTR
+   \   0001AA   FC           MOV     R4,A
+   \   0001AB   A3           INC     DPTR
+   \   0001AC   E0           MOVX    A,@DPTR
+   \   0001AD   FD           MOV     R5,A
+   \   0001AE   7A..         MOV     R2,#used_map & 0xff
+   \   0001B0   7B..         MOV     R3,#(used_map >> 8) & 0xff
+   \   0001B2   12....       LCALL   ??nbr_get_bit?relay
+   \   0001B5   7402         MOV     A,#0x2
+   \   0001B7   12....       LCALL   ?DEALLOC_XSTACK8
+   \   0001BA   8A..         MOV     ?V0 + 4,R2
+   \   0001BC   8B..         MOV     ?V0 + 5,R3
+   \   0001BE   7401         MOV     A,#0x1
+   \   0001C0   65..         XRL     A,?V0 + 4
+   \   0001C2   7004         JNZ     ??nbr_table_allocate_13
+   \   0001C4   7400         MOV     A,#0x0
+   \   0001C6   65..         XRL     A,?V0 + 5
+   \                     ??nbr_table_allocate_13:
+   \   0001C8   703E         JNZ     ??nbr_table_allocate_12
+    213                      all_tables[i]->callback(removed_item);
+   \   0001CA                ; Setup parameters for indirect call
+   \   0001CA   AA..         MOV     R2,?V0 + 2
+   \   0001CC   AB..         MOV     R3,?V0 + 3
+   \   0001CE   EE           MOV     A,R6
+   \   0001CF   F8           MOV     R0,A
+   \   0001D0   EF           MOV     A,R7
+   \   0001D1   F9           MOV     R1,A
+   \   0001D2   E8           MOV     A,R0
+   \   0001D3   75F002       MOV     B,#0x2
+   \   0001D6   A4           MUL     AB
+   \   0001D7   C8           XCH     A,R0
+   \   0001D8   ACF0         MOV     R4,B
+   \   0001DA   75F000       MOV     B,#0x0
+   \   0001DD   A4           MUL     AB
+   \   0001DE   2C           ADD     A,R4
+   \   0001DF   FC           MOV     R4,A
+   \   0001E0   75F002       MOV     B,#0x2
+   \   0001E3   E9           MOV     A,R1
+   \   0001E4   A4           MUL     AB
+   \   0001E5   2C           ADD     A,R4
+   \   0001E6   F9           MOV     R1,A
+   \   0001E7   74..         MOV     A,#all_tables & 0xff
+   \   0001E9   28           ADD     A,R0
+   \   0001EA   F582         MOV     DPL,A
+   \   0001EC   74..         MOV     A,#(all_tables >> 8) & 0xff
+   \   0001EE   39           ADDC    A,R1
+   \   0001EF   F583         MOV     DPH,A
+   \   0001F1   E0           MOVX    A,@DPTR
+   \   0001F2   F8           MOV     R0,A
+   \   0001F3   A3           INC     DPTR
+   \   0001F4   E0           MOVX    A,@DPTR
+   \   0001F5   F583         MOV     DPH,A
+   \   0001F7   8882         MOV     DPL,R0
+   \   0001F9   A3           INC     DPTR
+   \   0001FA   A3           INC     DPTR
+   \   0001FB   A3           INC     DPTR
+   \   0001FC   A3           INC     DPTR
+   \   0001FD   E0           MOVX    A,@DPTR
+   \   0001FE   F8           MOV     R0,A
+   \   0001FF   A3           INC     DPTR
+   \   000200   E0           MOVX    A,@DPTR
+   \   000201   F583         MOV     DPH,A
+   \   000203   8882         MOV     DPL,R0
+   \   000205   12....       LCALL   ?CALL_IND
+    214                    }
+    215                  }
+    216                }
+   \                     ??nbr_table_allocate_12:
+   \   000208   EE           MOV     A,R6
+   \   000209   2401         ADD     A,#0x1
+   \   00020B   FE           MOV     R6,A
+   \   00020C   EF           MOV     A,R7
+   \   00020D   3400         ADDC    A,#0x0
+   \   00020F   FF           MOV     R7,A
+   \                     ??nbr_table_allocate_10:
+   \   000210   C3           CLR     C
+   \   000211   EE           MOV     A,R6
+   \   000212   9408         SUBB    A,#0x8
+   \   000214   EF           MOV     A,R7
+   \   000215   9400         SUBB    A,#0x0
+   \   000217   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000219   65D0         XRL     A,PSW
+   \   00021B   33           RLC     A
+   \   00021C   5003         JNC     $+5
+   \   00021E   02....       LJMP    ??nbr_table_allocate_11 & 0xFFFF
+    217                /* Empty used map */
+    218                used_map[index_from_key(least_used_key)] = 0;
+   \   000221                ; Setup parameters for call to function index_from_key
+   \   000221   AA..         MOV     R2,?V0 + 0
+   \   000223   AB..         MOV     R3,?V0 + 1
+   \   000225   12....       LCALL   ??index_from_key?relay
+   \   000228   8A..         MOV     ?V0 + 2,R2
+   \   00022A   8B..         MOV     ?V0 + 3,R3
+   \   00022C   74..         MOV     A,#used_map & 0xff
+   \   00022E   25..         ADD     A,?V0 + 2
+   \   000230   F582         MOV     DPL,A
+   \   000232   74..         MOV     A,#(used_map >> 8) & 0xff
+   \   000234   35..         ADDC    A,?V0 + 3
+   \   000236   F583         MOV     DPH,A
+   \   000238   7400         MOV     A,#0x0
+   \   00023A   F0           MOVX    @DPTR,A
+    219                /* Remove neighbor from list */
+    220                list_remove(nbr_table_keys, least_used_key);
+   \   00023B                ; Setup parameters for call to function list_remove
+   \   00023B   AC..         MOV     R4,?V0 + 0
+   \   00023D   AD..         MOV     R5,?V0 + 1
+   \   00023F   90....       MOV     DPTR,#nbr_table_keys
+   \   000242   E0           MOVX    A,@DPTR
+   \   000243   FA           MOV     R2,A
+   \   000244   A3           INC     DPTR
+   \   000245   E0           MOVX    A,@DPTR
+   \   000246   FB           MOV     R3,A
+   \   000247   12....       LCALL   ??list_remove?relay
+    221                /* Return associated key */
+    222                return least_used_key;
+   \   00024A   AA..         MOV     R2,?V0 + 0
+   \   00024C   AB..         MOV     R3,?V0 + 1
+   \                     ??nbr_table_allocate_1:
+   \   00024E   7F06         MOV     R7,#0x6
+   \   000250   02....       LJMP    ?BANKED_LEAVE_XDATA
+    223              }
+    224            }
+    225          }
+    226          /*---------------------------------------------------------------------------*/
+    227          /* Register a new neighbor table. To be used at initialization by modules
+    228           * using a neighbor table */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    229          int
+    230          nbr_table_register(nbr_table_t *table, nbr_table_callback *callback)
+   \                     nbr_table_register:
+    231          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+    232            if(num_tables < MAX_NUM_TABLES) {
+   \   000005   90....       MOV     DPTR,#num_tables
+   \   000008   C3           CLR     C
+   \   000009   E0           MOVX    A,@DPTR
+   \   00000A   9408         SUBB    A,#0x8
+   \   00000C   A3           INC     DPTR
+   \   00000D   E0           MOVX    A,@DPTR
+   \   00000E   9400         SUBB    A,#0x0
+   \   000010   505D         JNC     ??nbr_table_register_0
+    233              table->index = num_tables++;
+   \   000012   90....       MOV     DPTR,#num_tables
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   F8           MOV     R0,A
+   \   000017   A3           INC     DPTR
+   \   000018   E0           MOVX    A,@DPTR
+   \   000019   F9           MOV     R1,A
+   \   00001A   8A82         MOV     DPL,R2
+   \   00001C   8B83         MOV     DPH,R3
+   \   00001E   E8           MOV     A,R0
+   \   00001F   F0           MOVX    @DPTR,A
+   \   000020   A3           INC     DPTR
+   \   000021   E9           MOV     A,R1
+   \   000022   F0           MOVX    @DPTR,A
+   \   000023   90....       MOV     DPTR,#num_tables
+   \   000026   E0           MOVX    A,@DPTR
+   \   000027   2401         ADD     A,#0x1
+   \   000029   F0           MOVX    @DPTR,A
+   \   00002A   A3           INC     DPTR
+   \   00002B   E0           MOVX    A,@DPTR
+   \   00002C   3400         ADDC    A,#0x0
+   \   00002E   F0           MOVX    @DPTR,A
+    234              table->callback = callback;
+   \   00002F   8A82         MOV     DPL,R2
+   \   000031   8B83         MOV     DPH,R3
+   \   000033   A3           INC     DPTR
+   \   000034   A3           INC     DPTR
+   \   000035   A3           INC     DPTR
+   \   000036   A3           INC     DPTR
+   \   000037   EC           MOV     A,R4
+   \   000038   F0           MOVX    @DPTR,A
+   \   000039   A3           INC     DPTR
+   \   00003A   ED           MOV     A,R5
+   \   00003B   F0           MOVX    @DPTR,A
+    235              all_tables[table->index] = table;
+   \   00003C   8A82         MOV     DPL,R2
+   \   00003E   8B83         MOV     DPH,R3
+   \   000040   E0           MOVX    A,@DPTR
+   \   000041   F8           MOV     R0,A
+   \   000042   A3           INC     DPTR
+   \   000043   E0           MOVX    A,@DPTR
+   \   000044   F9           MOV     R1,A
+   \   000045   E8           MOV     A,R0
+   \   000046   75F002       MOV     B,#0x2
+   \   000049   A4           MUL     AB
+   \   00004A   C8           XCH     A,R0
+   \   00004B   ACF0         MOV     R4,B
+   \   00004D   75F000       MOV     B,#0x0
+   \   000050   A4           MUL     AB
+   \   000051   2C           ADD     A,R4
+   \   000052   FC           MOV     R4,A
+   \   000053   75F002       MOV     B,#0x2
+   \   000056   E9           MOV     A,R1
+   \   000057   A4           MUL     AB
+   \   000058   2C           ADD     A,R4
+   \   000059   F9           MOV     R1,A
+   \   00005A   74..         MOV     A,#all_tables & 0xff
+   \   00005C   28           ADD     A,R0
+   \   00005D   F582         MOV     DPL,A
+   \   00005F   74..         MOV     A,#(all_tables >> 8) & 0xff
+   \   000061   39           ADDC    A,R1
+   \   000062   F583         MOV     DPH,A
+   \   000064   EA           MOV     A,R2
+   \   000065   F0           MOVX    @DPTR,A
+   \   000066   A3           INC     DPTR
+   \   000067   EB           MOV     A,R3
+   \   000068   F0           MOVX    @DPTR,A
+    236              return 1;
+   \   000069   7A01         MOV     R2,#0x1
+   \   00006B   7B00         MOV     R3,#0x0
+   \   00006D   8004         SJMP    ??nbr_table_register_1
+    237            } else {
+    238              /* Maximum number of tables exceeded */
+    239              return 0;
+   \                     ??nbr_table_register_0:
+   \   00006F   7A00         MOV     R2,#0x0
+   \   000071   7B00         MOV     R3,#0x0
+   \                     ??nbr_table_register_1:
+   \   000073   7F01         MOV     R7,#0x1
+   \   000075   02....       LJMP    ?BANKED_LEAVE_XDATA
+    240            }
+    241          }
+    242          /*---------------------------------------------------------------------------*/
+    243          /* Returns the first item of the current table */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    244          nbr_table_item_t *
+    245          nbr_table_head(nbr_table_t *table)
+   \                     nbr_table_head:
+    246          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    247            /* Get item from first key */
+    248            nbr_table_item_t *item = item_from_key(table, list_head(nbr_table_keys));
+   \   000009                ; Setup parameters for call to function item_from_key
+   \   000009                ; Setup parameters for call to function list_head
+   \   000009   90....       MOV     DPTR,#nbr_table_keys
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   FA           MOV     R2,A
+   \   00000E   A3           INC     DPTR
+   \   00000F   E0           MOVX    A,@DPTR
+   \   000010   FB           MOV     R3,A
+   \   000011   12....       LCALL   ??list_head?relay
+   \   000014   EA           MOV     A,R2
+   \   000015   FC           MOV     R4,A
+   \   000016   EB           MOV     A,R3
+   \   000017   FD           MOV     R5,A
+   \   000018   EE           MOV     A,R6
+   \   000019   FA           MOV     R2,A
+   \   00001A   EF           MOV     A,R7
+   \   00001B   FB           MOV     R3,A
+   \   00001C   12....       LCALL   ??item_from_key?relay
+   \   00001F   8A..         MOV     ?V0 + 2,R2
+   \   000021   8B..         MOV     ?V0 + 3,R3
+   \   000023   85....       MOV     ?V0 + 0,?V0 + 2
+   \   000026   85....       MOV     ?V0 + 1,?V0 + 3
+    249            /* Item is the first neighbor, now check is it is in the current table */
+    250            if(nbr_get_bit(used_map, table, item)) {
+   \   000029                ; Setup parameters for call to function nbr_get_bit
+   \   000029   78..         MOV     R0,#?V0 + 0
+   \   00002B   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00002E   EE           MOV     A,R6
+   \   00002F   FC           MOV     R4,A
+   \   000030   EF           MOV     A,R7
+   \   000031   FD           MOV     R5,A
+   \   000032   7A..         MOV     R2,#used_map & 0xff
+   \   000034   7B..         MOV     R3,#(used_map >> 8) & 0xff
+   \   000036   12....       LCALL   ??nbr_get_bit?relay
+   \   000039   7402         MOV     A,#0x2
+   \   00003B   12....       LCALL   ?DEALLOC_XSTACK8
+   \   00003E   8A..         MOV     ?V0 + 2,R2
+   \   000040   8B..         MOV     ?V0 + 3,R3
+   \   000042   E5..         MOV     A,?V0 + 2
+   \   000044   45..         ORL     A,?V0 + 3
+   \   000046   6006         JZ      ??nbr_table_head_0
+    251              return item;
+   \   000048   AA..         MOV     R2,?V0 + 0
+   \   00004A   AB..         MOV     R3,?V0 + 1
+   \   00004C   800B         SJMP    ??nbr_table_head_1
+    252            } else {
+    253              return nbr_table_next(table, item);
+   \                     ??nbr_table_head_0:
+   \   00004E                ; Setup parameters for call to function nbr_table_next
+   \   00004E   AC..         MOV     R4,?V0 + 0
+   \   000050   AD..         MOV     R5,?V0 + 1
+   \   000052   EE           MOV     A,R6
+   \   000053   FA           MOV     R2,A
+   \   000054   EF           MOV     A,R7
+   \   000055   FB           MOV     R3,A
+   \   000056   12....       LCALL   ??nbr_table_next?relay
+   \                     ??nbr_table_head_1:
+   \   000059   7F04         MOV     R7,#0x4
+   \   00005B   02....       LJMP    ?BANKED_LEAVE_XDATA
+    254            }
+    255          }
+    256          /*---------------------------------------------------------------------------*/
+    257          /* Iterates over the current table */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    258          nbr_table_item_t *
+    259          nbr_table_next(nbr_table_t *table, nbr_table_item_t *item)
+   \                     nbr_table_next:
+    260          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   8C..         MOV     ?V0 + 0,R4
+   \   00000B   8D..         MOV     ?V0 + 1,R5
+    261            do {
+    262              void *key = key_from_item(table, item);
+   \                     ??nbr_table_next_0:
+   \   00000D                ; Setup parameters for call to function key_from_item
+   \   00000D   AC..         MOV     R4,?V0 + 0
+   \   00000F   AD..         MOV     R5,?V0 + 1
+   \   000011   EE           MOV     A,R6
+   \   000012   FA           MOV     R2,A
+   \   000013   EF           MOV     A,R7
+   \   000014   FB           MOV     R3,A
+   \   000015   12....       LCALL   ??key_from_item?relay
+   \   000018   8A..         MOV     ?V0 + 0,R2
+   \   00001A   8B..         MOV     ?V0 + 1,R3
+   \   00001C   AA..         MOV     R2,?V0 + 0
+   \   00001E   AB..         MOV     R3,?V0 + 1
+    263              key = list_item_next(key);
+   \   000020                ; Setup parameters for call to function list_item_next
+   \   000020   12....       LCALL   ??list_item_next?relay
+   \   000023   8A..         MOV     ?V0 + 0,R2
+   \   000025   8B..         MOV     ?V0 + 1,R3
+   \   000027   AA..         MOV     R2,?V0 + 0
+   \   000029   AB..         MOV     R3,?V0 + 1
+    264              /* Loop until the next item is in the current table */
+    265              item = item_from_key(table, key);
+   \   00002B                ; Setup parameters for call to function item_from_key
+   \   00002B   E5..         MOV     A,?V0 + 0
+   \   00002D   AC..         MOV     R4,?V0 + 0
+   \   00002F   E5..         MOV     A,?V0 + 1
+   \   000031   AD..         MOV     R5,?V0 + 1
+   \   000033   EE           MOV     A,R6
+   \   000034   FA           MOV     R2,A
+   \   000035   EF           MOV     A,R7
+   \   000036   FB           MOV     R3,A
+   \   000037   12....       LCALL   ??item_from_key?relay
+   \   00003A   8A..         MOV     ?V0 + 2,R2
+   \   00003C   8B..         MOV     ?V0 + 3,R3
+   \   00003E   85....       MOV     ?V0 + 0,?V0 + 2
+   \   000041   85....       MOV     ?V0 + 1,?V0 + 3
+    266            } while(item && !nbr_get_bit(used_map, table, item));
+   \   000044   E5..         MOV     A,?V0 + 0
+   \   000046   45..         ORL     A,?V0 + 1
+   \   000048   601F         JZ      ??nbr_table_next_1
+   \   00004A                ; Setup parameters for call to function nbr_get_bit
+   \   00004A   78..         MOV     R0,#?V0 + 0
+   \   00004C   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00004F   EE           MOV     A,R6
+   \   000050   FC           MOV     R4,A
+   \   000051   EF           MOV     A,R7
+   \   000052   FD           MOV     R5,A
+   \   000053   7A..         MOV     R2,#used_map & 0xff
+   \   000055   7B..         MOV     R3,#(used_map >> 8) & 0xff
+   \   000057   12....       LCALL   ??nbr_get_bit?relay
+   \   00005A   7402         MOV     A,#0x2
+   \   00005C   12....       LCALL   ?DEALLOC_XSTACK8
+   \   00005F   8A..         MOV     ?V0 + 2,R2
+   \   000061   8B..         MOV     ?V0 + 3,R3
+   \   000063   E5..         MOV     A,?V0 + 2
+   \   000065   45..         ORL     A,?V0 + 3
+   \   000067   60A4         JZ      ??nbr_table_next_0
+    267            return item;
+   \                     ??nbr_table_next_1:
+   \   000069   AA..         MOV     R2,?V0 + 0
+   \   00006B   AB..         MOV     R3,?V0 + 1
+   \   00006D   7F04         MOV     R7,#0x4
+   \   00006F   02....       LJMP    ?BANKED_LEAVE_XDATA
+    268          }
+    269          /*---------------------------------------------------------------------------*/
+    270          /* Add a neighbor indexed with its link-layer address */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    271          nbr_table_item_t *
+    272          nbr_table_add_lladdr(nbr_table_t *table, const rimeaddr_t *lladdr)
+   \                     nbr_table_add_lladdr:
+    273          {
+   \   000000   74F0         MOV     A,#-0x10
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 16
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   EC           MOV     A,R4
+   \   00000A   FE           MOV     R6,A
+   \   00000B   ED           MOV     A,R5
+   \   00000C   FF           MOV     R7,A
+    274            int index;
+    275            nbr_table_item_t *item;
+    276            nbr_table_key_t *key;
+    277          
+    278            /* Allow lladdr-free insertion, useful e.g. for IPv6 ND.
+    279             * Only one such entry is possible at a time, indexed by rimeaddr_null. */
+    280            if(lladdr == NULL) {
+   \   00000D   EE           MOV     A,R6
+   \   00000E   4F           ORL     A,R7
+   \   00000F   7004         JNZ     ??nbr_table_add_lladdr_0
+    281              lladdr = &rimeaddr_null;
+   \   000011   7E..         MOV     R6,#rimeaddr_null & 0xff
+   \   000013   7F..         MOV     R7,#(rimeaddr_null >> 8) & 0xff
+    282            }
+    283          
+    284            if((index = index_from_lladdr(lladdr)) == -1) {
+   \                     ??nbr_table_add_lladdr_0:
+   \   000015                ; Setup parameters for call to function index_from_lladdr
+   \   000015   EE           MOV     A,R6
+   \   000016   FA           MOV     R2,A
+   \   000017   EF           MOV     A,R7
+   \   000018   FB           MOV     R3,A
+   \   000019   12....       LCALL   ??index_from_lladdr?relay
+   \   00001C   8A..         MOV     ?V0 + 2,R2
+   \   00001E   8B..         MOV     ?V0 + 3,R3
+   \   000020   A8..         MOV     R0,?V0 + 2
+   \   000022   A9..         MOV     R1,?V0 + 3
+   \   000024   88..         MOV     ?V0 + 4,R0
+   \   000026   89..         MOV     ?V0 + 5,R1
+   \   000028   74FF         MOV     A,#-0x1
+   \   00002A   68           XRL     A,R0
+   \   00002B   7003         JNZ     ??nbr_table_add_lladdr_1
+   \   00002D   74FF         MOV     A,#-0x1
+   \   00002F   69           XRL     A,R1
+   \                     ??nbr_table_add_lladdr_1:
+   \   000030   704B         JNZ     ??nbr_table_add_lladdr_2
+    285               /* Neighbor not yet in table, let's try to allocate one */
+    286              key = nbr_table_allocate();
+   \   000032                ; Setup parameters for call to function nbr_table_allocate
+   \   000032   12....       LCALL   ??nbr_table_allocate?relay
+   \   000035   8A..         MOV     ?V0 + 4,R2
+   \   000037   8B..         MOV     ?V0 + 5,R3
+   \   000039   85....       MOV     ?V0 + 2,?V0 + 4
+   \   00003C   85....       MOV     ?V0 + 3,?V0 + 5
+    287          
+    288              /* No space available for new entry */
+    289              if(key == NULL) {
+   \   00003F   E5..         MOV     A,?V0 + 2
+   \   000041   45..         ORL     A,?V0 + 3
+   \   000043   7007         JNZ     ??nbr_table_add_lladdr_3
+    290                return NULL;
+   \   000045   7A00         MOV     R2,#0x0
+   \   000047   7B00         MOV     R3,#0x0
+   \   000049   02....       LJMP    ??nbr_table_add_lladdr_4 & 0xFFFF
+    291              }
+    292          
+    293              /* Add neighbor to list */
+    294              list_add(nbr_table_keys, key);
+   \                     ??nbr_table_add_lladdr_3:
+   \   00004C                ; Setup parameters for call to function list_add
+   \   00004C   AC..         MOV     R4,?V0 + 2
+   \   00004E   AD..         MOV     R5,?V0 + 3
+   \   000050   90....       MOV     DPTR,#nbr_table_keys
+   \   000053   E0           MOVX    A,@DPTR
+   \   000054   FA           MOV     R2,A
+   \   000055   A3           INC     DPTR
+   \   000056   E0           MOVX    A,@DPTR
+   \   000057   FB           MOV     R3,A
+   \   000058   12....       LCALL   ??list_add?relay
+    295          
+    296              /* Get index from newly allocated neighbor */
+    297              index = index_from_key(key);
+   \   00005B                ; Setup parameters for call to function index_from_key
+   \   00005B   AA..         MOV     R2,?V0 + 2
+   \   00005D   AB..         MOV     R3,?V0 + 3
+   \   00005F   12....       LCALL   ??index_from_key?relay
+   \   000062   8A..         MOV     ?V0 + 6,R2
+   \   000064   8B..         MOV     ?V0 + 7,R3
+   \   000066   85....       MOV     ?V0 + 4,?V0 + 6
+   \   000069   85....       MOV     ?V0 + 5,?V0 + 7
+    298          
+    299              /* Set link-layer address */
+    300              rimeaddr_copy(&key->lladdr, lladdr);
+   \   00006C                ; Setup parameters for call to function rimeaddr_copy
+   \   00006C   EE           MOV     A,R6
+   \   00006D   FC           MOV     R4,A
+   \   00006E   EF           MOV     A,R7
+   \   00006F   FD           MOV     R5,A
+   \   000070   E5..         MOV     A,?V0 + 2
+   \   000072   2402         ADD     A,#0x2
+   \   000074   FA           MOV     R2,A
+   \   000075   E5..         MOV     A,?V0 + 3
+   \   000077   3400         ADDC    A,#0x0
+   \   000079   FB           MOV     R3,A
+   \   00007A   12....       LCALL   ??rimeaddr_copy?relay
+    301            }
+    302          
+    303            /* Get item in the current table */
+    304            item = item_from_index(table, index);
+   \                     ??nbr_table_add_lladdr_2:
+   \   00007D                ; Setup parameters for call to function item_from_index
+   \   00007D   AC..         MOV     R4,?V0 + 4
+   \   00007F   AD..         MOV     R5,?V0 + 5
+   \   000081   AA..         MOV     R2,?V0 + 0
+   \   000083   AB..         MOV     R3,?V0 + 1
+   \   000085   12....       LCALL   ??item_from_index?relay
+   \   000088   8A..         MOV     ?V0 + 4,R2
+   \   00008A   8B..         MOV     ?V0 + 5,R3
+   \   00008C   85....       MOV     ?V0 + 2,?V0 + 4
+   \   00008F   85....       MOV     ?V0 + 3,?V0 + 5
+    305          
+    306            /* Initialize item data and set "used" bit */
+    307            memset(item, 0, table->item_size);
+   \   000092                ; Setup parameters for call to function memset
+   \   000092   85..82       MOV     DPL,?V0 + 0
+   \   000095   85..83       MOV     DPH,?V0 + 1
+   \   000098   A3           INC     DPTR
+   \   000099   A3           INC     DPTR
+   \   00009A   12....       LCALL   ?PUSH_XSTACK8_X_TWO
+   \   00009D   7C00         MOV     R4,#0x0
+   \   00009F   7D00         MOV     R5,#0x0
+   \   0000A1   AA..         MOV     R2,?V0 + 2
+   \   0000A3   AB..         MOV     R3,?V0 + 3
+   \   0000A5   12....       LCALL   ??memset?relay
+   \   0000A8   7402         MOV     A,#0x2
+   \   0000AA   12....       LCALL   ?DEALLOC_XSTACK8
+    308            nbr_set_bit(used_map, table, item, 1);
+   \   0000AD                ; Setup parameters for call to function nbr_set_bit
+   \   0000AD   75..01       MOV     ?V0 + 4,#0x1
+   \   0000B0   75..00       MOV     ?V0 + 5,#0x0
+   \   0000B3   78..         MOV     R0,#?V0 + 4
+   \   0000B5   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000B8   78..         MOV     R0,#?V0 + 2
+   \   0000BA   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000BD   AC..         MOV     R4,?V0 + 0
+   \   0000BF   AD..         MOV     R5,?V0 + 1
+   \   0000C1   7A..         MOV     R2,#used_map & 0xff
+   \   0000C3   7B..         MOV     R3,#(used_map >> 8) & 0xff
+   \   0000C5   12....       LCALL   ??nbr_set_bit?relay
+   \   0000C8   7404         MOV     A,#0x4
+   \   0000CA   12....       LCALL   ?DEALLOC_XSTACK8
+    309          
+    310            return item;
+   \   0000CD   AA..         MOV     R2,?V0 + 2
+   \   0000CF   AB..         MOV     R3,?V0 + 3
+   \                     ??nbr_table_add_lladdr_4:
+   \   0000D1   7F08         MOV     R7,#0x8
+   \   0000D3   02....       LJMP    ?BANKED_LEAVE_XDATA
+    311          }
+    312          /*---------------------------------------------------------------------------*/
+    313          /* Get an item from its link-layer address */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    314          void *
+    315          nbr_table_get_from_lladdr(nbr_table_t *table, const rimeaddr_t *lladdr)
+   \                     nbr_table_get_from_lladdr:
+    316          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   EC           MOV     A,R4
+   \   00000A   FA           MOV     R2,A
+   \   00000B   ED           MOV     A,R5
+   \   00000C   FB           MOV     R3,A
+    317            void *item = item_from_index(table, index_from_lladdr(lladdr));
+   \   00000D                ; Setup parameters for call to function item_from_index
+   \   00000D                ; Setup parameters for call to function index_from_lladdr
+   \   00000D   12....       LCALL   ??index_from_lladdr?relay
+   \   000010   EA           MOV     A,R2
+   \   000011   FC           MOV     R4,A
+   \   000012   EB           MOV     A,R3
+   \   000013   FD           MOV     R5,A
+   \   000014   EE           MOV     A,R6
+   \   000015   FA           MOV     R2,A
+   \   000016   EF           MOV     A,R7
+   \   000017   FB           MOV     R3,A
+   \   000018   12....       LCALL   ??item_from_index?relay
+   \   00001B   8A..         MOV     ?V0 + 2,R2
+   \   00001D   8B..         MOV     ?V0 + 3,R3
+   \   00001F   85....       MOV     ?V0 + 0,?V0 + 2
+   \   000022   85....       MOV     ?V0 + 1,?V0 + 3
+    318            return nbr_get_bit(used_map, table, item) ? item : NULL;
+   \   000025                ; Setup parameters for call to function nbr_get_bit
+   \   000025   78..         MOV     R0,#?V0 + 0
+   \   000027   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00002A   EE           MOV     A,R6
+   \   00002B   FC           MOV     R4,A
+   \   00002C   EF           MOV     A,R7
+   \   00002D   FD           MOV     R5,A
+   \   00002E   7A..         MOV     R2,#used_map & 0xff
+   \   000030   7B..         MOV     R3,#(used_map >> 8) & 0xff
+   \   000032   12....       LCALL   ??nbr_get_bit?relay
+   \   000035   7402         MOV     A,#0x2
+   \   000037   12....       LCALL   ?DEALLOC_XSTACK8
+   \   00003A   8A..         MOV     ?V0 + 2,R2
+   \   00003C   8B..         MOV     ?V0 + 3,R3
+   \   00003E   E5..         MOV     A,?V0 + 2
+   \   000040   45..         ORL     A,?V0 + 3
+   \   000042   7006         JNZ     ??nbr_table_get_from_lladdr_0
+   \   000044   75..00       MOV     ?V0 + 0,#0x0
+   \   000047   75..00       MOV     ?V0 + 1,#0x0
+   \                     ??nbr_table_get_from_lladdr_0:
+   \   00004A   AA..         MOV     R2,?V0 + 0
+   \   00004C   AB..         MOV     R3,?V0 + 1
+   \   00004E   7F04         MOV     R7,#0x4
+   \   000050   02....       LJMP    ?BANKED_LEAVE_XDATA
+    319          }
+    320          /*---------------------------------------------------------------------------*/
+    321          /* Removes a neighbor from the current table (unset "used" bit) */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    322          int
+    323          nbr_table_remove(nbr_table_t *table, void *item)
+   \                     nbr_table_remove:
+    324          {
+   \   000000   74F2         MOV     A,#-0xe
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 14
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   8C..         MOV     ?V0 + 2,R4
+   \   00000B   8D..         MOV     ?V0 + 3,R5
+    325            int ret = nbr_set_bit(used_map, table, item, 0);
+   \   00000D                ; Setup parameters for call to function nbr_set_bit
+   \   00000D   E4           CLR     A
+   \   00000E   F5..         MOV     ?V0 + 0,A
+   \   000010   F5..         MOV     ?V0 + 1,A
+   \   000012   78..         MOV     R0,#?V0 + 0
+   \   000014   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000017   78..         MOV     R0,#?V0 + 2
+   \   000019   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00001C   EE           MOV     A,R6
+   \   00001D   FC           MOV     R4,A
+   \   00001E   EF           MOV     A,R7
+   \   00001F   FD           MOV     R5,A
+   \   000020   7A..         MOV     R2,#used_map & 0xff
+   \   000022   7B..         MOV     R3,#(used_map >> 8) & 0xff
+   \   000024   12....       LCALL   ??nbr_set_bit?relay
+   \   000027   7404         MOV     A,#0x4
+   \   000029   12....       LCALL   ?DEALLOC_XSTACK8
+   \   00002C   8A..         MOV     ?V0 + 4,R2
+   \   00002E   8B..         MOV     ?V0 + 5,R3
+   \   000030   85....       MOV     ?V0 + 0,?V0 + 4
+   \   000033   85....       MOV     ?V0 + 1,?V0 + 5
+    326            nbr_set_bit(locked_map, table, item, 0);
+   \   000036                ; Setup parameters for call to function nbr_set_bit
+   \   000036   E4           CLR     A
+   \   000037   F5..         MOV     ?V0 + 4,A
+   \   000039   F5..         MOV     ?V0 + 5,A
+   \   00003B   78..         MOV     R0,#?V0 + 4
+   \   00003D   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000040   78..         MOV     R0,#?V0 + 2
+   \   000042   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000045   EE           MOV     A,R6
+   \   000046   FC           MOV     R4,A
+   \   000047   EF           MOV     A,R7
+   \   000048   FD           MOV     R5,A
+   \   000049   7A..         MOV     R2,#locked_map & 0xff
+   \   00004B   7B..         MOV     R3,#(locked_map >> 8) & 0xff
+   \   00004D   12....       LCALL   ??nbr_set_bit?relay
+   \   000050   7404         MOV     A,#0x4
+   \   000052   12....       LCALL   ?DEALLOC_XSTACK8
+    327            return ret;
+   \   000055   AA..         MOV     R2,?V0 + 0
+   \   000057   AB..         MOV     R3,?V0 + 1
+   \   000059   7F06         MOV     R7,#0x6
+   \   00005B   02....       LJMP    ?BANKED_LEAVE_XDATA
+    328          }
+    329          /*---------------------------------------------------------------------------*/
+    330          /* Lock a neighbor for the current table (set "locked" bit) */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    331          int
+    332          nbr_table_lock(nbr_table_t *table, void *item)
+   \                     nbr_table_lock:
+    333          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    334            return nbr_set_bit(locked_map, table, item, 1);
+   \   000005                ; Setup parameters for call to function nbr_set_bit
+   \   000005   75..01       MOV     ?V0 + 0,#0x1
+   \   000008   75..00       MOV     ?V0 + 1,#0x0
+   \   00000B   78..         MOV     R0,#?V0 + 0
+   \   00000D   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000010   8C..         MOV     ?V0 + 0,R4
+   \   000012   8D..         MOV     ?V0 + 1,R5
+   \   000014   78..         MOV     R0,#?V0 + 0
+   \   000016   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000019   EA           MOV     A,R2
+   \   00001A   FC           MOV     R4,A
+   \   00001B   EB           MOV     A,R3
+   \   00001C   FD           MOV     R5,A
+   \   00001D   7A..         MOV     R2,#locked_map & 0xff
+   \   00001F   7B..         MOV     R3,#(locked_map >> 8) & 0xff
+   \   000021   12....       LCALL   ??nbr_set_bit?relay
+   \   000024   7404         MOV     A,#0x4
+   \   000026   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000029   7F02         MOV     R7,#0x2
+   \   00002B   02....       LJMP    ?BANKED_LEAVE_XDATA
+    335          }
+    336          /*---------------------------------------------------------------------------*/
+    337          /* Release the lock on a neighbor for the current table (unset "locked" bit) */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    338          int
+    339          nbr_table_unlock(nbr_table_t *table, void *item)
+   \                     nbr_table_unlock:
+    340          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    341            return nbr_set_bit(locked_map, table, item, 0);
+   \   000005                ; Setup parameters for call to function nbr_set_bit
+   \   000005   E4           CLR     A
+   \   000006   F5..         MOV     ?V0 + 0,A
+   \   000008   F5..         MOV     ?V0 + 1,A
+   \   00000A   78..         MOV     R0,#?V0 + 0
+   \   00000C   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00000F   8C..         MOV     ?V0 + 0,R4
+   \   000011   8D..         MOV     ?V0 + 1,R5
+   \   000013   78..         MOV     R0,#?V0 + 0
+   \   000015   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000018   EA           MOV     A,R2
+   \   000019   FC           MOV     R4,A
+   \   00001A   EB           MOV     A,R3
+   \   00001B   FD           MOV     R5,A
+   \   00001C   7A..         MOV     R2,#locked_map & 0xff
+   \   00001E   7B..         MOV     R3,#(locked_map >> 8) & 0xff
+   \   000020   12....       LCALL   ??nbr_set_bit?relay
+   \   000023   7404         MOV     A,#0x4
+   \   000025   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000028   7F02         MOV     R7,#0x2
+   \   00002A   02....       LJMP    ?BANKED_LEAVE_XDATA
+    342          }
+    343          /*---------------------------------------------------------------------------*/
+    344          /* Get link-layer address of an item */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    345          rimeaddr_t *
+    346          nbr_table_get_lladdr(nbr_table_t *table, void *item)
+   \                     nbr_table_get_lladdr:
+    347          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    348            nbr_table_key_t *key = key_from_item(table, item);
+   \   000005                ; Setup parameters for call to function key_from_item
+   \   000005   12....       LCALL   ??key_from_item?relay
+   \   000008   8A..         MOV     ?V0 + 0,R2
+   \   00000A   8B..         MOV     ?V0 + 1,R3
+   \   00000C   A8..         MOV     R0,?V0 + 0
+   \   00000E   A9..         MOV     R1,?V0 + 1
+    349            return key != NULL ? &key->lladdr : NULL;
+   \   000010   E8           MOV     A,R0
+   \   000011   49           ORL     A,R1
+   \   000012   600A         JZ      ??nbr_table_get_lladdr_0
+   \   000014   E8           MOV     A,R0
+   \   000015   2402         ADD     A,#0x2
+   \   000017   FA           MOV     R2,A
+   \   000018   E9           MOV     A,R1
+   \   000019   3400         ADDC    A,#0x0
+   \   00001B   FB           MOV     R3,A
+   \   00001C   8004         SJMP    ??nbr_table_get_lladdr_1
+   \                     ??nbr_table_get_lladdr_0:
+   \   00001E   7A00         MOV     R2,#0x0
+   \   000020   7B00         MOV     R3,#0x0
+   \                     ??nbr_table_get_lladdr_1:
+   \   000022   7F02         MOV     R7,#0x2
+   \   000024   02....       LJMP    ?BANKED_LEAVE_XDATA
+    350          }
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for neighbor_addr_mem>`:
+   \   000000   0400         DW 4
+   \   000002   0400         DW 4
+   \   000004   ....         DW neighbor_addr_mem_memb_count
+   \   000006   ....         DW neighbor_addr_mem_memb_mem
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for nbr_table_keys>`:
+   \   000000   ....         DW nbr_table_keys_list
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??key_from_index?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    key_from_index
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??item_from_index?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    item_from_index
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??index_from_key?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    index_from_key
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??index_from_item?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    index_from_item
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??item_from_key?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    item_from_key
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??key_from_item?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    key_from_item
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??index_from_lladdr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    index_from_lladdr
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??nbr_get_bit?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    nbr_get_bit
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??nbr_set_bit?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    nbr_set_bit
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??nbr_table_allocate?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    nbr_table_allocate
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??nbr_table_register?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    nbr_table_register
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??nbr_table_head?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    nbr_table_head
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??nbr_table_next?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    nbr_table_next
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??nbr_table_add_lladdr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    nbr_table_add_lladdr
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??nbr_table_get_from_lladdr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    nbr_table_get_from_lladdr
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??nbr_table_remove?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    nbr_table_remove
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??nbr_table_lock?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    nbr_table_lock
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??nbr_table_unlock?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    nbr_table_unlock
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??nbr_table_get_lladdr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    nbr_table_get_lladdr
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     24  index_from_item
+       0      0     28  index_from_key
+       0      0     28  index_from_lladdr
+                          0 0 12 -> index_from_key
+                          0 0 12 -> list_head
+                          0 0 12 -> list_item_next
+                          0 0 12 -> rimeaddr_cmp
+       0      0     26  item_from_index
+       0      0     23  item_from_key
+                          0 0  9 -> index_from_key
+                          0 0  9 -> item_from_index
+       2      0      0  key_from_index
+       2      0     12  key_from_item
+                          2 0  0 -> index_from_item
+                          2 0  0 -> key_from_index
+       0      0     28  nbr_get_bit
+                          0 0 12 -> index_from_item
+       0      0     34  nbr_set_bit
+                          0 0 14 -> index_from_item
+       0      0     20  nbr_table_add_lladdr
+                          0 0 16 -> index_from_key
+                          0 0 16 -> index_from_lladdr
+                          0 0 16 -> item_from_index
+                          0 0 16 -> list_add
+                          0 0 18 -> memset
+                          0 0 20 -> nbr_set_bit
+                          0 0 16 -> nbr_table_allocate
+                          0 0 16 -> rimeaddr_copy
+       0      0     32  nbr_table_allocate
+                          0 0 14 -> index_from_key
+                          0 0 14 -> item_from_key
+                          0 0 14 -> list_head
+                          0 0 14 -> list_item_next
+                          0 0 14 -> list_remove
+                          0 0 14 -> memb_alloc
+                          0 0 16 -> nbr_get_bit
+       0      0     14  nbr_table_get_from_lladdr
+                          0 0 12 -> index_from_lladdr
+                          0 0 12 -> item_from_index
+                          0 0 14 -> nbr_get_bit
+       0      0     10  nbr_table_get_lladdr
+                          0 0 10 -> key_from_item
+       0      0     14  nbr_table_head
+                          0 0 12 -> item_from_key
+                          0 0 12 -> list_head
+                          0 0 14 -> nbr_get_bit
+                          0 0 12 -> nbr_table_next
+       0      0     14  nbr_table_lock
+                          0 0 14 -> nbr_set_bit
+       0      0     26  nbr_table_next
+                          0 0 12 -> item_from_key
+                          0 0 12 -> key_from_item
+                          0 0 12 -> list_item_next
+                          0 0 14 -> nbr_get_bit
+       0      0      9  nbr_table_register
+       0      0     18  nbr_table_remove
+                          0 0 18 -> nbr_set_bit
+       0      0     14  nbr_table_unlock
+                          0 0 14 -> nbr_set_bit
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       2  ?<Initializer for nbr_table_keys>
+       8  ?<Initializer for neighbor_addr_mem>
+       6  ??index_from_item?relay
+       6  ??index_from_key?relay
+       6  ??index_from_lladdr?relay
+       6  ??item_from_index?relay
+       6  ??item_from_key?relay
+       6  ??key_from_index?relay
+       6  ??key_from_item?relay
+       6  ??nbr_get_bit?relay
+       6  ??nbr_set_bit?relay
+       6  ??nbr_table_add_lladdr?relay
+       6  ??nbr_table_allocate?relay
+       6  ??nbr_table_get_from_lladdr?relay
+       6  ??nbr_table_get_lladdr?relay
+       6  ??nbr_table_head?relay
+       6  ??nbr_table_lock?relay
+       6  ??nbr_table_next?relay
+       6  ??nbr_table_register?relay
+       6  ??nbr_table_remove?relay
+       6  ??nbr_table_unlock?relay
+      16  all_tables
+      68  index_from_item
+      59  index_from_key
+     112  index_from_lladdr
+      81  item_from_index
+      32  item_from_key
+      58  key_from_index
+      17  key_from_item
+       4  locked_map
+     112  nbr_get_bit
+     160  nbr_set_bit
+     214  nbr_table_add_lladdr
+     595  nbr_table_allocate
+      83  nbr_table_get_from_lladdr
+      39  nbr_table_get_lladdr
+      94  nbr_table_head
+       2  nbr_table_keys
+       2  nbr_table_keys_list
+      46  nbr_table_lock
+     114  nbr_table_next
+     120  nbr_table_register
+      94  nbr_table_remove
+      45  nbr_table_unlock
+       8  neighbor_addr_mem
+       4  neighbor_addr_mem_memb_count
+      16  neighbor_addr_mem_memb_mem
+       2  num_tables
+       4  used_map
+
+ 
+ 2 143 bytes in segment BANKED_CODE
+   114 bytes in segment BANK_RELAYS
+    10 bytes in segment XDATA_I
+    10 bytes in segment XDATA_ID
+    48 bytes in segment XDATA_Z
+ 
+ 2 267 bytes of CODE  memory
+    58 bytes of XDATA memory
+
+Errors: none
+Warnings: 2

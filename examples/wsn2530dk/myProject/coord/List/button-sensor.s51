@@ -1,0 +1,1054 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:45 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\platform\wsn2530dk\dev\button-se /
+//                          nsor.c                                            /
+//    Command line       =  D:\myWork\myWork\platform\wsn2530dk\dev\button-se /
+//                          nsor.c -D AUTOSTART_ENABLE -D PROJECT_CONF_H -lC  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\button-sensor.s51                         /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME `button-sensor`
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?INTERRUPT_ENTER_XSP
+        EXTERN ?INTERRUPT_LEAVE_XSP
+        EXTERN ?L_ADD_TO_X
+        EXTERN ?US_SWITCH_DENSE
+        EXTERN ?V0
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??configure_b1?relay,0203H
+        PUBWEAK `??port_0_isr??INTVEC 107`
+        FUNCTION ??status_b1?relay,0203H
+        FUNCTION ??value_b1?relay,0203H
+        PUBWEAK P0DIR
+        PUBWEAK P0IEN
+        PUBWEAK P0IFG
+        PUBWEAK P0INP
+        PUBWEAK P0SEL
+        PUBWEAK PICTL
+        PUBWEAK T1CNTH
+        PUBWEAK T1CNTL
+        PUBWEAK _A_IEN0
+        PUBWEAK _A_IEN1
+        PUBWEAK _A_IRCON
+        PUBWEAK _A_P0
+        PUBLIC button_1_sensor
+        FUNCTION configure_b1,0a1603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC port_0_isr
+        FUNCTION port_0_isr,021233H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 17, STACK
+        FUNCTION status_b1,080603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        FUNCTION value_b1,021603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+        
+          CFI Common cfiCommon1 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-2
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B SameValue
+          CFI A SameValue
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 SameValue
+          CFI R1 SameValue
+          CFI R2 SameValue
+          CFI R3 SameValue
+          CFI R4 SameValue
+          CFI R5 SameValue
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT SameValue
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon1
+        
+sensors_changed     SYMBOL "sensors_changed"
+??sensors_changed?relay SYMBOL "?relay", sensors_changed
+timer_expired       SYMBOL "timer_expired"
+??timer_expired?relay SYMBOL "?relay", timer_expired
+timer_set           SYMBOL "timer_set"
+??timer_set?relay   SYMBOL "?relay", timer_set
+port_0_isr          SYMBOL "port_0_isr"
+`??port_0_isr??INTVEC 107` SYMBOL "??INTVEC 107", port_0_isr
+
+        EXTERN ??sensors_changed?relay
+        FUNCTION ??sensors_changed?relay,00H
+        EXTERN ??timer_expired?relay
+        FUNCTION ??timer_expired?relay,00H
+        EXTERN ??timer_set?relay
+        FUNCTION ??timer_set?relay,00H
+        EXTERN energest_current_mode
+        EXTERN energest_current_time
+        EXTERN energest_total_time
+        EXTERN sensors_changed
+        FUNCTION sensors_changed,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 17, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN timer_expired
+        FUNCTION timer_expired,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 17, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN timer_set
+        FUNCTION timer_set,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 17, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+
+        ASEGN SFR_AN:DATA:NOROOT,080H
+// union <unnamed> volatile __sfr _A_P0
+_A_P0:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0a8H
+// union <unnamed> volatile __sfr _A_IEN0
+_A_IEN0:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0b8H
+// union <unnamed> volatile __sfr _A_IEN1
+_A_IEN1:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0c0H
+// union <unnamed> volatile __sfr _A_IRCON
+_A_IRCON:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,089H
+// unsigned char volatile __sfr P0IFG
+P0IFG:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,08cH
+// unsigned char volatile __sfr PICTL
+PICTL:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0abH
+// unsigned char volatile __sfr P0IEN
+P0IEN:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,08fH
+// unsigned char volatile __sfr P0INP
+P0INP:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0f3H
+// unsigned char volatile __sfr P0SEL
+P0SEL:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0fdH
+// unsigned char volatile __sfr P0DIR
+P0DIR:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0e2H
+// unsigned char volatile __sfr T1CNTL
+T1CNTL:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0e3H
+// unsigned char volatile __sfr T1CNTH
+T1CNTH:
+        DATA8
+        DS 1
+// D:\myWork\myWork\platform\wsn2530dk\dev\button-sensor.c
+//    1 /*
+//    2  * Copyright (c) 2005, Swedish Institute of Computer Science
+//    3  * All rights reserved.
+//    4  *
+//    5  * Redistribution and use in source and binary forms, with or without
+//    6  * modification, are permitted provided that the following conditions
+//    7  * are met:
+//    8  * 1. Redistributions of source code must retain the above copyright
+//    9  *    notice, this list of conditions and the following disclaimer.
+//   10  * 2. Redistributions in binary form must reproduce the above copyright
+//   11  *    notice, this list of conditions and the following disclaimer in the
+//   12  *    documentation and/or other materials provided with the distribution.
+//   13  * 3. Neither the name of the Institute nor the names of its contributors
+//   14  *    may be used to endorse or promote products derived from this software
+//   15  *    without specific prior written permission.
+//   16  *
+//   17  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   18  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   19  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   20  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   21  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   22  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   23  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   24  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   25  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   26  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   27  * SUCH DAMAGE.
+//   28  *
+//   29  * This file is part of the Contiki operating system.
+//   30  */
+//   31 
+//   32 /*
+//   33  * This file contains ISRs: Keep it in the HOME bank.
+//   34  */
+//   35 #include "dev/port.h"
+//   36 #include "dev/button-sensor.h"
+//   37 #include "dev/watchdog.h"
+//   38 /*---------------------------------------------------------------------------*/
+//   39 //static CC_AT_DATA struct timer debouncetimer;
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA32
+//   40 static struct timer debouncetimer;
+debouncetimer:
+        DS 4
+        REQUIRE __INIT_XDATA_Z
+//   41 /*---------------------------------------------------------------------------*/
+//   42 /* Button 1 - SmartRF and cc2531 USB Dongle */
+//   43 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   44 static int
+//   45 value_b1(int type)
+value_b1:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function value_b1
+        CODE
+//   46 {
+        FUNCALL value_b1, timer_expired
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//   47   type;
+//   48   return BUTTON_READ(1) || !timer_expired(&debouncetimer);
+        MOV     C,0x80.1
+        JC      ??value_b1_0
+        ; Setup parameters for call to function timer_expired
+        MOV     R2,#debouncetimer & 0xff
+        MOV     R3,#(debouncetimer >> 8) & 0xff
+        LCALL   ??timer_expired?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     ??value_b1_1
+??value_b1_0:
+        SETB    B.0
+        SJMP    ??value_b1_2
+??value_b1_1:
+        CLR     B.0
+??value_b1_2:
+        MOV     C,B.0
+        CLR     A
+        RLC     A
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock0
+        REQUIRE _A_P0
+//   49 }
+//   50 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   51 static int
+//   52 status_b1(int type)
+status_b1:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function status_b1
+        CODE
+//   53 {
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//   54   switch(type) {
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R0,#?V0 + 0
+        LCALL   ?US_SWITCH_DENSE
+`?<Jumptable for status_b1>_0`:
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        129
+        DATA
+        DATA8
+        DATA
+        DATA8
+        DB        1
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??status_b1_0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??status_b1_1
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??status_b1_1
+        CODE
+//   55   case SENSORS_ACTIVE:
+//   56   case SENSORS_READY:
+//   57     return BUTTON_IRQ_ENABLED(1);
+??status_b1_1:
+        MOV     A,0xab
+        MOV     R0,A
+        MOV     R1,#0x0
+        ANL     A,#0x2
+        MOV     R2,A
+        MOV     A,R1
+        ANL     A,#0x0
+        MOV     R3,A
+        SJMP    ??status_b1_2
+//   58   }
+//   59   return 0;
+??status_b1_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??status_b1_2:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+        REQUIRE P0IEN
+//   60 }
+//   61 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   62 static int
+//   63 configure_b1(int type, int value)
+configure_b1:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function configure_b1
+        CODE
+//   64 {
+        FUNCALL configure_b1, timer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//   65   switch(type) {
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R0,#?V0 + 0
+        LCALL   ?US_SWITCH_DENSE
+`?<Jumptable for configure_b1>_0`:
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        128
+        DATA
+        DATA8
+        DATA
+        DATA8
+        DB        1
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??configure_b1_0
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??configure_b1_1
+        DATA
+        DATA16
+        DATA
+        DATA16
+        DW        ??configure_b1_2
+        CODE
+//   66   case SENSORS_HW_INIT:
+//   67 #if !MODELS_CONF_CC2531_USB_STICK
+//   68     P0INP |= 2; /* Tri-state */
+??configure_b1_1:
+        ORL     0x8f,#0x2
+//   69 #endif
+//   70     BUTTON_IRQ_ON_PRESS(1);
+        ANL     0x8c,#0xfe
+//   71     BUTTON_FUNC_GPIO(1);
+        ANL     0xf3,#0xfd
+//   72     BUTTON_DIR_INPUT(1);
+        ANL     0xfd,#0xfd
+//   73     return 1;
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+        SJMP    ??configure_b1_3
+//   74   case SENSORS_ACTIVE:
+//   75     if(value) {
+??configure_b1_2:
+        MOV     A,R4
+        ORL     A,R5
+        JZ      ??configure_b1_4
+//   76       if(!BUTTON_IRQ_ENABLED(1)) {
+        MOV     A,0xab
+        MOV     C,0xE0 /* A   */.1
+        JC      ??configure_b1_5
+//   77         timer_set(&debouncetimer, 0);
+        ; Setup parameters for call to function timer_set
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     R2,#debouncetimer & 0xff
+        MOV     R3,#(debouncetimer >> 8) & 0xff
+        LCALL   ??timer_set?relay
+//   78         BUTTON_IRQ_FLAG_OFF(1);
+        ANL     0x89,#0xfd
+        CLR     0xc0.5
+//   79         BUTTON_IRQ_ENABLE(1);
+        ORL     0xab,#0x2
+        SETB    0xb8.5
+        SJMP    ??configure_b1_5
+//   80       }
+//   81     } else {
+//   82       BUTTON_IRQ_DISABLE(1);
+??configure_b1_4:
+        ANL     0xab,#0xfd
+        CLR     0xb8.5
+//   83     }
+//   84     return 1;
+??configure_b1_5:
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+        SJMP    ??configure_b1_3
+//   85   }
+//   86   return 0;
+??configure_b1_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??configure_b1_3:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+        REQUIRE P0INP
+        REQUIRE PICTL
+        REQUIRE P0SEL
+        REQUIRE P0DIR
+        REQUIRE P0IEN
+        REQUIRE P0IFG
+        REQUIRE _A_IRCON
+        REQUIRE _A_IEN1
+//   87 }
+//   88 /*---------------------------------------------------------------------------*/
+//   89 /* Button 2 - cc2531 USb Dongle only */
+//   90 /*---------------------------------------------------------------------------*/
+//   91 #if MODELS_CONF_CC2531_USB_STICK
+//   92 static int
+//   93 value_b2(int type)
+//   94 {
+//   95   type;
+//   96   return BUTTON_READ(2) || !timer_expired(&debouncetimer);
+//   97 }
+//   98 /*---------------------------------------------------------------------------*/
+//   99 static int
+//  100 status_b2(int type)
+//  101 {
+//  102   switch(type) {
+//  103   case SENSORS_ACTIVE:
+//  104   case SENSORS_READY:
+//  105     return BUTTON_IRQ_ENABLED(2);
+//  106   }
+//  107   return 0;
+//  108 }
+//  109 /*---------------------------------------------------------------------------*/
+//  110 static int
+//  111 configure_b2(int type, int value)
+//  112 {
+//  113   switch(type) {
+//  114   case SENSORS_HW_INIT:
+//  115     BUTTON_IRQ_ON_PRESS(2);
+//  116     BUTTON_FUNC_GPIO(2);
+//  117     BUTTON_DIR_INPUT(2);
+//  118     return 1;
+//  119   case SENSORS_ACTIVE:
+//  120     if(value) {
+//  121       if(!BUTTON_IRQ_ENABLED(2)) {
+//  122         timer_set(&debouncetimer, 0);
+//  123         BUTTON_IRQ_FLAG_OFF(2);
+//  124         BUTTON_IRQ_ENABLE(2);
+//  125       }
+//  126     } else {
+//  127       BUTTON_IRQ_DISABLE(2);
+//  128     }
+//  129     return 1;
+//  130   }
+//  131   return 0;
+//  132 }
+//  133 #endif
+//  134 /*---------------------------------------------------------------------------*/
+//  135 /* ISRs */
+//  136 /*---------------------------------------------------------------------------*/
+//  137 /* avoid referencing bits, we don't call code which use them */
+//  138 //#pragma save
+//  139 //#if CC_CONF_OPTIMIZE_STACK_SIZE
+//  140 //#pragma exclude bits
+//  141 //#endif
+//  142 #if MODELS_CONF_CC2531_USB_STICK
+//  143 #pragma vector = P1INT_VECTOR
+//  144 __interrupt void port_1_isr(void) 
+//  145 {
+//  146   EA = 0;
+//  147   ENERGEST_ON(ENERGEST_TYPE_IRQ);
+//  148 
+//  149   /* This ISR is for the entire port. Check if the interrupt was caused by our
+//  150    * button's pin. */
+//  151   if(BUTTON_IRQ_CHECK(1)) {
+//  152     if(timer_expired(&debouncetimer)) {
+//  153       timer_set(&debouncetimer, CLOCK_SECOND / 8);
+//  154       sensors_changed(&button_1_sensor);
+//  155     }
+//  156   }
+//  157   if(BUTTON_IRQ_CHECK(2)) {
+//  158     if(timer_expired(&debouncetimer)) {
+//  159       timer_set(&debouncetimer, CLOCK_SECOND / 8);
+//  160 #if CC2531_CONF_B2_REBOOTS
+//  161       watchdog_reboot();
+//  162 #else /* General Purpose */
+//  163       sensors_changed(&button_2_sensor);
+//  164 #endif
+//  165     }
+//  166   }
+//  167 
+//  168   BUTTON_IRQ_FLAG_OFF(1);
+//  169   BUTTON_IRQ_FLAG_OFF(2);
+//  170 
+//  171   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+//  172   EA = 1;
+//  173 }
+//  174 #else
+//  175 #pragma vector = P0INT_VECTOR
+
+        RSEG NEAR_CODE:CODE:NOROOT(0)
+//  176 __interrupt void port_0_isr(void)
+port_0_isr:
+          CFI Block cfiBlock3 Using cfiCommon1
+          CFI Function port_0_isr
+        CODE
+//  177 {
+        FUNCALL port_0_isr, timer_expired
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 17, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 17, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL port_0_isr, timer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 17, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 17, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL port_0_isr, sensors_changed
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 17, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 17, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    A
+          CFI A Frame(CFA_SP, 3)
+          CFI CFA_SP SP+-3
+        MOV     A,#-0x11
+        LCALL   ?INTERRUPT_ENTER_XSP
+          CFI B load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI PSW load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI R5 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R4 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI R3 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI R2 load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI R1 load(1, XDATA, add(CFA_XSP16, literal(-16)))
+          CFI R0 load(1, XDATA, add(CFA_XSP16, literal(-17)))
+          CFI CFA_XSP16 add(XSP16, 17)
+        ; Saved register size: 17
+        ; Auto size: 0
+//  178   EA = 0;
+        CLR     0xa8.7
+//  179   ENERGEST_ON(ENERGEST_TYPE_IRQ);
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     DPTR,#energest_current_time + 4
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        MOV     DPTR,#energest_current_mode + 2
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  180 
+//  181   /* This ISR is for the entire port. Check if the interrupt was caused by our
+//  182    * button's pin. */
+//  183   if(BUTTON_IRQ_CHECK(1)) {
+        MOV     A,0x89
+        MOV     C,0xE0 /* A   */.1
+        JNC     ??port_0_isr_0
+//  184     if(timer_expired(&debouncetimer)) {
+        ; Setup parameters for call to function timer_expired
+        MOV     R2,#debouncetimer & 0xff
+        MOV     R3,#(debouncetimer >> 8) & 0xff
+        LCALL   ??timer_expired?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??port_0_isr_0
+//  185       timer_set(&debouncetimer, CLOCK_SECOND / 8);
+        ; Setup parameters for call to function timer_set
+        MOV     R4,#0x10
+        MOV     R5,#0x0
+        MOV     R2,#debouncetimer & 0xff
+        MOV     R3,#(debouncetimer >> 8) & 0xff
+        LCALL   ??timer_set?relay
+//  186       sensors_changed(&button_sensor);
+        ; Setup parameters for call to function sensors_changed
+        MOV     R2,#button_1_sensor & 0xff
+        MOV     R3,#(button_1_sensor >> 8) & 0xff
+        LCALL   ??sensors_changed?relay
+//  187     }
+//  188   }
+//  189 
+//  190   BUTTON_IRQ_FLAG_OFF(1);
+??port_0_isr_0:
+        ANL     0x89,#0xfd
+        CLR     0xc0.5
+//  191 
+//  192   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+        MOV     DPTR,#energest_current_mode + 2
+        MOVX    A,@DPTR
+        JZ      ??port_0_isr_1
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R2,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R3,A
+        MOV     DPTR,#energest_current_time + 4
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R2
+        CLR     C
+        SUBB    A,R0
+        MOV     ?V0 + 0,A
+        MOV     A,R3
+        SUBB    A,R1
+        MOV     ?V0 + 1,A
+        CLR     A
+        MOV     ?V0 + 2,A
+        MOV     ?V0 + 3,A
+        MOV     DPTR,#energest_total_time + 8
+        MOV     R0,#?V0 + 0
+        LCALL   ?L_ADD_TO_X
+        MOV     DPTR,#energest_current_mode + 2
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  193   EA = 1;
+??port_0_isr_1:
+        SETB    0xa8.7
+//  194 }
+        MOV     R7,#0x4
+        LJMP    ?INTERRUPT_LEAVE_XSP
+          CFI EndBlock cfiBlock3
+        REQUIRE _A_IEN0
+        REQUIRE T1CNTL
+        REQUIRE T1CNTH
+        REQUIRE P0IFG
+        REQUIRE _A_IRCON
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "Button">`:
+        DS 7
+        REQUIRE `?<Initializer for <Constant "Button">>`
+        REQUIRE __INIT_XDATA_I
+//  195 #endif
+//  196 //#pragma restore
+//  197 /*---------------------------------------------------------------------------*/
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+//  198 SENSORS_SENSOR(button_1_sensor, BUTTON_SENSOR, value_b1, configure_b1, status_b1);
+button_1_sensor:
+        DS 8
+        REQUIRE `?<Initializer for button_1_sensor>`
+        REQUIRE __INIT_XDATA_I
+
+        COMMON INTVEC:CODE:ROOT(0)
+        ORG 107
+`??port_0_isr??INTVEC 107`:
+        LJMP       (port_0_isr)
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "Button">>`:
+        DB "Button"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for button_1_sensor>`:
+        DATA16
+        DW `?<Constant "Button">`
+        DW ??value_b1?relay
+        DW ??configure_b1?relay
+        DW ??status_b1?relay
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??value_b1?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    value_b1
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??status_b1?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    status_b1
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??configure_b1?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    configure_b1
+
+        END
+//  199 #if MODELS_CONF_CC2531_USB_STICK
+//  200 SENSORS_SENSOR(button_2_sensor, BUTTON_SENSOR, value_b2, configure_b2, status_b2);
+//  201 #endif
+// 
+// 184 bytes in segment BANKED_CODE
+//  18 bytes in segment BANK_RELAYS
+//   3 bytes in segment INTVEC
+// 156 bytes in segment NEAR_CODE
+//  12 bytes in segment SFR_AN
+//  15 bytes in segment XDATA_I
+//  15 bytes in segment XDATA_ID
+//   4 bytes in segment XDATA_Z
+// 
+// 373 bytes of CODE  memory (+  3 bytes shared)
+//   0 bytes of DATA  memory (+ 12 bytes shared)
+//  19 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: 1

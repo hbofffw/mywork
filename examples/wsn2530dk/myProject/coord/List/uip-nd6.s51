@@ -1,0 +1,4043 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:54 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\net\uip-nd6.c               /
+//    Command line       =  D:\myWork\myWork\core\net\uip-nd6.c -D            /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\uip-nd6.s51                               /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME `uip-nd6`
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?L_MOV_X
+        EXTERN ?PUSH_XSTACK_I_FOUR
+        EXTERN ?PUSH_XSTACK_I_ONE
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?UL_DIV_MOD
+        EXTERN ?V0
+        EXTERN ?XSTACK_DISP0_8
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??create_llao?relay,0203H
+        PUBLIC ??uip_nd6_na_input?relay
+        FUNCTION ??uip_nd6_na_input?relay,0203H
+        PUBLIC ??uip_nd6_ns_input?relay
+        FUNCTION ??uip_nd6_ns_input?relay,0203H
+        PUBLIC ??uip_nd6_ns_output?relay
+        FUNCTION ??uip_nd6_ns_output?relay,0203H
+        PUBWEAK __Constant_3e8
+        FUNCTION create_llao,021203H
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 14, STACK
+        PUBLIC uip_nd6_na_input
+        FUNCTION uip_nd6_na_input,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 24, STACK
+        PUBLIC uip_nd6_ns_input
+        FUNCTION uip_nd6_ns_input,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 12, STACK
+        PUBLIC uip_nd6_ns_output
+        FUNCTION uip_nd6_ns_output,021203H
+        ARGFRAME XSTACK, 2, STACK
+        LOCFRAME XSTACK, 14, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+memcmp              SYMBOL "memcmp"
+??memcmp?relay      SYMBOL "?relay", memcmp
+memcpy              SYMBOL "memcpy"
+??memcpy?relay      SYMBOL "?relay", memcpy
+memset              SYMBOL "memset"
+??memset?relay      SYMBOL "?relay", memset
+stimer_set          SYMBOL "stimer_set"
+??stimer_set?relay  SYMBOL "?relay", stimer_set
+uip_ds6_addr_lookup SYMBOL "uip_ds6_addr_lookup"
+??uip_ds6_addr_lookup?relay SYMBOL "?relay", uip_ds6_addr_lookup
+uip_ds6_defrt_lookup SYMBOL "uip_ds6_defrt_lookup"
+??uip_ds6_defrt_lookup?relay SYMBOL "?relay", uip_ds6_defrt_lookup
+uip_ds6_defrt_rm    SYMBOL "uip_ds6_defrt_rm"
+??uip_ds6_defrt_rm?relay SYMBOL "?relay", uip_ds6_defrt_rm
+uip_ds6_nbr_add     SYMBOL "uip_ds6_nbr_add"
+??uip_ds6_nbr_add?relay SYMBOL "?relay", uip_ds6_nbr_add
+uip_ds6_nbr_get_ll  SYMBOL "uip_ds6_nbr_get_ll"
+??uip_ds6_nbr_get_ll?relay SYMBOL "?relay", uip_ds6_nbr_get_ll
+uip_ds6_nbr_lookup  SYMBOL "uip_ds6_nbr_lookup"
+??uip_ds6_nbr_lookup?relay SYMBOL "?relay", uip_ds6_nbr_lookup
+uip_ds6_select_src  SYMBOL "uip_ds6_select_src"
+??uip_ds6_select_src?relay SYMBOL "?relay", uip_ds6_select_src
+uip_icmp6chksum     SYMBOL "uip_icmp6chksum"
+??uip_icmp6chksum?relay SYMBOL "?relay", uip_icmp6chksum
+uip_nd6_na_input    SYMBOL "uip_nd6_na_input"
+??uip_nd6_na_input?relay SYMBOL "?relay", uip_nd6_na_input
+uip_nd6_ns_input    SYMBOL "uip_nd6_ns_input"
+??uip_nd6_ns_input?relay SYMBOL "?relay", uip_nd6_ns_input
+uip_nd6_ns_output   SYMBOL "uip_nd6_ns_output"
+??uip_nd6_ns_output?relay SYMBOL "?relay", uip_nd6_ns_output
+
+        EXTERN ??memcmp?relay
+        FUNCTION ??memcmp?relay,00H
+        EXTERN ??memcpy?relay
+        FUNCTION ??memcpy?relay,00H
+        EXTERN ??memset?relay
+        FUNCTION ??memset?relay,00H
+        EXTERN ??stimer_set?relay
+        FUNCTION ??stimer_set?relay,00H
+        EXTERN ??uip_ds6_addr_lookup?relay
+        FUNCTION ??uip_ds6_addr_lookup?relay,00H
+        EXTERN ??uip_ds6_defrt_lookup?relay
+        FUNCTION ??uip_ds6_defrt_lookup?relay,00H
+        EXTERN ??uip_ds6_defrt_rm?relay
+        FUNCTION ??uip_ds6_defrt_rm?relay,00H
+        EXTERN ??uip_ds6_nbr_add?relay
+        FUNCTION ??uip_ds6_nbr_add?relay,00H
+        EXTERN ??uip_ds6_nbr_get_ll?relay
+        FUNCTION ??uip_ds6_nbr_get_ll?relay,00H
+        EXTERN ??uip_ds6_nbr_lookup?relay
+        FUNCTION ??uip_ds6_nbr_lookup?relay,00H
+        EXTERN ??uip_ds6_select_src?relay
+        FUNCTION ??uip_ds6_select_src?relay,00H
+        EXTERN ??uip_icmp6chksum?relay
+        FUNCTION ??uip_icmp6chksum?relay,00H
+        EXTERN memcmp
+        FUNCTION memcmp,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memcpy
+        FUNCTION memcpy,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memset
+        FUNCTION memset,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN stimer_set
+        FUNCTION stimer_set,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 24, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_aligned_buf
+        EXTERN uip_ds6_addr_lookup
+        FUNCTION uip_ds6_addr_lookup,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_defrt_lookup
+        FUNCTION uip_ds6_defrt_lookup,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_defrt_rm
+        FUNCTION uip_ds6_defrt_rm,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_if
+        EXTERN uip_ds6_nbr_add
+        FUNCTION uip_ds6_nbr_add,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 11, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_nbr_get_ll
+        FUNCTION uip_ds6_nbr_get_ll,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_nbr_lookup
+        FUNCTION uip_ds6_nbr_lookup,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ds6_select_src
+        FUNCTION uip_ds6_select_src,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ext_len
+        EXTERN uip_icmp6chksum
+        FUNCTION uip_icmp6chksum,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_len
+        EXTERN uip_lladdr
+
+// D:\myWork\myWork\core\net\uip-nd6.c
+//    1 /**
+//    2  * \addtogroup uip6
+//    3  * @{
+//    4  */
+//    5 
+//    6 /**
+//    7  * \file
+//    8  *         Neighbor discovery (RFC 4861)
+//    9  * \author Mathilde Durvy <mdurvy@cisco.com>
+//   10  * \author Julien Abeille <jabeille@cisco.com>
+//   11  */
+//   12 
+//   13 /*
+//   14  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
+//   15  * All rights reserved.
+//   16  *
+//   17  * Redistribution and use in source and binary forms, with or without
+//   18  * modification, are permitted provided that the following conditions
+//   19  * are met:
+//   20  * 1. Redistributions of source code must retain the above copyright
+//   21  *    notice, this list of conditions and the following disclaimer.
+//   22  * 2. Redistributions in binary form must reproduce the above copyright
+//   23  *    notice, this list of conditions and the following disclaimer in the
+//   24  *    documentation and/or other materials provided with the distribution.
+//   25  * 3. Neither the name of the project nor the names of its contributors
+//   26  *    may be used to endorse or promote products derived from this software
+//   27  *    without specific prior written permission.
+//   28  *
+//   29  * THIS SOFTWARE IS PROVIDED BY THE PROJECT AND CONTRIBUTORS ``AS IS'' AND
+//   30  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   31  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   32  * ARE DISCLAIMED.  IN NO EVENT SHALL THE PROJECT OR CONTRIBUTORS BE LIABLE
+//   33  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   34  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   35  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   36  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   37  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   38  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   39  * SUCH DAMAGE.
+//   40  */
+//   41 /*
+//   42  * Copyright (c) 2006, Swedish Institute of Computer Science.
+//   43  * All rights reserved.
+//   44  *
+//   45  * Redistribution and use in source and binary forms, with or without
+//   46  * modification, are permitted provided that the following conditions
+//   47  * are met:
+//   48  * 1. Redistributions of source code must retain the above copyright
+//   49  *   notice, this list of conditions and the following disclaimer.
+//   50  * 2. Redistributions in binary form must reproduce the above copyright
+//   51  *   notice, this list of conditions and the following disclaimer in the
+//   52  *   documentation and/or other materials provided with the distribution.
+//   53  * 3. Neither the name of the Institute nor the names of its contributors
+//   54  *   may be used to endorse or promote products derived from this software
+//   55  *   without specific prior written permission.
+//   56  *
+//   57  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   58  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   59  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   60  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   61  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   62  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   63  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   64  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   65  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   66  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   67  * SUCH DAMAGE.
+//   68  *
+//   69  */
+//   70 
+//   71 #include <string.h>
+//   72 #include "net/uip-icmp6.h"
+//   73 #include "net/uip-nd6.h"
+//   74 #include "net/uip-ds6.h"
+//   75 #include "lib/random.h"
+//   76 
+//   77 #if UIP_CONF_IPV6
+//   78 /*------------------------------------------------------------------*/
+//   79 #define DEBUG 0
+//   80 #include "net/uip-debug.h"
+//   81 
+//   82 #if UIP_LOGGING
+//   83 #include <stdio.h>
+//   84 void uip_log(char *msg);
+//   85 
+//   86 #define UIP_LOG(m) uip_log(m)
+//   87 #else
+//   88 #define UIP_LOG(m)
+//   89 #endif /* UIP_LOGGING == 1 */
+//   90 
+//   91 /*------------------------------------------------------------------*/
+//   92 /** @{ */
+//   93 /** \name Pointers to the header structures.
+//   94  *  All pointers except UIP_IP_BUF depend on uip_ext_len, which at
+//   95  *  packet reception, is the total length of the extension headers.
+//   96  *  
+//   97  *  The pointer to ND6 options header also depends on nd6_opt_offset,
+//   98  *  which we set in each function.
+//   99  *
+//  100  *  Care should be taken when manipulating these buffers about the
+//  101  *  value of these length variables
+//  102  */
+//  103 
+//  104 #define UIP_IP_BUF                ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])  /**< Pointer to IP header */
+//  105 #define UIP_ICMP_BUF            ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])  /**< Pointer to ICMP header*/
+//  106 /**@{  Pointers to messages just after icmp header */
+//  107 #define UIP_ND6_RS_BUF            ((uip_nd6_rs *)&uip_buf[uip_l2_l3_icmp_hdr_len])
+//  108 #define UIP_ND6_RA_BUF            ((uip_nd6_ra *)&uip_buf[uip_l2_l3_icmp_hdr_len])
+//  109 #define UIP_ND6_NS_BUF            ((uip_nd6_ns *)&uip_buf[uip_l2_l3_icmp_hdr_len])
+//  110 #define UIP_ND6_NA_BUF            ((uip_nd6_na *)&uip_buf[uip_l2_l3_icmp_hdr_len])
+//  111 /** @} */
+//  112 /** Pointer to ND option */
+//  113 #define UIP_ND6_OPT_HDR_BUF  ((uip_nd6_opt_hdr *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
+//  114 #define UIP_ND6_OPT_PREFIX_BUF ((uip_nd6_opt_prefix_info *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
+//  115 #define UIP_ND6_OPT_MTU_BUF ((uip_nd6_opt_mtu *)&uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset])
+//  116 /** @} */
+//  117 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//  118 static uint8_t nd6_opt_offset;                     /** Offset from the end of the icmpv6 header to the option in uip_buf*/
+nd6_opt_offset:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//  119 static uint8_t *nd6_opt_llao;   /**  Pointer to llao option in uip_buf */
+nd6_opt_llao:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//  120 
+//  121 #if !UIP_CONF_ROUTER            // TBD see if we move it to ra_input
+//  122 static uip_nd6_opt_prefix_info *nd6_opt_prefix_info; /**  Pointer to prefix information option in uip_buf */
+//  123 static uip_ipaddr_t ipaddr;
+//  124 static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
+//  125 #endif
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//  126 static uip_ds6_nbr_t *nbr; /**  Pointer to a nbr cache entry*/
+nbr:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//  127 static uip_ds6_defrt_t *defrt; /**  Pointer to a router list entry */
+defrt:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//  128 static uip_ds6_addr_t *addr; /**  Pointer to an interface address */
+addr:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//  129 
+//  130 
+//  131 /*------------------------------------------------------------------*/
+//  132 /* create a llao */ 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  133 static void
+//  134 create_llao(uint8_t *llao, uint8_t type) {
+create_llao:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function create_llao
+        CODE
+        FUNCALL create_llao, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create_llao, memset
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+        MOV     ?V0 + 0,R1
+//  135   llao[UIP_ND6_OPT_TYPE_OFFSET] = type;
+        MOV     A,?V0 + 0
+        MOV     DPL,R6
+        MOV     DPH,R7
+        MOV     A,?V0 + 0
+        MOVX    @DPTR,A
+//  136   llao[UIP_ND6_OPT_LEN_OFFSET] = UIP_ND6_OPT_LLAO_LEN >> 3;
+        MOV     DPL,R6
+        MOV     DPH,R7
+        INC     DPTR
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+//  137   memcpy(&llao[UIP_ND6_OPT_DATA_OFFSET], &uip_lladdr, UIP_LLADDR_LEN);
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 2,#0x8
+        MOV     ?V0 + 3,#0x0
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     R4,#uip_lladdr & 0xff
+        MOV     R5,#(uip_lladdr >> 8) & 0xff
+        MOV     A,R6
+        ADD     A,#0x2
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+//  138   /* padding on some */
+//  139   memset(&llao[UIP_ND6_OPT_DATA_OFFSET + UIP_LLADDR_LEN], 0,
+//  140          UIP_ND6_OPT_LLAO_LEN - 2 - UIP_LLADDR_LEN);
+        ; Setup parameters for call to function memset
+        MOV     ?V0 + 2,#0x6
+        MOV     ?V0 + 3,#0x0
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     A,R6
+        ADD     A,#0xa
+        MOV     R2,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??memset?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+//  141 }
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock0
+//  142 
+//  143 /*------------------------------------------------------------------*/
+//  144 
+//  145 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  146 void
+//  147 uip_nd6_ns_input(void)
+uip_nd6_ns_input:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function uip_nd6_ns_input
+        CODE
+//  148 {
+        FUNCALL uip_nd6_ns_input, uip_ds6_nbr_lookup
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_input, uip_ds6_nbr_add
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 11, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 11, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_input, uip_ds6_nbr_get_ll
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_input, memcmp
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_input, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_input, uip_ds6_addr_lookup
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_input, uip_ds6_addr_lookup
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_input, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_input, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_input, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_input, create_llao
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_input, uip_icmp6chksum
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_input, uip_ds6_addr_lookup
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_input, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_input, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  149   uint8_t flags;
+//  150   PRINTF("Received NS from ");
+//  151   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+//  152   PRINTF(" to ");
+//  153   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+//  154   PRINTF(" with target address");
+//  155   PRINT6ADDR((uip_ipaddr_t *) (&UIP_ND6_NS_BUF->tgtipaddr));
+//  156   PRINTF("\n");
+//  157   UIP_STAT(++uip_stat.nd6.recv);
+//  158 
+//  159 #if UIP_CONF_IPV6_CHECKS
+//  160   if((UIP_IP_BUF->ttl != UIP_ND6_HOP_LIMIT) ||
+//  161      (uip_is_addr_mcast(&UIP_ND6_NS_BUF->tgtipaddr)) ||
+//  162      (UIP_ICMP_BUF->icode != 0)) {
+        MOV     DPTR,#uip_aligned_buf + 7
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+        JNZ     ??uip_nd6_ns_input_0
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x30
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+        JZ      ??uip_nd6_ns_input_0
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x29
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        JZ      ??uip_nd6_ns_input_1
+//  163     PRINTF("NS received is bad\n");
+//  164     goto discard;
+//  165   }
+//  166 #endif /* UIP_CONF_IPV6_CHECKS */
+//  167 
+//  168   /* Options processing */
+//  169   nd6_opt_llao = NULL;
+//  170   nd6_opt_offset = UIP_ND6_NS_LEN;
+//  171   while(uip_l3_icmp_hdr_len + nd6_opt_offset < uip_len) {
+//  172 #if UIP_CONF_IPV6_CHECKS
+//  173     if(UIP_ND6_OPT_HDR_BUF->len == 0) {
+//  174       PRINTF("NS received is bad\n");
+//  175       goto discard;
+//  176     }
+//  177 #endif /* UIP_CONF_IPV6_CHECKS */
+//  178     switch (UIP_ND6_OPT_HDR_BUF->type) {
+//  179     case UIP_ND6_OPT_SLLAO:
+//  180       nd6_opt_llao = &uip_buf[uip_l2_l3_icmp_hdr_len + nd6_opt_offset];
+//  181 #if UIP_CONF_IPV6_CHECKS
+//  182       /* There must be NO option in a DAD NS */
+//  183       if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
+//  184         PRINTF("NS received is bad\n");
+//  185         goto discard;
+//  186       } else {
+//  187 #endif /*UIP_CONF_IPV6_CHECKS */
+//  188         nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
+//  189         if(nbr == NULL) {
+//  190           uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
+//  191 			  (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+//  192 			  0, NBR_STALE);
+//  193         } else {
+//  194           uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(nbr);
+//  195           if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+//  196 		    lladdr, UIP_LLADDR_LEN) != 0) {
+//  197             memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+//  198 		   UIP_LLADDR_LEN);
+//  199             nbr->state = NBR_STALE;
+//  200           } else {
+//  201             if(nbr->state == NBR_INCOMPLETE) {
+//  202               nbr->state = NBR_STALE;
+//  203             }
+//  204           }
+//  205         }
+//  206 #if UIP_CONF_IPV6_CHECKS
+//  207       }
+//  208 #endif /*UIP_CONF_IPV6_CHECKS */
+//  209       break;
+//  210     default:
+//  211       PRINTF("ND option not supported in NS");
+//  212       break;
+//  213     }
+//  214     nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
+//  215   }
+//  216 
+//  217   addr = uip_ds6_addr_lookup(&UIP_ND6_NS_BUF->tgtipaddr);
+//  218   if(addr != NULL) {
+//  219 #if UIP_ND6_DEF_MAXDADNS > 0
+//  220     if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
+//  221       /* DAD CASE */
+//  222 #if UIP_CONF_IPV6_CHECKS
+//  223       if(!uip_is_addr_solicited_node(&UIP_IP_BUF->destipaddr)) {
+//  224         PRINTF("NS received is bad\n");
+//  225         goto discard;
+//  226       }
+//  227 #endif /* UIP_CONF_IPV6_CHECKS */
+//  228       if(addr->state != ADDR_TENTATIVE) {
+//  229         uip_create_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr);
+//  230         uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+//  231         flags = UIP_ND6_NA_FLAG_OVERRIDE;
+//  232         goto create_na;
+//  233       } else {
+//  234           /** \todo if I sent a NS before him, I win */
+//  235         uip_ds6_dad_failed(addr);
+//  236         goto discard;
+//  237       }
+//  238 #else /* UIP_ND6_DEF_MAXDADNS > 0 */
+//  239     if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
+//  240       /* DAD CASE */
+//  241       goto discard;
+//  242 #endif /* UIP_ND6_DEF_MAXDADNS > 0 */
+//  243     }
+//  244 #if UIP_CONF_IPV6_CHECKS
+//  245     if(uip_ds6_is_my_addr(&UIP_IP_BUF->srcipaddr)) {
+//  246         /**
+//  247          * \NOTE do we do something here? we both are using the same address.
+//  248          * If we are doing dad, we could cancel it, though we should receive a
+//  249          * NA in response of DAD NS we sent, hence DAD will fail anyway. If we
+//  250          * were not doing DAD, it means there is a duplicate in the network!
+//  251          */
+//  252       PRINTF("NS received is bad\n");
+//  253       goto discard;
+//  254     }
+//  255 #endif /*UIP_CONF_IPV6_CHECKS */
+//  256 
+//  257     /* Address resolution case */
+//  258     if(uip_is_addr_solicited_node(&UIP_IP_BUF->destipaddr)) {
+//  259       uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &UIP_IP_BUF->srcipaddr);
+//  260       uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_ND6_NS_BUF->tgtipaddr);
+//  261       flags = UIP_ND6_NA_FLAG_SOLICITED | UIP_ND6_NA_FLAG_OVERRIDE;
+//  262       goto create_na;
+//  263     }
+//  264 
+//  265     /* NUD CASE */
+//  266     if(uip_ds6_addr_lookup(&UIP_IP_BUF->destipaddr) == addr) {
+//  267       uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &UIP_IP_BUF->srcipaddr);
+//  268       uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_ND6_NS_BUF->tgtipaddr);
+//  269       flags = UIP_ND6_NA_FLAG_SOLICITED | UIP_ND6_NA_FLAG_OVERRIDE;
+//  270       goto create_na;
+//  271     } else {
+//  272 #if UIP_CONF_IPV6_CHECKS
+//  273       PRINTF("NS received is bad\n");
+//  274       goto discard;
+//  275 #endif /* UIP_CONF_IPV6_CHECKS */
+//  276     }
+//  277   } else {
+//  278     goto discard;
+//  279   }
+//  280 
+//  281 
+//  282 create_na:
+//  283     /* If the node is a router it should set R flag in NAs */
+//  284 #if UIP_CONF_ROUTER
+//  285     flags = flags | UIP_ND6_NA_FLAG_ROUTER;
+//  286 #endif
+//  287   uip_ext_len = 0;
+//  288   UIP_IP_BUF->vtc = 0x60;
+//  289   UIP_IP_BUF->tcflow = 0;
+//  290   UIP_IP_BUF->flow = 0;
+//  291   UIP_IP_BUF->len[0] = 0;       /* length will not be more than 255 */
+//  292   UIP_IP_BUF->len[1] = UIP_ICMPH_LEN + UIP_ND6_NA_LEN + UIP_ND6_OPT_LLAO_LEN;
+//  293   UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
+//  294   UIP_IP_BUF->ttl = UIP_ND6_HOP_LIMIT;
+//  295 
+//  296   UIP_ICMP_BUF->type = ICMP6_NA;
+//  297   UIP_ICMP_BUF->icode = 0;
+//  298 
+//  299   UIP_ND6_NA_BUF->flagsreserved = flags;
+//  300   memcpy(&UIP_ND6_NA_BUF->tgtipaddr, &addr->ipaddr, sizeof(uip_ipaddr_t));
+//  301 
+//  302   create_llao(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NA_LEN],
+//  303               UIP_ND6_OPT_TLLAO);
+//  304 
+//  305   UIP_ICMP_BUF->icmpchksum = 0;
+//  306   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
+//  307 
+//  308   uip_len =
+//  309     UIP_IPH_LEN + UIP_ICMPH_LEN + UIP_ND6_NA_LEN + UIP_ND6_OPT_LLAO_LEN;
+//  310 
+//  311   UIP_STAT(++uip_stat.nd6.sent);
+//  312   PRINTF("Sending NA to ");
+//  313   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+//  314   PRINTF(" from ");
+//  315   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+//  316   PRINTF(" with target address ");
+//  317   PRINT6ADDR(&UIP_ND6_NA_BUF->tgtipaddr);
+//  318   PRINTF("\n");
+//  319   return;
+//  320 
+//  321 discard:
+//  322   uip_len = 0;
+??uip_nd6_ns_input_0:
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  323   return;
+??uip_nd6_ns_input_2:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+??uip_nd6_ns_input_1:
+        MOV     DPTR,#nd6_opt_llao
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#nd6_opt_offset
+        MOV     A,#0x14
+        MOVX    @DPTR,A
+        SJMP    ??uip_nd6_ns_input_3
+??uip_nd6_ns_input_4:
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     DPTR,#nd6_opt_offset
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2d
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        RLC     A
+        RLC     A
+        RLC     A
+        ANL     A,#0xf8
+        MOV     R0,A
+        MOV     DPTR,#nd6_opt_offset
+        MOVX    A,@DPTR
+        ADD     A,R0
+        MOVX    @DPTR,A
+??uip_nd6_ns_input_3:
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     DPTR,#nd6_opt_offset
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2c
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R3,A
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        CLR     C
+        MOV     A,R2
+        SUBB    A,R0
+        MOV     A,R3
+        SUBB    A,R1
+        JC      $+5
+        LJMP    ??uip_nd6_ns_input_5 & 0xFFFF
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     DPTR,#nd6_opt_offset
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2d
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        JNZ     $+5
+        LJMP    ??uip_nd6_ns_input_0 & 0xFFFF
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     DPTR,#nd6_opt_offset
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,#(uip_aligned_buf + 44) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((uip_aligned_buf + 44) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        XRL     A,#0x1
+        JZ      $+5
+        LJMP    ??uip_nd6_ns_input_4 & 0xFFFF
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     DPTR,#nd6_opt_offset
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,#(uip_aligned_buf + 44) & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#((uip_aligned_buf + 44) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     DPTR,#nd6_opt_llao
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 8
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_input_6
+        MOV     DPTR,#uip_aligned_buf + 10
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_input_6
+        MOV     DPTR,#uip_aligned_buf + 12
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_input_6
+        MOV     DPTR,#uip_aligned_buf + 14
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_input_6
+        MOV     DPTR,#uip_aligned_buf + 16
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_input_6
+        MOV     DPTR,#uip_aligned_buf + 18
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_input_6
+        MOV     DPTR,#uip_aligned_buf + 20
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_input_6
+        MOV     DPTR,#uip_aligned_buf + 22
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     $+5
+        LJMP    ??uip_nd6_ns_input_0 & 0xFFFF
+??uip_nd6_ns_input_6:
+        ; Setup parameters for call to function uip_ds6_nbr_lookup
+        MOV     R2,#(uip_aligned_buf + 8) & 0xff
+        MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+        LCALL   ??uip_ds6_nbr_lookup?relay
+        MOV     DPTR,#nbr
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_input_7
+        ; Setup parameters for call to function uip_ds6_nbr_add
+        MOV     ?V0 + 0,#0x2
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_ONE
+          CFI CFA_XSP16 add(XSP16, 11)
+        MOV     R1,#0x0
+        MOV     DPTR,#nd6_opt_llao
+        MOVX    A,@DPTR
+        ADD     A,#0x2
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     R2,#(uip_aligned_buf + 8) & 0xff
+        MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+        LCALL   ??uip_ds6_nbr_add?relay
+        MOV     A,#0x1
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+        LJMP    ??uip_nd6_ns_input_4 & 0xFFFF
+??uip_nd6_ns_input_7:
+        ; Setup parameters for call to function uip_ds6_nbr_get_ll
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??uip_ds6_nbr_get_ll?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R6,?V0 + 0
+        MOV     R7,?V0 + 1
+        ; Setup parameters for call to function memcmp
+        MOV     ?V0 + 0,#0x8
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     DPTR,#nd6_opt_llao
+        MOVX    A,@DPTR
+        ADD     A,#0x2
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??memcmp?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??uip_nd6_ns_input_8
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x8
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     DPTR,#nd6_opt_llao
+        MOVX    A,@DPTR
+        ADD     A,#0x2
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+        SJMP    ??uip_nd6_ns_input_9
+??uip_nd6_ns_input_8:
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        JNZ     ??uip_nd6_ns_input_9
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+??uip_nd6_ns_input_9:
+        LJMP    ??uip_nd6_ns_input_4 & 0xFFFF
+??uip_nd6_ns_input_5:
+        ; Setup parameters for call to function uip_ds6_addr_lookup
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x30
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??uip_ds6_addr_lookup?relay
+        MOV     DPTR,#addr
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+        MOV     DPTR,#addr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     $+5
+        LJMP    ??uip_nd6_ns_input_0 & 0xFFFF
+        MOV     DPTR,#uip_aligned_buf + 8
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_input_10
+        MOV     DPTR,#uip_aligned_buf + 10
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_input_10
+        MOV     DPTR,#uip_aligned_buf + 12
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_input_10
+        MOV     DPTR,#uip_aligned_buf + 14
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_input_10
+        MOV     DPTR,#uip_aligned_buf + 16
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_input_10
+        MOV     DPTR,#uip_aligned_buf + 18
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_input_10
+        MOV     DPTR,#uip_aligned_buf + 20
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_input_10
+        MOV     DPTR,#uip_aligned_buf + 22
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     $+5
+        LJMP    ??uip_nd6_ns_input_0 & 0xFFFF
+??uip_nd6_ns_input_10:
+        ; Setup parameters for call to function uip_ds6_addr_lookup
+        MOV     R2,#(uip_aligned_buf + 8) & 0xff
+        MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+        LCALL   ??uip_ds6_addr_lookup?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      $+5
+        LJMP    ??uip_nd6_ns_input_0 & 0xFFFF
+        MOV     DPTR,#uip_aligned_buf + 24
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+        JZ      $+5
+        LJMP    ??uip_nd6_ns_input_11 & 0xFFFF
+        MOV     DPTR,#uip_aligned_buf + 25
+        MOVX    A,@DPTR
+        XRL     A,#0x2
+        JZ      $+5
+        LJMP    ??uip_nd6_ns_input_11 & 0xFFFF
+        MOV     DPTR,#uip_aligned_buf + 26
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      $+5
+        LJMP    ??uip_nd6_ns_input_11 & 0xFFFF
+        MOV     DPTR,#uip_aligned_buf + 28
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      $+5
+        LJMP    ??uip_nd6_ns_input_11 & 0xFFFF
+        MOV     DPTR,#uip_aligned_buf + 30
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      $+5
+        LJMP    ??uip_nd6_ns_input_11 & 0xFFFF
+        MOV     DPTR,#uip_aligned_buf + 32
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      $+5
+        LJMP    ??uip_nd6_ns_input_11 & 0xFFFF
+        MOV     DPTR,#uip_aligned_buf + 34
+        MOVX    A,@DPTR
+        JZ      $+5
+        LJMP    ??uip_nd6_ns_input_11 & 0xFFFF
+        MOV     DPTR,#uip_aligned_buf + 35
+        MOVX    A,@DPTR
+        XRL     A,#0x1
+        JZ      $+5
+        LJMP    ??uip_nd6_ns_input_11 & 0xFFFF
+        MOV     DPTR,#uip_aligned_buf + 36
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+        JZ      $+5
+        LJMP    ??uip_nd6_ns_input_11 & 0xFFFF
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x10
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     R4,#(uip_aligned_buf + 8) & 0xff
+        MOV     R5,#((uip_aligned_buf + 8) >> 8) & 0xff
+        MOV     R2,#(uip_aligned_buf + 24) & 0xff
+        MOV     R3,#((uip_aligned_buf + 24) >> 8) & 0xff
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x10
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x30
+        MOV     R4,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     R2,#(uip_aligned_buf + 8) & 0xff
+        MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+        MOV     R2,#0x60
+??uip_nd6_ns_input_12:
+        SETB    C
+        MOV     A,R2
+        MOV     0xE0 /* A   */.7,C
+        MOV     R2,A
+        MOV     DPTR,#uip_ext_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf
+        MOV     A,#0x60
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 1
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 2
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 4
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 5
+        MOV     A,#0x28
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 6
+        MOV     A,#0x3a
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 7
+        MOV     A,#-0x1
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x28
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#-0x78
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x29
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     A,R2
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2c
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x10
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     DPTR,#addr
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x30
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Setup parameters for call to function create_llao
+        MOV     R1,#0x2
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,#(uip_aligned_buf + 64) & 0xff
+        ADD     A,R2
+        MOV     R2,A
+        MOV     A,#((uip_aligned_buf + 64) >> 8) & 0xff
+        ADDC    A,R3
+        MOV     R3,A
+        LCALL   ??create_llao?relay
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2a
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        ; Setup parameters for call to function uip_icmp6chksum
+        LCALL   ??uip_icmp6chksum?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R0,?V0 + 0
+        MOV     R1,?V0 + 1
+        MOV     A,?V0 + 0
+        CPL     A
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        CPL     A
+        MOV     R3,A
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2a
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_len
+        MOV     A,#0x50
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        LJMP    ??uip_nd6_ns_input_2 & 0xFFFF
+??uip_nd6_ns_input_11:
+        ; Setup parameters for call to function uip_ds6_addr_lookup
+        MOV     R2,#(uip_aligned_buf + 24) & 0xff
+        MOV     R3,#((uip_aligned_buf + 24) >> 8) & 0xff
+        LCALL   ??uip_ds6_addr_lookup?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        MOV     DPTR,#addr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,?V0 + 0
+        XRL     A,R0
+        JNZ     ??uip_nd6_ns_input_13
+        MOV     A,?V0 + 1
+        XRL     A,R1
+??uip_nd6_ns_input_13:
+        JNZ     ??uip_nd6_ns_input_14
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x10
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     R4,#(uip_aligned_buf + 8) & 0xff
+        MOV     R5,#((uip_aligned_buf + 8) >> 8) & 0xff
+        MOV     R2,#(uip_aligned_buf + 24) & 0xff
+        MOV     R3,#((uip_aligned_buf + 24) >> 8) & 0xff
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x10
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x30
+        MOV     R4,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     R2,#(uip_aligned_buf + 8) & 0xff
+        MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+        MOV     R2,#0x60
+        LJMP    ??uip_nd6_ns_input_12 & 0xFFFF
+??uip_nd6_ns_input_14:
+        LJMP    ??uip_nd6_ns_input_0 & 0xFFFF
+          CFI EndBlock cfiBlock1
+//  324 }
+//  325 
+//  326 
+//  327 
+//  328 /*------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  329 void
+//  330 uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
+uip_nd6_ns_output:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function uip_nd6_ns_output
+        CODE
+//  331 {
+        FUNCALL uip_nd6_ns_output, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_output, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_output, uip_ds6_addr_lookup
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_output, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_output, uip_ds6_select_src
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_output, create_llao
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_ns_output, uip_icmp6chksum
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+//  332   uip_ext_len = 0;
+        MOV     DPTR,#uip_ext_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  333   UIP_IP_BUF->vtc = 0x60;
+        MOV     DPTR,#uip_aligned_buf
+        MOV     A,#0x60
+        MOVX    @DPTR,A
+//  334   UIP_IP_BUF->tcflow = 0;
+        MOV     DPTR,#uip_aligned_buf + 1
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  335   UIP_IP_BUF->flow = 0;
+        MOV     DPTR,#uip_aligned_buf + 2
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  336   UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
+        MOV     DPTR,#uip_aligned_buf + 6
+        MOV     A,#0x3a
+        MOVX    @DPTR,A
+//  337   UIP_IP_BUF->ttl = UIP_ND6_HOP_LIMIT;
+        MOV     DPTR,#uip_aligned_buf + 7
+        MOV     A,#-0x1
+        MOVX    @DPTR,A
+        MOV     A,#0xc
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+//  338 
+//  339   if(dest == NULL) {
+        MOV     A,R4
+        ORL     A,R5
+        JNZ     ??uip_nd6_ns_output_0
+//  340     uip_create_solicited_node(tgt, &UIP_IP_BUF->destipaddr);
+        MOV     DPTR,#uip_aligned_buf + 24
+        MOV     A,#-0x1
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 25
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 26
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 28
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 30
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 32
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 34
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 35
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 36
+        MOV     A,#-0x1
+        MOVX    @DPTR,A
+        MOV     A,R6
+        ADD     A,#0xd
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     DPTR,#uip_aligned_buf + 37
+        MOVX    @DPTR,A
+        MOV     A,R6
+        ADD     A,#0xe
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#uip_aligned_buf + 38
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        SJMP    ??uip_nd6_ns_output_1
+//  341   } else {
+//  342     uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, dest);
+??uip_nd6_ns_output_0:
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 2,#0x10
+        MOV     ?V0 + 3,#0x0
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     R2,#(uip_aligned_buf + 24) & 0xff
+        MOV     R3,#((uip_aligned_buf + 24) >> 8) & 0xff
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+//  343   }
+//  344   UIP_ICMP_BUF->type = ICMP6_NS;
+??uip_nd6_ns_output_1:
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x28
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#-0x79
+        MOVX    @DPTR,A
+//  345   UIP_ICMP_BUF->icode = 0;
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x29
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  346   UIP_ND6_NS_BUF->reserved = 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2c
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R4
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R5
+        MOVX    @DPTR,A
+//  347   uip_ipaddr_copy((uip_ipaddr_t *) &UIP_ND6_NS_BUF->tgtipaddr, tgt);
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 2,#0x10
+        MOV     ?V0 + 3,#0x0
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x30
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+//  348   UIP_IP_BUF->len[0] = 0;       /* length will not be more than 255 */
+        MOV     DPTR,#uip_aligned_buf + 4
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  349   /*
+//  350    * check if we add a SLLAO option: for DAD, MUST NOT, for NUD, MAY
+//  351    * (here yes), for Address resolution , MUST 
+//  352    */
+//  353   if(!(uip_ds6_is_my_addr(tgt))) {
+        ; Setup parameters for call to function uip_ds6_addr_lookup
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??uip_ds6_addr_lookup?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JZ      $+5
+        LJMP    ??uip_nd6_ns_output_2 & 0xFFFF
+//  354     if(src != NULL) {
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??uip_nd6_ns_output_3
+//  355       uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, src);
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 2,#0x10
+        MOV     ?V0 + 3,#0x0
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     R2,#(uip_aligned_buf + 8) & 0xff
+        MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+        SJMP    ??uip_nd6_ns_output_4
+//  356     } else {
+//  357       uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+??uip_nd6_ns_output_3:
+        ; Setup parameters for call to function uip_ds6_select_src
+        MOV     R4,#(uip_aligned_buf + 24) & 0xff
+        MOV     R5,#((uip_aligned_buf + 24) >> 8) & 0xff
+        MOV     R2,#(uip_aligned_buf + 8) & 0xff
+        MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+        LCALL   ??uip_ds6_select_src?relay
+//  358     }
+//  359     if (uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
+??uip_nd6_ns_output_4:
+        MOV     DPTR,#uip_aligned_buf + 8
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_output_5
+        MOV     DPTR,#uip_aligned_buf + 10
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_output_5
+        MOV     DPTR,#uip_aligned_buf + 12
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_output_5
+        MOV     DPTR,#uip_aligned_buf + 14
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_output_5
+        MOV     DPTR,#uip_aligned_buf + 16
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_output_5
+        MOV     DPTR,#uip_aligned_buf + 18
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_output_5
+        MOV     DPTR,#uip_aligned_buf + 20
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_output_5
+        MOV     DPTR,#uip_aligned_buf + 22
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_nd6_ns_output_5
+//  360       PRINTF("Dropping NS due to no suitable source address\n");
+//  361       uip_len = 0;
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  362       return;
+        LJMP    ??uip_nd6_ns_output_6 & 0xFFFF
+//  363     }
+//  364     UIP_IP_BUF->len[1] =
+//  365       UIP_ICMPH_LEN + UIP_ND6_NS_LEN + UIP_ND6_OPT_LLAO_LEN;
+??uip_nd6_ns_output_5:
+        MOV     DPTR,#uip_aligned_buf + 5
+        MOV     A,#0x28
+        MOVX    @DPTR,A
+//  366 
+//  367     create_llao(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NS_LEN],
+//  368 		UIP_ND6_OPT_SLLAO);
+        ; Setup parameters for call to function create_llao
+        MOV     R1,#0x1
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,#(uip_aligned_buf + 64) & 0xff
+        ADD     A,R2
+        MOV     R2,A
+        MOV     A,#((uip_aligned_buf + 64) >> 8) & 0xff
+        ADDC    A,R3
+        MOV     R3,A
+        LCALL   ??create_llao?relay
+//  369 
+//  370     uip_len =
+//  371       UIP_IPH_LEN + UIP_ICMPH_LEN + UIP_ND6_NS_LEN + UIP_ND6_OPT_LLAO_LEN;
+        MOV     DPTR,#uip_len
+        MOV     A,#0x50
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        SJMP    ??uip_nd6_ns_output_7
+//  372   } else {
+//  373     uip_create_unspecified(&UIP_IP_BUF->srcipaddr);
+??uip_nd6_ns_output_2:
+        MOV     DPTR,#uip_aligned_buf + 8
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 10
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 12
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 14
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 16
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 18
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 20
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        MOV     DPTR,#uip_aligned_buf + 22
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  374     UIP_IP_BUF->len[1] = UIP_ICMPH_LEN + UIP_ND6_NS_LEN;
+        MOV     DPTR,#uip_aligned_buf + 5
+        MOV     A,#0x18
+        MOVX    @DPTR,A
+//  375     uip_len = UIP_IPH_LEN + UIP_ICMPH_LEN + UIP_ND6_NS_LEN;
+        MOV     DPTR,#uip_len
+        MOV     A,#0x40
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  376   }
+//  377 
+//  378   UIP_ICMP_BUF->icmpchksum = 0;
+??uip_nd6_ns_output_7:
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2a
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  379   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
+        ; Setup parameters for call to function uip_icmp6chksum
+        LCALL   ??uip_icmp6chksum?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R0,?V0 + 0
+        MOV     R1,?V0 + 1
+        MOV     A,?V0 + 0
+        CPL     A
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        CPL     A
+        MOV     R3,A
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2a
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  380 
+//  381   UIP_STAT(++uip_stat.nd6.sent);
+//  382   PRINTF("Sending NS to");
+//  383   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+//  384   PRINTF("from");
+//  385   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+//  386   PRINTF("with target address");
+//  387   PRINT6ADDR(tgt);
+//  388   PRINTF("\n");
+//  389   return;
+??uip_nd6_ns_output_6:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//  390 }
+//  391 
+//  392 
+//  393 
+//  394 /*------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  395 void
+//  396 uip_nd6_na_input(void)
+uip_nd6_na_input:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function uip_nd6_na_input
+        CODE
+//  397 {
+        FUNCALL uip_nd6_na_input, uip_ds6_addr_lookup
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_na_input, uip_ds6_nbr_lookup
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_na_input, uip_ds6_nbr_get_ll
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_na_input, memcmp
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_na_input, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_na_input, stimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 24, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 24, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_na_input, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 22, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 22, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_na_input, stimer_set
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 24, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 24, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_na_input, uip_ds6_defrt_lookup
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_nd6_na_input, uip_ds6_defrt_rm
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x14
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V11 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V10 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V9 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V8 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V7 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-16)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-17)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-18)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-19)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-20)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 20)
+        ; Saved register size: 20
+        ; Auto size: 0
+//  398   uint8_t is_llchange;
+//  399   uint8_t is_router;
+//  400   uint8_t is_solicited;
+//  401   uint8_t is_override;
+//  402 
+//  403   PRINTF("Received NA from");
+//  404   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+//  405   PRINTF("to");
+//  406   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+//  407   PRINTF("with target address");
+//  408   PRINT6ADDR((uip_ipaddr_t *) (&UIP_ND6_NA_BUF->tgtipaddr));
+//  409   PRINTF("\n");
+//  410   UIP_STAT(++uip_stat.nd6.recv);
+//  411 
+//  412   /* 
+//  413    * booleans. the three last one are not 0 or 1 but 0 or 0x80, 0x40, 0x20
+//  414    * but it works. Be careful though, do not use tests such as is_router == 1 
+//  415    */
+//  416   is_llchange = 0;
+        MOV     ?V0 + 2,#0x0
+//  417   is_router = ((UIP_ND6_NA_BUF->flagsreserved & UIP_ND6_NA_FLAG_ROUTER));
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#(uip_aligned_buf + 44) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((uip_aligned_buf + 44) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        ANL     A,#0x80
+        MOV     ?V0 + 0,A
+//  418   is_solicited =
+//  419     ((UIP_ND6_NA_BUF->flagsreserved & UIP_ND6_NA_FLAG_SOLICITED));
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#(uip_aligned_buf + 44) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((uip_aligned_buf + 44) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        ANL     A,#0x40
+        MOV     ?V0 + 1,A
+//  420   is_override =
+//  421     ((UIP_ND6_NA_BUF->flagsreserved & UIP_ND6_NA_FLAG_OVERRIDE));
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#(uip_aligned_buf + 44) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((uip_aligned_buf + 44) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        ANL     A,#0x20
+        MOV     ?V0 + 3,A
+//  422 
+//  423 #if UIP_CONF_IPV6_CHECKS
+//  424   if((UIP_IP_BUF->ttl != UIP_ND6_HOP_LIMIT) ||
+//  425      (UIP_ICMP_BUF->icode != 0) ||
+//  426      (uip_is_addr_mcast(&UIP_ND6_NA_BUF->tgtipaddr)) ||
+//  427      (is_solicited && uip_is_addr_mcast(&UIP_IP_BUF->destipaddr))) {
+        MOV     DPTR,#uip_aligned_buf + 7
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+        JNZ     ??uip_nd6_na_input_0
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x29
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        JNZ     ??uip_nd6_na_input_0
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x30
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+        JZ      ??uip_nd6_na_input_0
+        MOV     A,?V0 + 1
+        JZ      ??uip_nd6_na_input_1
+        MOV     DPTR,#uip_aligned_buf + 24
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+        JNZ     ??uip_nd6_na_input_1
+//  428     PRINTF("NA received is bad\n");
+//  429     goto discard;
+??uip_nd6_na_input_0:
+        LJMP    ??uip_nd6_na_input_2 & 0xFFFF
+//  430   }
+//  431 #endif /*UIP_CONF_IPV6_CHECKS */
+//  432 
+//  433   /* Options processing: we handle TLLAO, and must ignore others */
+//  434   nd6_opt_offset = UIP_ND6_NA_LEN;
+??uip_nd6_na_input_1:
+        MOV     DPTR,#nd6_opt_offset
+        MOV     A,#0x14
+        MOVX    @DPTR,A
+//  435   nd6_opt_llao = NULL;
+        MOV     DPTR,#nd6_opt_llao
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        SJMP    ??uip_nd6_na_input_3
+//  436   while(uip_l3_icmp_hdr_len + nd6_opt_offset < uip_len) {
+//  437 #if UIP_CONF_IPV6_CHECKS
+//  438     if(UIP_ND6_OPT_HDR_BUF->len == 0) {
+//  439       PRINTF("NA received is bad\n");
+//  440       goto discard;
+//  441     }
+//  442 #endif /*UIP_CONF_IPV6_CHECKS */
+//  443     switch (UIP_ND6_OPT_HDR_BUF->type) {
+//  444     case UIP_ND6_OPT_TLLAO:
+//  445       nd6_opt_llao = (uint8_t *)UIP_ND6_OPT_HDR_BUF;
+//  446       break;
+//  447     default:
+//  448       PRINTF("ND option not supported in NA\n");
+//  449       break;
+//  450     }
+//  451     nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
+??uip_nd6_na_input_4:
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     DPTR,#nd6_opt_offset
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2d
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        RLC     A
+        RLC     A
+        RLC     A
+        ANL     A,#0xf8
+        MOV     R0,A
+        MOV     DPTR,#nd6_opt_offset
+        MOVX    A,@DPTR
+        ADD     A,R0
+        MOVX    @DPTR,A
+??uip_nd6_na_input_3:
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     DPTR,#nd6_opt_offset
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2c
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R3,A
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        CLR     C
+        MOV     A,R2
+        SUBB    A,R0
+        MOV     A,R3
+        SUBB    A,R1
+        JNC     ??uip_nd6_na_input_5
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     DPTR,#nd6_opt_offset
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2d
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        JNZ     $+5
+        LJMP    ??uip_nd6_na_input_2 & 0xFFFF
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     DPTR,#nd6_opt_offset
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,#(uip_aligned_buf + 44) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((uip_aligned_buf + 44) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        XRL     A,#0x2
+        JZ      $+5
+        LJMP    ??uip_nd6_na_input_4 & 0xFFFF
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     DPTR,#nd6_opt_offset
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,#(uip_aligned_buf + 44) & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#((uip_aligned_buf + 44) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     DPTR,#nd6_opt_llao
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        LJMP    ??uip_nd6_na_input_4 & 0xFFFF
+//  452   }
+//  453   addr = uip_ds6_addr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
+??uip_nd6_na_input_5:
+        ; Setup parameters for call to function uip_ds6_addr_lookup
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x30
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??uip_ds6_addr_lookup?relay
+        MOV     DPTR,#addr
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  454   /* Message processing, including TLLAO if any */
+//  455   if(addr != NULL) {
+        MOV     DPTR,#addr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      $+5
+        LJMP    ??uip_nd6_na_input_2 & 0xFFFF
+//  456 #if UIP_ND6_DEF_MAXDADNS > 0
+//  457     if(addr->state == ADDR_TENTATIVE) {
+//  458       uip_ds6_dad_failed(addr);
+//  459     }
+//  460 #endif /*UIP_ND6_DEF_MAXDADNS > 0 */
+//  461     PRINTF("NA received is bad\n");
+//  462     goto discard;
+//  463   } else {
+//  464     uip_lladdr_t *lladdr;
+//  465     nbr = uip_ds6_nbr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
+        ; Setup parameters for call to function uip_ds6_nbr_lookup
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x30
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??uip_ds6_nbr_lookup?relay
+        MOV     DPTR,#nbr
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  466     lladdr = uip_ds6_nbr_get_ll(nbr);
+        ; Setup parameters for call to function uip_ds6_nbr_get_ll
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??uip_ds6_nbr_get_ll?relay
+        MOV     ?V0 + 4,R2
+        MOV     ?V0 + 5,R3
+        MOV     R6,?V0 + 4
+        MOV     R7,?V0 + 5
+//  467     if(nbr == NULL) {
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     $+5
+        LJMP    ??uip_nd6_na_input_2 & 0xFFFF
+//  468       goto discard;
+//  469     }
+//  470     if(nd6_opt_llao != 0) {
+        MOV     DPTR,#nd6_opt_llao
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??uip_nd6_na_input_6
+//  471       is_llchange =
+//  472         memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], (void *)lladdr,
+//  473                UIP_LLADDR_LEN);
+        ; Setup parameters for call to function memcmp
+        MOV     ?V0 + 4,#0x8
+        MOV     ?V0 + 5,#0x0
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     DPTR,#nd6_opt_llao
+        MOVX    A,@DPTR
+        ADD     A,#0x2
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??memcmp?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     A,R2
+        MOV     ?V0 + 2,A
+//  474     }
+//  475     if(nbr->state == NBR_INCOMPLETE) {
+??uip_nd6_na_input_6:
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        JZ      $+5
+        LJMP    ??uip_nd6_na_input_7 & 0xFFFF
+//  476       if(nd6_opt_llao == NULL) {
+        MOV     DPTR,#nd6_opt_llao
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     $+5
+        LJMP    ??uip_nd6_na_input_2 & 0xFFFF
+//  477         goto discard;
+//  478       }
+//  479       memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+//  480 	     UIP_LLADDR_LEN);
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 2,#0x8
+        MOV     ?V0 + 3,#0x0
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     DPTR,#nd6_opt_llao
+        MOVX    A,@DPTR
+        ADD     A,#0x2
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+//  481       if(is_solicited) {
+        MOV     A,?V0 + 1
+        JZ      ??uip_nd6_na_input_8
+//  482         nbr->state = NBR_REACHABLE;
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  483         nbr->nscount = 0;
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x20
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  484 
+//  485         /* reachable time is stored in ms */
+//  486         stimer_set(&(nbr->reachable), uip_ds6_if.reachable_time / 1000);
+        ; Setup parameters for call to function stimer_set
+        MOV     DPTR,#uip_ds6_if + 9
+        MOV     R0,#?V0 + 4
+        LCALL   ?L_MOV_X
+        MOV     DPTR,#__Constant_3e8
+        MOV     R0,#?V0 + 8
+        LCALL   ?L_MOV_X
+        MOV     R0,#?V0 + 4
+        MOV     R1,#?V0 + 8
+        LCALL   ?UL_DIV_MOD
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_FOUR
+          CFI CFA_XSP16 add(XSP16, 24)
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        ADD     A,#0x10
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??stimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        SJMP    ??uip_nd6_na_input_9
+//  487 
+//  488       } else {
+//  489         nbr->state = NBR_STALE;
+??uip_nd6_na_input_8:
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+//  490       }
+//  491       nbr->isrouter = is_router;
+??uip_nd6_na_input_9:
+        MOV     A,?V0 + 0
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x21
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,?V0 + 0
+        MOVX    @DPTR,A
+        LJMP    ??uip_nd6_na_input_2 & 0xFFFF
+//  492     } else {
+//  493       if(!is_override && is_llchange) {
+??uip_nd6_na_input_7:
+        MOV     A,?V0 + 3
+        JNZ     ??uip_nd6_na_input_10
+        MOV     A,?V0 + 2
+        JZ      ??uip_nd6_na_input_10
+//  494         if(nbr->state == NBR_REACHABLE) {
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        XRL     A,#0x1
+        JNZ     ??uip_nd6_na_input_11
+//  495           nbr->state = NBR_STALE;
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+//  496         }
+//  497         goto discard;
+??uip_nd6_na_input_11:
+        LJMP    ??uip_nd6_na_input_2 & 0xFFFF
+//  498       } else {
+//  499         if(is_override || (!is_override && nd6_opt_llao != 0 && !is_llchange)
+//  500            || nd6_opt_llao == 0) {
+??uip_nd6_na_input_10:
+        MOV     A,?V0 + 3
+        JNZ     ??uip_nd6_na_input_12
+        MOV     A,?V0 + 3
+        JNZ     ??uip_nd6_na_input_13
+        MOV     DPTR,#nd6_opt_llao
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??uip_nd6_na_input_13
+        MOV     A,?V0 + 2
+        JZ      ??uip_nd6_na_input_12
+??uip_nd6_na_input_13:
+        MOV     DPTR,#nd6_opt_llao
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      $+5
+        LJMP    ??uip_nd6_na_input_14 & 0xFFFF
+//  501           if(nd6_opt_llao != 0) {
+??uip_nd6_na_input_12:
+        MOV     DPTR,#nd6_opt_llao
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??uip_nd6_na_input_15
+//  502             memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+//  503 		   UIP_LLADDR_LEN);
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 4,#0x8
+        MOV     ?V0 + 5,#0x0
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 22)
+        MOV     DPTR,#nd6_opt_llao
+        MOVX    A,@DPTR
+        ADD     A,#0x2
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+//  504           }
+//  505           if(is_solicited) {
+??uip_nd6_na_input_15:
+        MOV     A,?V0 + 1
+        JZ      ??uip_nd6_na_input_16
+//  506             nbr->state = NBR_REACHABLE;
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  507             /* reachable time is stored in ms */
+//  508             stimer_set(&(nbr->reachable), uip_ds6_if.reachable_time / 1000);
+        ; Setup parameters for call to function stimer_set
+        MOV     DPTR,#uip_ds6_if + 9
+        MOV     R0,#?V0 + 4
+        LCALL   ?L_MOV_X
+        MOV     DPTR,#__Constant_3e8
+        MOV     R0,#?V0 + 8
+        LCALL   ?L_MOV_X
+        MOV     R0,#?V0 + 4
+        MOV     R1,#?V0 + 8
+        LCALL   ?UL_DIV_MOD
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_FOUR
+          CFI CFA_XSP16 add(XSP16, 24)
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        ADD     A,#0x10
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??stimer_set?relay
+        MOV     A,#0x4
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 20)
+        SJMP    ??uip_nd6_na_input_14
+//  509           } else {
+//  510             if(nd6_opt_llao != 0 && is_llchange) {
+??uip_nd6_na_input_16:
+        MOV     DPTR,#nd6_opt_llao
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??uip_nd6_na_input_14
+        MOV     A,?V0 + 2
+        JZ      ??uip_nd6_na_input_14
+//  511               nbr->state = NBR_STALE;
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x22
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+//  512             }
+//  513           }
+//  514         }
+//  515       }
+//  516       if(nbr->isrouter && !is_router) {
+??uip_nd6_na_input_14:
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x21
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        JZ      ??uip_nd6_na_input_17
+        MOV     A,?V0 + 0
+        JNZ     ??uip_nd6_na_input_17
+//  517         defrt = uip_ds6_defrt_lookup(&UIP_IP_BUF->srcipaddr);
+        ; Setup parameters for call to function uip_ds6_defrt_lookup
+        MOV     R2,#(uip_aligned_buf + 8) & 0xff
+        MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+        LCALL   ??uip_ds6_defrt_lookup?relay
+        MOV     DPTR,#defrt
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  518         if(defrt != NULL) {
+        MOV     DPTR,#defrt
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??uip_nd6_na_input_17
+//  519           uip_ds6_defrt_rm(defrt);
+        ; Setup parameters for call to function uip_ds6_defrt_rm
+        MOV     DPTR,#defrt
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        LCALL   ??uip_ds6_defrt_rm?relay
+//  520         }
+//  521       }
+//  522       nbr->isrouter = is_router;
+??uip_nd6_na_input_17:
+        MOV     A,?V0 + 0
+        MOV     DPTR,#nbr
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        XCH     A,R0
+        ADD     A,#0x21
+        MOV     DPL,A
+        MOV     A,R0
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,?V0 + 0
+        MOVX    @DPTR,A
+//  523     }
+//  524   }
+//  525 #if UIP_CONF_IPV6_QUEUE_PKT
+//  526   /* The nbr is now reachable, check if we had buffered a pkt for it */
+//  527   /*if(nbr->queue_buf_len != 0) {
+//  528     uip_len = nbr->queue_buf_len;
+//  529     memcpy(UIP_IP_BUF, nbr->queue_buf, uip_len);
+//  530     nbr->queue_buf_len = 0;
+//  531     return;
+//  532     }*/
+//  533   if(uip_packetqueue_buflen(&nbr->packethandle) != 0) {
+//  534     uip_len = uip_packetqueue_buflen(&nbr->packethandle);
+//  535     memcpy(UIP_IP_BUF, uip_packetqueue_buf(&nbr->packethandle), uip_len);
+//  536     uip_packetqueue_free(&nbr->packethandle);
+//  537     return;
+//  538   }
+//  539   
+//  540 #endif /*UIP_CONF_IPV6_QUEUE_PKT */
+//  541 
+//  542 discard:
+//  543   uip_len = 0;
+??uip_nd6_na_input_2:
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  544   return;
+        MOV     R7,#0xc
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock3
+//  545 }
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA32
+__Constant_3e8:
+        DS 4
+        REQUIRE `?<Initializer for __Constant_3e8>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for __Constant_3e8>`:
+        DATA32
+        DD 1000
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??create_llao?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    create_llao
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_nd6_ns_input?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_nd6_ns_input
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_nd6_ns_output?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_nd6_ns_output
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_nd6_na_input?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_nd6_na_input
+
+        END
+//  546 
+//  547 
+//  548 #if UIP_CONF_ROUTER
+//  549 #if UIP_ND6_SEND_RA
+//  550 /*---------------------------------------------------------------------------*/
+//  551 void
+//  552 uip_nd6_rs_input(void)
+//  553 {
+//  554 
+//  555   PRINTF("Received RS from");
+//  556   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+//  557   PRINTF("to");
+//  558   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+//  559   PRINTF("\n");
+//  560   UIP_STAT(++uip_stat.nd6.recv);
+//  561 
+//  562 
+//  563 #if UIP_CONF_IPV6_CHECKS
+//  564   /*
+//  565    * Check hop limit / icmp code 
+//  566    * target address must not be multicast
+//  567    * if the NA is solicited, dest must not be multicast
+//  568    */
+//  569   if((UIP_IP_BUF->ttl != UIP_ND6_HOP_LIMIT) || (UIP_ICMP_BUF->icode != 0)) {
+//  570     PRINTF("RS received is bad\n");
+//  571     goto discard;
+//  572   }
+//  573 #endif /*UIP_CONF_IPV6_CHECKS */
+//  574 
+//  575   /* Only valid option is Source Link-Layer Address option any thing
+//  576      else is discarded */
+//  577   nd6_opt_offset = UIP_ND6_RS_LEN;
+//  578   nd6_opt_llao = NULL;
+//  579 
+//  580   while(uip_l3_icmp_hdr_len + nd6_opt_offset < uip_len) {
+//  581 #if UIP_CONF_IPV6_CHECKS
+//  582     if(UIP_ND6_OPT_HDR_BUF->len == 0) {
+//  583       PRINTF("RS received is bad\n");
+//  584       goto discard;
+//  585     }
+//  586 #endif /*UIP_CONF_IPV6_CHECKS */
+//  587     switch (UIP_ND6_OPT_HDR_BUF->type) {
+//  588     case UIP_ND6_OPT_SLLAO:
+//  589       nd6_opt_llao = (uint8_t *)UIP_ND6_OPT_HDR_BUF;
+//  590       break;
+//  591     default:
+//  592       PRINTF("ND option not supported in RS\n");
+//  593       break;
+//  594     }
+//  595     nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
+//  596   }
+//  597   /* Options processing: only SLLAO */
+//  598   if(nd6_opt_llao != NULL) {
+//  599 #if UIP_CONF_IPV6_CHECKS
+//  600     if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
+//  601       PRINTF("RS received is bad\n");
+//  602       goto discard;
+//  603     } else {
+//  604 #endif /*UIP_CONF_IPV6_CHECKS */
+//  605       if((nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr)) == NULL) {
+//  606         /* we need to add the neighbor */
+//  607         uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
+//  608                         (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
+//  609       } else {
+//  610         /* If LL address changed, set neighbor state to stale */
+//  611         if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+//  612             uip_ds6_nbr_get_ll(nbr), UIP_LLADDR_LEN) != 0) {
+//  613           uip_ds6_nbr_t nbr_data = *nbr;
+//  614           uip_ds6_nbr_rm(nbr);
+//  615           nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
+//  616                                 (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
+//  617           nbr->reachable = nbr_data.reachable;
+//  618           nbr->sendns = nbr_data.sendns;
+//  619           nbr->nscount = nbr_data.nscount;
+//  620         }
+//  621         nbr->isrouter = 0;
+//  622       }
+//  623 #if UIP_CONF_IPV6_CHECKS
+//  624     }
+//  625 #endif /*UIP_CONF_IPV6_CHECKS */
+//  626   }
+//  627 
+//  628   /* Schedule a sollicited RA */
+//  629   uip_ds6_send_ra_sollicited();
+//  630 
+//  631 discard:
+//  632   uip_len = 0;
+//  633   return;
+//  634 }
+//  635 
+//  636 /*---------------------------------------------------------------------------*/
+//  637 void
+//  638 uip_nd6_ra_output(uip_ipaddr_t * dest)
+//  639 {
+//  640 
+//  641   UIP_IP_BUF->vtc = 0x60;
+//  642   UIP_IP_BUF->tcflow = 0;
+//  643   UIP_IP_BUF->flow = 0;
+//  644   UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
+//  645   UIP_IP_BUF->ttl = UIP_ND6_HOP_LIMIT;
+//  646 
+//  647   if(dest == NULL) {
+//  648     uip_create_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr);
+//  649   } else {
+//  650     /* For sollicited RA */
+//  651     uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, dest);
+//  652   }
+//  653   uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+//  654 
+//  655   UIP_ICMP_BUF->type = ICMP6_RA;
+//  656   UIP_ICMP_BUF->icode = 0;
+//  657 
+//  658   UIP_ND6_RA_BUF->cur_ttl = uip_ds6_if.cur_hop_limit;
+//  659 
+//  660   UIP_ND6_RA_BUF->flags_reserved =
+//  661     (UIP_ND6_M_FLAG << 7) | (UIP_ND6_O_FLAG << 6);
+//  662 
+//  663   UIP_ND6_RA_BUF->router_lifetime = uip_htons(UIP_ND6_ROUTER_LIFETIME);
+//  664   //UIP_ND6_RA_BUF->reachable_time = uip_htonl(uip_ds6_if.reachable_time);
+//  665   //UIP_ND6_RA_BUF->retrans_timer = uip_htonl(uip_ds6_if.retrans_timer);
+//  666   UIP_ND6_RA_BUF->reachable_time = 0;
+//  667   UIP_ND6_RA_BUF->retrans_timer = 0;
+//  668 
+//  669   uip_len = UIP_IPH_LEN + UIP_ICMPH_LEN + UIP_ND6_RA_LEN;
+//  670   nd6_opt_offset = UIP_ND6_RA_LEN;
+//  671 
+//  672 
+//  673 #if !UIP_CONF_ROUTER
+//  674   /* Prefix list */
+//  675   for(prefix = uip_ds6_prefix_list;
+//  676       prefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB; prefix++) {
+//  677     if((prefix->isused) && (prefix->advertise)) {
+//  678       UIP_ND6_OPT_PREFIX_BUF->type = UIP_ND6_OPT_PREFIX_INFO;
+//  679       UIP_ND6_OPT_PREFIX_BUF->len = UIP_ND6_OPT_PREFIX_INFO_LEN / 8;
+//  680       UIP_ND6_OPT_PREFIX_BUF->preflen = prefix->length;
+//  681       UIP_ND6_OPT_PREFIX_BUF->flagsreserved1 = prefix->l_a_reserved;
+//  682       UIP_ND6_OPT_PREFIX_BUF->validlt = uip_htonl(prefix->vlifetime);
+//  683       UIP_ND6_OPT_PREFIX_BUF->preferredlt = uip_htonl(prefix->plifetime);
+//  684       UIP_ND6_OPT_PREFIX_BUF->reserved2 = 0;
+//  685       uip_ipaddr_copy(&(UIP_ND6_OPT_PREFIX_BUF->prefix), &(prefix->ipaddr));
+//  686       nd6_opt_offset += UIP_ND6_OPT_PREFIX_INFO_LEN;
+//  687       uip_len += UIP_ND6_OPT_PREFIX_INFO_LEN;
+//  688     }
+//  689   }
+//  690 #endif /* !UIP_CONF_ROUTER */
+//  691 
+//  692   /* Source link-layer option */
+//  693   create_llao((uint8_t *)UIP_ND6_OPT_HDR_BUF, UIP_ND6_OPT_SLLAO);
+//  694 
+//  695   uip_len += UIP_ND6_OPT_LLAO_LEN;
+//  696   nd6_opt_offset += UIP_ND6_OPT_LLAO_LEN;
+//  697 
+//  698   /* MTU */
+//  699   UIP_ND6_OPT_MTU_BUF->type = UIP_ND6_OPT_MTU;
+//  700   UIP_ND6_OPT_MTU_BUF->len = UIP_ND6_OPT_MTU_LEN >> 3;
+//  701   UIP_ND6_OPT_MTU_BUF->reserved = 0;
+//  702   //UIP_ND6_OPT_MTU_BUF->mtu = uip_htonl(uip_ds6_if.link_mtu);
+//  703   UIP_ND6_OPT_MTU_BUF->mtu = uip_htonl(1500);
+//  704 
+//  705   uip_len += UIP_ND6_OPT_MTU_LEN;
+//  706   nd6_opt_offset += UIP_ND6_OPT_MTU_LEN;
+//  707   UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
+//  708   UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
+//  709 
+//  710   /*ICMP checksum */
+//  711   UIP_ICMP_BUF->icmpchksum = 0;
+//  712   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
+//  713 
+//  714   UIP_STAT(++uip_stat.nd6.sent);
+//  715   PRINTF("Sending RA to");
+//  716   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+//  717   PRINTF("from");
+//  718   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+//  719   PRINTF("\n");
+//  720   return;
+//  721 }
+//  722 #endif /* UIP_ND6_SEND_RA */
+//  723 #endif /* UIP_CONF_ROUTER */
+//  724 
+//  725 #if !UIP_CONF_ROUTER
+//  726 /*---------------------------------------------------------------------------*/
+//  727 void
+//  728 uip_nd6_rs_output(void)
+//  729 {
+//  730   UIP_IP_BUF->vtc = 0x60;
+//  731   UIP_IP_BUF->tcflow = 0;
+//  732   UIP_IP_BUF->flow = 0;
+//  733   UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
+//  734   UIP_IP_BUF->ttl = UIP_ND6_HOP_LIMIT;
+//  735   uip_create_linklocal_allrouters_mcast(&UIP_IP_BUF->destipaddr);
+//  736   uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+//  737   UIP_ICMP_BUF->type = ICMP6_RS;
+//  738   UIP_ICMP_BUF->icode = 0;
+//  739   UIP_IP_BUF->len[0] = 0;       /* length will not be more than 255 */
+//  740 
+//  741   if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
+//  742     UIP_IP_BUF->len[1] = UIP_ICMPH_LEN + UIP_ND6_RS_LEN;
+//  743     uip_len = uip_l3_icmp_hdr_len + UIP_ND6_RS_LEN;
+//  744   } else {
+//  745     uip_len = uip_l3_icmp_hdr_len + UIP_ND6_RS_LEN + UIP_ND6_OPT_LLAO_LEN;
+//  746     UIP_IP_BUF->len[1] =
+//  747       UIP_ICMPH_LEN + UIP_ND6_RS_LEN + UIP_ND6_OPT_LLAO_LEN;
+//  748 
+//  749     create_llao(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_RS_LEN],
+//  750 		UIP_ND6_OPT_SLLAO);
+//  751   }
+//  752 
+//  753   UIP_ICMP_BUF->icmpchksum = 0;
+//  754   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
+//  755 
+//  756   UIP_STAT(++uip_stat.nd6.sent);
+//  757   PRINTF("Sendin RS to");
+//  758   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+//  759   PRINTF("from");
+//  760   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+//  761   PRINTF("\n");
+//  762   return;
+//  763 }
+//  764 
+//  765 
+//  766 /*---------------------------------------------------------------------------*/
+//  767 void
+//  768 uip_nd6_ra_input(void)
+//  769 {
+//  770   PRINTF("Received RA from");
+//  771   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+//  772   PRINTF("to");
+//  773   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+//  774   PRINTF("\n");
+//  775   UIP_STAT(++uip_stat.nd6.recv);
+//  776 
+//  777 #if UIP_CONF_IPV6_CHECKS
+//  778   if((UIP_IP_BUF->ttl != UIP_ND6_HOP_LIMIT) ||
+//  779      (!uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr)) ||
+//  780      (UIP_ICMP_BUF->icode != 0)) {
+//  781     PRINTF("RA received is bad");
+//  782     goto discard;
+//  783   }
+//  784 #endif /*UIP_CONF_IPV6_CHECKS */
+//  785 
+//  786   if(UIP_ND6_RA_BUF->cur_ttl != 0) {
+//  787     uip_ds6_if.cur_hop_limit = UIP_ND6_RA_BUF->cur_ttl;
+//  788     PRINTF("uip_ds6_if.cur_hop_limit %u\n", uip_ds6_if.cur_hop_limit);
+//  789   }
+//  790 
+//  791   if(UIP_ND6_RA_BUF->reachable_time != 0) {
+//  792     if(uip_ds6_if.base_reachable_time !=
+//  793        uip_ntohl(UIP_ND6_RA_BUF->reachable_time)) {
+//  794       uip_ds6_if.base_reachable_time = uip_ntohl(UIP_ND6_RA_BUF->reachable_time);
+//  795       uip_ds6_if.reachable_time = uip_ds6_compute_reachable_time();
+//  796     }
+//  797   }
+//  798   if(UIP_ND6_RA_BUF->retrans_timer != 0) {
+//  799     uip_ds6_if.retrans_timer = uip_ntohl(UIP_ND6_RA_BUF->retrans_timer);
+//  800   }
+//  801 
+//  802   /* Options processing */
+//  803   nd6_opt_offset = UIP_ND6_RA_LEN;
+//  804   while(uip_l3_icmp_hdr_len + nd6_opt_offset < uip_len) {
+//  805     if(UIP_ND6_OPT_HDR_BUF->len == 0) {
+//  806       PRINTF("RA received is bad");
+//  807       goto discard;
+//  808     }
+//  809     switch (UIP_ND6_OPT_HDR_BUF->type) {
+//  810     case UIP_ND6_OPT_SLLAO:
+//  811       PRINTF("Processing SLLAO option in RA\n");
+//  812       nd6_opt_llao = (uint8_t *) UIP_ND6_OPT_HDR_BUF;
+//  813       nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
+//  814       if(nbr == NULL) {
+//  815         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
+//  816                               (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+//  817 			      1, NBR_STALE);
+//  818       } else {
+//  819         if(nbr->state == NBR_INCOMPLETE) {
+//  820           nbr->state = NBR_STALE;
+//  821         }
+//  822         uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(nbr);
+//  823         if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+//  824 		  lladdr, UIP_LLADDR_LEN) != 0) {
+//  825           memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+//  826 		 UIP_LLADDR_LEN);
+//  827           nbr->state = NBR_STALE;
+//  828         }
+//  829         nbr->isrouter = 1;
+//  830       }
+//  831       break;
+//  832     case UIP_ND6_OPT_MTU:
+//  833       PRINTF("Processing MTU option in RA\n");
+//  834       uip_ds6_if.link_mtu =
+//  835         uip_ntohl(((uip_nd6_opt_mtu *) UIP_ND6_OPT_HDR_BUF)->mtu);
+//  836       break;
+//  837     case UIP_ND6_OPT_PREFIX_INFO:
+//  838       PRINTF("Processing PREFIX option in RA\n");
+//  839       nd6_opt_prefix_info = (uip_nd6_opt_prefix_info *) UIP_ND6_OPT_HDR_BUF;
+//  840       if((uip_ntohl(nd6_opt_prefix_info->validlt) >=
+//  841           uip_ntohl(nd6_opt_prefix_info->preferredlt))
+//  842          && (!uip_is_addr_link_local(&nd6_opt_prefix_info->prefix))) {
+//  843         /* on-link flag related processing */
+//  844         if(nd6_opt_prefix_info->flagsreserved1 & UIP_ND6_RA_FLAG_ONLINK) {
+//  845           prefix =
+//  846             uip_ds6_prefix_lookup(&nd6_opt_prefix_info->prefix,
+//  847                                   nd6_opt_prefix_info->preflen);
+//  848           if(prefix == NULL) {
+//  849             if(nd6_opt_prefix_info->validlt != 0) {
+//  850               if(nd6_opt_prefix_info->validlt != UIP_ND6_INFINITE_LIFETIME) {
+//  851                 prefix = uip_ds6_prefix_add(&nd6_opt_prefix_info->prefix,
+//  852                                             nd6_opt_prefix_info->preflen,
+//  853                                             uip_ntohl(nd6_opt_prefix_info->
+//  854                                                   validlt));
+//  855               } else {
+//  856                 prefix = uip_ds6_prefix_add(&nd6_opt_prefix_info->prefix,
+//  857                                             nd6_opt_prefix_info->preflen, 0);
+//  858               }
+//  859             }
+//  860           } else {
+//  861             switch (nd6_opt_prefix_info->validlt) {
+//  862             case 0:
+//  863               uip_ds6_prefix_rm(prefix);
+//  864               break;
+//  865             case UIP_ND6_INFINITE_LIFETIME:
+//  866               prefix->isinfinite = 1;
+//  867               break;
+//  868             default:
+//  869               PRINTF("Updating timer of prefix");
+//  870               PRINT6ADDR(&prefix->ipaddr);
+//  871               PRINTF("new value %lu\n", uip_ntohl(nd6_opt_prefix_info->validlt));
+//  872               stimer_set(&prefix->vlifetime,
+//  873                          uip_ntohl(nd6_opt_prefix_info->validlt));
+//  874               prefix->isinfinite = 0;
+//  875               break;
+//  876             }
+//  877           }
+//  878         }
+//  879         /* End of on-link flag related processing */
+//  880         /* autonomous flag related processing */
+//  881         if((nd6_opt_prefix_info->flagsreserved1 & UIP_ND6_RA_FLAG_AUTONOMOUS)
+//  882            && (nd6_opt_prefix_info->validlt != 0)
+//  883            && (nd6_opt_prefix_info->preflen == UIP_DEFAULT_PREFIX_LEN)) {
+//  884 	  
+//  885           uip_ipaddr_copy(&ipaddr, &nd6_opt_prefix_info->prefix);
+//  886           uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+//  887           addr = uip_ds6_addr_lookup(&ipaddr);
+//  888           if((addr != NULL) && (addr->type == ADDR_AUTOCONF)) {
+//  889             if(nd6_opt_prefix_info->validlt != UIP_ND6_INFINITE_LIFETIME) {
+//  890               /* The processing below is defined in RFC4862 section 5.5.3 e */
+//  891               if((uip_ntohl(nd6_opt_prefix_info->validlt) > 2 * 60 * 60) ||
+//  892                  (uip_ntohl(nd6_opt_prefix_info->validlt) >
+//  893                   stimer_remaining(&addr->vlifetime))) {
+//  894                 PRINTF("Updating timer of address");
+//  895                 PRINT6ADDR(&addr->ipaddr);
+//  896                 PRINTF("new value %lu\n",
+//  897                        uip_ntohl(nd6_opt_prefix_info->validlt));
+//  898                 stimer_set(&addr->vlifetime,
+//  899                            uip_ntohl(nd6_opt_prefix_info->validlt));
+//  900               } else {
+//  901                 stimer_set(&addr->vlifetime, 2 * 60 * 60);
+//  902                 PRINTF("Updating timer of address ");
+//  903                 PRINT6ADDR(&addr->ipaddr);
+//  904                 PRINTF("new value %lu\n", (unsigned long)(2 * 60 * 60));
+//  905               }
+//  906               addr->isinfinite = 0;
+//  907             } else {
+//  908               addr->isinfinite = 1;
+//  909             }
+//  910           } else {
+//  911             if(uip_ntohl(nd6_opt_prefix_info->validlt) ==
+//  912                UIP_ND6_INFINITE_LIFETIME) {
+//  913               uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+//  914             } else {
+//  915               uip_ds6_addr_add(&ipaddr, uip_ntohl(nd6_opt_prefix_info->validlt),
+//  916                                ADDR_AUTOCONF);
+//  917             }
+//  918           }
+//  919         }
+//  920         /* End of autonomous flag related processing */
+//  921       }
+//  922       break;
+//  923     default:
+//  924       PRINTF("ND option not supported in RA");
+//  925       break;
+//  926     }
+//  927     nd6_opt_offset += (UIP_ND6_OPT_HDR_BUF->len << 3);
+//  928   }
+//  929 
+//  930   defrt = uip_ds6_defrt_lookup(&UIP_IP_BUF->srcipaddr);
+//  931   if(UIP_ND6_RA_BUF->router_lifetime != 0) {
+//  932     if(nbr != NULL) {
+//  933       nbr->isrouter = 1;
+//  934     }
+//  935     if(defrt == NULL) {
+//  936       uip_ds6_defrt_add(&UIP_IP_BUF->srcipaddr,
+//  937                         (unsigned
+//  938                          long)(uip_ntohs(UIP_ND6_RA_BUF->router_lifetime)));
+//  939     } else {
+//  940       stimer_set(&(defrt->lifetime),
+//  941                  (unsigned long)(uip_ntohs(UIP_ND6_RA_BUF->router_lifetime)));
+//  942     }
+//  943   } else {
+//  944     if(defrt != NULL) {
+//  945       uip_ds6_defrt_rm(defrt);
+//  946     }
+//  947   }
+//  948 
+//  949 #if UIP_CONF_IPV6_QUEUE_PKT
+//  950   /* If the nbr just became reachable (e.g. it was in NBR_INCOMPLETE state
+//  951    * and we got a SLLAO), check if we had buffered a pkt for it */
+//  952   /*  if((nbr != NULL) && (nbr->queue_buf_len != 0)) {
+//  953     uip_len = nbr->queue_buf_len;
+//  954     memcpy(UIP_IP_BUF, nbr->queue_buf, uip_len);
+//  955     nbr->queue_buf_len = 0;
+//  956     return;
+//  957     }*/
+//  958   if(nbr != NULL && uip_packetqueue_buflen(&nbr->packethandle) != 0) {
+//  959     uip_len = uip_packetqueue_buflen(&nbr->packethandle);
+//  960     memcpy(UIP_IP_BUF, uip_packetqueue_buf(&nbr->packethandle), uip_len);
+//  961     uip_packetqueue_free(&nbr->packethandle);
+//  962     return;
+//  963   }
+//  964 
+//  965 #endif /*UIP_CONF_IPV6_QUEUE_PKT */
+//  966 
+//  967 discard:
+//  968   uip_len = 0;
+//  969   return;
+//  970 }
+//  971 #endif /* !UIP_CONF_ROUTER */
+//  972 
+//  973  /** @} */
+//  974 #endif /* UIP_CONF_IPV6 */
+// 
+// 3 381 bytes in segment BANKED_CODE
+//    24 bytes in segment BANK_RELAYS
+//     4 bytes in segment XDATA_I
+//     4 bytes in segment XDATA_ID
+//     9 bytes in segment XDATA_Z
+// 
+// 3 405 bytes of CODE  memory (+ 4 bytes shared)
+//     9 bytes of XDATA memory (+ 4 bytes shared)
+//
+//Errors: none
+//Warnings: none

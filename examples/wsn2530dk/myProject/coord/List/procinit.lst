@@ -1,0 +1,205 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:38 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\sys\procinit.c               #
+#    Command line       =  D:\myWork\myWork\core\sys\procinit.c -D            #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\procinit.lst                                #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\procinit.r51                                 #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\sys\procinit.c
+      1          /*
+      2           * Copyright (c) 2005, Swedish Institute of Computer Science
+      3           * All rights reserved. 
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without 
+      6           * modification, are permitted provided that the following conditions 
+      7           * are met: 
+      8           * 1. Redistributions of source code must retain the above copyright 
+      9           *    notice, this list of conditions and the following disclaimer. 
+     10           * 2. Redistributions in binary form must reproduce the above copyright 
+     11           *    notice, this list of conditions and the following disclaimer in the 
+     12           *    documentation and/or other materials provided with the distribution. 
+     13           * 3. Neither the name of the Institute nor the names of its contributors 
+     14           *    may be used to endorse or promote products derived from this software 
+     15           *    without specific prior written permission. 
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND 
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE 
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY 
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
+     27           * SUCH DAMAGE. 
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           */
+     32          
+     33          #include "contiki.h"
+     34          #include "sys/procinit.h"
+     35          
+     36          extern const struct process *procinit[];
+     37          
+     38          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     39          void
+     40          procinit_init(void)
+   \                     procinit_init:
+     41          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+     42            int i;
+     43            
+     44            for(i = 0; procinit[i] != NULL; ++i) {
+   \   000005   7E00         MOV     R6,#0x0
+   \   000007   7F00         MOV     R7,#0x0
+   \   000009   8037         SJMP    ??procinit_init_0
+     45              process_start((struct process *)procinit[i], NULL);
+   \                     ??procinit_init_1:
+   \   00000B                ; Setup parameters for call to function process_start
+   \   00000B   7C00         MOV     R4,#0x0
+   \   00000D   7D00         MOV     R5,#0x0
+   \   00000F   EE           MOV     A,R6
+   \   000010   F8           MOV     R0,A
+   \   000011   EF           MOV     A,R7
+   \   000012   F9           MOV     R1,A
+   \   000013   E8           MOV     A,R0
+   \   000014   75F002       MOV     B,#0x2
+   \   000017   A4           MUL     AB
+   \   000018   C8           XCH     A,R0
+   \   000019   AAF0         MOV     R2,B
+   \   00001B   75F000       MOV     B,#0x0
+   \   00001E   A4           MUL     AB
+   \   00001F   2A           ADD     A,R2
+   \   000020   FA           MOV     R2,A
+   \   000021   75F002       MOV     B,#0x2
+   \   000024   E9           MOV     A,R1
+   \   000025   A4           MUL     AB
+   \   000026   2A           ADD     A,R2
+   \   000027   F9           MOV     R1,A
+   \   000028   74..         MOV     A,#procinit & 0xff
+   \   00002A   28           ADD     A,R0
+   \   00002B   F582         MOV     DPL,A
+   \   00002D   74..         MOV     A,#(procinit >> 8) & 0xff
+   \   00002F   39           ADDC    A,R1
+   \   000030   F583         MOV     DPH,A
+   \   000032   E0           MOVX    A,@DPTR
+   \   000033   FA           MOV     R2,A
+   \   000034   A3           INC     DPTR
+   \   000035   E0           MOVX    A,@DPTR
+   \   000036   FB           MOV     R3,A
+   \   000037   12....       LCALL   ??process_start?relay
+     46            }
+   \   00003A   EE           MOV     A,R6
+   \   00003B   2401         ADD     A,#0x1
+   \   00003D   FE           MOV     R6,A
+   \   00003E   EF           MOV     A,R7
+   \   00003F   3400         ADDC    A,#0x0
+   \   000041   FF           MOV     R7,A
+   \                     ??procinit_init_0:
+   \   000042   EE           MOV     A,R6
+   \   000043   F8           MOV     R0,A
+   \   000044   EF           MOV     A,R7
+   \   000045   F9           MOV     R1,A
+   \   000046   E8           MOV     A,R0
+   \   000047   75F002       MOV     B,#0x2
+   \   00004A   A4           MUL     AB
+   \   00004B   C8           XCH     A,R0
+   \   00004C   AAF0         MOV     R2,B
+   \   00004E   75F000       MOV     B,#0x0
+   \   000051   A4           MUL     AB
+   \   000052   2A           ADD     A,R2
+   \   000053   FA           MOV     R2,A
+   \   000054   75F002       MOV     B,#0x2
+   \   000057   E9           MOV     A,R1
+   \   000058   A4           MUL     AB
+   \   000059   2A           ADD     A,R2
+   \   00005A   F9           MOV     R1,A
+   \   00005B   74..         MOV     A,#procinit & 0xff
+   \   00005D   28           ADD     A,R0
+   \   00005E   F582         MOV     DPL,A
+   \   000060   74..         MOV     A,#(procinit >> 8) & 0xff
+   \   000062   39           ADDC    A,R1
+   \   000063   F583         MOV     DPH,A
+   \   000065   E0           MOVX    A,@DPTR
+   \   000066   F8           MOV     R0,A
+   \   000067   A3           INC     DPTR
+   \   000068   E0           MOVX    A,@DPTR
+   \   000069   F9           MOV     R1,A
+   \   00006A   E8           MOV     A,R0
+   \   00006B   49           ORL     A,R1
+   \   00006C   709D         JNZ     ??procinit_init_1
+     47          }
+   \   00006E   7F01         MOV     R7,#0x1
+   \   000070   02....       LJMP    ?BANKED_LEAVE_XDATA
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??procinit_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    procinit_init
+     48          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0      9  procinit_init
+                          0 0 9 -> process_start
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??procinit_init?relay
+     115  procinit_init
+
+ 
+ 115 bytes in segment BANKED_CODE
+   6 bytes in segment BANK_RELAYS
+ 
+ 121 bytes of CODE memory
+
+Errors: none
+Warnings: none

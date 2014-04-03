@@ -1,0 +1,2142 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:41 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\rpl\rpl-ext-header.c     #
+#    Command line       =  D:\myWork\myWork\core\net\rpl\rpl-ext-header.c -D  #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\rpl-ext-header.lst                          #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\rpl-ext-header.r51                           #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\rpl\rpl-ext-header.c
+      1          /**
+      2           * \addtogroup uip6
+      3           * @{
+      4           */
+      5          /*
+      6           * Copyright (c) 2009, Swedish Institute of Computer Science.
+      7           * All rights reserved.
+      8           *
+      9           * Redistribution and use in source and binary forms, with or without
+     10           * modification, are permitted provided that the following conditions
+     11           * are met:
+     12           * 1. Redistributions of source code must retain the above copyright
+     13           *    notice, this list of conditions and the following disclaimer.
+     14           * 2. Redistributions in binary form must reproduce the above copyright
+     15           *    notice, this list of conditions and the following disclaimer in the
+     16           *    documentation and/or other materials provided with the distribution.
+     17           * 3. Neither the name of the Institute nor the names of its contributors
+     18           *    may be used to endorse or promote products derived from this software
+     19           *    without specific prior written permission.
+     20           *
+     21           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     22           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     23           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     24           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     25           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     26           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     27           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     28           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     29           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     30           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     31           * SUCH DAMAGE.
+     32           *
+     33           * This file is part of the Contiki operating system.
+     34           */
+     35          /**
+     36           * \file
+     37           *         Management of extension headers for ContikiRPL.
+     38           *
+     39           * \author Vincent Brillault <vincent.brillault@imag.fr>,
+     40           *         Joakim Eriksson <joakime@sics.se>,
+     41           *         Niclas Finne <nfi@sics.se>,
+     42           *         Nicolas Tsiftes <nvt@sics.se>.
+     43           */
+     44          
+     45          #include "net/uip.h"
+     46          #include "net/tcpip.h"
+     47          #include "net/uip-ds6.h"
+     48          #include "net/rpl/rpl-private.h"
+     49          
+     50          #define DEBUG DEBUG_NONE
+     51          #include "net/uip-debug.h"
+     52          
+     53          #include <limits.h>
+     54          #include <string.h>
+     55          
+     56          /*---------------------------------------------------------------------------*/
+     57          #define UIP_IP_BUF                ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+     58          #define UIP_EXT_BUF               ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len])
+     59          #define UIP_HBHO_BUF              ((struct uip_hbho_hdr *)&uip_buf[uip_l2_l3_hdr_len])
+     60          #define UIP_HBHO_NEXT_BUF         ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len + RPL_HOP_BY_HOP_LEN])
+     61          #define UIP_EXT_HDR_OPT_BUF       ((struct uip_ext_hdr_opt *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
+     62          #define UIP_EXT_HDR_OPT_PADN_BUF  ((struct uip_ext_hdr_opt_padn *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
+     63          #define UIP_EXT_HDR_OPT_RPL_BUF   ((struct uip_ext_hdr_opt_rpl *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
+     64          /*---------------------------------------------------------------------------*/
+     65          #if UIP_CONF_IPV6
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     66          int
+     67          rpl_verify_header(int uip_ext_opt_offset)
+   \                     rpl_verify_header:
+     68          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+     69            rpl_instance_t *instance;
+     70            int down;
+     71            uint8_t sender_closer;
+     72          
+     73            if(UIP_EXT_HDR_OPT_RPL_BUF->opt_len != RPL_HDR_OPT_LEN) {
+   \   000009   90....       MOV     DPTR,#uip_ext_len
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   F8           MOV     R0,A
+   \   00000E   7900         MOV     R1,#0x0
+   \   000010   2E           ADD     A,R6
+   \   000011   F8           MOV     R0,A
+   \   000012   E9           MOV     A,R1
+   \   000013   3F           ADDC    A,R7
+   \   000014   F9           MOV     R1,A
+   \   000015   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   000017   28           ADD     A,R0
+   \   000018   F8           MOV     R0,A
+   \   000019   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   00001B   39           ADDC    A,R1
+   \   00001C   F9           MOV     R1,A
+   \   00001D   E8           MOV     A,R0
+   \   00001E   2429         ADD     A,#0x29
+   \   000020   F582         MOV     DPL,A
+   \   000022   E9           MOV     A,R1
+   \   000023   3400         ADDC    A,#0x0
+   \   000025   F583         MOV     DPH,A
+   \   000027   E0           MOVX    A,@DPTR
+   \   000028   6404         XRL     A,#0x4
+   \   00002A   6007         JZ      ??rpl_verify_header_0
+     74              PRINTF("RPL: Bad header option! (wrong length)\n");
+     75              return 1;
+   \   00002C   7A01         MOV     R2,#0x1
+   \   00002E   7B00         MOV     R3,#0x0
+   \   000030   02....       LJMP    ??rpl_verify_header_1 & 0xFFFF
+     76            }
+     77          
+     78            instance = rpl_get_instance(UIP_EXT_HDR_OPT_RPL_BUF->instance);
+   \                     ??rpl_verify_header_0:
+   \   000033                ; Setup parameters for call to function rpl_get_instance
+   \   000033   90....       MOV     DPTR,#uip_ext_len
+   \   000036   E0           MOVX    A,@DPTR
+   \   000037   F8           MOV     R0,A
+   \   000038   7900         MOV     R1,#0x0
+   \   00003A   2E           ADD     A,R6
+   \   00003B   F8           MOV     R0,A
+   \   00003C   E9           MOV     A,R1
+   \   00003D   3F           ADDC    A,R7
+   \   00003E   F9           MOV     R1,A
+   \   00003F   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   000041   28           ADD     A,R0
+   \   000042   F8           MOV     R0,A
+   \   000043   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   000045   39           ADDC    A,R1
+   \   000046   F9           MOV     R1,A
+   \   000047   E8           MOV     A,R0
+   \   000048   242B         ADD     A,#0x2b
+   \   00004A   F582         MOV     DPL,A
+   \   00004C   E9           MOV     A,R1
+   \   00004D   3400         ADDC    A,#0x0
+   \   00004F   F583         MOV     DPH,A
+   \   000051   E0           MOVX    A,@DPTR
+   \   000052   F9           MOV     R1,A
+   \   000053   12....       LCALL   ??rpl_get_instance?relay
+   \   000056   8A..         MOV     ?V0 + 2,R2
+   \   000058   8B..         MOV     ?V0 + 3,R3
+   \   00005A   85....       MOV     ?V0 + 0,?V0 + 2
+   \   00005D   85....       MOV     ?V0 + 1,?V0 + 3
+     79            if(instance == NULL) {
+   \   000060   E5..         MOV     A,?V0 + 0
+   \   000062   45..         ORL     A,?V0 + 1
+   \   000064   7007         JNZ     ??rpl_verify_header_2
+     80              PRINTF("RPL: Unknown instance: %u\n",
+     81                     UIP_EXT_HDR_OPT_RPL_BUF->instance);
+     82              return 1;
+   \   000066   7A01         MOV     R2,#0x1
+   \   000068   7B00         MOV     R3,#0x0
+   \   00006A   02....       LJMP    ??rpl_verify_header_1 & 0xFFFF
+     83            }
+     84          
+     85            if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_FWD_ERR) {
+   \                     ??rpl_verify_header_2:
+   \   00006D   90....       MOV     DPTR,#uip_ext_len
+   \   000070   E0           MOVX    A,@DPTR
+   \   000071   F8           MOV     R0,A
+   \   000072   7900         MOV     R1,#0x0
+   \   000074   2E           ADD     A,R6
+   \   000075   F8           MOV     R0,A
+   \   000076   E9           MOV     A,R1
+   \   000077   3F           ADDC    A,R7
+   \   000078   F9           MOV     R1,A
+   \   000079   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   00007B   28           ADD     A,R0
+   \   00007C   F8           MOV     R0,A
+   \   00007D   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   00007F   39           ADDC    A,R1
+   \   000080   F9           MOV     R1,A
+   \   000081   E8           MOV     A,R0
+   \   000082   242A         ADD     A,#0x2a
+   \   000084   F582         MOV     DPL,A
+   \   000086   E9           MOV     A,R1
+   \   000087   3400         ADDC    A,#0x0
+   \   000089   F583         MOV     DPH,A
+   \   00008B   E0           MOVX    A,@DPTR
+   \   00008C   A2E5         MOV     C,0xE0 /* A   */.5
+   \   00008E   5050         JNC     ??rpl_verify_header_3
+     86              /* We should try to repair it by removing the neighbor that caused
+     87                 the packet to be forwareded in the first place. We drop any
+     88                 routes that go through the neighbor that sent the packet to
+     89                 us. */
+     90              uip_ds6_route_t *route;
+     91              route = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
+   \   000090                ; Setup parameters for call to function uip_ds6_route_lookup
+   \   000090   7A..         MOV     R2,#(uip_aligned_buf + 24) & 0xff
+   \   000092   7B..         MOV     R3,#((uip_aligned_buf + 24) >> 8) & 0xff
+   \   000094   12....       LCALL   ??uip_ds6_route_lookup?relay
+   \   000097   8A..         MOV     ?V0 + 2,R2
+   \   000099   8B..         MOV     ?V0 + 3,R3
+   \   00009B   AA..         MOV     R2,?V0 + 2
+   \   00009D   AB..         MOV     R3,?V0 + 3
+     92              if(route != NULL) {
+   \   00009F   EA           MOV     A,R2
+   \   0000A0   4B           ORL     A,R3
+   \   0000A1   6014         JZ      ??rpl_verify_header_4
+     93                uip_ds6_route_rm(route);
+   \   0000A3                ; Setup parameters for call to function uip_ds6_route_rm
+   \   0000A3   12....       LCALL   ??uip_ds6_route_rm?relay
+     94          
+     95                /* If we are the root and just needed to remove a DAO route,
+     96                   chances are that the network needs to be repaired. The
+     97                   rpl_repair_root() function will cause a global repair if we
+     98                   happen to be the root node of the dag. */
+     99                PRINTF("RPL: initiate global repair\n");
+    100                rpl_repair_root(instance->instance_id);
+   \   0000A6                ; Setup parameters for call to function rpl_repair_root
+   \   0000A6   E5..         MOV     A,?V0 + 0
+   \   0000A8   247B         ADD     A,#0x7b
+   \   0000AA   F582         MOV     DPL,A
+   \   0000AC   E5..         MOV     A,?V0 + 1
+   \   0000AE   3400         ADDC    A,#0x0
+   \   0000B0   F583         MOV     DPH,A
+   \   0000B2   E0           MOVX    A,@DPTR
+   \   0000B3   F9           MOV     R1,A
+   \   0000B4   12....       LCALL   ??rpl_repair_root?relay
+    101              }
+    102          
+    103              /* Remove the forwarding error flag and return 0 to let the packet
+    104                 be forwarded again. */
+    105              UIP_EXT_HDR_OPT_RPL_BUF->flags &= ~RPL_HDR_OPT_FWD_ERR;
+   \                     ??rpl_verify_header_4:
+   \   0000B7   90....       MOV     DPTR,#uip_ext_len
+   \   0000BA   E0           MOVX    A,@DPTR
+   \   0000BB   F8           MOV     R0,A
+   \   0000BC   7900         MOV     R1,#0x0
+   \   0000BE   2E           ADD     A,R6
+   \   0000BF   F8           MOV     R0,A
+   \   0000C0   E9           MOV     A,R1
+   \   0000C1   3F           ADDC    A,R7
+   \   0000C2   F9           MOV     R1,A
+   \   0000C3   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   0000C5   28           ADD     A,R0
+   \   0000C6   F8           MOV     R0,A
+   \   0000C7   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   0000C9   39           ADDC    A,R1
+   \   0000CA   F9           MOV     R1,A
+   \   0000CB   E8           MOV     A,R0
+   \   0000CC   242A         ADD     A,#0x2a
+   \   0000CE   F582         MOV     DPL,A
+   \   0000D0   E9           MOV     A,R1
+   \   0000D1   3400         ADDC    A,#0x0
+   \   0000D3   F583         MOV     DPH,A
+   \   0000D5   E0           MOVX    A,@DPTR
+   \   0000D6   C2E5         CLR     0xE0 /* A   */.5
+   \   0000D8   F0           MOVX    @DPTR,A
+    106              return 0;
+   \   0000D9   7A00         MOV     R2,#0x0
+   \   0000DB   7B00         MOV     R3,#0x0
+   \   0000DD   02....       LJMP    ??rpl_verify_header_1 & 0xFFFF
+    107            }
+    108          
+    109            if(!instance->current_dag->joined) {
+   \                     ??rpl_verify_header_3:
+   \   0000E0   85..82       MOV     DPL,?V0 + 0
+   \   0000E3   85..83       MOV     DPH,?V0 + 1
+   \   0000E6   A3           INC     DPTR
+   \   0000E7   A3           INC     DPTR
+   \   0000E8   A3           INC     DPTR
+   \   0000E9   A3           INC     DPTR
+   \   0000EA   A3           INC     DPTR
+   \   0000EB   A3           INC     DPTR
+   \   0000EC   A3           INC     DPTR
+   \   0000ED   A3           INC     DPTR
+   \   0000EE   A3           INC     DPTR
+   \   0000EF   E0           MOVX    A,@DPTR
+   \   0000F0   F8           MOV     R0,A
+   \   0000F1   A3           INC     DPTR
+   \   0000F2   E0           MOVX    A,@DPTR
+   \   0000F3   C8           XCH     A,R0
+   \   0000F4   2416         ADD     A,#0x16
+   \   0000F6   F582         MOV     DPL,A
+   \   0000F8   E8           MOV     A,R0
+   \   0000F9   3400         ADDC    A,#0x0
+   \   0000FB   F583         MOV     DPH,A
+   \   0000FD   E0           MOVX    A,@DPTR
+   \   0000FE   7007         JNZ     ??rpl_verify_header_5
+    110              PRINTF("RPL: No DAG in the instance\n");
+    111              return 1;
+   \   000100   7A01         MOV     R2,#0x1
+   \   000102   7B00         MOV     R3,#0x0
+   \   000104   02....       LJMP    ??rpl_verify_header_1 & 0xFFFF
+    112            }
+    113          
+    114            down = 0;
+   \                     ??rpl_verify_header_5:
+   \   000107   7A00         MOV     R2,#0x0
+   \   000109   7B00         MOV     R3,#0x0
+    115            if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_DOWN) {
+   \   00010B   90....       MOV     DPTR,#uip_ext_len
+   \   00010E   E0           MOVX    A,@DPTR
+   \   00010F   F8           MOV     R0,A
+   \   000110   7900         MOV     R1,#0x0
+   \   000112   2E           ADD     A,R6
+   \   000113   F8           MOV     R0,A
+   \   000114   E9           MOV     A,R1
+   \   000115   3F           ADDC    A,R7
+   \   000116   F9           MOV     R1,A
+   \   000117   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   000119   28           ADD     A,R0
+   \   00011A   F8           MOV     R0,A
+   \   00011B   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   00011D   39           ADDC    A,R1
+   \   00011E   F9           MOV     R1,A
+   \   00011F   E8           MOV     A,R0
+   \   000120   242A         ADD     A,#0x2a
+   \   000122   F582         MOV     DPL,A
+   \   000124   E9           MOV     A,R1
+   \   000125   3400         ADDC    A,#0x0
+   \   000127   F583         MOV     DPH,A
+   \   000129   E0           MOVX    A,@DPTR
+   \   00012A   A2E7         MOV     C,0xE0 /* A   */.7
+   \   00012C   5004         JNC     ??rpl_verify_header_6
+    116              down = 1;
+   \   00012E   7A01         MOV     R2,#0x1
+   \   000130   7B00         MOV     R3,#0x0
+    117            }
+    118          
+    119            sender_closer = UIP_EXT_HDR_OPT_RPL_BUF->senderrank < instance->current_dag->rank;
+   \                     ??rpl_verify_header_6:
+   \   000132   90....       MOV     DPTR,#uip_ext_len
+   \   000135   E0           MOVX    A,@DPTR
+   \   000136   F8           MOV     R0,A
+   \   000137   7900         MOV     R1,#0x0
+   \   000139   2E           ADD     A,R6
+   \   00013A   F8           MOV     R0,A
+   \   00013B   E9           MOV     A,R1
+   \   00013C   3F           ADDC    A,R7
+   \   00013D   F9           MOV     R1,A
+   \   00013E   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   000140   28           ADD     A,R0
+   \   000141   F8           MOV     R0,A
+   \   000142   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   000144   39           ADDC    A,R1
+   \   000145   F9           MOV     R1,A
+   \   000146   E8           MOV     A,R0
+   \   000147   242C         ADD     A,#0x2c
+   \   000149   F582         MOV     DPL,A
+   \   00014B   E9           MOV     A,R1
+   \   00014C   3400         ADDC    A,#0x0
+   \   00014E   F583         MOV     DPH,A
+   \   000150   C082         PUSH    DPL
+   \   000152   C083         PUSH    DPH
+   \   000154   85..82       MOV     DPL,?V0 + 0
+   \   000157   85..83       MOV     DPH,?V0 + 1
+   \   00015A   A3           INC     DPTR
+   \   00015B   A3           INC     DPTR
+   \   00015C   A3           INC     DPTR
+   \   00015D   A3           INC     DPTR
+   \   00015E   A3           INC     DPTR
+   \   00015F   A3           INC     DPTR
+   \   000160   A3           INC     DPTR
+   \   000161   A3           INC     DPTR
+   \   000162   A3           INC     DPTR
+   \   000163   E0           MOVX    A,@DPTR
+   \   000164   F8           MOV     R0,A
+   \   000165   A3           INC     DPTR
+   \   000166   E0           MOVX    A,@DPTR
+   \   000167   C8           XCH     A,R0
+   \   000168   2419         ADD     A,#0x19
+   \   00016A   F582         MOV     DPL,A
+   \   00016C   E8           MOV     A,R0
+   \   00016D   3400         ADDC    A,#0x0
+   \   00016F   F583         MOV     DPH,A
+   \   000171   E0           MOVX    A,@DPTR
+   \   000172   F8           MOV     R0,A
+   \   000173   A3           INC     DPTR
+   \   000174   E0           MOVX    A,@DPTR
+   \   000175   F9           MOV     R1,A
+   \   000176   D083         POP     DPH
+   \   000178   D082         POP     DPL
+   \   00017A   C3           CLR     C
+   \   00017B   E0           MOVX    A,@DPTR
+   \   00017C   98           SUBB    A,R0
+   \   00017D   A3           INC     DPTR
+   \   00017E   E0           MOVX    A,@DPTR
+   \   00017F   99           SUBB    A,R1
+   \   000180   5004         JNC     ??rpl_verify_header_7
+   \   000182   7401         MOV     A,#0x1
+   \   000184   8002         SJMP    ??rpl_verify_header_8
+   \                     ??rpl_verify_header_7:
+   \   000186   7400         MOV     A,#0x0
+   \                     ??rpl_verify_header_8:
+   \   000188   F5..         MOV     ?V0 + 2,A
+    120          
+    121            PRINTF("RPL: Packet going %s, sender closer %d (%d < %d)\n", down == 1 ? "down" : "up",
+    122          	 sender_closer,
+    123          	 UIP_EXT_HDR_OPT_RPL_BUF->senderrank,
+    124          	 instance->current_dag->rank
+    125          	 );
+    126          
+    127            if((down && !sender_closer) || (!down && sender_closer)) {
+   \   00018A   EA           MOV     A,R2
+   \   00018B   4B           ORL     A,R3
+   \   00018C   6004         JZ      ??rpl_verify_header_9
+   \   00018E   E5..         MOV     A,?V0 + 2
+   \   000190   6008         JZ      ??rpl_verify_header_10
+   \                     ??rpl_verify_header_9:
+   \   000192   EA           MOV     A,R2
+   \   000193   4B           ORL     A,R3
+   \   000194   705C         JNZ     ??rpl_verify_header_11
+   \   000196   E5..         MOV     A,?V0 + 2
+   \   000198   6058         JZ      ??rpl_verify_header_11
+    128              PRINTF("RPL: Loop detected - senderrank: %d my-rank: %d sender_closer: %d\n",
+    129          	   UIP_EXT_HDR_OPT_RPL_BUF->senderrank, instance->current_dag->rank,
+    130          	   sender_closer);
+    131              if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR) {
+   \                     ??rpl_verify_header_10:
+   \   00019A   90....       MOV     DPTR,#uip_ext_len
+   \   00019D   E0           MOVX    A,@DPTR
+   \   00019E   F8           MOV     R0,A
+   \   00019F   7900         MOV     R1,#0x0
+   \   0001A1   2E           ADD     A,R6
+   \   0001A2   F8           MOV     R0,A
+   \   0001A3   E9           MOV     A,R1
+   \   0001A4   3F           ADDC    A,R7
+   \   0001A5   F9           MOV     R1,A
+   \   0001A6   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   0001A8   28           ADD     A,R0
+   \   0001A9   F8           MOV     R0,A
+   \   0001AA   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   0001AC   39           ADDC    A,R1
+   \   0001AD   F9           MOV     R1,A
+   \   0001AE   E8           MOV     A,R0
+   \   0001AF   242A         ADD     A,#0x2a
+   \   0001B1   F582         MOV     DPL,A
+   \   0001B3   E9           MOV     A,R1
+   \   0001B4   3400         ADDC    A,#0x0
+   \   0001B6   F583         MOV     DPH,A
+   \   0001B8   E0           MOVX    A,@DPTR
+   \   0001B9   A2E6         MOV     C,0xE0 /* A   */.6
+   \   0001BB   500D         JNC     ??rpl_verify_header_12
+    132                PRINTF("RPL: Rank error signalled in RPL option!\n");
+    133                /* We should try to repair it, not implemented for the moment */
+    134                rpl_reset_dio_timer(instance);
+   \   0001BD                ; Setup parameters for call to function rpl_reset_dio_timer
+   \   0001BD   AA..         MOV     R2,?V0 + 0
+   \   0001BF   AB..         MOV     R3,?V0 + 1
+   \   0001C1   12....       LCALL   ??rpl_reset_dio_timer?relay
+    135                /* Forward the packet anyway. */
+    136                return 0;
+   \   0001C4   7A00         MOV     R2,#0x0
+   \   0001C6   7B00         MOV     R3,#0x0
+   \   0001C8   802C         SJMP    ??rpl_verify_header_1
+    137              }
+    138              PRINTF("RPL: Single error tolerated\n");
+    139              UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_RANK_ERR;
+   \                     ??rpl_verify_header_12:
+   \   0001CA   90....       MOV     DPTR,#uip_ext_len
+   \   0001CD   E0           MOVX    A,@DPTR
+   \   0001CE   F8           MOV     R0,A
+   \   0001CF   7900         MOV     R1,#0x0
+   \   0001D1   2E           ADD     A,R6
+   \   0001D2   F8           MOV     R0,A
+   \   0001D3   E9           MOV     A,R1
+   \   0001D4   3F           ADDC    A,R7
+   \   0001D5   F9           MOV     R1,A
+   \   0001D6   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   0001D8   28           ADD     A,R0
+   \   0001D9   F8           MOV     R0,A
+   \   0001DA   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   0001DC   39           ADDC    A,R1
+   \   0001DD   F9           MOV     R1,A
+   \   0001DE   E8           MOV     A,R0
+   \   0001DF   242A         ADD     A,#0x2a
+   \   0001E1   F582         MOV     DPL,A
+   \   0001E3   E9           MOV     A,R1
+   \   0001E4   3400         ADDC    A,#0x0
+   \   0001E6   F583         MOV     DPH,A
+   \   0001E8   E0           MOVX    A,@DPTR
+   \   0001E9   D2E6         SETB    0xE0 /* A   */.6
+   \   0001EB   F0           MOVX    @DPTR,A
+    140              return 0;
+   \   0001EC   7A00         MOV     R2,#0x0
+   \   0001EE   7B00         MOV     R3,#0x0
+   \   0001F0   8004         SJMP    ??rpl_verify_header_1
+    141            }
+    142          
+    143            PRINTF("RPL: Rank OK\n");
+    144          
+    145            return 0;
+   \                     ??rpl_verify_header_11:
+   \   0001F2   7A00         MOV     R2,#0x0
+   \   0001F4   7B00         MOV     R3,#0x0
+   \                     ??rpl_verify_header_1:
+   \   0001F6   7F04         MOV     R7,#0x4
+   \   0001F8   02....       LJMP    ?BANKED_LEAVE_XDATA
+    146          }
+    147          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    148          static void
+    149          set_rpl_opt(unsigned uip_ext_opt_offset)
+   \                     set_rpl_opt:
+    150          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    151            uint8_t temp_len;
+    152          
+    153            memmove(UIP_HBHO_NEXT_BUF, UIP_EXT_BUF, uip_len - UIP_IPH_LEN);
+   \   000009                ; Setup parameters for call to function memmove
+   \   000009   90....       MOV     DPTR,#uip_len
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   24D8         ADD     A,#-0x28
+   \   00000F   F5..         MOV     ?V0 + 0,A
+   \   000011   A3           INC     DPTR
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   34FF         ADDC    A,#-0x1
+   \   000015   F5..         MOV     ?V0 + 1,A
+   \   000017   78..         MOV     R0,#?V0 + 0
+   \   000019   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00001C   90....       MOV     DPTR,#uip_ext_len
+   \   00001F   E0           MOVX    A,@DPTR
+   \   000020   F8           MOV     R0,A
+   \   000021   7900         MOV     R1,#0x0
+   \   000023   74..         MOV     A,#(uip_aligned_buf + 40) & 0xff
+   \   000025   28           ADD     A,R0
+   \   000026   FC           MOV     R4,A
+   \   000027   74..         MOV     A,#((uip_aligned_buf + 40) >> 8) & 0xff
+   \   000029   39           ADDC    A,R1
+   \   00002A   FD           MOV     R5,A
+   \   00002B   90....       MOV     DPTR,#uip_ext_len
+   \   00002E   E0           MOVX    A,@DPTR
+   \   00002F   F8           MOV     R0,A
+   \   000030   7900         MOV     R1,#0x0
+   \   000032   74..         MOV     A,#(uip_aligned_buf + 48) & 0xff
+   \   000034   28           ADD     A,R0
+   \   000035   FA           MOV     R2,A
+   \   000036   74..         MOV     A,#((uip_aligned_buf + 48) >> 8) & 0xff
+   \   000038   39           ADDC    A,R1
+   \   000039   FB           MOV     R3,A
+   \   00003A   12....       LCALL   ??memmove?relay
+   \   00003D   7402         MOV     A,#0x2
+   \   00003F   12....       LCALL   ?DEALLOC_XSTACK8
+    154            memset(UIP_HBHO_BUF, 0, RPL_HOP_BY_HOP_LEN);
+   \   000042                ; Setup parameters for call to function memset
+   \   000042   75..08       MOV     ?V0 + 0,#0x8
+   \   000045   75..00       MOV     ?V0 + 1,#0x0
+   \   000048   78..         MOV     R0,#?V0 + 0
+   \   00004A   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00004D   7C00         MOV     R4,#0x0
+   \   00004F   7D00         MOV     R5,#0x0
+   \   000051   90....       MOV     DPTR,#uip_ext_len
+   \   000054   E0           MOVX    A,@DPTR
+   \   000055   F8           MOV     R0,A
+   \   000056   7900         MOV     R1,#0x0
+   \   000058   74..         MOV     A,#(uip_aligned_buf + 40) & 0xff
+   \   00005A   28           ADD     A,R0
+   \   00005B   FA           MOV     R2,A
+   \   00005C   74..         MOV     A,#((uip_aligned_buf + 40) >> 8) & 0xff
+   \   00005E   39           ADDC    A,R1
+   \   00005F   FB           MOV     R3,A
+   \   000060   12....       LCALL   ??memset?relay
+   \   000063   7402         MOV     A,#0x2
+   \   000065   12....       LCALL   ?DEALLOC_XSTACK8
+    155            UIP_HBHO_BUF->next = UIP_IP_BUF->proto;
+   \   000068   90....       MOV     DPTR,#uip_aligned_buf + 6
+   \   00006B   E0           MOVX    A,@DPTR
+   \   00006C   C0E0         PUSH    A
+   \   00006E   90....       MOV     DPTR,#uip_ext_len
+   \   000071   E0           MOVX    A,@DPTR
+   \   000072   F8           MOV     R0,A
+   \   000073   7900         MOV     R1,#0x0
+   \   000075   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   000077   28           ADD     A,R0
+   \   000078   F8           MOV     R0,A
+   \   000079   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   00007B   39           ADDC    A,R1
+   \   00007C   F9           MOV     R1,A
+   \   00007D   E8           MOV     A,R0
+   \   00007E   2428         ADD     A,#0x28
+   \   000080   F582         MOV     DPL,A
+   \   000082   E9           MOV     A,R1
+   \   000083   3400         ADDC    A,#0x0
+   \   000085   F583         MOV     DPH,A
+   \   000087   D0E0         POP     A
+   \   000089   F0           MOVX    @DPTR,A
+    156            UIP_IP_BUF->proto = UIP_PROTO_HBHO;
+   \   00008A   90....       MOV     DPTR,#uip_aligned_buf + 6
+   \   00008D   7400         MOV     A,#0x0
+   \   00008F   F0           MOVX    @DPTR,A
+    157            UIP_HBHO_BUF->len = RPL_HOP_BY_HOP_LEN - 8;
+   \   000090   90....       MOV     DPTR,#uip_ext_len
+   \   000093   E0           MOVX    A,@DPTR
+   \   000094   F8           MOV     R0,A
+   \   000095   7900         MOV     R1,#0x0
+   \   000097   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   000099   28           ADD     A,R0
+   \   00009A   F8           MOV     R0,A
+   \   00009B   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   00009D   39           ADDC    A,R1
+   \   00009E   F9           MOV     R1,A
+   \   00009F   E8           MOV     A,R0
+   \   0000A0   2429         ADD     A,#0x29
+   \   0000A2   F582         MOV     DPL,A
+   \   0000A4   E9           MOV     A,R1
+   \   0000A5   3400         ADDC    A,#0x0
+   \   0000A7   F583         MOV     DPH,A
+   \   0000A9   7400         MOV     A,#0x0
+   \   0000AB   F0           MOVX    @DPTR,A
+    158            UIP_EXT_HDR_OPT_RPL_BUF->opt_type = UIP_EXT_HDR_OPT_RPL;
+   \   0000AC   90....       MOV     DPTR,#uip_ext_len
+   \   0000AF   E0           MOVX    A,@DPTR
+   \   0000B0   F8           MOV     R0,A
+   \   0000B1   7900         MOV     R1,#0x0
+   \   0000B3   2E           ADD     A,R6
+   \   0000B4   F8           MOV     R0,A
+   \   0000B5   E9           MOV     A,R1
+   \   0000B6   3F           ADDC    A,R7
+   \   0000B7   F9           MOV     R1,A
+   \   0000B8   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   0000BA   28           ADD     A,R0
+   \   0000BB   F8           MOV     R0,A
+   \   0000BC   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   0000BE   39           ADDC    A,R1
+   \   0000BF   F9           MOV     R1,A
+   \   0000C0   E8           MOV     A,R0
+   \   0000C1   2428         ADD     A,#0x28
+   \   0000C3   F582         MOV     DPL,A
+   \   0000C5   E9           MOV     A,R1
+   \   0000C6   3400         ADDC    A,#0x0
+   \   0000C8   F583         MOV     DPH,A
+   \   0000CA   7463         MOV     A,#0x63
+   \   0000CC   F0           MOVX    @DPTR,A
+    159            UIP_EXT_HDR_OPT_RPL_BUF->opt_len = RPL_HDR_OPT_LEN;
+   \   0000CD   90....       MOV     DPTR,#uip_ext_len
+   \   0000D0   E0           MOVX    A,@DPTR
+   \   0000D1   F8           MOV     R0,A
+   \   0000D2   7900         MOV     R1,#0x0
+   \   0000D4   2E           ADD     A,R6
+   \   0000D5   F8           MOV     R0,A
+   \   0000D6   E9           MOV     A,R1
+   \   0000D7   3F           ADDC    A,R7
+   \   0000D8   F9           MOV     R1,A
+   \   0000D9   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   0000DB   28           ADD     A,R0
+   \   0000DC   F8           MOV     R0,A
+   \   0000DD   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   0000DF   39           ADDC    A,R1
+   \   0000E0   F9           MOV     R1,A
+   \   0000E1   E8           MOV     A,R0
+   \   0000E2   2429         ADD     A,#0x29
+   \   0000E4   F582         MOV     DPL,A
+   \   0000E6   E9           MOV     A,R1
+   \   0000E7   3400         ADDC    A,#0x0
+   \   0000E9   F583         MOV     DPH,A
+   \   0000EB   7404         MOV     A,#0x4
+   \   0000ED   F0           MOVX    @DPTR,A
+    160            UIP_EXT_HDR_OPT_RPL_BUF->flags = 0;
+   \   0000EE   90....       MOV     DPTR,#uip_ext_len
+   \   0000F1   E0           MOVX    A,@DPTR
+   \   0000F2   F8           MOV     R0,A
+   \   0000F3   7900         MOV     R1,#0x0
+   \   0000F5   2E           ADD     A,R6
+   \   0000F6   F8           MOV     R0,A
+   \   0000F7   E9           MOV     A,R1
+   \   0000F8   3F           ADDC    A,R7
+   \   0000F9   F9           MOV     R1,A
+   \   0000FA   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   0000FC   28           ADD     A,R0
+   \   0000FD   F8           MOV     R0,A
+   \   0000FE   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   000100   39           ADDC    A,R1
+   \   000101   F9           MOV     R1,A
+   \   000102   E8           MOV     A,R0
+   \   000103   242A         ADD     A,#0x2a
+   \   000105   F582         MOV     DPL,A
+   \   000107   E9           MOV     A,R1
+   \   000108   3400         ADDC    A,#0x0
+   \   00010A   F583         MOV     DPH,A
+   \   00010C   7400         MOV     A,#0x0
+   \   00010E   F0           MOVX    @DPTR,A
+    161            UIP_EXT_HDR_OPT_RPL_BUF->instance = 0;
+   \   00010F   90....       MOV     DPTR,#uip_ext_len
+   \   000112   E0           MOVX    A,@DPTR
+   \   000113   F8           MOV     R0,A
+   \   000114   7900         MOV     R1,#0x0
+   \   000116   2E           ADD     A,R6
+   \   000117   F8           MOV     R0,A
+   \   000118   E9           MOV     A,R1
+   \   000119   3F           ADDC    A,R7
+   \   00011A   F9           MOV     R1,A
+   \   00011B   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   00011D   28           ADD     A,R0
+   \   00011E   F8           MOV     R0,A
+   \   00011F   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   000121   39           ADDC    A,R1
+   \   000122   F9           MOV     R1,A
+   \   000123   E8           MOV     A,R0
+   \   000124   242B         ADD     A,#0x2b
+   \   000126   F582         MOV     DPL,A
+   \   000128   E9           MOV     A,R1
+   \   000129   3400         ADDC    A,#0x0
+   \   00012B   F583         MOV     DPH,A
+   \   00012D   7400         MOV     A,#0x0
+   \   00012F   F0           MOVX    @DPTR,A
+    162            UIP_EXT_HDR_OPT_RPL_BUF->senderrank = 0;
+   \   000130   90....       MOV     DPTR,#uip_ext_len
+   \   000133   E0           MOVX    A,@DPTR
+   \   000134   F8           MOV     R0,A
+   \   000135   7900         MOV     R1,#0x0
+   \   000137   2E           ADD     A,R6
+   \   000138   F8           MOV     R0,A
+   \   000139   E9           MOV     A,R1
+   \   00013A   3F           ADDC    A,R7
+   \   00013B   F9           MOV     R1,A
+   \   00013C   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   00013E   28           ADD     A,R0
+   \   00013F   F8           MOV     R0,A
+   \   000140   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   000142   39           ADDC    A,R1
+   \   000143   F9           MOV     R1,A
+   \   000144   E8           MOV     A,R0
+   \   000145   242C         ADD     A,#0x2c
+   \   000147   F582         MOV     DPL,A
+   \   000149   E9           MOV     A,R1
+   \   00014A   3400         ADDC    A,#0x0
+   \   00014C   F583         MOV     DPH,A
+   \   00014E   7400         MOV     A,#0x0
+   \   000150   F0           MOVX    @DPTR,A
+   \   000151   A3           INC     DPTR
+   \   000152   7400         MOV     A,#0x0
+   \   000154   F0           MOVX    @DPTR,A
+    163            uip_len += RPL_HOP_BY_HOP_LEN;
+   \   000155   90....       MOV     DPTR,#uip_len
+   \   000158   E0           MOVX    A,@DPTR
+   \   000159   2408         ADD     A,#0x8
+   \   00015B   F0           MOVX    @DPTR,A
+   \   00015C   A3           INC     DPTR
+   \   00015D   E0           MOVX    A,@DPTR
+   \   00015E   3400         ADDC    A,#0x0
+   \   000160   F0           MOVX    @DPTR,A
+    164            temp_len = UIP_IP_BUF->len[1];
+   \   000161   90....       MOV     DPTR,#uip_aligned_buf + 5
+   \   000164   E0           MOVX    A,@DPTR
+   \   000165   FA           MOV     R2,A
+    165            UIP_IP_BUF->len[1] += UIP_HBHO_BUF->len + 8;
+   \   000166   90....       MOV     DPTR,#uip_ext_len
+   \   000169   E0           MOVX    A,@DPTR
+   \   00016A   F8           MOV     R0,A
+   \   00016B   7900         MOV     R1,#0x0
+   \   00016D   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   00016F   28           ADD     A,R0
+   \   000170   F8           MOV     R0,A
+   \   000171   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   000173   39           ADDC    A,R1
+   \   000174   F9           MOV     R1,A
+   \   000175   E8           MOV     A,R0
+   \   000176   2429         ADD     A,#0x29
+   \   000178   F582         MOV     DPL,A
+   \   00017A   E9           MOV     A,R1
+   \   00017B   3400         ADDC    A,#0x0
+   \   00017D   F583         MOV     DPH,A
+   \   00017F   E0           MOVX    A,@DPTR
+   \   000180   2408         ADD     A,#0x8
+   \   000182   F8           MOV     R0,A
+   \   000183   90....       MOV     DPTR,#uip_aligned_buf + 5
+   \   000186   E0           MOVX    A,@DPTR
+   \   000187   28           ADD     A,R0
+   \   000188   F0           MOVX    @DPTR,A
+    166            if(UIP_IP_BUF->len[1] < temp_len) {
+   \   000189   90....       MOV     DPTR,#uip_aligned_buf + 5
+   \   00018C   E0           MOVX    A,@DPTR
+   \   00018D   C3           CLR     C
+   \   00018E   9A           SUBB    A,R2
+   \   00018F   5007         JNC     ??set_rpl_opt_0
+    167              UIP_IP_BUF->len[0]++;
+   \   000191   90....       MOV     DPTR,#uip_aligned_buf + 4
+   \   000194   E0           MOVX    A,@DPTR
+   \   000195   2401         ADD     A,#0x1
+   \   000197   F0           MOVX    @DPTR,A
+    168            }
+    169          }
+   \                     ??set_rpl_opt_0:
+   \   000198   7F02         MOV     R7,#0x2
+   \   00019A   02....       LJMP    ?BANKED_LEAVE_XDATA
+    170          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    171          void
+    172          rpl_update_header_empty(void)
+   \                     rpl_update_header_empty:
+    173          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+    174            rpl_instance_t *instance;
+    175            int uip_ext_opt_offset;
+    176            int last_uip_ext_len;
+    177          
+    178            last_uip_ext_len = uip_ext_len;
+   \   000005   90....       MOV     DPTR,#uip_ext_len
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   FE           MOV     R6,A
+   \   00000A   7F00         MOV     R7,#0x0
+    179            uip_ext_len = 0;
+   \   00000C   90....       MOV     DPTR,#uip_ext_len
+   \   00000F   7400         MOV     A,#0x0
+   \   000011   F0           MOVX    @DPTR,A
+    180            uip_ext_opt_offset = 2;
+   \   000012   75..02       MOV     ?V0 + 0,#0x2
+   \   000015   75..00       MOV     ?V0 + 1,#0x0
+    181          
+    182            PRINTF("RPL: Verifying the presence of the RPL header option\n");
+    183          
+    184            switch(UIP_IP_BUF->proto) {
+   \   000018   90....       MOV     DPTR,#uip_aligned_buf + 6
+   \   00001B   E0           MOVX    A,@DPTR
+   \   00001C   6003         JZ      $+5
+   \   00001E   02....       LJMP    ??rpl_update_header_empty_0 & 0xFFFF
+    185            case UIP_PROTO_HBHO:
+    186              if(UIP_HBHO_BUF->len != RPL_HOP_BY_HOP_LEN - 8) {
+   \   000021   90....       MOV     DPTR,#uip_ext_len
+   \   000024   E0           MOVX    A,@DPTR
+   \   000025   F8           MOV     R0,A
+   \   000026   7900         MOV     R1,#0x0
+   \   000028   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   00002A   28           ADD     A,R0
+   \   00002B   F8           MOV     R0,A
+   \   00002C   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   00002E   39           ADDC    A,R1
+   \   00002F   F9           MOV     R1,A
+   \   000030   E8           MOV     A,R0
+   \   000031   2429         ADD     A,#0x29
+   \   000033   F582         MOV     DPL,A
+   \   000035   E9           MOV     A,R1
+   \   000036   3400         ADDC    A,#0x0
+   \   000038   F583         MOV     DPH,A
+   \   00003A   E0           MOVX    A,@DPTR
+   \   00003B   6008         JZ      ??rpl_update_header_empty_1
+    187                PRINTF("RPL: Non RPL Hop-by-hop options support not implemented\n");
+    188                uip_ext_len = last_uip_ext_len;
+   \   00003D   EE           MOV     A,R6
+   \   00003E   90....       MOV     DPTR,#uip_ext_len
+   \   000041   F0           MOVX    @DPTR,A
+    189                return;
+   \   000042   02....       LJMP    ??rpl_update_header_empty_2 & 0xFFFF
+    190              }
+    191              instance = rpl_get_instance(UIP_EXT_HDR_OPT_RPL_BUF->instance);
+   \                     ??rpl_update_header_empty_1:
+   \   000045                ; Setup parameters for call to function rpl_get_instance
+   \   000045   90....       MOV     DPTR,#uip_ext_len
+   \   000048   E0           MOVX    A,@DPTR
+   \   000049   F8           MOV     R0,A
+   \   00004A   7900         MOV     R1,#0x0
+   \   00004C   25..         ADD     A,?V0 + 0
+   \   00004E   F8           MOV     R0,A
+   \   00004F   E9           MOV     A,R1
+   \   000050   35..         ADDC    A,?V0 + 1
+   \   000052   F9           MOV     R1,A
+   \   000053   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   000055   28           ADD     A,R0
+   \   000056   F8           MOV     R0,A
+   \   000057   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   000059   39           ADDC    A,R1
+   \   00005A   F9           MOV     R1,A
+   \   00005B   E8           MOV     A,R0
+   \   00005C   242B         ADD     A,#0x2b
+   \   00005E   F582         MOV     DPL,A
+   \   000060   E9           MOV     A,R1
+   \   000061   3400         ADDC    A,#0x0
+   \   000063   F583         MOV     DPH,A
+   \   000065   E0           MOVX    A,@DPTR
+   \   000066   F9           MOV     R1,A
+   \   000067   12....       LCALL   ??rpl_get_instance?relay
+   \   00006A   8A..         MOV     ?V0 + 2,R2
+   \   00006C   8B..         MOV     ?V0 + 3,R3
+   \   00006E   A8..         MOV     R0,?V0 + 2
+   \   000070   A9..         MOV     R1,?V0 + 3
+    192              if(instance == NULL || !instance->used || !instance->current_dag->joined) {
+   \   000072   E8           MOV     A,R0
+   \   000073   49           ORL     A,R1
+   \   000074   602B         JZ      ??rpl_update_header_empty_3
+   \   000076   E8           MOV     A,R0
+   \   000077   247C         ADD     A,#0x7c
+   \   000079   F582         MOV     DPL,A
+   \   00007B   E9           MOV     A,R1
+   \   00007C   3400         ADDC    A,#0x0
+   \   00007E   F583         MOV     DPH,A
+   \   000080   E0           MOVX    A,@DPTR
+   \   000081   601E         JZ      ??rpl_update_header_empty_3
+   \   000083   8882         MOV     DPL,R0
+   \   000085   8983         MOV     DPH,R1
+   \   000087   A3           INC     DPTR
+   \   000088   A3           INC     DPTR
+   \   000089   A3           INC     DPTR
+   \   00008A   A3           INC     DPTR
+   \   00008B   A3           INC     DPTR
+   \   00008C   A3           INC     DPTR
+   \   00008D   A3           INC     DPTR
+   \   00008E   A3           INC     DPTR
+   \   00008F   A3           INC     DPTR
+   \   000090   E0           MOVX    A,@DPTR
+   \   000091   FA           MOV     R2,A
+   \   000092   A3           INC     DPTR
+   \   000093   E0           MOVX    A,@DPTR
+   \   000094   CA           XCH     A,R2
+   \   000095   2416         ADD     A,#0x16
+   \   000097   F582         MOV     DPL,A
+   \   000099   EA           MOV     A,R2
+   \   00009A   3400         ADDC    A,#0x0
+   \   00009C   F583         MOV     DPH,A
+   \   00009E   E0           MOVX    A,@DPTR
+   \   00009F   7003         JNZ     ??rpl_update_header_empty_4
+    193                PRINTF("RPL: Unable to add hop-by-hop extension header: incorrect instance\n");
+    194                return;
+   \                     ??rpl_update_header_empty_3:
+   \   0000A1   02....       LJMP    ??rpl_update_header_empty_2 & 0xFFFF
+    195              }
+    196              break;
+    197            default:
+    198              PRINTF("RPL: No hop-by-hop option found, creating it\n");
+    199              if(uip_len + RPL_HOP_BY_HOP_LEN > UIP_BUFSIZE) {
+    200                PRINTF("RPL: Packet too long: impossible to add hop-by-hop option\n");
+    201                uip_ext_len = last_uip_ext_len;
+    202                return;
+    203              }
+    204              set_rpl_opt(uip_ext_opt_offset);
+    205              uip_ext_len = last_uip_ext_len + RPL_HOP_BY_HOP_LEN;
+    206              return;
+    207            }
+    208          
+    209            switch(UIP_EXT_HDR_OPT_BUF->type) {
+   \                     ??rpl_update_header_empty_4:
+   \   0000A4   90....       MOV     DPTR,#uip_ext_len
+   \   0000A7   E0           MOVX    A,@DPTR
+   \   0000A8   FA           MOV     R2,A
+   \   0000A9   7B00         MOV     R3,#0x0
+   \   0000AB   25..         ADD     A,?V0 + 0
+   \   0000AD   FA           MOV     R2,A
+   \   0000AE   EB           MOV     A,R3
+   \   0000AF   35..         ADDC    A,?V0 + 1
+   \   0000B1   FB           MOV     R3,A
+   \   0000B2   74..         MOV     A,#(uip_aligned_buf + 40) & 0xff
+   \   0000B4   2A           ADD     A,R2
+   \   0000B5   F582         MOV     DPL,A
+   \   0000B7   74..         MOV     A,#((uip_aligned_buf + 40) >> 8) & 0xff
+   \   0000B9   3B           ADDC    A,R3
+   \   0000BA   F583         MOV     DPH,A
+   \   0000BC   E0           MOVX    A,@DPTR
+   \   0000BD   6463         XRL     A,#0x63
+   \   0000BF   6003         JZ      $+5
+   \   0000C1   02....       LJMP    ??rpl_update_header_empty_5 & 0xFFFF
+    210            case UIP_EXT_HDR_OPT_RPL:
+    211              PRINTF("RPL: Updating RPL option\n");
+    212              UIP_EXT_HDR_OPT_RPL_BUF->senderrank = instance->current_dag->rank;
+   \   0000C4   8882         MOV     DPL,R0
+   \   0000C6   8983         MOV     DPH,R1
+   \   0000C8   A3           INC     DPTR
+   \   0000C9   A3           INC     DPTR
+   \   0000CA   A3           INC     DPTR
+   \   0000CB   A3           INC     DPTR
+   \   0000CC   A3           INC     DPTR
+   \   0000CD   A3           INC     DPTR
+   \   0000CE   A3           INC     DPTR
+   \   0000CF   A3           INC     DPTR
+   \   0000D0   A3           INC     DPTR
+   \   0000D1   E0           MOVX    A,@DPTR
+   \   0000D2   F8           MOV     R0,A
+   \   0000D3   A3           INC     DPTR
+   \   0000D4   E0           MOVX    A,@DPTR
+   \   0000D5   C8           XCH     A,R0
+   \   0000D6   2419         ADD     A,#0x19
+   \   0000D8   F582         MOV     DPL,A
+   \   0000DA   E8           MOV     A,R0
+   \   0000DB   3400         ADDC    A,#0x0
+   \   0000DD   F583         MOV     DPH,A
+   \   0000DF   E0           MOVX    A,@DPTR
+   \   0000E0   FA           MOV     R2,A
+   \   0000E1   A3           INC     DPTR
+   \   0000E2   E0           MOVX    A,@DPTR
+   \   0000E3   FB           MOV     R3,A
+   \   0000E4   90....       MOV     DPTR,#uip_ext_len
+   \   0000E7   E0           MOVX    A,@DPTR
+   \   0000E8   F8           MOV     R0,A
+   \   0000E9   7900         MOV     R1,#0x0
+   \   0000EB   25..         ADD     A,?V0 + 0
+   \   0000ED   F8           MOV     R0,A
+   \   0000EE   E9           MOV     A,R1
+   \   0000EF   35..         ADDC    A,?V0 + 1
+   \   0000F1   F9           MOV     R1,A
+   \   0000F2   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   0000F4   28           ADD     A,R0
+   \   0000F5   F8           MOV     R0,A
+   \   0000F6   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   0000F8   39           ADDC    A,R1
+   \   0000F9   F9           MOV     R1,A
+   \   0000FA   E8           MOV     A,R0
+   \   0000FB   242C         ADD     A,#0x2c
+   \   0000FD   F582         MOV     DPL,A
+   \   0000FF   E9           MOV     A,R1
+   \   000100   3400         ADDC    A,#0x0
+   \   000102   F583         MOV     DPH,A
+   \   000104   EA           MOV     A,R2
+   \   000105   F0           MOVX    @DPTR,A
+   \   000106   A3           INC     DPTR
+   \   000107   EB           MOV     A,R3
+   \   000108   F0           MOVX    @DPTR,A
+    213          
+    214              /* Check the direction of the down flag, as per Section 11.2.2.3,
+    215                 which states that if a packet is going down it should in
+    216                 general not go back up again. If this happens, a
+    217                 RPL_HDR_OPT_FWD_ERR should be flagged. */
+    218              if((UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_DOWN)) {
+   \   000109   90....       MOV     DPTR,#uip_ext_len
+   \   00010C   E0           MOVX    A,@DPTR
+   \   00010D   F8           MOV     R0,A
+   \   00010E   7900         MOV     R1,#0x0
+   \   000110   25..         ADD     A,?V0 + 0
+   \   000112   F8           MOV     R0,A
+   \   000113   E9           MOV     A,R1
+   \   000114   35..         ADDC    A,?V0 + 1
+   \   000116   F9           MOV     R1,A
+   \   000117   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   000119   28           ADD     A,R0
+   \   00011A   F8           MOV     R0,A
+   \   00011B   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   00011D   39           ADDC    A,R1
+   \   00011E   F9           MOV     R1,A
+   \   00011F   E8           MOV     A,R0
+   \   000120   242A         ADD     A,#0x2a
+   \   000122   F582         MOV     DPL,A
+   \   000124   E9           MOV     A,R1
+   \   000125   3400         ADDC    A,#0x0
+   \   000127   F583         MOV     DPH,A
+   \   000129   E0           MOVX    A,@DPTR
+   \   00012A   A2E7         MOV     C,0xE0 /* A   */.7
+   \   00012C   5067         JNC     ??rpl_update_header_empty_6
+    219                if(uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr) == NULL) {
+   \   00012E                ; Setup parameters for call to function uip_ds6_route_lookup
+   \   00012E   7A..         MOV     R2,#(uip_aligned_buf + 24) & 0xff
+   \   000130   7B..         MOV     R3,#((uip_aligned_buf + 24) >> 8) & 0xff
+   \   000132   12....       LCALL   ??uip_ds6_route_lookup?relay
+   \   000135   8A..         MOV     ?V0 + 2,R2
+   \   000137   8B..         MOV     ?V0 + 3,R3
+   \   000139   E5..         MOV     A,?V0 + 2
+   \   00013B   45..         ORL     A,?V0 + 3
+   \   00013D   6003         JZ      $+5
+   \   00013F   02....       LJMP    ??rpl_update_header_empty_7 & 0xFFFF
+    220                  UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_FWD_ERR;
+   \   000142   90....       MOV     DPTR,#uip_ext_len
+   \   000145   E0           MOVX    A,@DPTR
+   \   000146   F8           MOV     R0,A
+   \   000147   7900         MOV     R1,#0x0
+   \   000149   25..         ADD     A,?V0 + 0
+   \   00014B   F8           MOV     R0,A
+   \   00014C   E9           MOV     A,R1
+   \   00014D   35..         ADDC    A,?V0 + 1
+   \   00014F   F9           MOV     R1,A
+   \   000150   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   000152   28           ADD     A,R0
+   \   000153   F8           MOV     R0,A
+   \   000154   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   000156   39           ADDC    A,R1
+   \   000157   F9           MOV     R1,A
+   \   000158   E8           MOV     A,R0
+   \   000159   242A         ADD     A,#0x2a
+   \   00015B   F582         MOV     DPL,A
+   \   00015D   E9           MOV     A,R1
+   \   00015E   3400         ADDC    A,#0x0
+   \   000160   F583         MOV     DPH,A
+   \   000162   E0           MOVX    A,@DPTR
+   \   000163   D2E5         SETB    0xE0 /* A   */.5
+   \   000165   F0           MOVX    @DPTR,A
+   \   000166   02....       LJMP    ??rpl_update_header_empty_7 & 0xFFFF
+    221                  PRINTF("RPL forwarding error\n");
+    222                }
+    223              } else {
+   \                     ??rpl_update_header_empty_0:
+   \   000169   90....       MOV     DPTR,#uip_len
+   \   00016C   E0           MOVX    A,@DPTR
+   \   00016D   2408         ADD     A,#0x8
+   \   00016F   F8           MOV     R0,A
+   \   000170   A3           INC     DPTR
+   \   000171   E0           MOVX    A,@DPTR
+   \   000172   3400         ADDC    A,#0x0
+   \   000174   F9           MOV     R1,A
+   \   000175   C3           CLR     C
+   \   000176   E8           MOV     A,R0
+   \   000177   94F1         SUBB    A,#-0xf
+   \   000179   E9           MOV     A,R1
+   \   00017A   9400         SUBB    A,#0x0
+   \   00017C   4007         JC      ??rpl_update_header_empty_8
+   \   00017E   EE           MOV     A,R6
+   \   00017F   90....       MOV     DPTR,#uip_ext_len
+   \   000182   F0           MOVX    @DPTR,A
+   \   000183   8077         SJMP    ??rpl_update_header_empty_2
+   \                     ??rpl_update_header_empty_8:
+   \   000185                ; Setup parameters for call to function set_rpl_opt
+   \   000185   AA..         MOV     R2,?V0 + 0
+   \   000187   AB..         MOV     R3,?V0 + 1
+   \   000189   12....       LCALL   ??set_rpl_opt?relay
+   \   00018C   EE           MOV     A,R6
+   \   00018D   2408         ADD     A,#0x8
+   \   00018F   90....       MOV     DPTR,#uip_ext_len
+   \   000192   F0           MOVX    @DPTR,A
+   \   000193   8067         SJMP    ??rpl_update_header_empty_2
+    224                /* Set the down extension flag correctly as described in Section
+    225                   11.2 of RFC6550. If the packet progresses along a DAO route,
+    226                   the down flag should be set. */
+    227                if(uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr) == NULL) {
+   \                     ??rpl_update_header_empty_6:
+   \   000195                ; Setup parameters for call to function uip_ds6_route_lookup
+   \   000195   7A..         MOV     R2,#(uip_aligned_buf + 24) & 0xff
+   \   000197   7B..         MOV     R3,#((uip_aligned_buf + 24) >> 8) & 0xff
+   \   000199   12....       LCALL   ??uip_ds6_route_lookup?relay
+   \   00019C   8A..         MOV     ?V0 + 2,R2
+   \   00019E   8B..         MOV     ?V0 + 3,R3
+   \   0001A0   E5..         MOV     A,?V0 + 2
+   \   0001A2   45..         ORL     A,?V0 + 3
+   \   0001A4   7026         JNZ     ??rpl_update_header_empty_9
+    228                  /* No route was found, so this packet will go towards the RPL
+    229                     root. If so, we should not set the down flag. */
+    230                  UIP_EXT_HDR_OPT_RPL_BUF->flags &= ~RPL_HDR_OPT_DOWN;
+   \   0001A6   90....       MOV     DPTR,#uip_ext_len
+   \   0001A9   E0           MOVX    A,@DPTR
+   \   0001AA   F8           MOV     R0,A
+   \   0001AB   7900         MOV     R1,#0x0
+   \   0001AD   25..         ADD     A,?V0 + 0
+   \   0001AF   F8           MOV     R0,A
+   \   0001B0   E9           MOV     A,R1
+   \   0001B1   35..         ADDC    A,?V0 + 1
+   \   0001B3   F9           MOV     R1,A
+   \   0001B4   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   0001B6   28           ADD     A,R0
+   \   0001B7   F8           MOV     R0,A
+   \   0001B8   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   0001BA   39           ADDC    A,R1
+   \   0001BB   F9           MOV     R1,A
+   \   0001BC   E8           MOV     A,R0
+   \   0001BD   242A         ADD     A,#0x2a
+   \   0001BF   F582         MOV     DPL,A
+   \   0001C1   E9           MOV     A,R1
+   \   0001C2   3400         ADDC    A,#0x0
+   \   0001C4   F583         MOV     DPH,A
+   \   0001C6   E0           MOVX    A,@DPTR
+   \   0001C7   C2E7         CLR     0xE0 /* A   */.7
+   \   0001C9   F0           MOVX    @DPTR,A
+   \   0001CA   8024         SJMP    ??rpl_update_header_empty_7
+    231                  PRINTF("RPL option going up\n");
+    232                } else {
+    233                  /* A DAO route was found so we set the down flag. */
+    234                  UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_DOWN;
+   \                     ??rpl_update_header_empty_9:
+   \   0001CC   90....       MOV     DPTR,#uip_ext_len
+   \   0001CF   E0           MOVX    A,@DPTR
+   \   0001D0   F8           MOV     R0,A
+   \   0001D1   7900         MOV     R1,#0x0
+   \   0001D3   25..         ADD     A,?V0 + 0
+   \   0001D5   F8           MOV     R0,A
+   \   0001D6   E9           MOV     A,R1
+   \   0001D7   35..         ADDC    A,?V0 + 1
+   \   0001D9   F9           MOV     R1,A
+   \   0001DA   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   0001DC   28           ADD     A,R0
+   \   0001DD   F8           MOV     R0,A
+   \   0001DE   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   0001E0   39           ADDC    A,R1
+   \   0001E1   F9           MOV     R1,A
+   \   0001E2   E8           MOV     A,R0
+   \   0001E3   242A         ADD     A,#0x2a
+   \   0001E5   F582         MOV     DPL,A
+   \   0001E7   E9           MOV     A,R1
+   \   0001E8   3400         ADDC    A,#0x0
+   \   0001EA   F583         MOV     DPH,A
+   \   0001EC   E0           MOVX    A,@DPTR
+   \   0001ED   D2E7         SETB    0xE0 /* A   */.7
+   \   0001EF   F0           MOVX    @DPTR,A
+    235                  PRINTF("RPL option going down\n");
+    236                }
+    237              }
+    238          
+    239              uip_ext_len = last_uip_ext_len;
+   \                     ??rpl_update_header_empty_7:
+   \   0001F0   EE           MOV     A,R6
+   \   0001F1   90....       MOV     DPTR,#uip_ext_len
+   \   0001F4   F0           MOVX    @DPTR,A
+    240              return;
+   \   0001F5   8005         SJMP    ??rpl_update_header_empty_2
+    241            default:
+    242              PRINTF("RPL: Multi Hop-by-hop options not implemented\n");
+    243              uip_ext_len = last_uip_ext_len;
+   \                     ??rpl_update_header_empty_5:
+   \   0001F7   EE           MOV     A,R6
+   \   0001F8   90....       MOV     DPTR,#uip_ext_len
+   \   0001FB   F0           MOVX    @DPTR,A
+    244              return;
+   \                     ??rpl_update_header_empty_2:
+   \   0001FC   7F04         MOV     R7,#0x4
+   \   0001FE   02....       LJMP    ?BANKED_LEAVE_XDATA
+    245            }
+    246          }
+    247          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    248          int
+    249          rpl_update_header_final(uip_ipaddr_t *addr)
+   \                     rpl_update_header_final:
+    250          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+    251            rpl_parent_t *parent;
+    252            int uip_ext_opt_offset;
+    253            int last_uip_ext_len;
+    254          
+    255            last_uip_ext_len = uip_ext_len;
+   \   000005   90....       MOV     DPTR,#uip_ext_len
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   FE           MOV     R6,A
+   \   00000A   7F00         MOV     R7,#0x0
+    256            uip_ext_len = 0;
+   \   00000C   90....       MOV     DPTR,#uip_ext_len
+   \   00000F   7400         MOV     A,#0x0
+   \   000011   F0           MOVX    @DPTR,A
+    257            uip_ext_opt_offset = 2;
+   \   000012   75..02       MOV     ?V0 + 0,#0x2
+   \   000015   75..00       MOV     ?V0 + 1,#0x0
+    258          
+    259            if(UIP_IP_BUF->proto == UIP_PROTO_HBHO) {
+   \   000018   90....       MOV     DPTR,#uip_aligned_buf + 6
+   \   00001B   E0           MOVX    A,@DPTR
+   \   00001C   6003         JZ      $+5
+   \   00001E   02....       LJMP    ??rpl_update_header_final_0 & 0xFFFF
+    260              if(UIP_HBHO_BUF->len != RPL_HOP_BY_HOP_LEN - 8) {
+   \   000021   90....       MOV     DPTR,#uip_ext_len
+   \   000024   E0           MOVX    A,@DPTR
+   \   000025   F8           MOV     R0,A
+   \   000026   7900         MOV     R1,#0x0
+   \   000028   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   00002A   28           ADD     A,R0
+   \   00002B   F8           MOV     R0,A
+   \   00002C   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   00002E   39           ADDC    A,R1
+   \   00002F   F9           MOV     R1,A
+   \   000030   E8           MOV     A,R0
+   \   000031   2429         ADD     A,#0x29
+   \   000033   F582         MOV     DPL,A
+   \   000035   E9           MOV     A,R1
+   \   000036   3400         ADDC    A,#0x0
+   \   000038   F583         MOV     DPH,A
+   \   00003A   E0           MOVX    A,@DPTR
+   \   00003B   600C         JZ      ??rpl_update_header_final_1
+    261                PRINTF("RPL: Non RPL Hop-by-hop options support not implemented\n");
+    262                uip_ext_len = last_uip_ext_len;
+   \   00003D   EE           MOV     A,R6
+   \   00003E   90....       MOV     DPTR,#uip_ext_len
+   \   000041   F0           MOVX    @DPTR,A
+    263                return 0;
+   \   000042   7A00         MOV     R2,#0x0
+   \   000044   7B00         MOV     R3,#0x0
+   \   000046   02....       LJMP    ??rpl_update_header_final_2 & 0xFFFF
+    264              }
+    265          
+    266              if(UIP_EXT_HDR_OPT_BUF->type == UIP_EXT_HDR_OPT_RPL) {
+   \                     ??rpl_update_header_final_1:
+   \   000049   90....       MOV     DPTR,#uip_ext_len
+   \   00004C   E0           MOVX    A,@DPTR
+   \   00004D   F8           MOV     R0,A
+   \   00004E   7900         MOV     R1,#0x0
+   \   000050   25..         ADD     A,?V0 + 0
+   \   000052   F8           MOV     R0,A
+   \   000053   E9           MOV     A,R1
+   \   000054   35..         ADDC    A,?V0 + 1
+   \   000056   F9           MOV     R1,A
+   \   000057   74..         MOV     A,#(uip_aligned_buf + 40) & 0xff
+   \   000059   28           ADD     A,R0
+   \   00005A   F582         MOV     DPL,A
+   \   00005C   74..         MOV     A,#((uip_aligned_buf + 40) >> 8) & 0xff
+   \   00005E   39           ADDC    A,R1
+   \   00005F   F583         MOV     DPH,A
+   \   000061   E0           MOVX    A,@DPTR
+   \   000062   6463         XRL     A,#0x63
+   \   000064   6003         JZ      $+5
+   \   000066   02....       LJMP    ??rpl_update_header_final_0 & 0xFFFF
+    267                if(UIP_EXT_HDR_OPT_RPL_BUF->senderrank == 0) {
+   \   000069   90....       MOV     DPTR,#uip_ext_len
+   \   00006C   E0           MOVX    A,@DPTR
+   \   00006D   F8           MOV     R0,A
+   \   00006E   7900         MOV     R1,#0x0
+   \   000070   25..         ADD     A,?V0 + 0
+   \   000072   F8           MOV     R0,A
+   \   000073   E9           MOV     A,R1
+   \   000074   35..         ADDC    A,?V0 + 1
+   \   000076   F9           MOV     R1,A
+   \   000077   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   000079   28           ADD     A,R0
+   \   00007A   F8           MOV     R0,A
+   \   00007B   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   00007D   39           ADDC    A,R1
+   \   00007E   F9           MOV     R1,A
+   \   00007F   E8           MOV     A,R0
+   \   000080   242C         ADD     A,#0x2c
+   \   000082   F582         MOV     DPL,A
+   \   000084   E9           MOV     A,R1
+   \   000085   3400         ADDC    A,#0x0
+   \   000087   F583         MOV     DPH,A
+   \   000089   E0           MOVX    A,@DPTR
+   \   00008A   F8           MOV     R0,A
+   \   00008B   A3           INC     DPTR
+   \   00008C   E0           MOVX    A,@DPTR
+   \   00008D   F9           MOV     R1,A
+   \   00008E   E8           MOV     A,R0
+   \   00008F   49           ORL     A,R1
+   \   000090   6003         JZ      $+5
+   \   000092   02....       LJMP    ??rpl_update_header_final_0 & 0xFFFF
+    268                  PRINTF("RPL: Updating RPL option\n");
+    269                  if(default_instance == NULL || !default_instance->used || !default_instance->current_dag->joined) {
+   \   000095   90....       MOV     DPTR,#default_instance
+   \   000098   E0           MOVX    A,@DPTR
+   \   000099   F8           MOV     R0,A
+   \   00009A   A3           INC     DPTR
+   \   00009B   E0           MOVX    A,@DPTR
+   \   00009C   F9           MOV     R1,A
+   \   00009D   E8           MOV     A,R0
+   \   00009E   49           ORL     A,R1
+   \   00009F   6036         JZ      ??rpl_update_header_final_3
+   \   0000A1   90....       MOV     DPTR,#default_instance
+   \   0000A4   E0           MOVX    A,@DPTR
+   \   0000A5   F8           MOV     R0,A
+   \   0000A6   A3           INC     DPTR
+   \   0000A7   E0           MOVX    A,@DPTR
+   \   0000A8   C8           XCH     A,R0
+   \   0000A9   247C         ADD     A,#0x7c
+   \   0000AB   F582         MOV     DPL,A
+   \   0000AD   E8           MOV     A,R0
+   \   0000AE   3400         ADDC    A,#0x0
+   \   0000B0   F583         MOV     DPH,A
+   \   0000B2   E0           MOVX    A,@DPTR
+   \   0000B3   6022         JZ      ??rpl_update_header_final_3
+   \   0000B5   90....       MOV     DPTR,#default_instance
+   \   0000B8   E0           MOVX    A,@DPTR
+   \   0000B9   F8           MOV     R0,A
+   \   0000BA   A3           INC     DPTR
+   \   0000BB   E0           MOVX    A,@DPTR
+   \   0000BC   C8           XCH     A,R0
+   \   0000BD   2409         ADD     A,#0x9
+   \   0000BF   F582         MOV     DPL,A
+   \   0000C1   E8           MOV     A,R0
+   \   0000C2   3400         ADDC    A,#0x0
+   \   0000C4   F583         MOV     DPH,A
+   \   0000C6   E0           MOVX    A,@DPTR
+   \   0000C7   F8           MOV     R0,A
+   \   0000C8   A3           INC     DPTR
+   \   0000C9   E0           MOVX    A,@DPTR
+   \   0000CA   C8           XCH     A,R0
+   \   0000CB   2416         ADD     A,#0x16
+   \   0000CD   F582         MOV     DPL,A
+   \   0000CF   E8           MOV     A,R0
+   \   0000D0   3400         ADDC    A,#0x0
+   \   0000D2   F583         MOV     DPH,A
+   \   0000D4   E0           MOVX    A,@DPTR
+   \   0000D5   7007         JNZ     ??rpl_update_header_final_4
+    270                    PRINTF("RPL: Unable to add hop-by-hop extension header: incorrect default instance\n");
+    271                    return 1;
+   \                     ??rpl_update_header_final_3:
+   \   0000D7   7A01         MOV     R2,#0x1
+   \   0000D9   7B00         MOV     R3,#0x0
+   \   0000DB   02....       LJMP    ??rpl_update_header_final_2 & 0xFFFF
+    272                  }
+    273                  parent = rpl_find_parent(default_instance->current_dag, addr);
+   \                     ??rpl_update_header_final_4:
+   \   0000DE                ; Setup parameters for call to function rpl_find_parent
+   \   0000DE   EA           MOV     A,R2
+   \   0000DF   FC           MOV     R4,A
+   \   0000E0   EB           MOV     A,R3
+   \   0000E1   FD           MOV     R5,A
+   \   0000E2   90....       MOV     DPTR,#default_instance
+   \   0000E5   E0           MOVX    A,@DPTR
+   \   0000E6   F8           MOV     R0,A
+   \   0000E7   A3           INC     DPTR
+   \   0000E8   E0           MOVX    A,@DPTR
+   \   0000E9   C8           XCH     A,R0
+   \   0000EA   2409         ADD     A,#0x9
+   \   0000EC   F582         MOV     DPL,A
+   \   0000EE   E8           MOV     A,R0
+   \   0000EF   3400         ADDC    A,#0x0
+   \   0000F1   F583         MOV     DPH,A
+   \   0000F3   E0           MOVX    A,@DPTR
+   \   0000F4   FA           MOV     R2,A
+   \   0000F5   A3           INC     DPTR
+   \   0000F6   E0           MOVX    A,@DPTR
+   \   0000F7   FB           MOV     R3,A
+   \   0000F8   12....       LCALL   ??rpl_find_parent?relay
+   \   0000FB   8A..         MOV     ?V0 + 2,R2
+   \   0000FD   8B..         MOV     ?V0 + 3,R3
+   \   0000FF   AA..         MOV     R2,?V0 + 2
+   \   000101   AB..         MOV     R3,?V0 + 3
+    274                  if(parent == NULL || parent != parent->dag->preferred_parent) {
+   \   000103   EA           MOV     A,R2
+   \   000104   4B           ORL     A,R3
+   \   000105   6021         JZ      ??rpl_update_header_final_5
+   \   000107   8A82         MOV     DPL,R2
+   \   000109   8B83         MOV     DPH,R3
+   \   00010B   A3           INC     DPTR
+   \   00010C   A3           INC     DPTR
+   \   00010D   E0           MOVX    A,@DPTR
+   \   00010E   F8           MOV     R0,A
+   \   00010F   A3           INC     DPTR
+   \   000110   E0           MOVX    A,@DPTR
+   \   000111   C8           XCH     A,R0
+   \   000112   2417         ADD     A,#0x17
+   \   000114   F582         MOV     DPL,A
+   \   000116   E8           MOV     A,R0
+   \   000117   3400         ADDC    A,#0x0
+   \   000119   F583         MOV     DPH,A
+   \   00011B   E0           MOVX    A,@DPTR
+   \   00011C   F8           MOV     R0,A
+   \   00011D   A3           INC     DPTR
+   \   00011E   E0           MOVX    A,@DPTR
+   \   00011F   F9           MOV     R1,A
+   \   000120   EA           MOV     A,R2
+   \   000121   68           XRL     A,R0
+   \   000122   7002         JNZ     ??rpl_update_header_final_6
+   \   000124   EB           MOV     A,R3
+   \   000125   69           XRL     A,R1
+   \                     ??rpl_update_header_final_6:
+   \   000126   6023         JZ      ??rpl_update_header_final_7
+    275                    UIP_EXT_HDR_OPT_RPL_BUF->flags = RPL_HDR_OPT_DOWN;
+   \                     ??rpl_update_header_final_5:
+   \   000128   90....       MOV     DPTR,#uip_ext_len
+   \   00012B   E0           MOVX    A,@DPTR
+   \   00012C   F8           MOV     R0,A
+   \   00012D   7900         MOV     R1,#0x0
+   \   00012F   25..         ADD     A,?V0 + 0
+   \   000131   F8           MOV     R0,A
+   \   000132   E9           MOV     A,R1
+   \   000133   35..         ADDC    A,?V0 + 1
+   \   000135   F9           MOV     R1,A
+   \   000136   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   000138   28           ADD     A,R0
+   \   000139   F8           MOV     R0,A
+   \   00013A   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   00013C   39           ADDC    A,R1
+   \   00013D   F9           MOV     R1,A
+   \   00013E   E8           MOV     A,R0
+   \   00013F   242A         ADD     A,#0x2a
+   \   000141   F582         MOV     DPL,A
+   \   000143   E9           MOV     A,R1
+   \   000144   3400         ADDC    A,#0x0
+   \   000146   F583         MOV     DPH,A
+   \   000148   7480         MOV     A,#-0x80
+   \   00014A   F0           MOVX    @DPTR,A
+    276                  }
+    277                  UIP_EXT_HDR_OPT_RPL_BUF->instance = default_instance->instance_id;
+   \                     ??rpl_update_header_final_7:
+   \   00014B   90....       MOV     DPTR,#default_instance
+   \   00014E   E0           MOVX    A,@DPTR
+   \   00014F   F8           MOV     R0,A
+   \   000150   A3           INC     DPTR
+   \   000151   E0           MOVX    A,@DPTR
+   \   000152   C8           XCH     A,R0
+   \   000153   247B         ADD     A,#0x7b
+   \   000155   F582         MOV     DPL,A
+   \   000157   E8           MOV     A,R0
+   \   000158   3400         ADDC    A,#0x0
+   \   00015A   F583         MOV     DPH,A
+   \   00015C   E0           MOVX    A,@DPTR
+   \   00015D   C0E0         PUSH    A
+   \   00015F   90....       MOV     DPTR,#uip_ext_len
+   \   000162   E0           MOVX    A,@DPTR
+   \   000163   F8           MOV     R0,A
+   \   000164   7900         MOV     R1,#0x0
+   \   000166   25..         ADD     A,?V0 + 0
+   \   000168   F8           MOV     R0,A
+   \   000169   E9           MOV     A,R1
+   \   00016A   35..         ADDC    A,?V0 + 1
+   \   00016C   F9           MOV     R1,A
+   \   00016D   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   00016F   28           ADD     A,R0
+   \   000170   F8           MOV     R0,A
+   \   000171   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   000173   39           ADDC    A,R1
+   \   000174   F9           MOV     R1,A
+   \   000175   E8           MOV     A,R0
+   \   000176   242B         ADD     A,#0x2b
+   \   000178   F582         MOV     DPL,A
+   \   00017A   E9           MOV     A,R1
+   \   00017B   3400         ADDC    A,#0x0
+   \   00017D   F583         MOV     DPH,A
+   \   00017F   D0E0         POP     A
+   \   000181   F0           MOVX    @DPTR,A
+    278                  UIP_EXT_HDR_OPT_RPL_BUF->senderrank = default_instance->current_dag->rank;
+   \   000182   90....       MOV     DPTR,#default_instance
+   \   000185   E0           MOVX    A,@DPTR
+   \   000186   F8           MOV     R0,A
+   \   000187   A3           INC     DPTR
+   \   000188   E0           MOVX    A,@DPTR
+   \   000189   C8           XCH     A,R0
+   \   00018A   2409         ADD     A,#0x9
+   \   00018C   F582         MOV     DPL,A
+   \   00018E   E8           MOV     A,R0
+   \   00018F   3400         ADDC    A,#0x0
+   \   000191   F583         MOV     DPH,A
+   \   000193   E0           MOVX    A,@DPTR
+   \   000194   F8           MOV     R0,A
+   \   000195   A3           INC     DPTR
+   \   000196   E0           MOVX    A,@DPTR
+   \   000197   C8           XCH     A,R0
+   \   000198   2419         ADD     A,#0x19
+   \   00019A   F582         MOV     DPL,A
+   \   00019C   E8           MOV     A,R0
+   \   00019D   3400         ADDC    A,#0x0
+   \   00019F   F583         MOV     DPH,A
+   \   0001A1   E0           MOVX    A,@DPTR
+   \   0001A2   FA           MOV     R2,A
+   \   0001A3   A3           INC     DPTR
+   \   0001A4   E0           MOVX    A,@DPTR
+   \   0001A5   FB           MOV     R3,A
+   \   0001A6   90....       MOV     DPTR,#uip_ext_len
+   \   0001A9   E0           MOVX    A,@DPTR
+   \   0001AA   F8           MOV     R0,A
+   \   0001AB   7900         MOV     R1,#0x0
+   \   0001AD   25..         ADD     A,?V0 + 0
+   \   0001AF   F8           MOV     R0,A
+   \   0001B0   E9           MOV     A,R1
+   \   0001B1   35..         ADDC    A,?V0 + 1
+   \   0001B3   F9           MOV     R1,A
+   \   0001B4   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   0001B6   28           ADD     A,R0
+   \   0001B7   F8           MOV     R0,A
+   \   0001B8   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   0001BA   39           ADDC    A,R1
+   \   0001BB   F9           MOV     R1,A
+   \   0001BC   E8           MOV     A,R0
+   \   0001BD   242C         ADD     A,#0x2c
+   \   0001BF   F582         MOV     DPL,A
+   \   0001C1   E9           MOV     A,R1
+   \   0001C2   3400         ADDC    A,#0x0
+   \   0001C4   F583         MOV     DPH,A
+   \   0001C6   EA           MOV     A,R2
+   \   0001C7   F0           MOVX    @DPTR,A
+   \   0001C8   A3           INC     DPTR
+   \   0001C9   EB           MOV     A,R3
+   \   0001CA   F0           MOVX    @DPTR,A
+    279                  uip_ext_len = last_uip_ext_len;
+   \   0001CB   EE           MOV     A,R6
+   \   0001CC   90....       MOV     DPTR,#uip_ext_len
+   \   0001CF   F0           MOVX    @DPTR,A
+    280                }
+    281              }
+    282            }
+    283            return 0;
+   \                     ??rpl_update_header_final_0:
+   \   0001D0   7A00         MOV     R2,#0x0
+   \   0001D2   7B00         MOV     R3,#0x0
+   \                     ??rpl_update_header_final_2:
+   \   0001D4   7F04         MOV     R7,#0x4
+   \   0001D6   02....       LJMP    ?BANKED_LEAVE_XDATA
+    284          }
+    285          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    286          void
+    287          rpl_remove_header(void)
+   \                     rpl_remove_header:
+    288          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    289            uint8_t temp_len;
+    290          
+    291            uip_ext_len = 0;
+   \   000005   90....       MOV     DPTR,#uip_ext_len
+   \   000008   7400         MOV     A,#0x0
+   \   00000A   F0           MOVX    @DPTR,A
+    292          
+    293            PRINTF("RPL: Verifying the presence of the RPL header option\n");
+    294            switch(UIP_IP_BUF->proto){
+   \   00000B   90....       MOV     DPTR,#uip_aligned_buf + 6
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   6003         JZ      $+5
+   \   000011   02....       LJMP    ??rpl_remove_header_0 & 0xFFFF
+    295            case UIP_PROTO_HBHO:
+    296              PRINTF("RPL: Removing the RPL header option\n");
+    297              UIP_IP_BUF->proto = UIP_HBHO_BUF->next;
+   \   000014   90....       MOV     DPTR,#uip_ext_len
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   F8           MOV     R0,A
+   \   000019   7900         MOV     R1,#0x0
+   \   00001B   74..         MOV     A,#(uip_aligned_buf + 40) & 0xff
+   \   00001D   28           ADD     A,R0
+   \   00001E   F582         MOV     DPL,A
+   \   000020   74..         MOV     A,#((uip_aligned_buf + 40) >> 8) & 0xff
+   \   000022   39           ADDC    A,R1
+   \   000023   F583         MOV     DPH,A
+   \   000025   E0           MOVX    A,@DPTR
+   \   000026   90....       MOV     DPTR,#uip_aligned_buf + 6
+   \   000029   F0           MOVX    @DPTR,A
+    298              temp_len = UIP_IP_BUF->len[1];
+   \   00002A   90....       MOV     DPTR,#uip_aligned_buf + 5
+   \   00002D   E0           MOVX    A,@DPTR
+   \   00002E   FA           MOV     R2,A
+    299              uip_len -= UIP_HBHO_BUF->len + 8;
+   \   00002F   90....       MOV     DPTR,#uip_ext_len
+   \   000032   E0           MOVX    A,@DPTR
+   \   000033   F8           MOV     R0,A
+   \   000034   7900         MOV     R1,#0x0
+   \   000036   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   000038   28           ADD     A,R0
+   \   000039   F8           MOV     R0,A
+   \   00003A   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   00003C   39           ADDC    A,R1
+   \   00003D   F9           MOV     R1,A
+   \   00003E   E8           MOV     A,R0
+   \   00003F   2429         ADD     A,#0x29
+   \   000041   F582         MOV     DPL,A
+   \   000043   E9           MOV     A,R1
+   \   000044   3400         ADDC    A,#0x0
+   \   000046   F583         MOV     DPH,A
+   \   000048   E0           MOVX    A,@DPTR
+   \   000049   F8           MOV     R0,A
+   \   00004A   7900         MOV     R1,#0x0
+   \   00004C   2408         ADD     A,#0x8
+   \   00004E   F8           MOV     R0,A
+   \   00004F   E9           MOV     A,R1
+   \   000050   3400         ADDC    A,#0x0
+   \   000052   F9           MOV     R1,A
+   \   000053   90....       MOV     DPTR,#uip_len
+   \   000056   C3           CLR     C
+   \   000057   E0           MOVX    A,@DPTR
+   \   000058   98           SUBB    A,R0
+   \   000059   F0           MOVX    @DPTR,A
+   \   00005A   A3           INC     DPTR
+   \   00005B   E0           MOVX    A,@DPTR
+   \   00005C   99           SUBB    A,R1
+   \   00005D   F0           MOVX    @DPTR,A
+    300              UIP_IP_BUF->len[1] -= UIP_HBHO_BUF->len + 8;
+   \   00005E   90....       MOV     DPTR,#uip_ext_len
+   \   000061   E0           MOVX    A,@DPTR
+   \   000062   F8           MOV     R0,A
+   \   000063   7900         MOV     R1,#0x0
+   \   000065   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   000067   28           ADD     A,R0
+   \   000068   F8           MOV     R0,A
+   \   000069   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   00006B   39           ADDC    A,R1
+   \   00006C   F9           MOV     R1,A
+   \   00006D   E8           MOV     A,R0
+   \   00006E   2429         ADD     A,#0x29
+   \   000070   F582         MOV     DPL,A
+   \   000072   E9           MOV     A,R1
+   \   000073   3400         ADDC    A,#0x0
+   \   000075   F583         MOV     DPH,A
+   \   000077   E0           MOVX    A,@DPTR
+   \   000078   F8           MOV     R0,A
+   \   000079   90....       MOV     DPTR,#uip_aligned_buf + 5
+   \   00007C   E0           MOVX    A,@DPTR
+   \   00007D   C3           CLR     C
+   \   00007E   98           SUBB    A,R0
+   \   00007F   C3           CLR     C
+   \   000080   9408         SUBB    A,#0x8
+   \   000082   90....       MOV     DPTR,#uip_aligned_buf + 5
+   \   000085   F0           MOVX    @DPTR,A
+    301              if(UIP_IP_BUF->len[1] > temp_len) {
+   \   000086   90....       MOV     DPTR,#uip_aligned_buf + 5
+   \   000089   E0           MOVX    A,@DPTR
+   \   00008A   F8           MOV     R0,A
+   \   00008B   EA           MOV     A,R2
+   \   00008C   C3           CLR     C
+   \   00008D   98           SUBB    A,R0
+   \   00008E   5007         JNC     ??rpl_remove_header_1
+    302                UIP_IP_BUF->len[0]--;
+   \   000090   90....       MOV     DPTR,#uip_aligned_buf + 4
+   \   000093   E0           MOVX    A,@DPTR
+   \   000094   24FF         ADD     A,#-0x1
+   \   000096   F0           MOVX    @DPTR,A
+    303              }
+    304              memmove(UIP_EXT_BUF, UIP_HBHO_NEXT_BUF, uip_len - UIP_IPH_LEN);
+   \                     ??rpl_remove_header_1:
+   \   000097                ; Setup parameters for call to function memmove
+   \   000097   90....       MOV     DPTR,#uip_len
+   \   00009A   E0           MOVX    A,@DPTR
+   \   00009B   24D8         ADD     A,#-0x28
+   \   00009D   F5..         MOV     ?V0 + 0,A
+   \   00009F   A3           INC     DPTR
+   \   0000A0   E0           MOVX    A,@DPTR
+   \   0000A1   34FF         ADDC    A,#-0x1
+   \   0000A3   F5..         MOV     ?V0 + 1,A
+   \   0000A5   78..         MOV     R0,#?V0 + 0
+   \   0000A7   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000AA   90....       MOV     DPTR,#uip_ext_len
+   \   0000AD   E0           MOVX    A,@DPTR
+   \   0000AE   F8           MOV     R0,A
+   \   0000AF   7900         MOV     R1,#0x0
+   \   0000B1   74..         MOV     A,#(uip_aligned_buf + 48) & 0xff
+   \   0000B3   28           ADD     A,R0
+   \   0000B4   FC           MOV     R4,A
+   \   0000B5   74..         MOV     A,#((uip_aligned_buf + 48) >> 8) & 0xff
+   \   0000B7   39           ADDC    A,R1
+   \   0000B8   FD           MOV     R5,A
+   \   0000B9   90....       MOV     DPTR,#uip_ext_len
+   \   0000BC   E0           MOVX    A,@DPTR
+   \   0000BD   F8           MOV     R0,A
+   \   0000BE   7900         MOV     R1,#0x0
+   \   0000C0   74..         MOV     A,#(uip_aligned_buf + 40) & 0xff
+   \   0000C2   28           ADD     A,R0
+   \   0000C3   FA           MOV     R2,A
+   \   0000C4   74..         MOV     A,#((uip_aligned_buf + 40) >> 8) & 0xff
+   \   0000C6   39           ADDC    A,R1
+   \   0000C7   FB           MOV     R3,A
+   \   0000C8   12....       LCALL   ??memmove?relay
+   \   0000CB   7402         MOV     A,#0x2
+   \   0000CD   12....       LCALL   ?DEALLOC_XSTACK8
+    305              break;
+    306            default:
+    307              PRINTF("RPL: No hop-by-hop Option found\n");
+    308            }
+    309          }
+   \                     ??rpl_remove_header_0:
+   \   0000D0   7F02         MOV     R7,#0x2
+   \   0000D2   02....       LJMP    ?BANKED_LEAVE_XDATA
+    310          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    311          uint8_t
+    312          rpl_invert_header(void)
+   \                     rpl_invert_header:
+    313          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+    314            uint8_t uip_ext_opt_offset;
+    315            uint8_t last_uip_ext_len;
+    316          
+    317            last_uip_ext_len = uip_ext_len;
+   \   000005   90....       MOV     DPTR,#uip_ext_len
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   FE           MOV     R6,A
+    318            uip_ext_len = 0;
+   \   00000A   90....       MOV     DPTR,#uip_ext_len
+   \   00000D   7400         MOV     A,#0x0
+   \   00000F   F0           MOVX    @DPTR,A
+    319            uip_ext_opt_offset = 2;
+   \   000010   75..02       MOV     ?V0 + 0,#0x2
+    320          
+    321            PRINTF("RPL: Verifying the presence of the RPL header option\n");
+    322            switch(UIP_IP_BUF->proto) {
+   \   000013   90....       MOV     DPTR,#uip_aligned_buf + 6
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   6003         JZ      $+5
+   \   000019   02....       LJMP    ??rpl_invert_header_0 & 0xFFFF
+    323            case UIP_PROTO_HBHO:
+    324              break;
+    325            default:
+    326              PRINTF("RPL: No hop-by-hop Option found\n");
+    327              uip_ext_len = last_uip_ext_len;
+    328              return 0;
+    329            }
+    330          
+    331            switch (UIP_EXT_HDR_OPT_BUF->type) {
+   \   00001C   90....       MOV     DPTR,#uip_ext_len
+   \   00001F   E0           MOVX    A,@DPTR
+   \   000020   F8           MOV     R0,A
+   \   000021   7900         MOV     R1,#0x0
+   \   000023   85....       MOV     ?V0 + 2,?V0 + 0
+   \   000026   75..00       MOV     ?V0 + 3,#0x0
+   \   000029   25..         ADD     A,?V0 + 2
+   \   00002B   F8           MOV     R0,A
+   \   00002C   E9           MOV     A,R1
+   \   00002D   35..         ADDC    A,?V0 + 3
+   \   00002F   F9           MOV     R1,A
+   \   000030   74..         MOV     A,#(uip_aligned_buf + 40) & 0xff
+   \   000032   28           ADD     A,R0
+   \   000033   F582         MOV     DPL,A
+   \   000035   74..         MOV     A,#((uip_aligned_buf + 40) >> 8) & 0xff
+   \   000037   39           ADDC    A,R1
+   \   000038   F583         MOV     DPH,A
+   \   00003A   E0           MOVX    A,@DPTR
+   \   00003B   6463         XRL     A,#0x63
+   \   00003D   6003         JZ      $+5
+   \   00003F   02....       LJMP    ??rpl_invert_header_1 & 0xFFFF
+    332            case UIP_EXT_HDR_OPT_RPL:
+    333              PRINTF("RPL: Updating RPL option (switching direction)\n");
+    334              UIP_EXT_HDR_OPT_RPL_BUF->flags &= RPL_HDR_OPT_DOWN;
+   \   000042   90....       MOV     DPTR,#uip_ext_len
+   \   000045   E0           MOVX    A,@DPTR
+   \   000046   F8           MOV     R0,A
+   \   000047   7900         MOV     R1,#0x0
+   \   000049   85....       MOV     ?V0 + 2,?V0 + 0
+   \   00004C   75..00       MOV     ?V0 + 3,#0x0
+   \   00004F   25..         ADD     A,?V0 + 2
+   \   000051   F8           MOV     R0,A
+   \   000052   E9           MOV     A,R1
+   \   000053   35..         ADDC    A,?V0 + 3
+   \   000055   F9           MOV     R1,A
+   \   000056   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   000058   28           ADD     A,R0
+   \   000059   F8           MOV     R0,A
+   \   00005A   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   00005C   39           ADDC    A,R1
+   \   00005D   F9           MOV     R1,A
+   \   00005E   E8           MOV     A,R0
+   \   00005F   242A         ADD     A,#0x2a
+   \   000061   F582         MOV     DPL,A
+   \   000063   E9           MOV     A,R1
+   \   000064   3400         ADDC    A,#0x0
+   \   000066   F583         MOV     DPH,A
+   \   000068   E0           MOVX    A,@DPTR
+   \   000069   5480         ANL     A,#0x80
+   \   00006B   F0           MOVX    @DPTR,A
+    335              UIP_EXT_HDR_OPT_RPL_BUF->flags ^= RPL_HDR_OPT_DOWN;
+   \   00006C   90....       MOV     DPTR,#uip_ext_len
+   \   00006F   E0           MOVX    A,@DPTR
+   \   000070   F8           MOV     R0,A
+   \   000071   7900         MOV     R1,#0x0
+   \   000073   85....       MOV     ?V0 + 2,?V0 + 0
+   \   000076   75..00       MOV     ?V0 + 3,#0x0
+   \   000079   25..         ADD     A,?V0 + 2
+   \   00007B   F8           MOV     R0,A
+   \   00007C   E9           MOV     A,R1
+   \   00007D   35..         ADDC    A,?V0 + 3
+   \   00007F   F9           MOV     R1,A
+   \   000080   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   000082   28           ADD     A,R0
+   \   000083   F8           MOV     R0,A
+   \   000084   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   000086   39           ADDC    A,R1
+   \   000087   F9           MOV     R1,A
+   \   000088   E8           MOV     A,R0
+   \   000089   242A         ADD     A,#0x2a
+   \   00008B   F582         MOV     DPL,A
+   \   00008D   E9           MOV     A,R1
+   \   00008E   3400         ADDC    A,#0x0
+   \   000090   F583         MOV     DPH,A
+   \   000092   E0           MOVX    A,@DPTR
+   \   000093   6480         XRL     A,#0x80
+   \   000095   F0           MOVX    @DPTR,A
+    336              UIP_EXT_HDR_OPT_RPL_BUF->senderrank = rpl_get_instance(UIP_EXT_HDR_OPT_RPL_BUF->instance)->current_dag->rank;
+   \   000096                ; Setup parameters for call to function rpl_get_instance
+   \   000096   90....       MOV     DPTR,#uip_ext_len
+   \   000099   E0           MOVX    A,@DPTR
+   \   00009A   F8           MOV     R0,A
+   \   00009B   7900         MOV     R1,#0x0
+   \   00009D   85....       MOV     ?V0 + 2,?V0 + 0
+   \   0000A0   75..00       MOV     ?V0 + 3,#0x0
+   \   0000A3   25..         ADD     A,?V0 + 2
+   \   0000A5   F8           MOV     R0,A
+   \   0000A6   E9           MOV     A,R1
+   \   0000A7   35..         ADDC    A,?V0 + 3
+   \   0000A9   F9           MOV     R1,A
+   \   0000AA   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   0000AC   28           ADD     A,R0
+   \   0000AD   F8           MOV     R0,A
+   \   0000AE   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   0000B0   39           ADDC    A,R1
+   \   0000B1   F9           MOV     R1,A
+   \   0000B2   E8           MOV     A,R0
+   \   0000B3   242B         ADD     A,#0x2b
+   \   0000B5   F582         MOV     DPL,A
+   \   0000B7   E9           MOV     A,R1
+   \   0000B8   3400         ADDC    A,#0x0
+   \   0000BA   F583         MOV     DPH,A
+   \   0000BC   E0           MOVX    A,@DPTR
+   \   0000BD   F9           MOV     R1,A
+   \   0000BE   12....       LCALL   ??rpl_get_instance?relay
+   \   0000C1   8A..         MOV     ?V0 + 2,R2
+   \   0000C3   8B..         MOV     ?V0 + 3,R3
+   \   0000C5   85..82       MOV     DPL,?V0 + 2
+   \   0000C8   85..83       MOV     DPH,?V0 + 3
+   \   0000CB   A3           INC     DPTR
+   \   0000CC   A3           INC     DPTR
+   \   0000CD   A3           INC     DPTR
+   \   0000CE   A3           INC     DPTR
+   \   0000CF   A3           INC     DPTR
+   \   0000D0   A3           INC     DPTR
+   \   0000D1   A3           INC     DPTR
+   \   0000D2   A3           INC     DPTR
+   \   0000D3   A3           INC     DPTR
+   \   0000D4   E0           MOVX    A,@DPTR
+   \   0000D5   F8           MOV     R0,A
+   \   0000D6   A3           INC     DPTR
+   \   0000D7   E0           MOVX    A,@DPTR
+   \   0000D8   C8           XCH     A,R0
+   \   0000D9   2419         ADD     A,#0x19
+   \   0000DB   F582         MOV     DPL,A
+   \   0000DD   E8           MOV     A,R0
+   \   0000DE   3400         ADDC    A,#0x0
+   \   0000E0   F583         MOV     DPH,A
+   \   0000E2   E0           MOVX    A,@DPTR
+   \   0000E3   FA           MOV     R2,A
+   \   0000E4   A3           INC     DPTR
+   \   0000E5   E0           MOVX    A,@DPTR
+   \   0000E6   FB           MOV     R3,A
+   \   0000E7   90....       MOV     DPTR,#uip_ext_len
+   \   0000EA   E0           MOVX    A,@DPTR
+   \   0000EB   F8           MOV     R0,A
+   \   0000EC   7900         MOV     R1,#0x0
+   \   0000EE   75..00       MOV     ?V0 + 1,#0x0
+   \   0000F1   25..         ADD     A,?V0 + 0
+   \   0000F3   F8           MOV     R0,A
+   \   0000F4   E9           MOV     A,R1
+   \   0000F5   35..         ADDC    A,?V0 + 1
+   \   0000F7   F9           MOV     R1,A
+   \   0000F8   74..         MOV     A,#uip_aligned_buf & 0xff
+   \   0000FA   28           ADD     A,R0
+   \   0000FB   F8           MOV     R0,A
+   \   0000FC   74..         MOV     A,#(uip_aligned_buf >> 8) & 0xff
+   \   0000FE   39           ADDC    A,R1
+   \   0000FF   F9           MOV     R1,A
+   \   000100   E8           MOV     A,R0
+   \   000101   242C         ADD     A,#0x2c
+   \   000103   F582         MOV     DPL,A
+   \   000105   E9           MOV     A,R1
+   \   000106   3400         ADDC    A,#0x0
+   \   000108   F583         MOV     DPH,A
+   \   00010A   EA           MOV     A,R2
+   \   00010B   F0           MOVX    @DPTR,A
+   \   00010C   A3           INC     DPTR
+   \   00010D   EB           MOV     A,R3
+   \   00010E   F0           MOVX    @DPTR,A
+    337              uip_ext_len = last_uip_ext_len;
+   \   00010F   EE           MOV     A,R6
+   \   000110   90....       MOV     DPTR,#uip_ext_len
+   \   000113   F0           MOVX    @DPTR,A
+    338              return RPL_HOP_BY_HOP_LEN;
+   \   000114   7908         MOV     R1,#0x8
+   \   000116   8010         SJMP    ??rpl_invert_header_2
+   \                     ??rpl_invert_header_0:
+   \   000118   EE           MOV     A,R6
+   \   000119   90....       MOV     DPTR,#uip_ext_len
+   \   00011C   F0           MOVX    @DPTR,A
+   \   00011D   7900         MOV     R1,#0x0
+   \   00011F   8007         SJMP    ??rpl_invert_header_2
+    339            default:
+    340              PRINTF("RPL: Multi Hop-by-hop options not implemented\n");
+    341              uip_ext_len = last_uip_ext_len;
+   \                     ??rpl_invert_header_1:
+   \   000121   EE           MOV     A,R6
+   \   000122   90....       MOV     DPTR,#uip_ext_len
+   \   000125   F0           MOVX    @DPTR,A
+    342              return 0;
+   \   000126   7900         MOV     R1,#0x0
+   \                     ??rpl_invert_header_2:
+   \   000128   7F04         MOV     R7,#0x4
+   \   00012A   02....       LJMP    ?BANKED_LEAVE_XDATA
+    343            }
+    344          }
+    345          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    346          void
+    347          rpl_insert_header(void)
+   \                     rpl_insert_header:
+    348          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    349            uint8_t uip_ext_opt_offset;
+    350            if(default_instance != NULL) {
+   \   000005   90....       MOV     DPTR,#default_instance
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   F8           MOV     R0,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   F9           MOV     R1,A
+   \   00000D   E8           MOV     A,R0
+   \   00000E   49           ORL     A,R1
+   \   00000F   6026         JZ      ??rpl_insert_header_0
+    351              uip_ext_opt_offset = 2;
+   \   000011   75..02       MOV     ?V0 + 0,#0x2
+    352              if(UIP_EXT_HDR_OPT_BUF->type == UIP_EXT_HDR_OPT_RPL) {
+   \   000014   90....       MOV     DPTR,#uip_ext_len
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   F8           MOV     R0,A
+   \   000019   7900         MOV     R1,#0x0
+   \   00001B   75..00       MOV     ?V0 + 1,#0x0
+   \   00001E   25..         ADD     A,?V0 + 0
+   \   000020   F8           MOV     R0,A
+   \   000021   E9           MOV     A,R1
+   \   000022   35..         ADDC    A,?V0 + 1
+   \   000024   F9           MOV     R1,A
+   \   000025   74..         MOV     A,#(uip_aligned_buf + 40) & 0xff
+   \   000027   28           ADD     A,R0
+   \   000028   F582         MOV     DPL,A
+   \   00002A   74..         MOV     A,#((uip_aligned_buf + 40) >> 8) & 0xff
+   \   00002C   39           ADDC    A,R1
+   \   00002D   F583         MOV     DPH,A
+   \   00002F   E0           MOVX    A,@DPTR
+   \   000030   6463         XRL     A,#0x63
+   \   000032   7003         JNZ     ??rpl_insert_header_0
+    353                rpl_update_header_empty();
+   \   000034                ; Setup parameters for call to function rpl_update_header_empty
+   \   000034   12....       LCALL   ??rpl_update_header_empty?relay
+    354              }
+    355            }
+    356          }
+   \                     ??rpl_insert_header_0:
+   \   000037   7F02         MOV     R7,#0x2
+   \   000039   02....       LJMP    ?BANKED_LEAVE_XDATA
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rpl_verify_header?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rpl_verify_header
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??set_rpl_opt?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    set_rpl_opt
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rpl_update_header_empty?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rpl_update_header_empty
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rpl_update_header_final?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rpl_update_header_final
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rpl_remove_header?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rpl_remove_header
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rpl_invert_header?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rpl_invert_header
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rpl_insert_header?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rpl_insert_header
+    357          /*---------------------------------------------------------------------------*/
+    358          #endif /* UIP_CONF_IPV6 */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     10  rpl_insert_header
+                          0 0 10 -> rpl_update_header_empty
+       0      0     12  rpl_invert_header
+                          0 0 12 -> rpl_get_instance
+       0      0     12  rpl_remove_header
+                          0 0 12 -> memmove
+       0      0     22  rpl_update_header_empty
+                          0 0 12 -> rpl_get_instance
+                          0 0 12 -> set_rpl_opt
+                          0 0 12 -> uip_ds6_route_lookup
+       1      0     12  rpl_update_header_final
+                          0 0 12 -> rpl_find_parent
+       2      0     12  rpl_verify_header
+                          0 0 12 -> rpl_get_instance
+                          0 0 12 -> rpl_repair_root
+                          0 0 12 -> rpl_reset_dio_timer
+                          0 0 12 -> uip_ds6_route_lookup
+                          0 0 12 -> uip_ds6_route_rm
+       1      0     24  set_rpl_opt
+                          0 0 12 -> memmove
+                          0 0 12 -> memset
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??rpl_insert_header?relay
+       6  ??rpl_invert_header?relay
+       6  ??rpl_remove_header?relay
+       6  ??rpl_update_header_empty?relay
+       6  ??rpl_update_header_final?relay
+       6  ??rpl_verify_header?relay
+       6  ??set_rpl_opt?relay
+      60  rpl_insert_header
+     301  rpl_invert_header
+     213  rpl_remove_header
+     513  rpl_update_header_empty
+     473  rpl_update_header_final
+     507  rpl_verify_header
+     413  set_rpl_opt
+
+ 
+ 2 480 bytes in segment BANKED_CODE
+    42 bytes in segment BANK_RELAYS
+ 
+ 2 522 bytes of CODE memory
+
+Errors: none
+Warnings: none

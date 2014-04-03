@@ -1,0 +1,390 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:42 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\cpu\cc253x\rtimer-arch.c          #
+#    Command line       =  D:\myWork\myWork\cpu\cc253x\rtimer-arch.c -D       #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\rtimer-arch.lst                             #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\rtimer-arch.r51                              #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+
+   \                                 In  segment SFR_AN, at 0xb8
+   \   union <unnamed> volatile __sfr _A_IEN1
+   \                     _A_IEN1:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xdc
+   \   unsigned char volatile __sfr T1CC1L
+   \                     T1CC1L:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xdd
+   \   unsigned char volatile __sfr T1CC1H
+   \                     T1CC1H:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe2
+   \   unsigned char volatile __sfr T1CNTL
+   \                     T1CNTL:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe3
+   \   unsigned char volatile __sfr T1CNTH
+   \                     T1CNTH:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe4
+   \   unsigned char volatile __sfr T1CTL
+   \                     T1CTL:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xe6
+   \   unsigned char volatile __sfr T1CCTL1
+   \                     T1CCTL1:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xaf
+   \   unsigned char volatile __sfr T1STAT
+   \                     T1STAT:
+   \   000000                DS 1
+
+   \                                 In  segment SFR_AN, at 0xd8
+   \   union <unnamed> volatile __sfr _A_TIMIF
+   \                     _A_TIMIF:
+   \   000000                DS 1
+D:\myWork\myWork\cpu\cc253x\rtimer-arch.c
+      1          /*
+      2           * Copyright (c) 2010, Loughborough University - Computer Science
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           */
+     32          
+     33          /**
+     34           * \file
+     35           *         Hardware-dependent functions used to support the
+     36           *         contiki rtimer module.
+     37           *
+     38           *         clock_init() has set our tick speed prescaler already, so we
+     39           *         are ticking with 500 kHz freq.
+     40           *
+     41           *         Contiki typedefs rtimer_clock_t as unsigned short (16bit)
+     42           *         It thus makes sense to use the 16bit timer (Timer 1)
+     43           *
+     44           *         This file contains an ISR and must reside in the HOME bank
+     45           *
+     46           * \author
+     47           *         George Oikonomou - <oikonomou@users.sourceforge.net>
+     48           */
+     49          
+     50          #include "sys/rtimer.h"
+     51          #include "sfr-bits.h"
+     52          #include "cc253x.h"
+     53          #include "sys/energest.h"
+     54          
+     55          #include "debug.h"
+     56          #include <stdio.h>
+     57          
+     58          #define RT_MODE_COMPARE() do { T1CCTL1 |= T1CCTL_MODE; } while(0)
+     59          #define RT_MODE_CAPTURE() do { T1CCTL1 &= ~T1CCTL_MODE; } while(0)
+     60          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     61          void
+     62          rtimer_arch_init(void)
+   \                     rtimer_arch_init:
+     63          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+     64            /*
+     65             * - Free running mode
+     66             * - Prescale by 32:
+     67             *   Tick Speed has been prescaled to 500 kHz already in clock_init()
+     68             *   We further prescale by 32 resulting in 15625 Hz for this timer.
+     69             */
+     70            T1CTL = (T1CTL_DIV1 | T1CTL_MODE0);
+   \   000000   75E409       MOV     0xe4,#0x9
+     71          
+     72            T1STAT = 0;
+   \   000003   75AF00       MOV     0xaf,#0x0
+     73          
+     74            /* Timer 1, Channel 1. Compare Mode (0x04), Interrupt mask on (0x40) */
+     75            T1CCTL1 = T1CCTL_MODE | T1CCTL_IM;
+   \   000006   75E644       MOV     0xe6,#0x44
+     76          
+     77            /* Interrupt Mask Flags: No interrupt on overflow */
+     78            OVFIM = 0;
+   \   000009   C2DE         CLR     0xd8.6
+     79          
+     80            /* Acknowledge Timer 1 Interrupts */
+     81            T1IE = 1;
+   \   00000B   D2B9         SETB    0xb8.1
+     82          }
+   \   00000D   02....       LJMP    ?BRET
+   \   000010                REQUIRE T1CTL
+   \   000010                REQUIRE T1STAT
+   \   000010                REQUIRE T1CCTL1
+   \   000010                REQUIRE _A_TIMIF
+   \   000010                REQUIRE _A_IEN1
+     83          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     84          void
+     85          rtimer_arch_schedule(rtimer_clock_t t)
+   \                     rtimer_arch_schedule:
+     86          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+     87            /* Switch to capture mode before writing T1CC1x and
+     88             * set the compare mode values so we can get an interrupt after t */
+     89            RT_MODE_CAPTURE();
+   \   000000   53E6FB       ANL     0xe6,#0xfb
+     90            T1CC1L = (unsigned char)t;
+   \   000003   EA           MOV     A,R2
+   \   000004   F5DC         MOV     0xdc,A
+     91            T1CC1H = (unsigned char)(t >> 8);
+   \   000006   E4           CLR     A
+   \   000007   EB           MOV     A,R3
+   \   000008   FA           MOV     R2,A
+   \   000009   F5DD         MOV     0xdd,A
+     92            RT_MODE_COMPARE();
+   \   00000B   43E604       ORL     0xe6,#0x4
+     93          
+     94            /* Turn on compare mode interrupt */
+     95            T1STAT = 0;
+   \   00000E   75AF00       MOV     0xaf,#0x0
+     96            T1CCTL1 |= T1CCTL_IM;
+   \   000011   43E640       ORL     0xe6,#0x40
+     97          }
+   \   000014   02....       LJMP    ?BRET
+   \   000017                REQUIRE T1CCTL1
+   \   000017                REQUIRE T1CC1L
+   \   000017                REQUIRE T1CC1H
+   \   000017                REQUIRE T1STAT
+     98          /*---------------------------------------------------------------------------*/
+     99          /* avoid referencing bits, we don't call code which use them */
+    100          #pragma save
+                         ^
+Warning[Pe161]: unrecognized #pragma
+    101          #if CC_CONF_OPTIMIZE_STACK_SIZE
+    102          #pragma exclude bits
+    103          #endif
+    104          #pragma vector = T1_VECTOR
+
+   \                                 In  segment NEAR_CODE, align 1, keep-with-next
+    105          __interrupt void rtimer_isr(void)
+   \                     rtimer_isr:
+    106          {
+   \   000000   C0E0         PUSH    A
+   \   000002   74EF         MOV     A,#-0x11
+   \   000004   12....       LCALL   ?INTERRUPT_ENTER_XSP
+   \   000007                ; Saved register size: 17
+   \   000007                ; Auto size: 0
+    107            T1IE = 0; /* Ignore Timer 1 Interrupts */
+   \   000007   C2B9         CLR     0xb8.1
+    108            ENERGEST_ON(ENERGEST_TYPE_IRQ);
+   \   000009   E5E2         MOV     A,0xe2
+   \   00000B   FA           MOV     R2,A
+   \   00000C   7B00         MOV     R3,#0x0
+   \   00000E   E5E3         MOV     A,0xe3
+   \   000010   F8           MOV     R0,A
+   \   000011   7900         MOV     R1,#0x0
+   \   000013   E4           CLR     A
+   \   000014   C8           XCH     A,R0
+   \   000015   F9           MOV     R1,A
+   \   000016   EA           MOV     A,R2
+   \   000017   28           ADD     A,R0
+   \   000018   F8           MOV     R0,A
+   \   000019   EB           MOV     A,R3
+   \   00001A   39           ADDC    A,R1
+   \   00001B   F9           MOV     R1,A
+   \   00001C   90....       MOV     DPTR,#energest_current_time + 4
+   \   00001F   E8           MOV     A,R0
+   \   000020   F0           MOVX    @DPTR,A
+   \   000021   A3           INC     DPTR
+   \   000022   E9           MOV     A,R1
+   \   000023   F0           MOVX    @DPTR,A
+   \   000024   90....       MOV     DPTR,#energest_current_mode + 2
+   \   000027   7401         MOV     A,#0x1
+   \   000029   F0           MOVX    @DPTR,A
+    109          
+    110            /* No more interrupts from Channel 1 till next rtimer_arch_schedule() call */
+    111            T1STAT &= ~T1STAT_CH1IF;
+   \   00002A   53AFFD       ANL     0xaf,#0xfd
+    112            T1CCTL1 &= ~T1CCTL_IM;
+   \   00002D   53E6BF       ANL     0xe6,#0xbf
+    113          
+    114            rtimer_run_next();
+   \   000030                ; Setup parameters for call to function rtimer_run_next
+   \   000030   12....       LCALL   ??rtimer_run_next?relay
+    115          
+    116            ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+   \   000033   90....       MOV     DPTR,#energest_current_mode + 2
+   \   000036   E0           MOVX    A,@DPTR
+   \   000037   6037         JZ      ??rtimer_isr_0
+   \   000039   E5E2         MOV     A,0xe2
+   \   00003B   FA           MOV     R2,A
+   \   00003C   7B00         MOV     R3,#0x0
+   \   00003E   E5E3         MOV     A,0xe3
+   \   000040   F8           MOV     R0,A
+   \   000041   7900         MOV     R1,#0x0
+   \   000043   E4           CLR     A
+   \   000044   C8           XCH     A,R0
+   \   000045   F9           MOV     R1,A
+   \   000046   EA           MOV     A,R2
+   \   000047   28           ADD     A,R0
+   \   000048   FA           MOV     R2,A
+   \   000049   EB           MOV     A,R3
+   \   00004A   39           ADDC    A,R1
+   \   00004B   FB           MOV     R3,A
+   \   00004C   90....       MOV     DPTR,#energest_current_time + 4
+   \   00004F   E0           MOVX    A,@DPTR
+   \   000050   F8           MOV     R0,A
+   \   000051   A3           INC     DPTR
+   \   000052   E0           MOVX    A,@DPTR
+   \   000053   F9           MOV     R1,A
+   \   000054   EA           MOV     A,R2
+   \   000055   C3           CLR     C
+   \   000056   98           SUBB    A,R0
+   \   000057   F5..         MOV     ?V0 + 0,A
+   \   000059   EB           MOV     A,R3
+   \   00005A   99           SUBB    A,R1
+   \   00005B   F5..         MOV     ?V0 + 1,A
+   \   00005D   E4           CLR     A
+   \   00005E   F5..         MOV     ?V0 + 2,A
+   \   000060   F5..         MOV     ?V0 + 3,A
+   \   000062   90....       MOV     DPTR,#energest_total_time + 8
+   \   000065   78..         MOV     R0,#?V0 + 0
+   \   000067   12....       LCALL   ?L_ADD_TO_X
+   \   00006A   90....       MOV     DPTR,#energest_current_mode + 2
+   \   00006D   7400         MOV     A,#0x0
+   \   00006F   F0           MOVX    @DPTR,A
+    117            T1IE = 1; /* Acknowledge Timer 1 Interrupts */
+   \                     ??rtimer_isr_0:
+   \   000070   D2B9         SETB    0xb8.1
+    118          }
+   \   000072   7F04         MOV     R7,#0x4
+   \   000074   02....       LJMP    ?INTERRUPT_LEAVE_XSP
+   \   000077                REQUIRE _A_IEN1
+   \   000077                REQUIRE T1CNTL
+   \   000077                REQUIRE T1CNTH
+   \   000077                REQUIRE T1STAT
+   \   000077                REQUIRE T1CCTL1
+
+   \                                 In  segment INTVEC, offset 0x4b, root
+   \                     `??rtimer_isr??INTVEC 75`:
+   \   00004B   02....       LJMP       (rtimer_isr)
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rtimer_arch_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rtimer_arch_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rtimer_arch_schedule?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rtimer_arch_schedule
+    119          #pragma restore
+                         ^
+Warning[Pe161]: unrecognized #pragma
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0      0  rtimer_arch_init
+       0      0      0  rtimer_arch_schedule
+       0      0     17  rtimer_isr
+                          0 0 17 -> rtimer_run_next
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??rtimer_arch_init?relay
+       6  ??rtimer_arch_schedule?relay
+       3  ??rtimer_isr??INTVEC 75
+       1  T1CC1H
+       1  T1CC1L
+       1  T1CCTL1
+       1  T1CNTH
+       1  T1CNTL
+       1  T1CTL
+       1  T1STAT
+       1  _A_IEN1
+       1  _A_TIMIF
+      16  rtimer_arch_init
+      23  rtimer_arch_schedule
+     119  rtimer_isr
+
+ 
+  39 bytes in segment BANKED_CODE
+  12 bytes in segment BANK_RELAYS
+   3 bytes in segment INTVEC
+ 119 bytes in segment NEAR_CODE
+   9 bytes in segment SFR_AN
+ 
+ 170 bytes of CODE memory (+ 3 bytes shared)
+   0 bytes of DATA memory (+ 9 bytes shared)
+
+Errors: none
+Warnings: 2

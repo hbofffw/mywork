@@ -1,0 +1,619 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:49 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\lib\memb.c                   #
+#    Command line       =  D:\myWork\myWork\core\lib\memb.c -D                #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\memb.lst                                    #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\memb.r51                                     #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\lib\memb.c
+      1          /*
+      2           * Copyright (c) 2004, Swedish Institute of Computer Science.
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           * Author: Adam Dunkels <adam@sics.se>
+     32           *
+     33           */
+     34          
+     35          /**
+     36           * \addtogroup memb
+     37           * @{
+     38           */
+     39          
+     40           /**
+     41           * \file
+     42           * Memory block allocation routines.
+     43           * \author Adam Dunkels <adam@sics.se>
+     44           */
+     45          #include <string.h>
+     46          
+     47          #include "contiki.h"
+     48          #include "lib/memb.h"
+     49          
+     50          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     51          void
+     52          memb_init(struct memb *m)
+   \                     memb_init:
+     53          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+     54            memset(m->count, 0, m->num);
+   \   000009                ; Setup parameters for call to function memset
+   \   000009   8E82         MOV     DPL,R6
+   \   00000B   8F83         MOV     DPH,R7
+   \   00000D   A3           INC     DPTR
+   \   00000E   A3           INC     DPTR
+   \   00000F   12....       LCALL   ?PUSH_XSTACK8_X_TWO
+   \   000012   7C00         MOV     R4,#0x0
+   \   000014   7D00         MOV     R5,#0x0
+   \   000016   8E82         MOV     DPL,R6
+   \   000018   8F83         MOV     DPH,R7
+   \   00001A   A3           INC     DPTR
+   \   00001B   A3           INC     DPTR
+   \   00001C   A3           INC     DPTR
+   \   00001D   A3           INC     DPTR
+   \   00001E   E0           MOVX    A,@DPTR
+   \   00001F   FA           MOV     R2,A
+   \   000020   A3           INC     DPTR
+   \   000021   E0           MOVX    A,@DPTR
+   \   000022   FB           MOV     R3,A
+   \   000023   12....       LCALL   ??memset?relay
+   \   000026   7402         MOV     A,#0x2
+   \   000028   12....       LCALL   ?DEALLOC_XSTACK8
+     55            memset(m->mem, 0, m->size * m->num);
+   \   00002B                ; Setup parameters for call to function memset
+   \   00002B   8E82         MOV     DPL,R6
+   \   00002D   8F83         MOV     DPH,R7
+   \   00002F   E0           MOVX    A,@DPTR
+   \   000030   F5..         MOV     ?V0 + 2,A
+   \   000032   A3           INC     DPTR
+   \   000033   E0           MOVX    A,@DPTR
+   \   000034   F5..         MOV     ?V0 + 3,A
+   \   000036   8E82         MOV     DPL,R6
+   \   000038   8F83         MOV     DPH,R7
+   \   00003A   A3           INC     DPTR
+   \   00003B   A3           INC     DPTR
+   \   00003C   E0           MOVX    A,@DPTR
+   \   00003D   F5..         MOV     ?V0 + 0,A
+   \   00003F   A3           INC     DPTR
+   \   000040   E0           MOVX    A,@DPTR
+   \   000041   F5..         MOV     ?V0 + 1,A
+   \   000043   E5..         MOV     A,?V0 + 2
+   \   000045   85..F0       MOV     B,?V0 + 0
+   \   000048   A4           MUL     AB
+   \   000049   C5..         XCH     A,?V0 + 2
+   \   00004B   A8F0         MOV     R0,B
+   \   00004D   85..F0       MOV     B,?V0 + 1
+   \   000050   A4           MUL     AB
+   \   000051   28           ADD     A,R0
+   \   000052   F8           MOV     R0,A
+   \   000053   85..F0       MOV     B,?V0 + 0
+   \   000056   E5..         MOV     A,?V0 + 3
+   \   000058   A4           MUL     AB
+   \   000059   28           ADD     A,R0
+   \   00005A   F5..         MOV     ?V0 + 3,A
+   \   00005C   78..         MOV     R0,#?V0 + 2
+   \   00005E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000061   7C00         MOV     R4,#0x0
+   \   000063   7D00         MOV     R5,#0x0
+   \   000065   8E82         MOV     DPL,R6
+   \   000067   8F83         MOV     DPH,R7
+   \   000069   A3           INC     DPTR
+   \   00006A   A3           INC     DPTR
+   \   00006B   A3           INC     DPTR
+   \   00006C   A3           INC     DPTR
+   \   00006D   A3           INC     DPTR
+   \   00006E   A3           INC     DPTR
+   \   00006F   E0           MOVX    A,@DPTR
+   \   000070   FA           MOV     R2,A
+   \   000071   A3           INC     DPTR
+   \   000072   E0           MOVX    A,@DPTR
+   \   000073   FB           MOV     R3,A
+   \   000074   12....       LCALL   ??memset?relay
+   \   000077   7402         MOV     A,#0x2
+   \   000079   12....       LCALL   ?DEALLOC_XSTACK8
+     56          }
+   \   00007C   7F04         MOV     R7,#0x4
+   \   00007E   02....       LJMP    ?BANKED_LEAVE_XDATA
+     57          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     58          void *
+     59          memb_alloc(struct memb *m)
+   \                     memb_alloc:
+     60          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     61            int i;
+     62          
+     63            for(i = 0; i < m->num; ++i) {
+   \   000005   7800         MOV     R0,#0x0
+   \   000007   7900         MOV     R1,#0x0
+   \   000009   8008         SJMP    ??memb_alloc_0
+   \                     ??memb_alloc_1:
+   \   00000B   E8           MOV     A,R0
+   \   00000C   2401         ADD     A,#0x1
+   \   00000E   F8           MOV     R0,A
+   \   00000F   E9           MOV     A,R1
+   \   000010   3400         ADDC    A,#0x0
+   \   000012   F9           MOV     R1,A
+   \                     ??memb_alloc_0:
+   \   000013   8A82         MOV     DPL,R2
+   \   000015   8B83         MOV     DPH,R3
+   \   000017   A3           INC     DPTR
+   \   000018   A3           INC     DPTR
+   \   000019   E0           MOVX    A,@DPTR
+   \   00001A   FC           MOV     R4,A
+   \   00001B   A3           INC     DPTR
+   \   00001C   E0           MOVX    A,@DPTR
+   \   00001D   FD           MOV     R5,A
+   \   00001E   C3           CLR     C
+   \   00001F   E8           MOV     A,R0
+   \   000020   9C           SUBB    A,R4
+   \   000021   E9           MOV     A,R1
+   \   000022   9D           SUBB    A,R5
+   \   000023   505E         JNC     ??memb_alloc_2
+     64              if(m->count[i] == 0) {
+   \   000025   8A82         MOV     DPL,R2
+   \   000027   8B83         MOV     DPH,R3
+   \   000029   A3           INC     DPTR
+   \   00002A   A3           INC     DPTR
+   \   00002B   A3           INC     DPTR
+   \   00002C   A3           INC     DPTR
+   \   00002D   E0           MOVX    A,@DPTR
+   \   00002E   28           ADD     A,R0
+   \   00002F   FC           MOV     R4,A
+   \   000030   A3           INC     DPTR
+   \   000031   E0           MOVX    A,@DPTR
+   \   000032   39           ADDC    A,R1
+   \   000033   8C82         MOV     DPL,R4
+   \   000035   F583         MOV     DPH,A
+   \   000037   E0           MOVX    A,@DPTR
+   \   000038   70D1         JNZ     ??memb_alloc_1
+     65                /* If this block was unused, we increase the reference count to
+     66          	 indicate that it now is used and return a pointer to the
+     67          	 memory block. */
+     68                ++(m->count[i]);
+   \   00003A   8A82         MOV     DPL,R2
+   \   00003C   8B83         MOV     DPH,R3
+   \   00003E   A3           INC     DPTR
+   \   00003F   A3           INC     DPTR
+   \   000040   A3           INC     DPTR
+   \   000041   A3           INC     DPTR
+   \   000042   E0           MOVX    A,@DPTR
+   \   000043   28           ADD     A,R0
+   \   000044   FC           MOV     R4,A
+   \   000045   A3           INC     DPTR
+   \   000046   E0           MOVX    A,@DPTR
+   \   000047   39           ADDC    A,R1
+   \   000048   8C82         MOV     DPL,R4
+   \   00004A   F583         MOV     DPH,A
+   \   00004C   E0           MOVX    A,@DPTR
+   \   00004D   2401         ADD     A,#0x1
+   \   00004F   F0           MOVX    @DPTR,A
+     69                return (void *)((char *)m->mem + (i * m->size));
+   \   000050   8A82         MOV     DPL,R2
+   \   000052   8B83         MOV     DPH,R3
+   \   000054   E0           MOVX    A,@DPTR
+   \   000055   F5..         MOV     ?V0 + 0,A
+   \   000057   A3           INC     DPTR
+   \   000058   E0           MOVX    A,@DPTR
+   \   000059   F5..         MOV     ?V0 + 1,A
+   \   00005B   E8           MOV     A,R0
+   \   00005C   85..F0       MOV     B,?V0 + 0
+   \   00005F   A4           MUL     AB
+   \   000060   C8           XCH     A,R0
+   \   000061   ACF0         MOV     R4,B
+   \   000063   85..F0       MOV     B,?V0 + 1
+   \   000066   A4           MUL     AB
+   \   000067   2C           ADD     A,R4
+   \   000068   FC           MOV     R4,A
+   \   000069   85..F0       MOV     B,?V0 + 0
+   \   00006C   E9           MOV     A,R1
+   \   00006D   A4           MUL     AB
+   \   00006E   2C           ADD     A,R4
+   \   00006F   F9           MOV     R1,A
+   \   000070   8A82         MOV     DPL,R2
+   \   000072   8B83         MOV     DPH,R3
+   \   000074   A3           INC     DPTR
+   \   000075   A3           INC     DPTR
+   \   000076   A3           INC     DPTR
+   \   000077   A3           INC     DPTR
+   \   000078   A3           INC     DPTR
+   \   000079   A3           INC     DPTR
+   \   00007A   E0           MOVX    A,@DPTR
+   \   00007B   28           ADD     A,R0
+   \   00007C   FA           MOV     R2,A
+   \   00007D   A3           INC     DPTR
+   \   00007E   E0           MOVX    A,@DPTR
+   \   00007F   39           ADDC    A,R1
+   \   000080   FB           MOV     R3,A
+   \   000081   8004         SJMP    ??memb_alloc_3
+     70              }
+     71            }
+     72          
+     73            /* No free block was found, so we return NULL to indicate failure to
+     74               allocate block. */
+     75            return NULL;
+   \                     ??memb_alloc_2:
+   \   000083   7A00         MOV     R2,#0x0
+   \   000085   7B00         MOV     R3,#0x0
+   \                     ??memb_alloc_3:
+   \   000087   7F02         MOV     R7,#0x2
+   \   000089   02....       LJMP    ?BANKED_LEAVE_XDATA
+     76          }
+     77          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     78          char
+     79          memb_free(struct memb *m, void *ptr)
+   \                     memb_free:
+     80          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+     81            int i;
+     82            char *ptr2;
+     83          
+     84            /* Walk through the list of blocks and try to find the block to
+     85               which the pointer "ptr" points to. */
+     86            ptr2 = (char *)m->mem;
+   \   000009   8E82         MOV     DPL,R6
+   \   00000B   8F83         MOV     DPH,R7
+   \   00000D   A3           INC     DPTR
+   \   00000E   A3           INC     DPTR
+   \   00000F   A3           INC     DPTR
+   \   000010   A3           INC     DPTR
+   \   000011   A3           INC     DPTR
+   \   000012   A3           INC     DPTR
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   FA           MOV     R2,A
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   FB           MOV     R3,A
+     87            for(i = 0; i < m->num; ++i) {
+   \   000018   7800         MOV     R0,#0x0
+   \   00001A   7900         MOV     R1,#0x0
+   \   00001C   801B         SJMP    ??memb_free_0
+     88              
+     89              if(ptr2 == (char *)ptr) {
+     90                /* We've found to block to which "ptr" points so we decrease the
+     91          	 reference count and return the new value of it. */
+     92                if(m->count[i] > 0) {
+     93          	/* Make sure that we don't deallocate free memory. */
+     94          	--(m->count[i]);
+     95                }
+     96                return m->count[i];
+     97              }
+     98              ptr2 += m->size;
+   \                     ??memb_free_1:
+   \   00001E   8E82         MOV     DPL,R6
+   \   000020   8F83         MOV     DPH,R7
+   \   000022   E0           MOVX    A,@DPTR
+   \   000023   F5..         MOV     ?V0 + 0,A
+   \   000025   A3           INC     DPTR
+   \   000026   E0           MOVX    A,@DPTR
+   \   000027   F5..         MOV     ?V0 + 1,A
+   \   000029   EA           MOV     A,R2
+   \   00002A   25..         ADD     A,?V0 + 0
+   \   00002C   FA           MOV     R2,A
+   \   00002D   EB           MOV     A,R3
+   \   00002E   35..         ADDC    A,?V0 + 1
+   \   000030   FB           MOV     R3,A
+   \   000031   E8           MOV     A,R0
+   \   000032   2401         ADD     A,#0x1
+   \   000034   F8           MOV     R0,A
+   \   000035   E9           MOV     A,R1
+   \   000036   3400         ADDC    A,#0x0
+   \   000038   F9           MOV     R1,A
+   \                     ??memb_free_0:
+   \   000039   8E82         MOV     DPL,R6
+   \   00003B   8F83         MOV     DPH,R7
+   \   00003D   A3           INC     DPTR
+   \   00003E   A3           INC     DPTR
+   \   00003F   E0           MOVX    A,@DPTR
+   \   000040   F5..         MOV     ?V0 + 0,A
+   \   000042   A3           INC     DPTR
+   \   000043   E0           MOVX    A,@DPTR
+   \   000044   F5..         MOV     ?V0 + 1,A
+   \   000046   C3           CLR     C
+   \   000047   E8           MOV     A,R0
+   \   000048   95..         SUBB    A,?V0 + 0
+   \   00004A   E9           MOV     A,R1
+   \   00004B   95..         SUBB    A,?V0 + 1
+   \   00004D   504C         JNC     ??memb_free_2
+   \   00004F   EC           MOV     A,R4
+   \   000050   6A           XRL     A,R2
+   \   000051   7002         JNZ     ??memb_free_3
+   \   000053   ED           MOV     A,R5
+   \   000054   6B           XRL     A,R3
+   \                     ??memb_free_3:
+   \   000055   70C7         JNZ     ??memb_free_1
+   \   000057   8E82         MOV     DPL,R6
+   \   000059   8F83         MOV     DPH,R7
+   \   00005B   A3           INC     DPTR
+   \   00005C   A3           INC     DPTR
+   \   00005D   A3           INC     DPTR
+   \   00005E   A3           INC     DPTR
+   \   00005F   E0           MOVX    A,@DPTR
+   \   000060   28           ADD     A,R0
+   \   000061   FA           MOV     R2,A
+   \   000062   A3           INC     DPTR
+   \   000063   E0           MOVX    A,@DPTR
+   \   000064   39           ADDC    A,R1
+   \   000065   8A82         MOV     DPL,R2
+   \   000067   F583         MOV     DPH,A
+   \   000069   E0           MOVX    A,@DPTR
+   \   00006A   C3           CLR     C
+   \   00006B   9401         SUBB    A,#0x1
+   \   00006D   4016         JC      ??memb_free_4
+   \   00006F   8E82         MOV     DPL,R6
+   \   000071   8F83         MOV     DPH,R7
+   \   000073   A3           INC     DPTR
+   \   000074   A3           INC     DPTR
+   \   000075   A3           INC     DPTR
+   \   000076   A3           INC     DPTR
+   \   000077   E0           MOVX    A,@DPTR
+   \   000078   28           ADD     A,R0
+   \   000079   FA           MOV     R2,A
+   \   00007A   A3           INC     DPTR
+   \   00007B   E0           MOVX    A,@DPTR
+   \   00007C   39           ADDC    A,R1
+   \   00007D   8A82         MOV     DPL,R2
+   \   00007F   F583         MOV     DPH,A
+   \   000081   E0           MOVX    A,@DPTR
+   \   000082   24FF         ADD     A,#-0x1
+   \   000084   F0           MOVX    @DPTR,A
+   \                     ??memb_free_4:
+   \   000085   8E82         MOV     DPL,R6
+   \   000087   8F83         MOV     DPH,R7
+   \   000089   A3           INC     DPTR
+   \   00008A   A3           INC     DPTR
+   \   00008B   A3           INC     DPTR
+   \   00008C   A3           INC     DPTR
+   \   00008D   E0           MOVX    A,@DPTR
+   \   00008E   28           ADD     A,R0
+   \   00008F   FA           MOV     R2,A
+   \   000090   A3           INC     DPTR
+   \   000091   E0           MOVX    A,@DPTR
+   \   000092   39           ADDC    A,R1
+   \   000093   8A82         MOV     DPL,R2
+   \   000095   F583         MOV     DPH,A
+   \   000097   E0           MOVX    A,@DPTR
+   \   000098   F9           MOV     R1,A
+   \   000099   8002         SJMP    ??memb_free_5
+     99            }
+    100            return -1;
+   \                     ??memb_free_2:
+   \   00009B   79FF         MOV     R1,#-0x1
+   \                     ??memb_free_5:
+   \   00009D   7F02         MOV     R7,#0x2
+   \   00009F   02....       LJMP    ?BANKED_LEAVE_XDATA
+    101          }
+    102          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    103          int
+    104          memb_inmemb(struct memb *m, void *ptr)
+   \                     memb_inmemb:
+    105          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    106            return (char *)ptr >= (char *)m->mem &&
+    107              (char *)ptr < (char *)m->mem + (m->num * m->size);
+   \   000005   8A82         MOV     DPL,R2
+   \   000007   8B83         MOV     DPH,R3
+   \   000009   A3           INC     DPTR
+   \   00000A   A3           INC     DPTR
+   \   00000B   A3           INC     DPTR
+   \   00000C   A3           INC     DPTR
+   \   00000D   A3           INC     DPTR
+   \   00000E   A3           INC     DPTR
+   \   00000F   E0           MOVX    A,@DPTR
+   \   000010   F8           MOV     R0,A
+   \   000011   A3           INC     DPTR
+   \   000012   E0           MOVX    A,@DPTR
+   \   000013   F9           MOV     R1,A
+   \   000014   C3           CLR     C
+   \   000015   EC           MOV     A,R4
+   \   000016   98           SUBB    A,R0
+   \   000017   ED           MOV     A,R5
+   \   000018   99           SUBB    A,R1
+   \   000019   4047         JC      ??memb_inmemb_0
+   \   00001B   8A82         MOV     DPL,R2
+   \   00001D   8B83         MOV     DPH,R3
+   \   00001F   A3           INC     DPTR
+   \   000020   A3           INC     DPTR
+   \   000021   E0           MOVX    A,@DPTR
+   \   000022   F8           MOV     R0,A
+   \   000023   A3           INC     DPTR
+   \   000024   E0           MOVX    A,@DPTR
+   \   000025   F9           MOV     R1,A
+   \   000026   8A82         MOV     DPL,R2
+   \   000028   8B83         MOV     DPH,R3
+   \   00002A   E0           MOVX    A,@DPTR
+   \   00002B   F5..         MOV     ?V0 + 0,A
+   \   00002D   A3           INC     DPTR
+   \   00002E   E0           MOVX    A,@DPTR
+   \   00002F   F5..         MOV     ?V0 + 1,A
+   \   000031   E8           MOV     A,R0
+   \   000032   85..F0       MOV     B,?V0 + 0
+   \   000035   A4           MUL     AB
+   \   000036   C8           XCH     A,R0
+   \   000037   AEF0         MOV     R6,B
+   \   000039   85..F0       MOV     B,?V0 + 1
+   \   00003C   A4           MUL     AB
+   \   00003D   2E           ADD     A,R6
+   \   00003E   FE           MOV     R6,A
+   \   00003F   85..F0       MOV     B,?V0 + 0
+   \   000042   E9           MOV     A,R1
+   \   000043   A4           MUL     AB
+   \   000044   2E           ADD     A,R6
+   \   000045   F9           MOV     R1,A
+   \   000046   8A82         MOV     DPL,R2
+   \   000048   8B83         MOV     DPH,R3
+   \   00004A   A3           INC     DPTR
+   \   00004B   A3           INC     DPTR
+   \   00004C   A3           INC     DPTR
+   \   00004D   A3           INC     DPTR
+   \   00004E   A3           INC     DPTR
+   \   00004F   A3           INC     DPTR
+   \   000050   E0           MOVX    A,@DPTR
+   \   000051   28           ADD     A,R0
+   \   000052   F8           MOV     R0,A
+   \   000053   A3           INC     DPTR
+   \   000054   E0           MOVX    A,@DPTR
+   \   000055   39           ADDC    A,R1
+   \   000056   F9           MOV     R1,A
+   \   000057   C3           CLR     C
+   \   000058   EC           MOV     A,R4
+   \   000059   98           SUBB    A,R0
+   \   00005A   ED           MOV     A,R5
+   \   00005B   99           SUBB    A,R1
+   \   00005C   5004         JNC     ??memb_inmemb_0
+   \   00005E   D2F0         SETB    B.0
+   \   000060   8002         SJMP    ??memb_inmemb_1
+   \                     ??memb_inmemb_0:
+   \   000062   C2F0         CLR     B.0
+   \                     ??memb_inmemb_1:
+   \   000064   A2F0         MOV     C,B.0
+   \   000066   E4           CLR     A
+   \   000067   33           RLC     A
+   \   000068   FA           MOV     R2,A
+   \   000069   7B00         MOV     R3,#0x0
+   \   00006B   7F02         MOV     R7,#0x2
+   \   00006D   02....       LJMP    ?BANKED_LEAVE_XDATA
+    108          }
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??memb_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    memb_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??memb_alloc?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    memb_alloc
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??memb_free?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    memb_free
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??memb_inmemb?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    memb_inmemb
+    109          /*---------------------------------------------------------------------------*/
+    110          
+    111          /** @} */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     10  memb_alloc
+       0      0     10  memb_free
+       0      0     14  memb_init
+                          0 0 14 -> memset
+       0      0     10  memb_inmemb
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??memb_alloc?relay
+       6  ??memb_free?relay
+       6  ??memb_init?relay
+       6  ??memb_inmemb?relay
+     140  memb_alloc
+     162  memb_free
+     129  memb_init
+     112  memb_inmemb
+
+ 
+ 543 bytes in segment BANKED_CODE
+  24 bytes in segment BANK_RELAYS
+ 
+ 567 bytes of CODE memory
+
+Errors: none
+Warnings: none

@@ -1,0 +1,598 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:43 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\slipdev.c                #
+#    Command line       =  D:\myWork\myWork\core\net\slipdev.c -D             #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\slipdev.lst                                 #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\slipdev.r51                                  #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\slipdev.c
+      1          /**
+      2           * \addtogroup uip
+      3           * @{
+      4           */
+      5          
+      6          /**
+      7           * \defgroup slip Serial Line IP (SLIP) protocol
+      8           * @{
+      9           *
+     10           * The SLIP protocol is a very simple way to transmit IP packets over
+     11           * a serial line. It does not provide any framing or error control,
+     12           * and is therefore not very widely used today.
+     13           *
+     14           * This SLIP implementation requires two functions for accessing the
+     15           * serial device: slipdev_char_poll() and slipdev_char_put(). These
+     16           * must be implemented specifically for the system on which the SLIP
+     17           * protocol is to be run.
+     18           */
+     19          
+     20          /**
+     21           * \file
+     22           * SLIP protocol implementation
+     23           * \author Adam Dunkels <adam@dunkels.com>
+     24           */
+     25          
+     26          /*
+     27           * Copyright (c) 2001, Adam Dunkels.
+     28           * All rights reserved. 
+     29           *
+     30           * Redistribution and use in source and binary forms, with or without 
+     31           * modification, are permitted provided that the following conditions 
+     32           * are met: 
+     33           * 1. Redistributions of source code must retain the above copyright 
+     34           *    notice, this list of conditions and the following disclaimer. 
+     35           * 2. Redistributions in binary form must reproduce the above copyright 
+     36           *    notice, this list of conditions and the following disclaimer in the 
+     37           *    documentation and/or other materials provided with the distribution. 
+     38           * 3. The name of the author may not be used to endorse or promote
+     39           *    products derived from this software without specific prior
+     40           *    written permission.  
+     41           *
+     42           * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+     43           * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+     44           * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     45           * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+     46           * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     47           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+     48           * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+     49           * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+     50           * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+     51           * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+     52           * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+     53           *
+     54           * This file is part of the uIP TCP/IP stack.
+     55           *
+     56           *
+     57           */
+     58          
+     59          /*
+     60           * This is a generic implementation of the SLIP protocol over an RS232
+     61           * (serial) device. 
+     62           *
+     63           * Huge thanks to Ullrich von Bassewitz <uz@cc65.org> of cc65 fame for
+     64           * and endless supply of bugfixes, insightsful comments and
+     65           * suggestions, and improvements to this code!
+     66           */
+     67          
+     68          #include "uip.h"
+     69          #include "uip-fw.h"
+     70          #include "slipdev.h"
+     71          #include <string.h>  /* For memcpy() */
+     72          
+     73          #define SLIP_END     0300
+     74          #define SLIP_ESC     0333
+     75          #define SLIP_ESC_END 0334
+     76          #define SLIP_ESC_ESC 0335
+     77          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     78          static uint8_t slip_buf[UIP_BUFSIZE];
+   \                     slip_buf:
+   \   000000                DS 240
+   \   0000F0                REQUIRE __INIT_XDATA_Z
+     79          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     80          static uint16_t len, tmplen;
+   \                     len:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \                     tmplen:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     81          static uint8_t lastc;
+   \                     lastc:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+     82          
+     83          /*-----------------------------------------------------------------------------------*/
+     84          /**
+     85           * Send the packet in the uip_buf and uip_appdata buffers using the
+     86           * SLIP protocol.
+     87           *
+     88           * The first 40 bytes of the packet (the IP and TCP headers) are read
+     89           * from the uip_buf buffer, and the following bytes (the application
+     90           * data) are read from the uip_appdata buffer.
+     91           *
+     92           * \return This function will always return UIP_FW_OK.
+     93           */
+     94          /*-----------------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     95          uint8_t
+     96          slipdev_send(void)
+   \                     slipdev_send:
+     97          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     98            uint16_t i;
+     99            uint8_t *ptr;
+    100            uint8_t c;
+    101          
+    102            slipdev_char_put(SLIP_END);
+   \   000005                ; Setup parameters for call to function slipdev_char_put
+   \   000005   79C0         MOV     R1,#-0x40
+   \   000007   12....       LCALL   ??slipdev_char_put?relay
+    103          
+    104            ptr = &uip_buf[UIP_LLH_LEN];
+   \   00000A   7E..         MOV     R6,#uip_aligned_buf & 0xff
+   \   00000C   7F..         MOV     R7,#(uip_aligned_buf >> 8) & 0xff
+    105            for(i = 0; i < uip_len; ++i) {
+   \   00000E   75..00       MOV     ?V0 + 0,#0x0
+   \   000011   75..00       MOV     ?V0 + 1,#0x0
+   \   000014   800F         SJMP    ??slipdev_send_0
+    106              if(i == UIP_TCPIP_HLEN) {
+    107                ptr = (char *)uip_appdata;
+                           ^
+Warning[Pe513]: a value of type "char *" cannot be assigned to an entity of
+          type "uint8_t *"
+    108              }
+    109              c = *ptr++;
+    110              switch(c) {
+    111              case SLIP_END:
+    112                slipdev_char_put(SLIP_ESC);
+    113                slipdev_char_put(SLIP_ESC_END);
+    114                break;
+    115              case SLIP_ESC:
+    116                slipdev_char_put(SLIP_ESC);
+    117                slipdev_char_put(SLIP_ESC_ESC);
+    118                break;
+    119              default:
+    120                slipdev_char_put(c);
+   \                     ??slipdev_send_1:
+   \   000016                ; Setup parameters for call to function slipdev_char_put
+   \   000016   12....       LCALL   ??slipdev_char_put?relay
+    121                break;
+   \                     ??slipdev_send_2:
+   \   000019   E5..         MOV     A,?V0 + 0
+   \   00001B   2401         ADD     A,#0x1
+   \   00001D   F5..         MOV     ?V0 + 0,A
+   \   00001F   E5..         MOV     A,?V0 + 1
+   \   000021   3400         ADDC    A,#0x0
+   \   000023   F5..         MOV     ?V0 + 1,A
+   \                     ??slipdev_send_0:
+   \   000025   90....       MOV     DPTR,#uip_len
+   \   000028   E0           MOVX    A,@DPTR
+   \   000029   F8           MOV     R0,A
+   \   00002A   A3           INC     DPTR
+   \   00002B   E0           MOVX    A,@DPTR
+   \   00002C   F9           MOV     R1,A
+   \   00002D   C3           CLR     C
+   \   00002E   E5..         MOV     A,?V0 + 0
+   \   000030   98           SUBB    A,R0
+   \   000031   E5..         MOV     A,?V0 + 1
+   \   000033   99           SUBB    A,R1
+   \   000034   5046         JNC     ??slipdev_send_3
+   \   000036   743C         MOV     A,#0x3c
+   \   000038   65..         XRL     A,?V0 + 0
+   \   00003A   7004         JNZ     ??slipdev_send_4
+   \   00003C   7400         MOV     A,#0x0
+   \   00003E   65..         XRL     A,?V0 + 1
+   \                     ??slipdev_send_4:
+   \   000040   7008         JNZ     ??slipdev_send_5
+   \   000042   90....       MOV     DPTR,#uip_appdata
+   \   000045   E0           MOVX    A,@DPTR
+   \   000046   FE           MOV     R6,A
+   \   000047   A3           INC     DPTR
+   \   000048   E0           MOVX    A,@DPTR
+   \   000049   FF           MOV     R7,A
+   \                     ??slipdev_send_5:
+   \   00004A   8E82         MOV     DPL,R6
+   \   00004C   8F83         MOV     DPH,R7
+   \   00004E   E0           MOVX    A,@DPTR
+   \   00004F   F9           MOV     R1,A
+   \   000050   8E82         MOV     DPL,R6
+   \   000052   8F83         MOV     DPH,R7
+   \   000054   A3           INC     DPTR
+   \   000055   AE82         MOV     R6,DPL
+   \   000057   AF83         MOV     R7,DPH
+   \   000059   E9           MOV     A,R1
+   \   00005A   2440         ADD     A,#0x40
+   \   00005C   6006         JZ      ??slipdev_send_6
+   \   00005E   24E5         ADD     A,#-0x1b
+   \   000060   600E         JZ      ??slipdev_send_7
+   \   000062   80B2         SJMP    ??slipdev_send_1
+   \                     ??slipdev_send_6:
+   \   000064                ; Setup parameters for call to function slipdev_char_put
+   \   000064   79DB         MOV     R1,#-0x25
+   \   000066   12....       LCALL   ??slipdev_char_put?relay
+   \   000069                ; Setup parameters for call to function slipdev_char_put
+   \   000069   79DC         MOV     R1,#-0x24
+   \   00006B   12....       LCALL   ??slipdev_char_put?relay
+   \   00006E   80A9         SJMP    ??slipdev_send_2
+   \                     ??slipdev_send_7:
+   \   000070                ; Setup parameters for call to function slipdev_char_put
+   \   000070   79DB         MOV     R1,#-0x25
+   \   000072   12....       LCALL   ??slipdev_char_put?relay
+   \   000075                ; Setup parameters for call to function slipdev_char_put
+   \   000075   79DD         MOV     R1,#-0x23
+   \   000077   12....       LCALL   ??slipdev_char_put?relay
+   \   00007A   809D         SJMP    ??slipdev_send_2
+    122              }
+    123            }
+    124            slipdev_char_put(SLIP_END);
+   \                     ??slipdev_send_3:
+   \   00007C                ; Setup parameters for call to function slipdev_char_put
+   \   00007C   79C0         MOV     R1,#-0x40
+   \   00007E   12....       LCALL   ??slipdev_char_put?relay
+    125          
+    126            return UIP_FW_OK;
+   \   000081   7900         MOV     R1,#0x0
+   \   000083   7F02         MOV     R7,#0x2
+   \   000085   02....       LJMP    ?BANKED_LEAVE_XDATA
+    127          }
+    128          /*-----------------------------------------------------------------------------------*/
+    129          /** 
+    130           * Poll the SLIP device for an available packet.
+    131           *
+    132           * This function will poll the SLIP device to see if a packet is
+    133           * available. It uses a buffer in which all avaliable bytes from the
+    134           * RS232 interface are read into. When a full packet has been read
+    135           * into the buffer, the packet is copied into the uip_buf buffer and
+    136           * the length of the packet is returned.
+    137           *
+    138           * \return The length of the packet placed in the uip_buf buffer, or
+    139           * zero if no packet is available.
+    140           */
+    141          /*-----------------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    142          uint16_t
+    143          slipdev_poll(void)
+   \                     slipdev_poll:
+    144          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 1
+   \   000004   74FF         MOV     A,#-0x1
+   \   000006   12....       LCALL   ?ALLOC_XSTACK8
+   \   000009   800B         SJMP    ??slipdev_poll_0
+    145            uint8_t c;
+    146            
+    147            while(slipdev_char_poll(&c)) {
+    148              switch(c) {
+    149              case SLIP_ESC:
+    150                lastc = c;
+   \                     ??slipdev_poll_1:
+   \   00000B   85..82       MOV     DPL,?XSP + 0
+   \   00000E   85..83       MOV     DPH,?XSP + 1
+   \   000011   E0           MOVX    A,@DPTR
+   \   000012   90....       MOV     DPTR,#lastc
+   \   000015   F0           MOVX    @DPTR,A
+    151                break;
+   \                     ??slipdev_poll_0:
+   \   000016                ; Setup parameters for call to function slipdev_char_poll
+   \   000016   85..82       MOV     DPL,?XSP + 0
+   \   000019   85..83       MOV     DPH,?XSP + 1
+   \   00001C   AA82         MOV     R2,DPL
+   \   00001E   AB83         MOV     R3,DPH
+   \   000020   12....       LCALL   ??slipdev_char_poll?relay
+   \   000023   E9           MOV     A,R1
+   \   000024   7003         JNZ     $+5
+   \   000026   02....       LJMP    ??slipdev_poll_2 & 0xFFFF
+   \   000029   85..82       MOV     DPL,?XSP + 0
+   \   00002C   85..83       MOV     DPH,?XSP + 1
+   \   00002F   E0           MOVX    A,@DPTR
+   \   000030   2440         ADD     A,#0x40
+   \   000032   6006         JZ      ??slipdev_poll_3
+   \   000034   24E5         ADD     A,#-0x1b
+   \   000036   60D3         JZ      ??slipdev_poll_1
+   \   000038   8046         SJMP    ??slipdev_poll_4
+    152                
+    153              case SLIP_END:
+    154                lastc = c;
+   \                     ??slipdev_poll_3:
+   \   00003A   85..82       MOV     DPL,?XSP + 0
+   \   00003D   85..83       MOV     DPH,?XSP + 1
+   \   000040   E0           MOVX    A,@DPTR
+   \   000041   90....       MOV     DPTR,#lastc
+   \   000044   F0           MOVX    @DPTR,A
+    155                /* End marker found, we copy our input buffer to the uip_buf
+    156          	 buffer and return the size of the packet we copied. */
+    157                memcpy(&uip_buf[UIP_LLH_LEN], slip_buf, len);
+   \   000045                ; Setup parameters for call to function memcpy
+   \   000045   90....       MOV     DPTR,#len
+   \   000048   12....       LCALL   ?PUSH_XSTACK8_X_TWO
+   \   00004B   7C..         MOV     R4,#slip_buf & 0xff
+   \   00004D   7D..         MOV     R5,#(slip_buf >> 8) & 0xff
+   \   00004F   7A..         MOV     R2,#uip_aligned_buf & 0xff
+   \   000051   7B..         MOV     R3,#(uip_aligned_buf >> 8) & 0xff
+   \   000053   12....       LCALL   ??memcpy?relay
+   \   000056   7402         MOV     A,#0x2
+   \   000058   12....       LCALL   ?DEALLOC_XSTACK8
+    158                tmplen = len;
+   \   00005B   90....       MOV     DPTR,#len
+   \   00005E   E0           MOVX    A,@DPTR
+   \   00005F   F8           MOV     R0,A
+   \   000060   A3           INC     DPTR
+   \   000061   E0           MOVX    A,@DPTR
+   \   000062   F9           MOV     R1,A
+   \   000063   90....       MOV     DPTR,#tmplen
+   \   000066   E8           MOV     A,R0
+   \   000067   F0           MOVX    @DPTR,A
+   \   000068   A3           INC     DPTR
+   \   000069   E9           MOV     A,R1
+   \   00006A   F0           MOVX    @DPTR,A
+    159                len = 0;
+   \   00006B   90....       MOV     DPTR,#len
+   \   00006E   7400         MOV     A,#0x0
+   \   000070   F0           MOVX    @DPTR,A
+   \   000071   A3           INC     DPTR
+   \   000072   7400         MOV     A,#0x0
+   \   000074   F0           MOVX    @DPTR,A
+    160                return tmplen;
+   \   000075   90....       MOV     DPTR,#tmplen
+   \   000078   E0           MOVX    A,@DPTR
+   \   000079   FA           MOV     R2,A
+   \   00007A   A3           INC     DPTR
+   \   00007B   E0           MOVX    A,@DPTR
+   \   00007C   FB           MOV     R3,A
+   \   00007D   02....       LJMP    ??slipdev_poll_5 & 0xFFFF
+    161                
+    162              default:     
+    163                if(lastc == SLIP_ESC) {
+   \                     ??slipdev_poll_4:
+   \   000080   90....       MOV     DPTR,#lastc
+   \   000083   E0           MOVX    A,@DPTR
+   \   000084   64DB         XRL     A,#0xdb
+   \   000086   7031         JNZ     ??slipdev_poll_6
+    164          	lastc = c;
+   \   000088   85..82       MOV     DPL,?XSP + 0
+   \   00008B   85..83       MOV     DPH,?XSP + 1
+   \   00008E   E0           MOVX    A,@DPTR
+   \   00008F   90....       MOV     DPTR,#lastc
+   \   000092   F0           MOVX    @DPTR,A
+    165          	/* Previous read byte was an escape byte, so this byte will be
+    166          	   interpreted differently from others. */
+    167          	switch(c) {
+   \   000093   85..82       MOV     DPL,?XSP + 0
+   \   000096   85..83       MOV     DPH,?XSP + 1
+   \   000099   E0           MOVX    A,@DPTR
+   \   00009A   2424         ADD     A,#0x24
+   \   00009C   6005         JZ      ??slipdev_poll_7
+   \   00009E   14           DEC     A
+   \   00009F   600D         JZ      ??slipdev_poll_8
+   \   0000A1   8021         SJMP    ??slipdev_poll_9
+    168          	case SLIP_ESC_END:
+    169          	  c = SLIP_END;
+   \                     ??slipdev_poll_7:
+   \   0000A3   85..82       MOV     DPL,?XSP + 0
+   \   0000A6   85..83       MOV     DPH,?XSP + 1
+   \   0000A9   74C0         MOV     A,#-0x40
+   \   0000AB   F0           MOVX    @DPTR,A
+    170          	  break;
+   \   0000AC   8016         SJMP    ??slipdev_poll_9
+    171          	case SLIP_ESC_ESC:
+    172          	  c = SLIP_ESC;
+   \                     ??slipdev_poll_8:
+   \   0000AE   85..82       MOV     DPL,?XSP + 0
+   \   0000B1   85..83       MOV     DPH,?XSP + 1
+   \   0000B4   74DB         MOV     A,#-0x25
+   \   0000B6   F0           MOVX    @DPTR,A
+    173          	  break;
+   \   0000B7   800B         SJMP    ??slipdev_poll_9
+    174          	}
+    175                } else {
+    176          	lastc = c;
+   \                     ??slipdev_poll_6:
+   \   0000B9   85..82       MOV     DPL,?XSP + 0
+   \   0000BC   85..83       MOV     DPH,?XSP + 1
+   \   0000BF   E0           MOVX    A,@DPTR
+   \   0000C0   90....       MOV     DPTR,#lastc
+   \   0000C3   F0           MOVX    @DPTR,A
+    177                }
+    178                
+    179                slip_buf[len] = c;
+   \                     ??slipdev_poll_9:
+   \   0000C4   85..82       MOV     DPL,?XSP + 0
+   \   0000C7   85..83       MOV     DPH,?XSP + 1
+   \   0000CA   E0           MOVX    A,@DPTR
+   \   0000CB   C0E0         PUSH    A
+   \   0000CD   90....       MOV     DPTR,#len
+   \   0000D0   E0           MOVX    A,@DPTR
+   \   0000D1   24..         ADD     A,#slip_buf & 0xff
+   \   0000D3   F8           MOV     R0,A
+   \   0000D4   A3           INC     DPTR
+   \   0000D5   E0           MOVX    A,@DPTR
+   \   0000D6   34..         ADDC    A,#(slip_buf >> 8) & 0xff
+   \   0000D8   F9           MOV     R1,A
+   \   0000D9   8882         MOV     DPL,R0
+   \   0000DB   8983         MOV     DPH,R1
+   \   0000DD   D0E0         POP     A
+   \   0000DF   F0           MOVX    @DPTR,A
+    180                ++len;
+   \   0000E0   90....       MOV     DPTR,#len
+   \   0000E3   E0           MOVX    A,@DPTR
+   \   0000E4   2401         ADD     A,#0x1
+   \   0000E6   F0           MOVX    @DPTR,A
+   \   0000E7   A3           INC     DPTR
+   \   0000E8   E0           MOVX    A,@DPTR
+   \   0000E9   3400         ADDC    A,#0x0
+   \   0000EB   F0           MOVX    @DPTR,A
+    181                
+    182                if(len > UIP_BUFSIZE) {
+   \   0000EC   90....       MOV     DPTR,#len
+   \   0000EF   C3           CLR     C
+   \   0000F0   E0           MOVX    A,@DPTR
+   \   0000F1   94F1         SUBB    A,#-0xf
+   \   0000F3   A3           INC     DPTR
+   \   0000F4   E0           MOVX    A,@DPTR
+   \   0000F5   9400         SUBB    A,#0x0
+   \   0000F7   400A         JC      ??slipdev_poll_10
+    183          	len = 0;
+   \   0000F9   90....       MOV     DPTR,#len
+   \   0000FC   7400         MOV     A,#0x0
+   \   0000FE   F0           MOVX    @DPTR,A
+   \   0000FF   A3           INC     DPTR
+   \   000100   7400         MOV     A,#0x0
+   \   000102   F0           MOVX    @DPTR,A
+    184                }
+    185              
+    186                break;
+   \                     ??slipdev_poll_10:
+   \   000103   02....       LJMP    ??slipdev_poll_0 & 0xFFFF
+    187              }
+    188            }
+    189            return 0;
+   \                     ??slipdev_poll_2:
+   \   000106   7A00         MOV     R2,#0x0
+   \   000108   7B00         MOV     R3,#0x0
+   \                     ??slipdev_poll_5:
+   \   00010A   7401         MOV     A,#0x1
+   \   00010C   12....       LCALL   ?DEALLOC_XSTACK8
+   \   00010F   D083         POP     DPH
+   \   000111   D082         POP     DPL
+   \   000113   02....       LJMP    ?BRET
+    190          }
+    191          /*-----------------------------------------------------------------------------------*/
+    192          /**
+    193           * Initialize the SLIP module.
+    194           *
+    195           * This function does not initialize the underlying RS232 device, but
+    196           * only the SLIP part.
+    197           */ 
+    198          /*-----------------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    199          void
+    200          slipdev_init(void)
+   \                     slipdev_init:
+    201          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    202            lastc = len = 0;
+   \   000004   7800         MOV     R0,#0x0
+   \   000006   7900         MOV     R1,#0x0
+   \   000008   90....       MOV     DPTR,#len
+   \   00000B   E8           MOV     A,R0
+   \   00000C   F0           MOVX    @DPTR,A
+   \   00000D   A3           INC     DPTR
+   \   00000E   E9           MOV     A,R1
+   \   00000F   F0           MOVX    @DPTR,A
+   \   000010   E8           MOV     A,R0
+   \   000011   90....       MOV     DPTR,#lastc
+   \   000014   F0           MOVX    @DPTR,A
+    203          }
+   \   000015   D083         POP     DPH
+   \   000017   D082         POP     DPL
+   \   000019   02....       LJMP    ?BRET
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??slipdev_send?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    slipdev_send
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??slipdev_poll?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    slipdev_poll
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??slipdev_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    slipdev_init
+    204          /*-----------------------------------------------------------------------------------*/
+    205          
+    206          /** @} */
+    207          /** @} */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       2      0      0  slipdev_init
+       3      0      3  slipdev_poll
+                          2 0  3 -> memcpy
+                          2 0  1 -> slipdev_char_poll
+       0      0     10  slipdev_send
+                          0 0 10 -> slipdev_char_put
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??slipdev_init?relay
+       6  ??slipdev_poll?relay
+       6  ??slipdev_send?relay
+       1  lastc
+       2  len
+     240  slip_buf
+      28  slipdev_init
+     278  slipdev_poll
+     136  slipdev_send
+       2  tmplen
+
+ 
+ 442 bytes in segment BANKED_CODE
+  18 bytes in segment BANK_RELAYS
+ 245 bytes in segment XDATA_Z
+ 
+ 460 bytes of CODE  memory
+ 245 bytes of XDATA memory
+
+Errors: none
+Warnings: 1

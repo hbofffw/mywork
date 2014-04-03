@@ -1,0 +1,1791 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:53 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\net\uip-icmp6.c             /
+//    Command line       =  D:\myWork\myWork\core\net\uip-icmp6.c -D          /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\uip-icmp6.s51                             /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME `uip-icmp6`
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?L_MOV_TO_X
+        EXTERN ?L_MOV_X
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?SS_SHR
+        EXTERN ?V0
+        EXTERN ?XSTACK_DISP0_8
+        EXTERN __INIT_XDATA_Z
+
+        PUBLIC ??uip_icmp6_echo_request_input?relay
+        FUNCTION ??uip_icmp6_echo_request_input?relay,0203H
+        PUBLIC ??uip_icmp6_error_output?relay
+        FUNCTION ??uip_icmp6_error_output?relay,0203H
+        PUBLIC ??uip_icmp6_send?relay
+        FUNCTION ??uip_icmp6_send?relay,0203H
+        PUBLIC uip_icmp6_echo_request_input
+        FUNCTION uip_icmp6_echo_request_input,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        PUBLIC uip_icmp6_error_output
+        FUNCTION uip_icmp6_error_output,021203H
+        ARGFRAME XSTACK, 4, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 16, STACK
+        PUBLIC uip_icmp6_send
+        FUNCTION uip_icmp6_send,021203H
+        ARGFRAME XSTACK, 4, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 16, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+memcpy              SYMBOL "memcpy"
+??memcpy?relay      SYMBOL "?relay", memcpy
+memmove             SYMBOL "memmove"
+??memmove?relay     SYMBOL "?relay", memmove
+tcpip_ipv6_output   SYMBOL "tcpip_ipv6_output"
+??tcpip_ipv6_output?relay SYMBOL "?relay", tcpip_ipv6_output
+uip_ds6_select_src  SYMBOL "uip_ds6_select_src"
+??uip_ds6_select_src?relay SYMBOL "?relay", uip_ds6_select_src
+uip_htonl           SYMBOL "uip_htonl"
+??uip_htonl?relay   SYMBOL "?relay", uip_htonl
+uip_icmp6chksum     SYMBOL "uip_icmp6chksum"
+??uip_icmp6chksum?relay SYMBOL "?relay", uip_icmp6chksum
+uip_icmp6_echo_request_input SYMBOL "uip_icmp6_echo_request_input"
+??uip_icmp6_echo_request_input?relay SYMBOL "?relay", uip_icmp6_echo_request_input
+uip_icmp6_error_output SYMBOL "uip_icmp6_error_output"
+??uip_icmp6_error_output?relay SYMBOL "?relay", uip_icmp6_error_output
+uip_icmp6_send      SYMBOL "uip_icmp6_send"
+??uip_icmp6_send?relay SYMBOL "?relay", uip_icmp6_send
+
+        EXTERN ??memcpy?relay
+        FUNCTION ??memcpy?relay,00H
+        EXTERN ??memmove?relay
+        FUNCTION ??memmove?relay,00H
+        EXTERN ??tcpip_ipv6_output?relay
+        FUNCTION ??tcpip_ipv6_output?relay,00H
+        EXTERN ??uip_ds6_select_src?relay
+        FUNCTION ??uip_ds6_select_src?relay,00H
+        EXTERN ??uip_htonl?relay
+        FUNCTION ??uip_htonl?relay,00H
+        EXTERN ??uip_icmp6chksum?relay
+        FUNCTION ??uip_icmp6chksum?relay,00H
+        EXTERN memcpy
+        FUNCTION memcpy,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memmove
+        FUNCTION memmove,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN tcpip_ipv6_output
+        FUNCTION tcpip_ipv6_output,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_aligned_buf
+        EXTERN uip_ds6_if
+        EXTERN uip_ds6_select_src
+        FUNCTION uip_ds6_select_src,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_ext_len
+        EXTERN uip_htonl
+        FUNCTION uip_htonl,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_icmp6chksum
+        FUNCTION uip_icmp6chksum,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN uip_len
+
+// D:\myWork\myWork\core\net\uip-icmp6.c
+//    1 /**
+//    2  * \addtogroup uip6
+//    3  * @{
+//    4  */
+//    5 
+//    6 /**
+//    7  * \file
+//    8  *         ICMPv6 echo request and error messages (RFC 4443)
+//    9  * \author Julien Abeille <jabeille@cisco.com> 
+//   10  * \author Mathilde Durvy <mdurvy@cisco.com>
+//   11  */
+//   12 
+//   13 /*
+//   14  * Copyright (c) 2001-2003, Adam Dunkels.
+//   15  * All rights reserved.
+//   16  *
+//   17  * Redistribution and use in source and binary forms, with or without
+//   18  * modification, are permitted provided that the following conditions
+//   19  * are met:
+//   20  * 1. Redistributions of source code must retain the above copyright
+//   21  *    notice, this list of conditions and the following disclaimer.
+//   22  * 2. Redistributions in binary form must reproduce the above copyright
+//   23  *    notice, this list of conditions and the following disclaimer in the
+//   24  *    documentation and/or other materials provided with the distribution.
+//   25  * 3. The name of the author may not be used to endorse or promote
+//   26  *    products derived from this software without specific prior
+//   27  *    written permission.
+//   28  *
+//   29  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+//   30  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+//   31  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   32  * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+//   33  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   34  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+//   35  * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+//   36  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+//   37  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+//   38  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+//   39  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//   40  *
+//   41  * This file is part of the uIP TCP/IP stack.
+//   42  *
+//   43  */
+//   44 
+//   45 #include <string.h>
+//   46 #include "net/uip-ds6.h"
+//   47 #include "net/uip-icmp6.h"
+//   48 #include "contiki-default-conf.h"
+//   49 
+//   50 #define DEBUG 0
+//   51 #if DEBUG
+//   52 #include <stdio.h>
+//   53 #define PRINTF(...) printf(__VA_ARGS__)
+//   54 #define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
+//   55 #define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x ",lladdr->addr[0], lladdr->addr[1], lladdr->addr[2], lladdr->addr[3],lladdr->addr[4], lladdr->addr[5])
+//   56 #else
+//   57 #define PRINTF(...)
+//   58 #define PRINT6ADDR(addr)
+//   59 #endif
+//   60 
+//   61 #define UIP_IP_BUF                ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+//   62 #define UIP_ICMP_BUF            ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
+//   63 #define UIP_ICMP6_ERROR_BUF  ((struct uip_icmp6_error *)&uip_buf[uip_l2_l3_icmp_hdr_len])
+//   64 #define UIP_EXT_BUF              ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len])
+//   65 #define UIP_FIRST_EXT_BUF        ((struct uip_ext_hdr *)&uip_buf[UIP_LLIPH_LEN])
+//   66 
+//   67 /** \brief temporary IP address */
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   68 static uip_ipaddr_t tmp_ipaddr;
+tmp_ipaddr:
+        DS 16
+        REQUIRE __INIT_XDATA_Z
+//   69 
+//   70 #if UIP_CONF_IPV6_RPL
+//   71 #include "rpl/rpl.h"
+//   72 #endif /* UIP_CONF_IPV6_RPL */
+//   73 
+//   74 #if UIP_CONF_IPV6
+//   75 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   76 void
+//   77 uip_icmp6_echo_request_input(void)
+uip_icmp6_echo_request_input:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function uip_icmp6_echo_request_input
+        CODE
+//   78 {
+        FUNCALL uip_icmp6_echo_request_input, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_icmp6_echo_request_input, uip_ds6_select_src
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_icmp6_echo_request_input, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_icmp6_echo_request_input, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_icmp6_echo_request_input, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_icmp6_echo_request_input, memmove
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_icmp6_echo_request_input, uip_icmp6chksum
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//   79 #if UIP_CONF_IPV6_RPL
+//   80   uint8_t temp_ext_len;
+//   81 #endif /* UIP_CONF_IPV6_RPL */
+//   82   /*
+//   83    * we send an echo reply. It is trivial if there was no extension
+//   84    * headers in the request otherwise we need to remove the extension
+//   85    * headers and change a few fields
+//   86    */
+//   87   PRINTF("Received Echo Request from");
+//   88   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+//   89   PRINTF("to");
+//   90   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+//   91   PRINTF("\n");
+//   92 
+//   93   /* IP header */
+//   94   UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
+        MOV     DPTR,#uip_ds6_if + 4
+        MOVX    A,@DPTR
+        MOV     DPTR,#uip_aligned_buf + 7
+        MOVX    @DPTR,A
+//   95 
+//   96   if(uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)){
+        MOV     DPTR,#uip_aligned_buf + 24
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+        JNZ     ??uip_icmp6_echo_request_input_0
+//   97     uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &UIP_IP_BUF->srcipaddr);
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x10
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     R4,#(uip_aligned_buf + 8) & 0xff
+        MOV     R5,#((uip_aligned_buf + 8) >> 8) & 0xff
+        MOV     R2,#(uip_aligned_buf + 24) & 0xff
+        MOV     R3,#((uip_aligned_buf + 24) >> 8) & 0xff
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+//   98     uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+        ; Setup parameters for call to function uip_ds6_select_src
+        MOV     R4,#(uip_aligned_buf + 24) & 0xff
+        MOV     R5,#((uip_aligned_buf + 24) >> 8) & 0xff
+        MOV     R2,#(uip_aligned_buf + 8) & 0xff
+        MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+        LCALL   ??uip_ds6_select_src?relay
+        SJMP    ??uip_icmp6_echo_request_input_1
+//   99   } else {
+//  100     uip_ipaddr_copy(&tmp_ipaddr, &UIP_IP_BUF->srcipaddr);
+??uip_icmp6_echo_request_input_0:
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x10
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     R4,#(uip_aligned_buf + 8) & 0xff
+        MOV     R5,#((uip_aligned_buf + 8) >> 8) & 0xff
+        MOV     R2,#tmp_ipaddr & 0xff
+        MOV     R3,#(tmp_ipaddr >> 8) & 0xff
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+//  101     uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x10
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     R4,#(uip_aligned_buf + 24) & 0xff
+        MOV     R5,#((uip_aligned_buf + 24) >> 8) & 0xff
+        MOV     R2,#(uip_aligned_buf + 8) & 0xff
+        MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+//  102     uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &tmp_ipaddr);
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x10
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     R4,#tmp_ipaddr & 0xff
+        MOV     R5,#(tmp_ipaddr >> 8) & 0xff
+        MOV     R2,#(uip_aligned_buf + 24) & 0xff
+        MOV     R3,#((uip_aligned_buf + 24) >> 8) & 0xff
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+//  103   }
+//  104 
+//  105   if(uip_ext_len > 0) {
+??uip_icmp6_echo_request_input_1:
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        CLR     C
+        SUBB    A,#0x1
+        JNC     $+5
+        LJMP    ??uip_icmp6_echo_request_input_2 & 0xFFFF
+//  106 #if UIP_CONF_IPV6_RPL
+//  107     if((temp_ext_len = rpl_invert_header())) {
+//  108       /* If there were other extension headers*/
+//  109       UIP_FIRST_EXT_BUF->next = UIP_PROTO_ICMP6;
+//  110       if (uip_ext_len != temp_ext_len) {
+//  111         uip_len -= (uip_ext_len - temp_ext_len);
+//  112         UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
+//  113         UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
+//  114         /* move the echo request payload (starting after the icmp header)
+//  115          * to the new location in the reply.
+//  116          * The shift is equal to the length of the remaining extension headers present
+//  117          * Note: UIP_ICMP_BUF still points to the echo request at this stage
+//  118          */
+//  119       memmove((uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN - (uip_ext_len - temp_ext_len),
+//  120               (uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN,
+//  121               (uip_len - UIP_IPH_LEN - temp_ext_len - UIP_ICMPH_LEN));
+//  122       }
+//  123       uip_ext_len = temp_ext_len;
+//  124     } else {
+//  125 #endif /* UIP_CONF_IPV6_RPL */
+//  126       /* If there were extension headers*/
+//  127       UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
+        MOV     DPTR,#uip_aligned_buf + 6
+        MOV     A,#0x3a
+        MOVX    @DPTR,A
+//  128       uip_len -= uip_ext_len;
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     DPTR,#uip_len
+        CLR     C
+        MOVX    A,@DPTR
+        SUBB    A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        SUBB    A,R1
+        MOVX    @DPTR,A
+//  129       UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        ADD     A,#-0x28
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#-0x1
+        MOV     R1,A
+        CLR     A
+        MOV     A,R1
+        MOV     R0,A
+        MOV     DPTR,#uip_aligned_buf + 4
+        MOVX    @DPTR,A
+//  130       UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#-0x28
+        MOV     DPTR,#uip_aligned_buf + 5
+        MOVX    @DPTR,A
+//  131       /* move the echo request payload (starting after the icmp header)
+//  132        * to the new location in the reply.
+//  133        * The shift is equal to the length of the extension headers present
+//  134        * Note: UIP_ICMP_BUF still points to the echo request at this stage
+//  135        */
+//  136       memmove((uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN - uip_ext_len,
+//  137               (uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN,
+//  138               (uip_len - UIP_IPH_LEN - UIP_ICMPH_LEN));
+        ; Setup parameters for call to function memmove
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        ADD     A,#-0x2c
+        MOV     ?V0 + 0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#-0x1
+        MOV     ?V0 + 1,A
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2c
+        MOV     R4,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R5,A
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     C
+        CLR     A
+        SUBB    A,R0
+        MOV     R0,A
+        CLR     A
+        SUBB    A,R1
+        MOV     R1,A
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R2
+        MOV     R2,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R3
+        MOV     R3,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2c
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??memmove?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+//  139       uip_ext_len = 0;
+        MOV     DPTR,#uip_ext_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  140 #if UIP_CONF_IPV6_RPL
+//  141     }
+//  142 #endif /* UIP_CONF_IPV6_RPL */
+//  143   }
+//  144   /* Below is important for the correctness of UIP_ICMP_BUF and the
+//  145    * checksum
+//  146    */
+//  147 
+//  148   /* Note: now UIP_ICMP_BUF points to the beginning of the echo reply */
+//  149   UIP_ICMP_BUF->type = ICMP6_ECHO_REPLY;
+??uip_icmp6_echo_request_input_2:
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x28
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#-0x7f
+        MOVX    @DPTR,A
+//  150   UIP_ICMP_BUF->icode = 0;
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x29
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  151   UIP_ICMP_BUF->icmpchksum = 0;
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2a
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  152   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
+        ; Setup parameters for call to function uip_icmp6chksum
+        LCALL   ??uip_icmp6chksum?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R0,?V0 + 0
+        MOV     R1,?V0 + 1
+        MOV     A,?V0 + 0
+        CPL     A
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        CPL     A
+        MOV     R3,A
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2a
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  153 
+//  154   PRINTF("Sending Echo Reply to");
+//  155   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+//  156   PRINTF("from");
+//  157   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+//  158   PRINTF("\n");
+//  159   UIP_STAT(++uip_stat.icmp.sent);
+//  160   return;
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock0
+//  161 }
+//  162 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  163 void
+//  164 uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param) {
+uip_icmp6_error_output:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function uip_icmp6_error_output
+        CODE
+        FUNCALL uip_icmp6_error_output, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_icmp6_error_output, memmove
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_icmp6_error_output, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_icmp6_error_output, uip_ds6_select_src
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_icmp6_error_output, uip_ds6_select_src
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_icmp6_error_output, uip_htonl
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_icmp6_error_output, uip_icmp6chksum
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xe
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 14)
+        ; Saved register size: 14
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R6,A
+        MOV     A,R2
+        MOV     R7,A
+        MOV     A,#0xe
+        LCALL   ?XSTACK_DISP0_8
+        MOV     R0,#?V0 + 0
+        LCALL   ?L_MOV_X
+//  165 
+//  166  /* check if originating packet is not an ICMP error*/
+//  167   if (uip_ext_len) {
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        JZ      ??uip_icmp6_error_output_0
+//  168     if(UIP_EXT_BUF->next == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type < 128){
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#(uip_aligned_buf + 40) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((uip_aligned_buf + 40) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        XRL     A,#0x3a
+        JNZ     ??uip_icmp6_error_output_1
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#(uip_aligned_buf + 40) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((uip_aligned_buf + 40) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        CLR     C
+        SUBB    A,#-0x80
+        JNC     ??uip_icmp6_error_output_1
+//  169       uip_len = 0;
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  170       return;
+        LJMP    ??uip_icmp6_error_output_2 & 0xFFFF
+//  171     }
+//  172   } else {
+//  173     if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type < 128){
+??uip_icmp6_error_output_0:
+        MOV     DPTR,#uip_aligned_buf + 6
+        MOVX    A,@DPTR
+        XRL     A,#0x3a
+        JNZ     ??uip_icmp6_error_output_1
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#(uip_aligned_buf + 40) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((uip_aligned_buf + 40) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        CLR     C
+        SUBB    A,#-0x80
+        JNC     ??uip_icmp6_error_output_1
+//  174       uip_len = 0;
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  175       return;
+        LJMP    ??uip_icmp6_error_output_2 & 0xFFFF
+//  176     }
+//  177   }
+//  178 
+//  179 #if UIP_CONF_IPV6_RPL
+//  180   uip_ext_len = rpl_invert_header();
+//  181 #else /* UIP_CONF_IPV6_RPL */
+//  182   uip_ext_len = 0;
+??uip_icmp6_error_output_1:
+        MOV     DPTR,#uip_ext_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  183 #endif /* UIP_CONF_IPV6_RPL */
+//  184 
+//  185   /* remember data of original packet before shifting */
+//  186   uip_ipaddr_copy(&tmp_ipaddr, &UIP_IP_BUF->destipaddr);
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 4,#0x10
+        MOV     ?V0 + 5,#0x0
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     R4,#(uip_aligned_buf + 24) & 0xff
+        MOV     R5,#((uip_aligned_buf + 24) >> 8) & 0xff
+        MOV     R2,#tmp_ipaddr & 0xff
+        MOV     R3,#(tmp_ipaddr >> 8) & 0xff
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 14)
+//  187 
+//  188   uip_len += UIP_IPICMPH_LEN + UIP_ICMP6_ERROR_LEN;
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        ADD     A,#0x30
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#0x0
+        MOVX    @DPTR,A
+//  189 
+//  190   if(uip_len > UIP_LINK_MTU)
+        MOV     DPTR,#uip_len
+        CLR     C
+        MOVX    A,@DPTR
+        SUBB    A,#0x1
+        INC     DPTR
+        MOVX    A,@DPTR
+        SUBB    A,#0x5
+        JC      ??uip_icmp6_error_output_3
+//  191     uip_len = UIP_LINK_MTU;
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x5
+        MOVX    @DPTR,A
+//  192 
+//  193   memmove((uint8_t *)UIP_ICMP6_ERROR_BUF + uip_ext_len + UIP_ICMP6_ERROR_LEN,
+//  194           (void *)UIP_IP_BUF, uip_len - UIP_IPICMPH_LEN - uip_ext_len - UIP_ICMP6_ERROR_LEN);
+??uip_icmp6_error_output_3:
+        ; Setup parameters for call to function memmove
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        ADD     A,#-0x2c
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#-0x1
+        MOV     R1,A
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        CLR     C
+        SUBB    A,R2
+        MOV     R0,A
+        MOV     A,R1
+        SUBB    A,R3
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#-0x4
+        MOV     ?V0 + 4,A
+        MOV     A,R1
+        ADDC    A,#-0x1
+        MOV     ?V0 + 5,A
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     R4,#uip_aligned_buf & 0xff
+        MOV     R5,#(uip_aligned_buf >> 8) & 0xff
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x30
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   ??memmove?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 14)
+//  195 
+//  196   UIP_IP_BUF->vtc = 0x60;
+        MOV     DPTR,#uip_aligned_buf
+        MOV     A,#0x60
+        MOVX    @DPTR,A
+//  197   UIP_IP_BUF->tcflow = 0;
+        MOV     DPTR,#uip_aligned_buf + 1
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  198   UIP_IP_BUF->flow = 0;
+        MOV     DPTR,#uip_aligned_buf + 2
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  199   if (uip_ext_len) {
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        JZ      ??uip_icmp6_error_output_4
+//  200     UIP_FIRST_EXT_BUF->next = UIP_PROTO_ICMP6;
+        MOV     DPTR,#uip_aligned_buf + 40
+        MOV     A,#0x3a
+        MOVX    @DPTR,A
+        SJMP    ??uip_icmp6_error_output_5
+//  201   } else {
+//  202     UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
+??uip_icmp6_error_output_4:
+        MOV     DPTR,#uip_aligned_buf + 6
+        MOV     A,#0x3a
+        MOVX    @DPTR,A
+//  203   }
+//  204   UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
+??uip_icmp6_error_output_5:
+        MOV     DPTR,#uip_ds6_if + 4
+        MOVX    A,@DPTR
+        MOV     DPTR,#uip_aligned_buf + 7
+        MOVX    @DPTR,A
+//  205 
+//  206   /* the source should not be unspecified nor multicast, the check for
+//  207      multicast is done in uip_process */
+//  208   if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)){
+        MOV     DPTR,#uip_aligned_buf + 8
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_icmp6_error_output_6
+        MOV     DPTR,#uip_aligned_buf + 10
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_icmp6_error_output_6
+        MOV     DPTR,#uip_aligned_buf + 12
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_icmp6_error_output_6
+        MOV     DPTR,#uip_aligned_buf + 14
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_icmp6_error_output_6
+        MOV     DPTR,#uip_aligned_buf + 16
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_icmp6_error_output_6
+        MOV     DPTR,#uip_aligned_buf + 18
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_icmp6_error_output_6
+        MOV     DPTR,#uip_aligned_buf + 20
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_icmp6_error_output_6
+        MOV     DPTR,#uip_aligned_buf + 22
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_icmp6_error_output_6
+//  209     uip_len = 0;
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  210     return;
+        LJMP    ??uip_icmp6_error_output_2 & 0xFFFF
+//  211   }
+//  212 
+//  213   uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &UIP_IP_BUF->srcipaddr);
+??uip_icmp6_error_output_6:
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 4,#0x10
+        MOV     ?V0 + 5,#0x0
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     R4,#(uip_aligned_buf + 8) & 0xff
+        MOV     R5,#((uip_aligned_buf + 8) >> 8) & 0xff
+        MOV     R2,#(uip_aligned_buf + 24) & 0xff
+        MOV     R3,#((uip_aligned_buf + 24) >> 8) & 0xff
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 14)
+//  214 
+//  215   if(uip_is_addr_mcast(&tmp_ipaddr)){
+        MOV     DPTR,#tmp_ipaddr
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+        JNZ     ??uip_icmp6_error_output_7
+//  216     if(type == ICMP6_PARAM_PROB && code == ICMP6_PARAMPROB_OPTION){
+        MOV     A,#0x4
+        XRL     A,R6
+        JNZ     ??uip_icmp6_error_output_8
+        MOV     A,#0x2
+        XRL     A,R7
+        JNZ     ??uip_icmp6_error_output_8
+//  217       uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &tmp_ipaddr);
+        ; Setup parameters for call to function uip_ds6_select_src
+        MOV     R4,#tmp_ipaddr & 0xff
+        MOV     R5,#(tmp_ipaddr >> 8) & 0xff
+        MOV     R2,#(uip_aligned_buf + 8) & 0xff
+        MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+        LCALL   ??uip_ds6_select_src?relay
+        SJMP    ??uip_icmp6_error_output_9
+//  218     } else {
+//  219       uip_len = 0;
+??uip_icmp6_error_output_8:
+        MOV     DPTR,#uip_len
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  220       return;
+        LJMP    ??uip_icmp6_error_output_2 & 0xFFFF
+//  221     }
+//  222   } else {
+//  223 #if UIP_CONF_ROUTER
+//  224     /* need to pick a source that corresponds to this node */
+//  225     uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &tmp_ipaddr);
+??uip_icmp6_error_output_7:
+        ; Setup parameters for call to function uip_ds6_select_src
+        MOV     R4,#tmp_ipaddr & 0xff
+        MOV     R5,#(tmp_ipaddr >> 8) & 0xff
+        MOV     R2,#(uip_aligned_buf + 8) & 0xff
+        MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+        LCALL   ??uip_ds6_select_src?relay
+//  226 #else
+//  227     uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &tmp_ipaddr);
+//  228 #endif
+//  229   }
+//  230 
+//  231   UIP_ICMP_BUF->type = type;
+??uip_icmp6_error_output_9:
+        MOV     A,R6
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x28
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  232   UIP_ICMP_BUF->icode = code;
+        MOV     A,R7
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x29
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  233   UIP_ICMP6_ERROR_BUF->param = uip_htonl(param);
+        ; Setup parameters for call to function uip_htonl
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        MOV     R4,?V0 + 2
+        MOV     R5,?V0 + 3
+        LCALL   ??uip_htonl?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     ?V0 + 2,R4
+        MOV     ?V0 + 3,R5
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2c
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     R0,#?V0 + 0
+        LCALL   ?L_MOV_TO_X
+//  234   UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        ADD     A,#-0x28
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        ADDC    A,#-0x1
+        MOV     R1,A
+        CLR     A
+        MOV     A,R1
+        MOV     R0,A
+        MOV     DPTR,#uip_aligned_buf + 4
+        MOVX    @DPTR,A
+//  235   UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
+        MOV     DPTR,#uip_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#-0x28
+        MOV     DPTR,#uip_aligned_buf + 5
+        MOVX    @DPTR,A
+//  236   UIP_ICMP_BUF->icmpchksum = 0;
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2a
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  237   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
+        ; Setup parameters for call to function uip_icmp6chksum
+        LCALL   ??uip_icmp6chksum?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R0,?V0 + 0
+        MOV     R1,?V0 + 1
+        MOV     A,?V0 + 0
+        CPL     A
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        CPL     A
+        MOV     R3,A
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2a
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  238 
+//  239   UIP_STAT(++uip_stat.icmp.sent);
+//  240 
+//  241   PRINTF("Sending ICMPv6 ERROR message to");
+//  242   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+//  243   PRINTF("from");
+//  244   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+//  245   PRINTF("\n");
+//  246   return;
+??uip_icmp6_error_output_2:
+        MOV     R7,#0x6
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//  247 }
+//  248 
+//  249 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  250 void
+//  251 uip_icmp6_send(uip_ipaddr_t *dest, int type, int code, int payload_len)
+uip_icmp6_send:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function uip_icmp6_send
+        CODE
+//  252 {
+        FUNCALL uip_icmp6_send, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 16, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 16, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_icmp6_send, uip_ds6_select_src
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_icmp6_send, uip_icmp6chksum
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_icmp6_send, tcpip_ipv6_output
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xe
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 14)
+        ; Saved register size: 14
+        ; Auto size: 0
+        MOV     ?V0 + 2,R4
+        MOV     ?V0 + 3,R5
+        MOV     A,#0xe
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     ?V0 + 0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     ?V0 + 1,A
+//  253 
+//  254   UIP_IP_BUF->vtc = 0x60;
+        MOV     DPTR,#uip_aligned_buf
+        MOV     A,#0x60
+        MOVX    @DPTR,A
+//  255   UIP_IP_BUF->tcflow = 0;
+        MOV     DPTR,#uip_aligned_buf + 1
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  256   UIP_IP_BUF->flow = 0;
+        MOV     DPTR,#uip_aligned_buf + 2
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  257   UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
+        MOV     DPTR,#uip_aligned_buf + 6
+        MOV     A,#0x3a
+        MOVX    @DPTR,A
+//  258   UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
+        MOV     DPTR,#uip_ds6_if + 4
+        MOVX    A,@DPTR
+        MOV     DPTR,#uip_aligned_buf + 7
+        MOVX    @DPTR,A
+        MOV     A,#0x10
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R6,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R7,A
+//  259   UIP_IP_BUF->len[0] = (UIP_ICMPH_LEN + payload_len) >> 8;
+        MOV     A,R6
+        ADD     A,#0x4
+        MOV     ?V0 + 4,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     ?V0 + 5,A
+        MOV     A,#0x8
+        MOV     R0,#?V0 + 4
+        LCALL   ?SS_SHR
+        MOV     A,?V0 + 4
+        MOV     DPTR,#uip_aligned_buf + 4
+        MOVX    @DPTR,A
+//  260   UIP_IP_BUF->len[1] = (UIP_ICMPH_LEN + payload_len) & 0xff;
+        MOV     A,R6
+        ADD     A,#0x4
+        MOV     DPTR,#uip_aligned_buf + 5
+        MOVX    @DPTR,A
+//  261 
+//  262   memcpy(&UIP_IP_BUF->destipaddr, dest, sizeof(*dest));
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 4,#0x10
+        MOV     ?V0 + 5,#0x0
+        MOV     R0,#?V0 + 4
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 16)
+        MOV     A,R2
+        MOV     R4,A
+        MOV     A,R3
+        MOV     R5,A
+        MOV     R2,#(uip_aligned_buf + 24) & 0xff
+        MOV     R3,#((uip_aligned_buf + 24) >> 8) & 0xff
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 14)
+//  263   uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+        ; Setup parameters for call to function uip_ds6_select_src
+        MOV     R4,#(uip_aligned_buf + 24) & 0xff
+        MOV     R5,#((uip_aligned_buf + 24) >> 8) & 0xff
+        MOV     R2,#(uip_aligned_buf + 8) & 0xff
+        MOV     R3,#((uip_aligned_buf + 8) >> 8) & 0xff
+        LCALL   ??uip_ds6_select_src?relay
+//  264 
+//  265   UIP_ICMP_BUF->type = type;
+        MOV     A,?V0 + 2
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x28
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,?V0 + 2
+        MOVX    @DPTR,A
+//  266   UIP_ICMP_BUF->icode = code;
+        MOV     A,?V0 + 0
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x29
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,?V0 + 0
+        MOVX    @DPTR,A
+//  267 
+//  268   UIP_ICMP_BUF->icmpchksum = 0;
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2a
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  269   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
+        ; Setup parameters for call to function uip_icmp6chksum
+        LCALL   ??uip_icmp6chksum?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R0,?V0 + 0
+        MOV     R1,?V0 + 1
+        MOV     A,?V0 + 0
+        CPL     A
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        CPL     A
+        MOV     R3,A
+        MOV     DPTR,#uip_ext_len
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#uip_aligned_buf & 0xff
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,#(uip_aligned_buf >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        ADD     A,#0x2a
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  270 
+//  271   uip_len = UIP_IPH_LEN + UIP_ICMPH_LEN + payload_len;
+        MOV     A,R6
+        ADD     A,#0x2c
+        MOV     R0,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R1,A
+        MOV     DPTR,#uip_len
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  272   tcpip_ipv6_output();
+        ; Setup parameters for call to function tcpip_ipv6_output
+        LCALL   ??tcpip_ipv6_output?relay
+//  273 }
+        MOV     R7,#0x6
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_icmp6_echo_request_input?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_icmp6_echo_request_input
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_icmp6_error_output?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_icmp6_error_output
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_icmp6_send?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_icmp6_send
+
+        END
+//  274 /*---------------------------------------------------------------------------*/
+//  275 
+//  276 /** @} */
+//  277 #endif /* UIP_CONF_IPV6 */
+// 
+// 1 509 bytes in segment BANKED_CODE
+//    18 bytes in segment BANK_RELAYS
+//    16 bytes in segment XDATA_Z
+// 
+// 1 527 bytes of CODE  memory
+//    16 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

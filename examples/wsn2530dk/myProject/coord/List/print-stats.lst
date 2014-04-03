@@ -1,0 +1,257 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:38 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\lib\print-stats.c            #
+#    Command line       =  D:\myWork\myWork\core\lib\print-stats.c -D         #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\print-stats.lst                             #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\print-stats.r51                              #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\lib\print-stats.c
+      1          /*
+      2           * Copyright (c) 2007, Swedish Institute of Computer Science.
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           */
+     32          
+     33          /**
+     34           * \file
+     35           *         Convenience function for printing system statistics
+     36           * \author
+     37           *         Adam Dunkels <adam@sics.se>
+     38           */
+     39          
+     40          #include "lib/print-stats.h"
+     41          
+     42          #include "net/rime.h"
+     43          #include "sys/energest.h"
+     44          
+     45          #include <stdio.h>
+     46          
+     47          #ifdef __AVR__
+     48          #include <avr/pgmspace.h>
+     49          #define PRINTA(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+     50          #else
+     51          #define PRINTA(...) printf(__VA_ARGS__)
+     52          #endif
+     53          
+     54          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     55          void
+     56          print_stats(void)
+   \                     print_stats:
+     57          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+     58          #if RIMESTATS_CONF_ENABLED
+     59            PRINTA("S %d.%d clock %lu tx %lu rx %lu rtx %lu rrx %lu rexmit %lu acktx %lu noacktx %lu ackrx %lu timedout %lu badackrx %lu toolong %lu tooshort %lu badsynch %lu badcrc %lu contentiondrop %lu sendingdrop %lu lltx %lu llrx %lu\n",
+     60          	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+     61          	 clock_seconds(),
+     62          	 RIMESTATS_GET(tx), RIMESTATS_GET(rx),
+     63          	 RIMESTATS_GET(reliabletx), RIMESTATS_GET(reliablerx),
+     64          	 RIMESTATS_GET(rexmit), RIMESTATS_GET(acktx), RIMESTATS_GET(noacktx),
+     65          	 RIMESTATS_GET(ackrx), RIMESTATS_GET(timedout), RIMESTATS_GET(badackrx),
+     66          	 RIMESTATS_GET(toolong), RIMESTATS_GET(tooshort),
+     67          	 RIMESTATS_GET(badsynch), RIMESTATS_GET(badcrc),
+     68          	 RIMESTATS_GET(contentiondrop), RIMESTATS_GET(sendingdrop),
+     69          	 RIMESTATS_GET(lltx), RIMESTATS_GET(llrx));
+     70          #endif /* RIMESTATS_CONF_ENABLED */
+     71          #if ENERGEST_CONF_ON
+     72            PRINTA("E %d.%d clock %lu cpu %lu lpm %lu irq %lu gled %lu yled %lu rled %lu tx %lu listen %lu sensors %lu serial %lu\n",
+     73          	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+     74          	 clock_seconds(),
+     75          	 energest_total_time[ENERGEST_TYPE_CPU].current,
+     76          	 energest_total_time[ENERGEST_TYPE_LPM].current,
+     77          	 energest_total_time[ENERGEST_TYPE_IRQ].current,
+     78          	 energest_total_time[ENERGEST_TYPE_LED_GREEN].current,
+     79          	 energest_total_time[ENERGEST_TYPE_LED_YELLOW].current,
+     80          	 energest_total_time[ENERGEST_TYPE_LED_RED].current,
+     81          	 energest_total_time[ENERGEST_TYPE_TRANSMIT].current,
+     82          	 energest_total_time[ENERGEST_TYPE_LISTEN].current,
+     83          	 energest_total_time[ENERGEST_TYPE_SENSORS].current,
+     84          	 energest_total_time[ENERGEST_TYPE_SERIAL].current);
+   \   000005                ; Setup parameters for call to function clock_seconds
+   \   000005   12....       LCALL   ??clock_seconds?relay
+   \   000008   8A..         MOV     ?V0 + 0,R2
+   \   00000A   8B..         MOV     ?V0 + 1,R3
+   \   00000C   8C..         MOV     ?V0 + 2,R4
+   \   00000E   8D..         MOV     ?V0 + 3,R5
+   \   000010                ; Setup parameters for call to function printf
+   \   000010   90....       MOV     DPTR,#energest_total_time + 44
+   \   000013   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   000016   90....       MOV     DPTR,#energest_total_time + 40
+   \   000019   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   00001C   90....       MOV     DPTR,#energest_total_time + 28
+   \   00001F   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   000022   90....       MOV     DPTR,#energest_total_time + 24
+   \   000025   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   000028   90....       MOV     DPTR,#energest_total_time + 20
+   \   00002B   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   00002E   90....       MOV     DPTR,#energest_total_time + 16
+   \   000031   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   000034   90....       MOV     DPTR,#energest_total_time + 12
+   \   000037   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   00003A   90....       MOV     DPTR,#energest_total_time + 8
+   \   00003D   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   000040   90....       MOV     DPTR,#energest_total_time + 4
+   \   000043   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   000046   90....       MOV     DPTR,#energest_total_time
+   \   000049   12....       LCALL   ?PUSH_XSTACK8_X_FOUR
+   \   00004C   78..         MOV     R0,#?V0 + 0
+   \   00004E   12....       LCALL   ?PUSH_XSTACK_I_FOUR
+   \   000051   90....       MOV     DPTR,#rimeaddr_node_addr + 1
+   \   000054   E0           MOVX    A,@DPTR
+   \   000055   F5..         MOV     ?V0 + 0,A
+   \   000057   75..00       MOV     ?V0 + 1,#0x0
+   \   00005A   78..         MOV     R0,#?V0 + 0
+   \   00005C   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00005F   90....       MOV     DPTR,#rimeaddr_node_addr
+   \   000062   E0           MOVX    A,@DPTR
+   \   000063   F5..         MOV     ?V0 + 0,A
+   \   000065   75..00       MOV     ?V0 + 1,#0x0
+   \   000068   78..         MOV     R0,#?V0 + 0
+   \   00006A   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00006D   7A..         MOV     R2,#`?<Constant "E %d.%d clock %lu cpu...">` & 0xff
+   \   00006F   7B..         MOV     R3,#(`?<Constant "E %d.%d clock %lu cpu...">` >> 8) & 0xff
+   \   000071   12....       LCALL   ??printf?relay
+   \   000074   7430         MOV     A,#0x30
+   \   000076   12....       LCALL   ?DEALLOC_XSTACK8
+     85          #endif /* ENERGEST_CONF_ON */
+     86          }
+   \   000079   7F04         MOV     R7,#0x4
+   \   00007B   02....       LJMP    ?BANKED_LEAVE_XDATA
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "E %d.%d clock %lu`:
+   \   000000   45202564     DB 45H, 20H, 25H, 64H, 2EH, 25H, 64H, 20H
+   \            2E256420
+   \   000008   636C6F63     DB 63H, 6CH, 6FH, 63H, 6BH, 20H, 25H, 6CH
+   \            6B20256C
+   \   000010   75206370     DB 75H, 20H, 63H, 70H, 75H, 20H, 25H, 6CH
+   \            7520256C
+   \   000018   75206C70     DB 75H, 20H, 6CH, 70H, 6DH, 20H, 25H, 6CH
+   \            6D20256C
+   \   000020   75206972     DB 75H, 20H, 69H, 72H, 71H, 20H, 25H, 6CH
+   \            7120256C
+   \   000028   7520676C     DB 75H, 20H, 67H, 6CH, 65H, 64H, 20H, 25H
+   \            65642025
+   \   000030   6C752079     DB 6CH, 75H, 20H, 79H, 6CH, 65H, 64H, 20H
+   \            6C656420
+   \   000038   256C7520     DB 25H, 6CH, 75H, 20H, 72H, 6CH, 65H, 64H
+   \            726C6564
+   \   000040   20256C75     DB 20H, 25H, 6CH, 75H, 20H, 74H, 78H, 20H
+   \            20747820
+   \   000048   256C7520     DB 25H, 6CH, 75H, 20H, 6CH, 69H, 73H, 74H
+   \            6C697374
+   \   000050   656E2025     DB 65H, 6EH, 20H, 25H, 6CH, 75H, 20H, 73H
+   \            6C752073
+   \   000058   656E736F     DB 65H, 6EH, 73H, 6FH, 72H, 73H, 20H, 25H
+   \            72732025
+   \   000060   6C752073     DB 6CH, 75H, 20H, 73H, 65H, 72H, 69H, 61H
+   \            65726961
+   \   000068   6C20256C     DB 6CH, 20H, 25H, 6CH, 75H, 0AH, 0
+   \            750A00  
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??print_stats?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    print_stats
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "E %d.%d clock %lu cpu...">`:
+   \   000000                DS 111
+   \   00006F                REQUIRE `?<Initializer for <Constant "E %d.%d clock %lu`
+   \   00006F                REQUIRE __INIT_XDATA_I
+     87          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     60  print_stats
+                          0 0 12 -> clock_seconds
+                          0 0 60 -> printf
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+     111  ?<Constant "E %d.%d clock %lu cpu...">
+     111  ?<Initializer for <Constant "E %d.%d clock %lu
+       6  ??print_stats?relay
+     126  print_stats
+
+ 
+ 126 bytes in segment BANKED_CODE
+   6 bytes in segment BANK_RELAYS
+ 111 bytes in segment XDATA_I
+ 111 bytes in segment XDATA_ID
+ 
+ 243 bytes of CODE  memory
+ 111 bytes of XDATA memory
+
+Errors: none
+Warnings: none

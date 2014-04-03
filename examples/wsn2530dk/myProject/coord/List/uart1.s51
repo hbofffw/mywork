@@ -1,0 +1,144 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:52 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\cpu\cc253x\dev\uart1.c           /
+//    Command line       =  D:\myWork\myWork\cpu\cc253x\dev\uart1.c -D        /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\uart1.s51                                 /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME uart1
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+
+        END
+// D:\myWork\myWork\cpu\cc253x\dev\uart1.c
+//    1 /**
+//    2  * \file
+//    3  *
+//    4  *   uart1 write routines
+//    5  *
+//    6  * \author
+//    7  *
+//    8  *   Anthony "Asterisk" Ambuehl
+//    9  *
+//   10  */
+//   11 #include <stdlib.h>
+//   12 #include <string.h>
+//   13 
+//   14 #include "cc253x.h"
+//   15 #include "dev/uart1.h"
+//   16 
+//   17 #if UART1_ENABLE
+//   18 /*---------------------------------------------------------------------------*/
+//   19 /* UART1 initialization */
+//   20 void
+//   21 uart1_init()
+//   22 {
+//   23 #ifdef UART1_ALTERNATIVE_1
+//   24   PERCFG &= ~PERCFG_U1CFG; /*alternative port 1 = P0.5-2*/
+//   25 #ifdef UART1_RTSCTS
+//   26   P0SEL |= 0x3C;    /*peripheral select for TX and RX, RTS, CTS*/
+//   27 #else
+//   28   P0SEL |= 0x30;    /*peripheral select for TX and RX*/
+//   29   P0 &= ~0x08;    /*RTS down*/
+//   30 #endif
+//   31   P0DIR |= 0x18;    /*RTS, TX out*/
+//   32   P0DIR &= ~0x24;   /*CTS, RX in*/
+//   33 #else
+//   34   PERCFG |= PERCFG_U1CFG;  /*alternative port 2 = P1.7-4*/
+//   35 #ifdef UART1_RTSCTS
+//   36   P1SEL |= 0xF0;    /*peripheral select for TX and RX*/
+//   37 #else
+//   38   P1SEL |= 0xC0;    /*peripheral select for TX and RX*/
+//   39   P1 &= ~0x20;    /*RTS down*/
+//   40 #endif
+//   41   P1DIR |= 0x60;    /*RTS, TX out*/
+//   42   P1DIR &= ~0x90;   /*CTS, RX in*/
+//   43 #endif
+//   44 
+//   45 #if UART_ONE_CONF_HIGH_SPEED
+//   46   UART_SET_SPEED(1, UART_460_M, UART_460_E);
+//   47 #else
+//   48   UART_SET_SPEED(1, UART_115_M, UART_115_E);
+//   49 #endif
+//   50 
+//   51 #ifdef UART1_RTSCTS
+//   52   U1UCR = 0x42; /*defaults: 8N1, RTS/CTS, high stop bit*/
+//   53 #else
+//   54   U1UCR = 0x02; /*defaults: 8N1, no flow control, high stop bit*/
+//   55 #endif
+//   56 
+//   57   U1CSR = UCSR_MODE; /* UART mode */
+//   58   U1UCR |= 0x80; /* Flush */
+//   59 
+//   60   UART1_RX_INT(1);
+//   61   U0DBUF = 0;
+//   62 }
+//   63 /*---------------------------------------------------------------------------*/
+//   64 /* Write one byte over the UART. */
+//   65 void
+//   66 uart1_writeb(uint8_t byte)
+//   67 {
+//   68   UTX1IF = 0;
+//   69   U1DBUF = byte;
+//   70   while(!UTX1IF); /* Wait until byte has been transmitted. */
+//   71   UTX1IF = 0;
+//   72 }
+//   73 /*---------------------------------------------------------------------------*/
+//   74 #endif
+// 
+//
+// 
+//
+//
+//Errors: none
+//Warnings: none

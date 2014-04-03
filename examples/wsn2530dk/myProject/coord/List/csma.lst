@@ -1,0 +1,2003 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:47 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\net\mac\csma.c               #
+#    Command line       =  D:\myWork\myWork\core\net\mac\csma.c -D            #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\csma.lst                                    #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\csma.r51                                     #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\net\mac\csma.c
+      1          /*
+      2           * Copyright (c) 2010, Swedish Institute of Computer Science.
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           *
+     31           */
+     32          
+     33          /**
+     34           * \file
+     35           *         A Carrier Sense Multiple Access (CSMA) MAC layer
+     36           * \author
+     37           *         Adam Dunkels <adam@sics.se>
+     38           */
+     39          
+     40          #include "net/mac/csma.h"
+     41          #include "net/packetbuf.h"
+     42          #include "net/queuebuf.h"
+     43          
+     44          #include "sys/ctimer.h"
+     45          #include "sys/clock.h"
+     46          
+     47          #include "lib/random.h"
+     48          
+     49          #include "net/netstack.h"
+     50          
+     51          #include "lib/list.h"
+     52          #include "lib/memb.h"
+     53          
+     54          #include <string.h>
+     55          
+     56          #include <stdio.h>
+     57          
+     58          #define DEBUG 0
+     59          #if DEBUG
+     60          #include <stdio.h>
+     61          #define PRINTF(...) printf(__VA_ARGS__)
+     62          #else /* DEBUG */
+     63          #define PRINTF(...)
+     64          #endif /* DEBUG */
+     65          
+     66          #ifndef CSMA_MAX_MAC_TRANSMISSIONS
+     67          #ifdef CSMA_CONF_MAX_MAC_TRANSMISSIONS
+     68          #define CSMA_MAX_MAC_TRANSMISSIONS CSMA_CONF_MAX_MAC_TRANSMISSIONS
+     69          #else
+     70          #define CSMA_MAX_MAC_TRANSMISSIONS 3
+     71          #endif /* CSMA_CONF_MAX_MAC_TRANSMISSIONS */
+     72          #endif /* CSMA_MAX_MAC_TRANSMISSIONS */
+     73          
+     74          #if CSMA_MAX_MAC_TRANSMISSIONS < 1
+     75          #pragma error CSMA_CONF_MAX_MAC_TRANSMISSIONS must be at least 1.
+     76          #pragma error Change CSMA_CONF_MAX_MAC_TRANSMISSIONS in contiki-conf.h or in your Makefile.
+     77          #endif /* CSMA_CONF_MAX_MAC_TRANSMISSIONS < 1 */
+     78          
+     79          /* Packet metadata */
+     80          struct qbuf_metadata {
+     81              mac_callback_t sent;
+     82              void *cptr;
+     83              uint8_t max_transmissions;
+     84          };
+     85          
+     86          /* Every neighbor has its own packet queue */
+     87          struct neighbor_queue {
+     88              struct neighbor_queue *next;
+     89              rimeaddr_t addr;
+     90              struct ctimer transmit_timer;
+     91              uint8_t transmissions;
+     92              uint8_t collisions, deferrals;
+     93              LIST_STRUCT(queued_packet_list);
+     94          };
+     95          
+     96          /* The maximum number of co-existing neighbor queues */
+     97          #ifdef CSMA_CONF_MAX_NEIGHBOR_QUEUES
+     98          #define CSMA_MAX_NEIGHBOR_QUEUES CSMA_CONF_MAX_NEIGHBOR_QUEUES
+     99          #else
+    100          #define CSMA_MAX_NEIGHBOR_QUEUES 2
+    101          #endif /* CSMA_CONF_MAX_NEIGHBOR_QUEUES */
+    102          
+    103          #define MAX_QUEUED_PACKETS QUEUEBUF_NUM
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+    104          MEMB(neighbor_memb, struct neighbor_queue, CSMA_MAX_NEIGHBOR_QUEUES);
+   \                     neighbor_memb:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for neighbor_memb>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static char neighbor_memb_memb_count[2]
+   \                     neighbor_memb_memb_count:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static struct neighbor_queue neighbor_memb_memb_mem[2]
+   \                     neighbor_memb_memb_mem:
+   \   000000                DS 54
+   \   000036                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+    105          MEMB(packet_memb, struct rdc_buf_list, MAX_QUEUED_PACKETS);
+   \                     packet_memb:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for packet_memb>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static char packet_memb_memb_count[6]
+   \                     packet_memb_memb_count:
+   \   000000                DS 6
+   \   000006                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static struct rdc_buf_list packet_memb_memb_mem[6]
+   \                     packet_memb_memb_mem:
+   \   000000                DS 36
+   \   000024                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+    106          MEMB(metadata_memb, struct qbuf_metadata, MAX_QUEUED_PACKETS);
+   \                     metadata_memb:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for metadata_memb>`
+   \   000008                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static char metadata_memb_memb_count[6]
+   \                     metadata_memb_memb_count:
+   \   000000                DS 6
+   \   000006                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static struct qbuf_metadata metadata_memb_memb_mem[6]
+   \                     metadata_memb_memb_mem:
+   \   000000                DS 30
+   \   00001E                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+    107          LIST(neighbor_list);
+   \                     neighbor_list:
+   \   000000                DS 2
+   \   000002                REQUIRE `?<Initializer for neighbor_list>`
+   \   000002                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \   static void *__xdata neighbor_list_list
+   \                     neighbor_list_list:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+    108          
+    109          static void packet_sent(void *ptr, int status, int num_transmissions);
+    110          static void transmit_packet_list(void *ptr);
+    111          
+    112          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    113              static struct neighbor_queue *
+    114          neighbor_queue_from_addr(const rimeaddr_t *addr)
+   \                     neighbor_queue_from_addr:
+    115          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+    116              struct neighbor_queue *n = list_head(neighbor_list);
+   \   000009                ; Setup parameters for call to function list_head
+   \   000009   90....       MOV     DPTR,#neighbor_list
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   FA           MOV     R2,A
+   \   00000E   A3           INC     DPTR
+   \   00000F   E0           MOVX    A,@DPTR
+   \   000010   FB           MOV     R3,A
+   \   000011   12....       LCALL   ??list_head?relay
+   \   000014   8A..         MOV     ?V0 + 2,R2
+   \   000016   8B..         MOV     ?V0 + 3,R3
+   \   000018   AE..         MOV     R6,?V0 + 2
+   \   00001A   AF..         MOV     R7,?V0 + 3
+   \   00001C   800F         SJMP    ??neighbor_queue_from_addr_0
+    117              while(n != NULL) {
+    118                  if(rimeaddr_cmp(&n->addr, addr)) {
+    119                      return n;
+    120                  }
+    121                  n = list_item_next(n);
+   \                     ??neighbor_queue_from_addr_1:
+   \   00001E                ; Setup parameters for call to function list_item_next
+   \   00001E   EE           MOV     A,R6
+   \   00001F   FA           MOV     R2,A
+   \   000020   EF           MOV     A,R7
+   \   000021   FB           MOV     R3,A
+   \   000022   12....       LCALL   ??list_item_next?relay
+   \   000025   8A..         MOV     ?V0 + 2,R2
+   \   000027   8B..         MOV     ?V0 + 3,R3
+   \   000029   AE..         MOV     R6,?V0 + 2
+   \   00002B   AF..         MOV     R7,?V0 + 3
+   \                     ??neighbor_queue_from_addr_0:
+   \   00002D   EE           MOV     A,R6
+   \   00002E   4F           ORL     A,R7
+   \   00002F   601F         JZ      ??neighbor_queue_from_addr_2
+   \   000031                ; Setup parameters for call to function rimeaddr_cmp
+   \   000031   AC..         MOV     R4,?V0 + 0
+   \   000033   AD..         MOV     R5,?V0 + 1
+   \   000035   EE           MOV     A,R6
+   \   000036   2402         ADD     A,#0x2
+   \   000038   FA           MOV     R2,A
+   \   000039   EF           MOV     A,R7
+   \   00003A   3400         ADDC    A,#0x0
+   \   00003C   FB           MOV     R3,A
+   \   00003D   12....       LCALL   ??rimeaddr_cmp?relay
+   \   000040   8A..         MOV     ?V0 + 2,R2
+   \   000042   8B..         MOV     ?V0 + 3,R3
+   \   000044   E5..         MOV     A,?V0 + 2
+   \   000046   45..         ORL     A,?V0 + 3
+   \   000048   60D4         JZ      ??neighbor_queue_from_addr_1
+   \   00004A   EE           MOV     A,R6
+   \   00004B   FA           MOV     R2,A
+   \   00004C   EF           MOV     A,R7
+   \   00004D   FB           MOV     R3,A
+   \   00004E   8004         SJMP    ??neighbor_queue_from_addr_3
+    122              }
+    123              return NULL;
+   \                     ??neighbor_queue_from_addr_2:
+   \   000050   7A00         MOV     R2,#0x0
+   \   000052   7B00         MOV     R3,#0x0
+   \                     ??neighbor_queue_from_addr_3:
+   \   000054   7F04         MOV     R7,#0x4
+   \   000056   02....       LJMP    ?BANKED_LEAVE_XDATA
+    124          }
+    125          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    126              static clock_time_t
+    127          default_timebase(void)
+   \                     default_timebase:
+    128          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    129              clock_time_t time;
+    130              /* The retransmission time must be proportional to the channel
+    131                 check interval of the underlying radio duty cycling layer. */
+    132              time = NETSTACK_RDC.channel_check_interval();
+   \   000005                ; Setup parameters for indirect call
+   \   000005   90....       MOV     DPTR,#nullrdc_driver + 14
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   F8           MOV     R0,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   F583         MOV     DPH,A
+   \   00000E   8882         MOV     DPL,R0
+   \   000010   12....       LCALL   ?CALL_IND
+   \   000013   8A..         MOV     ?V0 + 0,R2
+   \   000015   8B..         MOV     ?V0 + 1,R3
+   \   000017   AA..         MOV     R2,?V0 + 0
+   \   000019   AB..         MOV     R3,?V0 + 1
+    133          
+    134              /* If the radio duty cycle has no channel check interval (i.e., it
+    135                 does not turn the radio off), we make the retransmission time
+    136                 proportional to the configured MAC channel check rate. */
+    137              if(time == 0) {
+   \   00001B   EA           MOV     A,R2
+   \   00001C   4B           ORL     A,R3
+   \   00001D   7004         JNZ     ??default_timebase_0
+    138                  time = CLOCK_SECOND / NETSTACK_RDC_CHANNEL_CHECK_RATE;
+   \   00001F   7A10         MOV     R2,#0x10
+   \   000021   7B00         MOV     R3,#0x0
+    139              }
+    140              return time;
+   \                     ??default_timebase_0:
+   \   000023   7F02         MOV     R7,#0x2
+   \   000025   02....       LJMP    ?BANKED_LEAVE_XDATA
+    141          }
+    142          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    143              static void
+    144          transmit_packet_list(void *ptr)
+   \                     transmit_packet_list:
+    145          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+    146              struct neighbor_queue *n = ptr;
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    147              if(n) {
+   \   000009   EE           MOV     A,R6
+   \   00000A   4F           ORL     A,R7
+   \   00000B   6042         JZ      ??transmit_packet_list_0
+    148                  struct rdc_buf_list *q = list_head(n->queued_packet_list);
+   \   00000D                ; Setup parameters for call to function list_head
+   \   00000D   EE           MOV     A,R6
+   \   00000E   2419         ADD     A,#0x19
+   \   000010   F582         MOV     DPL,A
+   \   000012   EF           MOV     A,R7
+   \   000013   3400         ADDC    A,#0x0
+   \   000015   F583         MOV     DPH,A
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   FA           MOV     R2,A
+   \   000019   A3           INC     DPTR
+   \   00001A   E0           MOVX    A,@DPTR
+   \   00001B   FB           MOV     R3,A
+   \   00001C   12....       LCALL   ??list_head?relay
+   \   00001F   8A..         MOV     ?V0 + 2,R2
+   \   000021   8B..         MOV     ?V0 + 3,R3
+   \   000023   85....       MOV     ?V0 + 0,?V0 + 2
+   \   000026   85....       MOV     ?V0 + 1,?V0 + 3
+    149                  if(q != NULL) {
+   \   000029   E5..         MOV     A,?V0 + 0
+   \   00002B   45..         ORL     A,?V0 + 1
+   \   00002D   6020         JZ      ??transmit_packet_list_0
+    150                      PRINTF("csma: preparing number %d %p, queue len %d\n", n->transmissions, q,
+    151                              list_length(n->queued_packet_list));
+    152                      /* Send packets in the neighbor's list */
+    153                      NETSTACK_RDC.send_list(packet_sent, n, q);
+   \   00002F                ; Setup parameters for indirect call
+   \   00002F   78..         MOV     R0,#?V0 + 0
+   \   000031   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000034   EE           MOV     A,R6
+   \   000035   FC           MOV     R4,A
+   \   000036   EF           MOV     A,R7
+   \   000037   FD           MOV     R5,A
+   \   000038   7A..         MOV     R2,#??packet_sent?relay & 0xff
+   \   00003A   7B..         MOV     R3,#(??packet_sent?relay >> 8) & 0xff
+   \   00003C   90....       MOV     DPTR,#nullrdc_driver + 6
+   \   00003F   E0           MOVX    A,@DPTR
+   \   000040   F8           MOV     R0,A
+   \   000041   A3           INC     DPTR
+   \   000042   E0           MOVX    A,@DPTR
+   \   000043   F583         MOV     DPH,A
+   \   000045   8882         MOV     DPL,R0
+   \   000047   12....       LCALL   ?CALL_IND
+   \   00004A   7402         MOV     A,#0x2
+   \   00004C   12....       LCALL   ?DEALLOC_XSTACK8
+    154                  }
+    155              }
+    156          }
+   \                     ??transmit_packet_list_0:
+   \   00004F   7F04         MOV     R7,#0x4
+   \   000051   02....       LJMP    ?BANKED_LEAVE_XDATA
+    157          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    158              static void
+    159          free_packet(struct neighbor_queue *n, struct rdc_buf_list *p)
+   \                     free_packet:
+    160          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+   \   000009   EC           MOV     A,R4
+   \   00000A   FE           MOV     R6,A
+   \   00000B   ED           MOV     A,R5
+   \   00000C   FF           MOV     R7,A
+    161              if(p != NULL) {
+   \   00000D   EE           MOV     A,R6
+   \   00000E   4F           ORL     A,R7
+   \   00000F   7003         JNZ     $+5
+   \   000011   02....       LJMP    ??free_packet_0 & 0xFFFF
+    162                  /* Remove packet from list and deallocate */
+    163                  list_remove(n->queued_packet_list, p);
+   \   000014                ; Setup parameters for call to function list_remove
+   \   000014   EE           MOV     A,R6
+   \   000015   FC           MOV     R4,A
+   \   000016   EF           MOV     A,R7
+   \   000017   FD           MOV     R5,A
+   \   000018   E5..         MOV     A,?V0 + 0
+   \   00001A   2419         ADD     A,#0x19
+   \   00001C   F582         MOV     DPL,A
+   \   00001E   E5..         MOV     A,?V0 + 1
+   \   000020   3400         ADDC    A,#0x0
+   \   000022   F583         MOV     DPH,A
+   \   000024   E0           MOVX    A,@DPTR
+   \   000025   FA           MOV     R2,A
+   \   000026   A3           INC     DPTR
+   \   000027   E0           MOVX    A,@DPTR
+   \   000028   FB           MOV     R3,A
+   \   000029   12....       LCALL   ??list_remove?relay
+    164          
+    165                  queuebuf_free(p->buf);
+   \   00002C                ; Setup parameters for call to function queuebuf_free
+   \   00002C   8E82         MOV     DPL,R6
+   \   00002E   8F83         MOV     DPH,R7
+   \   000030   A3           INC     DPTR
+   \   000031   A3           INC     DPTR
+   \   000032   E0           MOVX    A,@DPTR
+   \   000033   FA           MOV     R2,A
+   \   000034   A3           INC     DPTR
+   \   000035   E0           MOVX    A,@DPTR
+   \   000036   FB           MOV     R3,A
+   \   000037   12....       LCALL   ??queuebuf_free?relay
+    166                  memb_free(&metadata_memb, p->ptr);
+   \   00003A                ; Setup parameters for call to function memb_free
+   \   00003A   8E82         MOV     DPL,R6
+   \   00003C   8F83         MOV     DPH,R7
+   \   00003E   A3           INC     DPTR
+   \   00003F   A3           INC     DPTR
+   \   000040   A3           INC     DPTR
+   \   000041   A3           INC     DPTR
+   \   000042   E0           MOVX    A,@DPTR
+   \   000043   FC           MOV     R4,A
+   \   000044   A3           INC     DPTR
+   \   000045   E0           MOVX    A,@DPTR
+   \   000046   FD           MOV     R5,A
+   \   000047   7A..         MOV     R2,#metadata_memb & 0xff
+   \   000049   7B..         MOV     R3,#(metadata_memb >> 8) & 0xff
+   \   00004B   12....       LCALL   ??memb_free?relay
+   \   00004E   E9           MOV     A,R1
+    167                  memb_free(&packet_memb, p);
+   \   00004F                ; Setup parameters for call to function memb_free
+   \   00004F   EE           MOV     A,R6
+   \   000050   FC           MOV     R4,A
+   \   000051   EF           MOV     A,R7
+   \   000052   FD           MOV     R5,A
+   \   000053   7A..         MOV     R2,#packet_memb & 0xff
+   \   000055   7B..         MOV     R3,#(packet_memb >> 8) & 0xff
+   \   000057   12....       LCALL   ??memb_free?relay
+   \   00005A   E9           MOV     A,R1
+    168                  PRINTF("csma: free_queued_packet, queue length %d\n",
+    169                          list_length(n->queued_packet_list));
+    170                  if(list_head(n->queued_packet_list) != NULL) {
+   \   00005B                ; Setup parameters for call to function list_head
+   \   00005B   E5..         MOV     A,?V0 + 0
+   \   00005D   2419         ADD     A,#0x19
+   \   00005F   F582         MOV     DPL,A
+   \   000061   E5..         MOV     A,?V0 + 1
+   \   000063   3400         ADDC    A,#0x0
+   \   000065   F583         MOV     DPH,A
+   \   000067   E0           MOVX    A,@DPTR
+   \   000068   FA           MOV     R2,A
+   \   000069   A3           INC     DPTR
+   \   00006A   E0           MOVX    A,@DPTR
+   \   00006B   FB           MOV     R3,A
+   \   00006C   12....       LCALL   ??list_head?relay
+   \   00006F   8A..         MOV     ?V0 + 2,R2
+   \   000071   8B..         MOV     ?V0 + 3,R3
+   \   000073   E5..         MOV     A,?V0 + 2
+   \   000075   45..         ORL     A,?V0 + 3
+   \   000077   6058         JZ      ??free_packet_1
+    171                      /* There is a next packet. We reset current tx information */
+    172                      n->transmissions = 0;
+   \   000079   E5..         MOV     A,?V0 + 0
+   \   00007B   2414         ADD     A,#0x14
+   \   00007D   F582         MOV     DPL,A
+   \   00007F   E5..         MOV     A,?V0 + 1
+   \   000081   3400         ADDC    A,#0x0
+   \   000083   F583         MOV     DPH,A
+   \   000085   7400         MOV     A,#0x0
+   \   000087   F0           MOVX    @DPTR,A
+    173                      n->collisions = 0;
+   \   000088   E5..         MOV     A,?V0 + 0
+   \   00008A   2415         ADD     A,#0x15
+   \   00008C   F582         MOV     DPL,A
+   \   00008E   E5..         MOV     A,?V0 + 1
+   \   000090   3400         ADDC    A,#0x0
+   \   000092   F583         MOV     DPH,A
+   \   000094   7400         MOV     A,#0x0
+   \   000096   F0           MOVX    @DPTR,A
+    174                      n->deferrals = 0;
+   \   000097   E5..         MOV     A,?V0 + 0
+   \   000099   2416         ADD     A,#0x16
+   \   00009B   F582         MOV     DPL,A
+   \   00009D   E5..         MOV     A,?V0 + 1
+   \   00009F   3400         ADDC    A,#0x0
+   \   0000A1   F583         MOV     DPH,A
+   \   0000A3   7400         MOV     A,#0x0
+   \   0000A5   F0           MOVX    @DPTR,A
+    175                      /* Set a timer for next transmissions */
+    176                      ctimer_set(&n->transmit_timer, default_timebase(),
+    177                              transmit_packet_list, n);
+   \   0000A6                ; Setup parameters for call to function ctimer_set
+   \   0000A6   78..         MOV     R0,#?V0 + 0
+   \   0000A8   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000AB   75....       MOV     ?V0 + 2,#??transmit_packet_list?relay & 0xff
+   \   0000AE   75....       MOV     ?V0 + 3,#(??transmit_packet_list?relay >> 8) & 0xff
+   \   0000B1   78..         MOV     R0,#?V0 + 2
+   \   0000B3   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000B6                ; Setup parameters for call to function default_timebase
+   \   0000B6   12....       LCALL   ??default_timebase?relay
+   \   0000B9   EA           MOV     A,R2
+   \   0000BA   FC           MOV     R4,A
+   \   0000BB   EB           MOV     A,R3
+   \   0000BC   FD           MOV     R5,A
+   \   0000BD   E5..         MOV     A,?V0 + 0
+   \   0000BF   2404         ADD     A,#0x4
+   \   0000C1   FA           MOV     R2,A
+   \   0000C2   E5..         MOV     A,?V0 + 1
+   \   0000C4   3400         ADDC    A,#0x0
+   \   0000C6   FB           MOV     R3,A
+   \   0000C7   12....       LCALL   ??ctimer_set?relay
+   \   0000CA   7404         MOV     A,#0x4
+   \   0000CC   12....       LCALL   ?DEALLOC_XSTACK8
+   \   0000CF   8028         SJMP    ??free_packet_0
+    178                  } else {
+    179                      /* This was the last packet in the queue, we free the neighbor */
+    180                      ctimer_stop(&n->transmit_timer);
+   \                     ??free_packet_1:
+   \   0000D1                ; Setup parameters for call to function ctimer_stop
+   \   0000D1   E5..         MOV     A,?V0 + 0
+   \   0000D3   2404         ADD     A,#0x4
+   \   0000D5   FA           MOV     R2,A
+   \   0000D6   E5..         MOV     A,?V0 + 1
+   \   0000D8   3400         ADDC    A,#0x0
+   \   0000DA   FB           MOV     R3,A
+   \   0000DB   12....       LCALL   ??ctimer_stop?relay
+    181                      list_remove(neighbor_list, n);
+   \   0000DE                ; Setup parameters for call to function list_remove
+   \   0000DE   AC..         MOV     R4,?V0 + 0
+   \   0000E0   AD..         MOV     R5,?V0 + 1
+   \   0000E2   90....       MOV     DPTR,#neighbor_list
+   \   0000E5   E0           MOVX    A,@DPTR
+   \   0000E6   FA           MOV     R2,A
+   \   0000E7   A3           INC     DPTR
+   \   0000E8   E0           MOVX    A,@DPTR
+   \   0000E9   FB           MOV     R3,A
+   \   0000EA   12....       LCALL   ??list_remove?relay
+    182                      memb_free(&neighbor_memb, n);
+   \   0000ED                ; Setup parameters for call to function memb_free
+   \   0000ED   AC..         MOV     R4,?V0 + 0
+   \   0000EF   AD..         MOV     R5,?V0 + 1
+   \   0000F1   7A..         MOV     R2,#neighbor_memb & 0xff
+   \   0000F3   7B..         MOV     R3,#(neighbor_memb >> 8) & 0xff
+   \   0000F5   12....       LCALL   ??memb_free?relay
+   \   0000F8   E9           MOV     A,R1
+    183                  }
+    184              }
+    185          }
+   \                     ??free_packet_0:
+   \   0000F9   7F04         MOV     R7,#0x4
+   \   0000FB   02....       LJMP    ?BANKED_LEAVE_XDATA
+    186          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    187              static void
+    188          packet_sent(void *ptr, int status, int num_transmissions)
+   \                     packet_sent:
+    189          {
+   \   000000   74E8         MOV     A,#-0x18
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 24
+   \   000005                ; Auto size: 0
+   \   000005   EC           MOV     A,R4
+   \   000006   FE           MOV     R6,A
+   \   000007   ED           MOV     A,R5
+   \   000008   FF           MOV     R7,A
+    190              struct neighbor_queue *n;
+    191              struct rdc_buf_list *q;
+    192              struct qbuf_metadata *metadata;
+    193              clock_time_t time = 0;
+   \   000009   75..00       MOV     ?V0 + 2,#0x0
+   \   00000C   75..00       MOV     ?V0 + 3,#0x0
+    194              mac_callback_t sent;
+    195              void *cptr;
+    196              int num_tx;
+    197              int backoff_transmissions;
+    198          
+    199              n = ptr;
+   \   00000F   8A..         MOV     ?V0 + 6,R2
+   \   000011   8B..         MOV     ?V0 + 7,R3
+    200              if(n == NULL) {
+   \   000013   E5..         MOV     A,?V0 + 6
+   \   000015   45..         ORL     A,?V0 + 7
+   \   000017   7003         JNZ     $+5
+   \   000019   02....       LJMP    ??packet_sent_0 & 0xFFFF
+    201                  return;
+    202              }
+    203              switch(status) {
+   \   00001C   8E..         MOV     ?V0 + 0,R6
+   \   00001E   8F..         MOV     ?V0 + 1,R7
+   \   000020   78..         MOV     R0,#?V0 + 0
+   \   000022   12....       LCALL   ?US_SWITCH_DENSE
+   \                     `?<Jumptable for packet_sent>_0`:
+   \   000025   0000         DW        0
+   \   000027   03           DB        3
+   \   000028   ....         DW        ??packet_sent_1
+   \   00002A   ....         DW        ??packet_sent_2
+   \   00002C   ....         DW        ??packet_sent_3
+   \   00002E   ....         DW        ??packet_sent_2
+   \   000030   ....         DW        ??packet_sent_4
+    204                  case MAC_TX_OK:
+    205                  case MAC_TX_NOACK:
+    206                      n->transmissions++;
+   \                     ??packet_sent_2:
+   \   000032   E5..         MOV     A,?V0 + 6
+   \   000034   2414         ADD     A,#0x14
+   \   000036   F582         MOV     DPL,A
+   \   000038   E5..         MOV     A,?V0 + 7
+   \   00003A   3400         ADDC    A,#0x0
+   \   00003C   F583         MOV     DPH,A
+   \   00003E   E0           MOVX    A,@DPTR
+   \   00003F   2401         ADD     A,#0x1
+   \   000041   F0           MOVX    @DPTR,A
+    207                      break;
+   \   000042   8022         SJMP    ??packet_sent_1
+    208                  case MAC_TX_COLLISION:
+    209                      n->collisions++;
+   \                     ??packet_sent_3:
+   \   000044   E5..         MOV     A,?V0 + 6
+   \   000046   2415         ADD     A,#0x15
+   \   000048   F582         MOV     DPL,A
+   \   00004A   E5..         MOV     A,?V0 + 7
+   \   00004C   3400         ADDC    A,#0x0
+   \   00004E   F583         MOV     DPH,A
+   \   000050   E0           MOVX    A,@DPTR
+   \   000051   2401         ADD     A,#0x1
+   \   000053   F0           MOVX    @DPTR,A
+    210                      break;
+   \   000054   8010         SJMP    ??packet_sent_1
+    211                  case MAC_TX_DEFERRED:
+    212                      n->deferrals++;
+   \                     ??packet_sent_4:
+   \   000056   E5..         MOV     A,?V0 + 6
+   \   000058   2416         ADD     A,#0x16
+   \   00005A   F582         MOV     DPL,A
+   \   00005C   E5..         MOV     A,?V0 + 7
+   \   00005E   3400         ADDC    A,#0x0
+   \   000060   F583         MOV     DPH,A
+   \   000062   E0           MOVX    A,@DPTR
+   \   000063   2401         ADD     A,#0x1
+   \   000065   F0           MOVX    @DPTR,A
+    213                      break;
+    214              }
+    215          
+    216              for(q = list_head(n->queued_packet_list);
+   \                     ??packet_sent_1:
+   \   000066                ; Setup parameters for call to function list_head
+   \   000066   E5..         MOV     A,?V0 + 6
+   \   000068   2419         ADD     A,#0x19
+   \   00006A   F582         MOV     DPL,A
+   \   00006C   E5..         MOV     A,?V0 + 7
+   \   00006E   3400         ADDC    A,#0x0
+   \   000070   F583         MOV     DPH,A
+   \   000072   E0           MOVX    A,@DPTR
+   \   000073   FA           MOV     R2,A
+   \   000074   A3           INC     DPTR
+   \   000075   E0           MOVX    A,@DPTR
+   \   000076   FB           MOV     R3,A
+   \   000077   12....       LCALL   ??list_head?relay
+   \   00007A   8A..         MOV     ?V0 + 0,R2
+   \   00007C   8B..         MOV     ?V0 + 1,R3
+   \   00007E   85....       MOV     ?V0 + 8,?V0 + 0
+   \   000081   85....       MOV     ?V0 + 9,?V0 + 1
+   \   000084   8011         SJMP    ??packet_sent_5
+    217                      q != NULL; q = list_item_next(q)) {
+   \                     ??packet_sent_6:
+   \   000086                ; Setup parameters for call to function list_item_next
+   \   000086   AA..         MOV     R2,?V0 + 8
+   \   000088   AB..         MOV     R3,?V0 + 9
+   \   00008A   12....       LCALL   ??list_item_next?relay
+   \   00008D   8A..         MOV     ?V0 + 0,R2
+   \   00008F   8B..         MOV     ?V0 + 1,R3
+   \   000091   85....       MOV     ?V0 + 8,?V0 + 0
+   \   000094   85....       MOV     ?V0 + 9,?V0 + 1
+   \                     ??packet_sent_5:
+   \   000097   E5..         MOV     A,?V0 + 8
+   \   000099   45..         ORL     A,?V0 + 9
+   \   00009B   6031         JZ      ??packet_sent_7
+    218                  if(queuebuf_attr(q->buf, PACKETBUF_ATTR_MAC_SEQNO) ==
+    219                          packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO)) {
+   \   00009D                ; Setup parameters for call to function queuebuf_attr
+   \   00009D   790A         MOV     R1,#0xa
+   \   00009F   85..82       MOV     DPL,?V0 + 8
+   \   0000A2   85..83       MOV     DPH,?V0 + 9
+   \   0000A5   A3           INC     DPTR
+   \   0000A6   A3           INC     DPTR
+   \   0000A7   E0           MOVX    A,@DPTR
+   \   0000A8   FA           MOV     R2,A
+   \   0000A9   A3           INC     DPTR
+   \   0000AA   E0           MOVX    A,@DPTR
+   \   0000AB   FB           MOV     R3,A
+   \   0000AC   12....       LCALL   ??queuebuf_attr?relay
+   \   0000AF   8A..         MOV     ?V0 + 2,R2
+   \   0000B1   8B..         MOV     ?V0 + 3,R3
+   \   0000B3   85....       MOV     ?V0 + 0,?V0 + 2
+   \   0000B6   85....       MOV     ?V0 + 1,?V0 + 3
+   \   0000B9                ; Setup parameters for call to function packetbuf_attr
+   \   0000B9   790A         MOV     R1,#0xa
+   \   0000BB   12....       LCALL   ??packetbuf_attr?relay
+   \   0000BE   8A..         MOV     ?V0 + 2,R2
+   \   0000C0   8B..         MOV     ?V0 + 3,R3
+   \   0000C2   E5..         MOV     A,?V0 + 2
+   \   0000C4   65..         XRL     A,?V0 + 0
+   \   0000C6   7004         JNZ     ??packet_sent_8
+   \   0000C8   E5..         MOV     A,?V0 + 3
+   \   0000CA   65..         XRL     A,?V0 + 1
+   \                     ??packet_sent_8:
+   \   0000CC   70B8         JNZ     ??packet_sent_6
+    220                      break;
+    221                  }
+    222              }
+    223          
+    224              if(q != NULL) {
+   \                     ??packet_sent_7:
+   \   0000CE   E5..         MOV     A,?V0 + 8
+   \   0000D0   45..         ORL     A,?V0 + 9
+   \   0000D2   7003         JNZ     $+5
+   \   0000D4   02....       LJMP    ??packet_sent_0 & 0xFFFF
+    225                  metadata = (struct qbuf_metadata *)q->ptr;
+   \   0000D7   85..82       MOV     DPL,?V0 + 8
+   \   0000DA   85..83       MOV     DPH,?V0 + 9
+   \   0000DD   A3           INC     DPTR
+   \   0000DE   A3           INC     DPTR
+   \   0000DF   A3           INC     DPTR
+   \   0000E0   A3           INC     DPTR
+   \   0000E1   E0           MOVX    A,@DPTR
+   \   0000E2   F5..         MOV     ?V0 + 10,A
+   \   0000E4   A3           INC     DPTR
+   \   0000E5   E0           MOVX    A,@DPTR
+   \   0000E6   F5..         MOV     ?V0 + 11,A
+    226          
+    227                  if(metadata != NULL) {
+   \   0000E8   E5..         MOV     A,?V0 + 10
+   \   0000EA   45..         ORL     A,?V0 + 11
+   \   0000EC   7003         JNZ     $+5
+   \   0000EE   02....       LJMP    ??packet_sent_0 & 0xFFFF
+    228                      sent = metadata->sent;
+   \   0000F1   85..82       MOV     DPL,?V0 + 10
+   \   0000F4   85..83       MOV     DPH,?V0 + 11
+   \   0000F7   E0           MOVX    A,@DPTR
+   \   0000F8   F5..         MOV     ?V0 + 14,A
+   \   0000FA   A3           INC     DPTR
+   \   0000FB   E0           MOVX    A,@DPTR
+   \   0000FC   F5..         MOV     ?V0 + 15,A
+    229                      cptr = metadata->cptr;
+   \   0000FE   85..82       MOV     DPL,?V0 + 10
+   \   000101   85..83       MOV     DPH,?V0 + 11
+   \   000104   A3           INC     DPTR
+   \   000105   A3           INC     DPTR
+   \   000106   E0           MOVX    A,@DPTR
+   \   000107   F5..         MOV     ?V0 + 12,A
+   \   000109   A3           INC     DPTR
+   \   00010A   E0           MOVX    A,@DPTR
+   \   00010B   F5..         MOV     ?V0 + 13,A
+    230                      num_tx = n->transmissions;
+   \   00010D   E5..         MOV     A,?V0 + 6
+   \   00010F   2414         ADD     A,#0x14
+   \   000111   F582         MOV     DPL,A
+   \   000113   E5..         MOV     A,?V0 + 7
+   \   000115   3400         ADDC    A,#0x0
+   \   000117   F583         MOV     DPH,A
+   \   000119   E0           MOVX    A,@DPTR
+   \   00011A   F5..         MOV     ?V0 + 0,A
+   \   00011C   75..00       MOV     ?V0 + 1,#0x0
+    231                      if(status == MAC_TX_COLLISION ||
+    232                              status == MAC_TX_NOACK) {
+   \   00011F   7401         MOV     A,#0x1
+   \   000121   6E           XRL     A,R6
+   \   000122   7003         JNZ     ??packet_sent_9
+   \   000124   7400         MOV     A,#0x0
+   \   000126   6F           XRL     A,R7
+   \                     ??packet_sent_9:
+   \   000127   600D         JZ      ??packet_sent_10
+   \   000129   7402         MOV     A,#0x2
+   \   00012B   6E           XRL     A,R6
+   \   00012C   7003         JNZ     ??packet_sent_11
+   \   00012E   7400         MOV     A,#0x0
+   \   000130   6F           XRL     A,R7
+   \                     ??packet_sent_11:
+   \   000131   6003         JZ      $+5
+   \   000133   02....       LJMP    ??packet_sent_12 & 0xFFFF
+    233          
+    234                          /* If the transmission was not performed because of a
+    235                             collision or noack, we must retransmit the packet. */
+    236          
+    237                          switch(status) {
+   \                     ??packet_sent_10:
+   \   000136   8E..         MOV     ?V0 + 2,R6
+   \   000138   8F..         MOV     ?V0 + 3,R7
+   \   00013A   78..         MOV     R0,#?V0 + 2
+   \   00013C   12....       LCALL   ?US_SWITCH_DENSE
+   \                     `?<Jumptable for packet_sent>_1`:
+   \   00013F   0100         DW        1
+   \   000141   01           DB        1
+   \   000142   ....         DW        ??packet_sent_13
+   \   000144   ....         DW        ??packet_sent_13
+   \   000146   ....         DW        ??packet_sent_13
+    238                              case MAC_TX_COLLISION:
+    239                                  PRINTF("csma: rexmit collision %d\n", n->transmissions);
+    240                                  break;
+    241                              case MAC_TX_NOACK:
+    242                                  PRINTF("csma: rexmit noack %d\n", n->transmissions);
+    243                                  break;
+    244                              default:
+    245                                  PRINTF("csma: rexmit err %d, %d\n", status, n->transmissions);
+    246                          }
+    247          
+    248                          /* The retransmission time must be proportional to the channel
+    249                             check interval of the underlying radio duty cycling layer. */
+    250                          time = default_timebase();
+   \                     ??packet_sent_13:
+   \   000148                ; Setup parameters for call to function default_timebase
+   \   000148   12....       LCALL   ??default_timebase?relay
+   \   00014B   8A..         MOV     ?V0 + 4,R2
+   \   00014D   8B..         MOV     ?V0 + 5,R3
+   \   00014F   85....       MOV     ?V0 + 2,?V0 + 4
+   \   000152   85....       MOV     ?V0 + 3,?V0 + 5
+    251          
+    252                          /* The retransmission time uses a linear backoff so that the
+    253                             interval between the transmissions increase with each
+    254                             retransmit. */
+    255                          backoff_transmissions = n->transmissions + 1;
+   \   000155   E5..         MOV     A,?V0 + 6
+   \   000157   2414         ADD     A,#0x14
+   \   000159   F582         MOV     DPL,A
+   \   00015B   E5..         MOV     A,?V0 + 7
+   \   00015D   3400         ADDC    A,#0x0
+   \   00015F   F583         MOV     DPH,A
+   \   000161   E0           MOVX    A,@DPTR
+   \   000162   F8           MOV     R0,A
+   \   000163   7900         MOV     R1,#0x0
+   \   000165   2401         ADD     A,#0x1
+   \   000167   F5..         MOV     ?V0 + 4,A
+   \   000169   E9           MOV     A,R1
+   \   00016A   3400         ADDC    A,#0x0
+   \   00016C   F5..         MOV     ?V0 + 5,A
+    256          
+    257                          /* Clamp the number of backoffs so that we don't get a too long
+    258                             timeout here, since that will delay all packets in the
+    259                             queue. */
+    260                          if(backoff_transmissions > 3) {
+   \   00016E   C3           CLR     C
+   \   00016F   E5..         MOV     A,?V0 + 4
+   \   000171   9404         SUBB    A,#0x4
+   \   000173   E5..         MOV     A,?V0 + 5
+   \   000175   9400         SUBB    A,#0x0
+   \   000177   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000179   65D0         XRL     A,PSW
+   \   00017B   33           RLC     A
+   \   00017C   4006         JC      ??packet_sent_14
+    261                              backoff_transmissions = 3;
+   \   00017E   75..03       MOV     ?V0 + 4,#0x3
+   \   000181   75..00       MOV     ?V0 + 5,#0x0
+    262                          }
+    263          
+    264                          time = time + (random_rand() % (backoff_transmissions * time));
+   \                     ??packet_sent_14:
+   \   000184                ; Setup parameters for call to function random_rand
+   \   000184   12....       LCALL   ??random_rand?relay
+   \   000187   EA           MOV     A,R2
+   \   000188   F8           MOV     R0,A
+   \   000189   EB           MOV     A,R3
+   \   00018A   F9           MOV     R1,A
+   \   00018B   AA..         MOV     R2,?V0 + 4
+   \   00018D   AB..         MOV     R3,?V0 + 5
+   \   00018F   EA           MOV     A,R2
+   \   000190   85..F0       MOV     B,?V0 + 2
+   \   000193   A4           MUL     AB
+   \   000194   CA           XCH     A,R2
+   \   000195   ACF0         MOV     R4,B
+   \   000197   85..F0       MOV     B,?V0 + 3
+   \   00019A   A4           MUL     AB
+   \   00019B   2C           ADD     A,R4
+   \   00019C   FC           MOV     R4,A
+   \   00019D   85..F0       MOV     B,?V0 + 2
+   \   0001A0   E5..         MOV     A,?V0 + 5
+   \   0001A2   A4           MUL     AB
+   \   0001A3   2C           ADD     A,R4
+   \   0001A4   FB           MOV     R3,A
+   \   0001A5   12....       LCALL   ?US_DIV_MOD
+   \   0001A8   8A..         MOV     ?V0 + 4,R2
+   \   0001AA   8B..         MOV     ?V0 + 5,R3
+   \   0001AC   E5..         MOV     A,?V0 + 2
+   \   0001AE   25..         ADD     A,?V0 + 4
+   \   0001B0   F5..         MOV     ?V0 + 2,A
+   \   0001B2   E5..         MOV     A,?V0 + 3
+   \   0001B4   35..         ADDC    A,?V0 + 5
+   \   0001B6   F5..         MOV     ?V0 + 3,A
+    265          
+    266                          if(n->transmissions < metadata->max_transmissions) {
+   \   0001B8   85..82       MOV     DPL,?V0 + 10
+   \   0001BB   85..83       MOV     DPH,?V0 + 11
+   \   0001BE   A3           INC     DPTR
+   \   0001BF   A3           INC     DPTR
+   \   0001C0   A3           INC     DPTR
+   \   0001C1   A3           INC     DPTR
+   \   0001C2   E0           MOVX    A,@DPTR
+   \   0001C3   F8           MOV     R0,A
+   \   0001C4   E5..         MOV     A,?V0 + 6
+   \   0001C6   2414         ADD     A,#0x14
+   \   0001C8   F582         MOV     DPL,A
+   \   0001CA   E5..         MOV     A,?V0 + 7
+   \   0001CC   3400         ADDC    A,#0x0
+   \   0001CE   F583         MOV     DPH,A
+   \   0001D0   E0           MOVX    A,@DPTR
+   \   0001D1   C3           CLR     C
+   \   0001D2   98           SUBB    A,R0
+   \   0001D3   5038         JNC     ??packet_sent_15
+    267                              PRINTF("csma: retransmitting with time %lu %p\n", time, q);
+    268                              ctimer_set(&n->transmit_timer, time,
+    269                                      transmit_packet_list, n);
+   \   0001D5                ; Setup parameters for call to function ctimer_set
+   \   0001D5   78..         MOV     R0,#?V0 + 6
+   \   0001D7   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0001DA   75....       MOV     ?V0 + 0,#??transmit_packet_list?relay & 0xff
+   \   0001DD   75....       MOV     ?V0 + 1,#(??transmit_packet_list?relay >> 8) & 0xff
+   \   0001E0   78..         MOV     R0,#?V0 + 0
+   \   0001E2   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0001E5   AC..         MOV     R4,?V0 + 2
+   \   0001E7   AD..         MOV     R5,?V0 + 3
+   \   0001E9   E5..         MOV     A,?V0 + 6
+   \   0001EB   2404         ADD     A,#0x4
+   \   0001ED   FA           MOV     R2,A
+   \   0001EE   E5..         MOV     A,?V0 + 7
+   \   0001F0   3400         ADDC    A,#0x0
+   \   0001F2   FB           MOV     R3,A
+   \   0001F3   12....       LCALL   ??ctimer_set?relay
+   \   0001F6   7404         MOV     A,#0x4
+   \   0001F8   12....       LCALL   ?DEALLOC_XSTACK8
+    270                              /* This is needed to correctly attribute energy that we spent
+    271                                 transmitting this packet. */
+    272                              queuebuf_update_attr_from_packetbuf(q->buf);
+   \   0001FB                ; Setup parameters for call to function queuebuf_update_attr_from_packetbuf
+   \   0001FB   85..82       MOV     DPL,?V0 + 8
+   \   0001FE   85..83       MOV     DPH,?V0 + 9
+   \   000201   A3           INC     DPTR
+   \   000202   A3           INC     DPTR
+   \   000203   E0           MOVX    A,@DPTR
+   \   000204   FA           MOV     R2,A
+   \   000205   A3           INC     DPTR
+   \   000206   E0           MOVX    A,@DPTR
+   \   000207   FB           MOV     R3,A
+   \   000208   12....       LCALL   ??queuebuf_update_attr_from_packetbuf?relay
+   \   00020B   8054         SJMP    ??packet_sent_0
+    273                          } else {
+    274                              PRINTF("csma: drop with status %d after %d transmissions, %d collisions\n",
+    275                                      status, n->transmissions, n->collisions);
+    276                              free_packet(n, q);
+   \                     ??packet_sent_15:
+   \   00020D                ; Setup parameters for call to function free_packet
+   \   00020D   AC..         MOV     R4,?V0 + 8
+   \   00020F   AD..         MOV     R5,?V0 + 9
+   \   000211   AA..         MOV     R2,?V0 + 6
+   \   000213   AB..         MOV     R3,?V0 + 7
+   \   000215   12....       LCALL   ??free_packet?relay
+    277                              mac_call_sent_callback(sent, cptr, status, num_tx);
+   \   000218                ; Setup parameters for call to function mac_call_sent_callback
+   \   000218   78..         MOV     R0,#?V0 + 0
+   \   00021A   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00021D   8E..         MOV     ?V0 + 0,R6
+   \   00021F   8F..         MOV     ?V0 + 1,R7
+   \   000221   78..         MOV     R0,#?V0 + 0
+   \   000223   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000226   AC..         MOV     R4,?V0 + 12
+   \   000228   AD..         MOV     R5,?V0 + 13
+   \   00022A   AA..         MOV     R2,?V0 + 14
+   \   00022C   AB..         MOV     R3,?V0 + 15
+   \   00022E   12....       LCALL   ??mac_call_sent_callback?relay
+   \   000231   7404         MOV     A,#0x4
+   \   000233   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000236   8029         SJMP    ??packet_sent_0
+    278                          }
+    279                      } else {
+    280                          if(status == MAC_TX_OK) {
+    281                              PRINTF("csma: rexmit ok %d\n", n->transmissions);
+    282                          } else {
+    283                              PRINTF("csma: rexmit failed %d: %d\n", n->transmissions, status);
+    284                          }
+    285                          free_packet(n, q);
+   \                     ??packet_sent_12:
+   \   000238                ; Setup parameters for call to function free_packet
+   \   000238   AC..         MOV     R4,?V0 + 8
+   \   00023A   AD..         MOV     R5,?V0 + 9
+   \   00023C   AA..         MOV     R2,?V0 + 6
+   \   00023E   AB..         MOV     R3,?V0 + 7
+   \   000240   12....       LCALL   ??free_packet?relay
+    286                          mac_call_sent_callback(sent, cptr, status, num_tx);
+   \   000243                ; Setup parameters for call to function mac_call_sent_callback
+   \   000243   78..         MOV     R0,#?V0 + 0
+   \   000245   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000248   8E..         MOV     ?V0 + 0,R6
+   \   00024A   8F..         MOV     ?V0 + 1,R7
+   \   00024C   78..         MOV     R0,#?V0 + 0
+   \   00024E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000251   AC..         MOV     R4,?V0 + 12
+   \   000253   AD..         MOV     R5,?V0 + 13
+   \   000255   AA..         MOV     R2,?V0 + 14
+   \   000257   AB..         MOV     R3,?V0 + 15
+   \   000259   12....       LCALL   ??mac_call_sent_callback?relay
+   \   00025C   7404         MOV     A,#0x4
+   \   00025E   12....       LCALL   ?DEALLOC_XSTACK8
+    287                      }
+    288                  }
+    289              }
+    290          }
+   \                     ??packet_sent_0:
+   \   000261   7F10         MOV     R7,#0x10
+   \   000263   02....       LJMP    ?BANKED_LEAVE_XDATA
+    291          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    292              static void
+    293          send_packet(mac_callback_t sent, void *ptr)
+   \                     send_packet:
+    294          {
+   \   000000   74EE         MOV     A,#-0x12
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 18
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 2,R2
+   \   000007   8B..         MOV     ?V0 + 3,R3
+   \   000009   8C..         MOV     ?V0 + 0,R4
+   \   00000B   8D..         MOV     ?V0 + 1,R5
+    295              struct rdc_buf_list *q;
+    296              struct neighbor_queue *n;
+    297              static uint16_t seqno;
+    298              const rimeaddr_t *addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+   \   00000D                ; Setup parameters for call to function packetbuf_addr
+   \   00000D   7919         MOV     R1,#0x19
+   \   00000F   12....       LCALL   ??packetbuf_addr?relay
+   \   000012   8A..         MOV     ?V0 + 4,R2
+   \   000014   8B..         MOV     ?V0 + 5,R3
+   \   000016   AE..         MOV     R6,?V0 + 4
+   \   000018   AF..         MOV     R7,?V0 + 5
+    299          
+    300              if(seqno == 0) {
+   \   00001A   90....       MOV     DPTR,#??seqno
+   \   00001D   E0           MOVX    A,@DPTR
+   \   00001E   F8           MOV     R0,A
+   \   00001F   A3           INC     DPTR
+   \   000020   E0           MOVX    A,@DPTR
+   \   000021   F9           MOV     R1,A
+   \   000022   E8           MOV     A,R0
+   \   000023   49           ORL     A,R1
+   \   000024   700C         JNZ     ??send_packet_0
+    301                  /* PACKETBUF_ATTR_MAC_SEQNO cannot be zero, due to a pecuilarity
+    302                     in framer-802154.c. */
+    303                  seqno++;
+   \   000026   90....       MOV     DPTR,#??seqno
+   \   000029   E0           MOVX    A,@DPTR
+   \   00002A   2401         ADD     A,#0x1
+   \   00002C   F0           MOVX    @DPTR,A
+   \   00002D   A3           INC     DPTR
+   \   00002E   E0           MOVX    A,@DPTR
+   \   00002F   3400         ADDC    A,#0x0
+   \   000031   F0           MOVX    @DPTR,A
+    304              }
+    305              packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, seqno++);
+   \                     ??send_packet_0:
+   \   000032   90....       MOV     DPTR,#??seqno
+   \   000035   E0           MOVX    A,@DPTR
+   \   000036   FA           MOV     R2,A
+   \   000037   A3           INC     DPTR
+   \   000038   E0           MOVX    A,@DPTR
+   \   000039   FB           MOV     R3,A
+   \   00003A   EA           MOV     A,R2
+   \   00003B   2401         ADD     A,#0x1
+   \   00003D   F8           MOV     R0,A
+   \   00003E   EB           MOV     A,R3
+   \   00003F   3400         ADDC    A,#0x0
+   \   000041   F9           MOV     R1,A
+   \   000042   90....       MOV     DPTR,#??seqno
+   \   000045   E8           MOV     A,R0
+   \   000046   F0           MOVX    @DPTR,A
+   \   000047   A3           INC     DPTR
+   \   000048   E9           MOV     A,R1
+   \   000049   F0           MOVX    @DPTR,A
+   \   00004A                ; Setup parameters for call to function packetbuf_set_attr
+   \   00004A   790A         MOV     R1,#0xa
+   \   00004C   12....       LCALL   ??packetbuf_set_attr?relay
+    306          
+    307              /* Look for the neighbor entry */
+    308              n = neighbor_queue_from_addr(addr);
+   \   00004F                ; Setup parameters for call to function neighbor_queue_from_addr
+   \   00004F   EE           MOV     A,R6
+   \   000050   FA           MOV     R2,A
+   \   000051   EF           MOV     A,R7
+   \   000052   FB           MOV     R3,A
+   \   000053   12....       LCALL   ??neighbor_queue_from_addr?relay
+   \   000056   8A..         MOV     ?V0 + 4,R2
+   \   000058   8B..         MOV     ?V0 + 5,R3
+   \   00005A   85....       MOV     ?V0 + 6,?V0 + 4
+   \   00005D   85....       MOV     ?V0 + 7,?V0 + 5
+    309              if(n == NULL) {
+   \   000060   E5..         MOV     A,?V0 + 6
+   \   000062   45..         ORL     A,?V0 + 7
+   \   000064   6003         JZ      $+5
+   \   000066   02....       LJMP    ??send_packet_1 & 0xFFFF
+    310                  /* Allocate a new neighbor entry */
+    311                  n = memb_alloc(&neighbor_memb);
+   \   000069                ; Setup parameters for call to function memb_alloc
+   \   000069   7A..         MOV     R2,#neighbor_memb & 0xff
+   \   00006B   7B..         MOV     R3,#(neighbor_memb >> 8) & 0xff
+   \   00006D   12....       LCALL   ??memb_alloc?relay
+   \   000070   8A..         MOV     ?V0 + 4,R2
+   \   000072   8B..         MOV     ?V0 + 5,R3
+   \   000074   85....       MOV     ?V0 + 6,?V0 + 4
+   \   000077   85....       MOV     ?V0 + 7,?V0 + 5
+    312                  if(n != NULL) {
+   \   00007A   E5..         MOV     A,?V0 + 6
+   \   00007C   45..         ORL     A,?V0 + 7
+   \   00007E   7003         JNZ     $+5
+   \   000080   02....       LJMP    ??send_packet_1 & 0xFFFF
+    313                      /* Init neighbor entry */
+    314                      rimeaddr_copy(&n->addr, addr);
+   \   000083                ; Setup parameters for call to function rimeaddr_copy
+   \   000083   EE           MOV     A,R6
+   \   000084   FC           MOV     R4,A
+   \   000085   EF           MOV     A,R7
+   \   000086   FD           MOV     R5,A
+   \   000087   E5..         MOV     A,?V0 + 6
+   \   000089   2402         ADD     A,#0x2
+   \   00008B   FA           MOV     R2,A
+   \   00008C   E5..         MOV     A,?V0 + 7
+   \   00008E   3400         ADDC    A,#0x0
+   \   000090   FB           MOV     R3,A
+   \   000091   12....       LCALL   ??rimeaddr_copy?relay
+    315                      n->transmissions = 0;
+   \   000094   E5..         MOV     A,?V0 + 6
+   \   000096   2414         ADD     A,#0x14
+   \   000098   F582         MOV     DPL,A
+   \   00009A   E5..         MOV     A,?V0 + 7
+   \   00009C   3400         ADDC    A,#0x0
+   \   00009E   F583         MOV     DPH,A
+   \   0000A0   7400         MOV     A,#0x0
+   \   0000A2   F0           MOVX    @DPTR,A
+    316                      n->collisions = 0;
+   \   0000A3   E5..         MOV     A,?V0 + 6
+   \   0000A5   2415         ADD     A,#0x15
+   \   0000A7   F582         MOV     DPL,A
+   \   0000A9   E5..         MOV     A,?V0 + 7
+   \   0000AB   3400         ADDC    A,#0x0
+   \   0000AD   F583         MOV     DPH,A
+   \   0000AF   7400         MOV     A,#0x0
+   \   0000B1   F0           MOVX    @DPTR,A
+    317                      n->deferrals = 0;
+   \   0000B2   E5..         MOV     A,?V0 + 6
+   \   0000B4   2416         ADD     A,#0x16
+   \   0000B6   F582         MOV     DPL,A
+   \   0000B8   E5..         MOV     A,?V0 + 7
+   \   0000BA   3400         ADDC    A,#0x0
+   \   0000BC   F583         MOV     DPH,A
+   \   0000BE   7400         MOV     A,#0x0
+   \   0000C0   F0           MOVX    @DPTR,A
+    318                      /* Init packet list for this neighbor */
+    319                      LIST_STRUCT_INIT(n, queued_packet_list);
+   \   0000C1   E5..         MOV     A,?V0 + 6
+   \   0000C3   2417         ADD     A,#0x17
+   \   0000C5   F8           MOV     R0,A
+   \   0000C6   E5..         MOV     A,?V0 + 7
+   \   0000C8   3400         ADDC    A,#0x0
+   \   0000CA   F9           MOV     R1,A
+   \   0000CB   E5..         MOV     A,?V0 + 6
+   \   0000CD   2419         ADD     A,#0x19
+   \   0000CF   F582         MOV     DPL,A
+   \   0000D1   E5..         MOV     A,?V0 + 7
+   \   0000D3   3400         ADDC    A,#0x0
+   \   0000D5   F583         MOV     DPH,A
+   \   0000D7   E8           MOV     A,R0
+   \   0000D8   F0           MOVX    @DPTR,A
+   \   0000D9   A3           INC     DPTR
+   \   0000DA   E9           MOV     A,R1
+   \   0000DB   F0           MOVX    @DPTR,A
+   \   0000DC   E5..         MOV     A,?V0 + 6
+   \   0000DE   2417         ADD     A,#0x17
+   \   0000E0   F582         MOV     DPL,A
+   \   0000E2   E5..         MOV     A,?V0 + 7
+   \   0000E4   3400         ADDC    A,#0x0
+   \   0000E6   F583         MOV     DPH,A
+   \   0000E8   7400         MOV     A,#0x0
+   \   0000EA   F0           MOVX    @DPTR,A
+   \   0000EB   A3           INC     DPTR
+   \   0000EC   7400         MOV     A,#0x0
+   \   0000EE   F0           MOVX    @DPTR,A
+   \   0000EF                ; Setup parameters for call to function list_init
+   \   0000EF   E5..         MOV     A,?V0 + 6
+   \   0000F1   2419         ADD     A,#0x19
+   \   0000F3   F582         MOV     DPL,A
+   \   0000F5   E5..         MOV     A,?V0 + 7
+   \   0000F7   3400         ADDC    A,#0x0
+   \   0000F9   F583         MOV     DPH,A
+   \   0000FB   E0           MOVX    A,@DPTR
+   \   0000FC   FA           MOV     R2,A
+   \   0000FD   A3           INC     DPTR
+   \   0000FE   E0           MOVX    A,@DPTR
+   \   0000FF   FB           MOV     R3,A
+   \   000100   12....       LCALL   ??list_init?relay
+    320                      /* Add neighbor to the list */
+    321                      list_add(neighbor_list, n);
+   \   000103                ; Setup parameters for call to function list_add
+   \   000103   AC..         MOV     R4,?V0 + 6
+   \   000105   AD..         MOV     R5,?V0 + 7
+   \   000107   90....       MOV     DPTR,#neighbor_list
+   \   00010A   E0           MOVX    A,@DPTR
+   \   00010B   FA           MOV     R2,A
+   \   00010C   A3           INC     DPTR
+   \   00010D   E0           MOVX    A,@DPTR
+   \   00010E   FB           MOV     R3,A
+   \   00010F   12....       LCALL   ??list_add?relay
+    322                  }
+    323              }
+    324          
+    325              if(n != NULL) {
+   \                     ??send_packet_1:
+   \   000112   E5..         MOV     A,?V0 + 6
+   \   000114   45..         ORL     A,?V0 + 7
+   \   000116   7003         JNZ     $+5
+   \   000118   02....       LJMP    ??send_packet_2 & 0xFFFF
+    326                  /* Add packet to the neighbor's queue */
+    327                  q = memb_alloc(&packet_memb);
+   \   00011B                ; Setup parameters for call to function memb_alloc
+   \   00011B   7A..         MOV     R2,#packet_memb & 0xff
+   \   00011D   7B..         MOV     R3,#(packet_memb >> 8) & 0xff
+   \   00011F   12....       LCALL   ??memb_alloc?relay
+   \   000122   8A..         MOV     ?V0 + 4,R2
+   \   000124   8B..         MOV     ?V0 + 5,R3
+   \   000126   AE..         MOV     R6,?V0 + 4
+   \   000128   AF..         MOV     R7,?V0 + 5
+    328                  if(q != NULL) {
+   \   00012A   EE           MOV     A,R6
+   \   00012B   4F           ORL     A,R7
+   \   00012C   7003         JNZ     $+5
+   \   00012E   02....       LJMP    ??send_packet_3 & 0xFFFF
+    329                      q->ptr = memb_alloc(&metadata_memb);
+   \   000131                ; Setup parameters for call to function memb_alloc
+   \   000131   7A..         MOV     R2,#metadata_memb & 0xff
+   \   000133   7B..         MOV     R3,#(metadata_memb >> 8) & 0xff
+   \   000135   12....       LCALL   ??memb_alloc?relay
+   \   000138   8E82         MOV     DPL,R6
+   \   00013A   8F83         MOV     DPH,R7
+   \   00013C   A3           INC     DPTR
+   \   00013D   A3           INC     DPTR
+   \   00013E   A3           INC     DPTR
+   \   00013F   A3           INC     DPTR
+   \   000140   EA           MOV     A,R2
+   \   000141   F0           MOVX    @DPTR,A
+   \   000142   A3           INC     DPTR
+   \   000143   EB           MOV     A,R3
+   \   000144   F0           MOVX    @DPTR,A
+    330                      if(q->ptr != NULL) {
+   \   000145   8E82         MOV     DPL,R6
+   \   000147   8F83         MOV     DPH,R7
+   \   000149   A3           INC     DPTR
+   \   00014A   A3           INC     DPTR
+   \   00014B   A3           INC     DPTR
+   \   00014C   A3           INC     DPTR
+   \   00014D   E0           MOVX    A,@DPTR
+   \   00014E   F8           MOV     R0,A
+   \   00014F   A3           INC     DPTR
+   \   000150   E0           MOVX    A,@DPTR
+   \   000151   F9           MOV     R1,A
+   \   000152   E8           MOV     A,R0
+   \   000153   49           ORL     A,R1
+   \   000154   7003         JNZ     $+5
+   \   000156   02....       LJMP    ??send_packet_4 & 0xFFFF
+    331                          q->buf = queuebuf_new_from_packetbuf();
+   \   000159                ; Setup parameters for call to function queuebuf_new_from_packetbuf
+   \   000159   12....       LCALL   ??queuebuf_new_from_packetbuf?relay
+   \   00015C   8E82         MOV     DPL,R6
+   \   00015E   8F83         MOV     DPH,R7
+   \   000160   A3           INC     DPTR
+   \   000161   A3           INC     DPTR
+   \   000162   EA           MOV     A,R2
+   \   000163   F0           MOVX    @DPTR,A
+   \   000164   A3           INC     DPTR
+   \   000165   EB           MOV     A,R3
+   \   000166   F0           MOVX    @DPTR,A
+    332                          if(q->buf != NULL) {
+   \   000167   8E82         MOV     DPL,R6
+   \   000169   8F83         MOV     DPH,R7
+   \   00016B   A3           INC     DPTR
+   \   00016C   A3           INC     DPTR
+   \   00016D   E0           MOVX    A,@DPTR
+   \   00016E   F8           MOV     R0,A
+   \   00016F   A3           INC     DPTR
+   \   000170   E0           MOVX    A,@DPTR
+   \   000171   F9           MOV     R1,A
+   \   000172   E8           MOV     A,R0
+   \   000173   49           ORL     A,R1
+   \   000174   7003         JNZ     $+5
+   \   000176   02....       LJMP    ??send_packet_5 & 0xFFFF
+    333                              struct qbuf_metadata *metadata = (struct qbuf_metadata *)q->ptr;
+   \   000179   8E82         MOV     DPL,R6
+   \   00017B   8F83         MOV     DPH,R7
+   \   00017D   A3           INC     DPTR
+   \   00017E   A3           INC     DPTR
+   \   00017F   A3           INC     DPTR
+   \   000180   A3           INC     DPTR
+   \   000181   E0           MOVX    A,@DPTR
+   \   000182   F5..         MOV     ?V0 + 4,A
+   \   000184   A3           INC     DPTR
+   \   000185   E0           MOVX    A,@DPTR
+   \   000186   F5..         MOV     ?V0 + 5,A
+    334                              /* Neighbor and packet successfully allocated */
+    335                              if(packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS) == 0) {
+   \   000188                ; Setup parameters for call to function packetbuf_attr
+   \   000188   7909         MOV     R1,#0x9
+   \   00018A   12....       LCALL   ??packetbuf_attr?relay
+   \   00018D   8A..         MOV     ?V0 + 8,R2
+   \   00018F   8B..         MOV     ?V0 + 9,R3
+   \   000191   E5..         MOV     A,?V0 + 8
+   \   000193   45..         ORL     A,?V0 + 9
+   \   000195   700F         JNZ     ??send_packet_6
+    336                                  /* Use default configuration for max transmissions */
+    337                                  metadata->max_transmissions = CSMA_MAX_MAC_TRANSMISSIONS;
+   \   000197   85..82       MOV     DPL,?V0 + 4
+   \   00019A   85..83       MOV     DPH,?V0 + 5
+   \   00019D   A3           INC     DPTR
+   \   00019E   A3           INC     DPTR
+   \   00019F   A3           INC     DPTR
+   \   0001A0   A3           INC     DPTR
+   \   0001A1   7403         MOV     A,#0x3
+   \   0001A3   F0           MOVX    @DPTR,A
+   \   0001A4   8011         SJMP    ??send_packet_7
+    338                              } else {
+    339                                  metadata->max_transmissions =
+    340                                      packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS);
+   \                     ??send_packet_6:
+   \   0001A6                ; Setup parameters for call to function packetbuf_attr
+   \   0001A6   7909         MOV     R1,#0x9
+   \   0001A8   12....       LCALL   ??packetbuf_attr?relay
+   \   0001AB   EA           MOV     A,R2
+   \   0001AC   85..82       MOV     DPL,?V0 + 4
+   \   0001AF   85..83       MOV     DPH,?V0 + 5
+   \   0001B2   A3           INC     DPTR
+   \   0001B3   A3           INC     DPTR
+   \   0001B4   A3           INC     DPTR
+   \   0001B5   A3           INC     DPTR
+   \   0001B6   F0           MOVX    @DPTR,A
+    341                              }
+    342                              metadata->sent = sent;
+   \                     ??send_packet_7:
+   \   0001B7   85..82       MOV     DPL,?V0 + 4
+   \   0001BA   85..83       MOV     DPH,?V0 + 5
+   \   0001BD   E5..         MOV     A,?V0 + 2
+   \   0001BF   F0           MOVX    @DPTR,A
+   \   0001C0   A3           INC     DPTR
+   \   0001C1   E5..         MOV     A,?V0 + 3
+   \   0001C3   F0           MOVX    @DPTR,A
+    343                              metadata->cptr = ptr;
+   \   0001C4   85..82       MOV     DPL,?V0 + 4
+   \   0001C7   85..83       MOV     DPH,?V0 + 5
+   \   0001CA   A3           INC     DPTR
+   \   0001CB   A3           INC     DPTR
+   \   0001CC   E5..         MOV     A,?V0 + 0
+   \   0001CE   F0           MOVX    @DPTR,A
+   \   0001CF   A3           INC     DPTR
+   \   0001D0   E5..         MOV     A,?V0 + 1
+   \   0001D2   F0           MOVX    @DPTR,A
+    344          
+    345                              if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
+    346                                      PACKETBUF_ATTR_PACKET_TYPE_ACK) {
+   \   0001D3                ; Setup parameters for call to function packetbuf_attr
+   \   0001D3   790E         MOV     R1,#0xe
+   \   0001D5   12....       LCALL   ??packetbuf_attr?relay
+   \   0001D8   8A..         MOV     ?V0 + 0,R2
+   \   0001DA   8B..         MOV     ?V0 + 1,R3
+   \   0001DC   7401         MOV     A,#0x1
+   \   0001DE   65..         XRL     A,?V0 + 0
+   \   0001E0   7004         JNZ     ??send_packet_8
+   \   0001E2   7400         MOV     A,#0x0
+   \   0001E4   65..         XRL     A,?V0 + 1
+   \                     ??send_packet_8:
+   \   0001E6   701A         JNZ     ??send_packet_9
+    347                                  list_push(n->queued_packet_list, q);
+   \   0001E8                ; Setup parameters for call to function list_push
+   \   0001E8   EE           MOV     A,R6
+   \   0001E9   FC           MOV     R4,A
+   \   0001EA   EF           MOV     A,R7
+   \   0001EB   FD           MOV     R5,A
+   \   0001EC   E5..         MOV     A,?V0 + 6
+   \   0001EE   2419         ADD     A,#0x19
+   \   0001F0   F582         MOV     DPL,A
+   \   0001F2   E5..         MOV     A,?V0 + 7
+   \   0001F4   3400         ADDC    A,#0x0
+   \   0001F6   F583         MOV     DPH,A
+   \   0001F8   E0           MOVX    A,@DPTR
+   \   0001F9   FA           MOV     R2,A
+   \   0001FA   A3           INC     DPTR
+   \   0001FB   E0           MOVX    A,@DPTR
+   \   0001FC   FB           MOV     R3,A
+   \   0001FD   12....       LCALL   ??list_push?relay
+   \   000200   8018         SJMP    ??send_packet_10
+    348                              } else {
+    349                                  list_add(n->queued_packet_list, q);
+   \                     ??send_packet_9:
+   \   000202                ; Setup parameters for call to function list_add
+   \   000202   EE           MOV     A,R6
+   \   000203   FC           MOV     R4,A
+   \   000204   EF           MOV     A,R7
+   \   000205   FD           MOV     R5,A
+   \   000206   E5..         MOV     A,?V0 + 6
+   \   000208   2419         ADD     A,#0x19
+   \   00020A   F582         MOV     DPL,A
+   \   00020C   E5..         MOV     A,?V0 + 7
+   \   00020E   3400         ADDC    A,#0x0
+   \   000210   F583         MOV     DPH,A
+   \   000212   E0           MOVX    A,@DPTR
+   \   000213   FA           MOV     R2,A
+   \   000214   A3           INC     DPTR
+   \   000215   E0           MOVX    A,@DPTR
+   \   000216   FB           MOV     R3,A
+   \   000217   12....       LCALL   ??list_add?relay
+    350                              }
+    351          
+    352                              /* If q is the first packet in the neighbor's queue, send asap */
+    353                              if(list_head(n->queued_packet_list) == q) {
+   \                     ??send_packet_10:
+   \   00021A                ; Setup parameters for call to function list_head
+   \   00021A   E5..         MOV     A,?V0 + 6
+   \   00021C   2419         ADD     A,#0x19
+   \   00021E   F582         MOV     DPL,A
+   \   000220   E5..         MOV     A,?V0 + 7
+   \   000222   3400         ADDC    A,#0x0
+   \   000224   F583         MOV     DPH,A
+   \   000226   E0           MOVX    A,@DPTR
+   \   000227   FA           MOV     R2,A
+   \   000228   A3           INC     DPTR
+   \   000229   E0           MOVX    A,@DPTR
+   \   00022A   FB           MOV     R3,A
+   \   00022B   12....       LCALL   ??list_head?relay
+   \   00022E   8A..         MOV     ?V0 + 0,R2
+   \   000230   8B..         MOV     ?V0 + 1,R3
+   \   000232   EE           MOV     A,R6
+   \   000233   65..         XRL     A,?V0 + 0
+   \   000235   7003         JNZ     ??send_packet_11
+   \   000237   EF           MOV     A,R7
+   \   000238   65..         XRL     A,?V0 + 1
+   \                     ??send_packet_11:
+   \   00023A   7026         JNZ     ??send_packet_12
+    354                                  ctimer_set(&n->transmit_timer, 0, transmit_packet_list, n);
+   \   00023C                ; Setup parameters for call to function ctimer_set
+   \   00023C   78..         MOV     R0,#?V0 + 6
+   \   00023E   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000241   75....       MOV     ?V0 + 0,#??transmit_packet_list?relay & 0xff
+   \   000244   75....       MOV     ?V0 + 1,#(??transmit_packet_list?relay >> 8) & 0xff
+   \   000247   78..         MOV     R0,#?V0 + 0
+   \   000249   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00024C   7C00         MOV     R4,#0x0
+   \   00024E   7D00         MOV     R5,#0x0
+   \   000250   E5..         MOV     A,?V0 + 6
+   \   000252   2404         ADD     A,#0x4
+   \   000254   FA           MOV     R2,A
+   \   000255   E5..         MOV     A,?V0 + 7
+   \   000257   3400         ADDC    A,#0x0
+   \   000259   FB           MOV     R3,A
+   \   00025A   12....       LCALL   ??ctimer_set?relay
+   \   00025D   7404         MOV     A,#0x4
+   \   00025F   12....       LCALL   ?DEALLOC_XSTACK8
+    355                              }
+    356                              return;
+   \                     ??send_packet_12:
+   \   000262   02....       LJMP    ??send_packet_13 & 0xFFFF
+    357                          }
+    358                          memb_free(&metadata_memb, q->ptr);
+   \                     ??send_packet_5:
+   \   000265                ; Setup parameters for call to function memb_free
+   \   000265   8E82         MOV     DPL,R6
+   \   000267   8F83         MOV     DPH,R7
+   \   000269   A3           INC     DPTR
+   \   00026A   A3           INC     DPTR
+   \   00026B   A3           INC     DPTR
+   \   00026C   A3           INC     DPTR
+   \   00026D   E0           MOVX    A,@DPTR
+   \   00026E   FC           MOV     R4,A
+   \   00026F   A3           INC     DPTR
+   \   000270   E0           MOVX    A,@DPTR
+   \   000271   FD           MOV     R5,A
+   \   000272   7A..         MOV     R2,#metadata_memb & 0xff
+   \   000274   7B..         MOV     R3,#(metadata_memb >> 8) & 0xff
+   \   000276   12....       LCALL   ??memb_free?relay
+   \   000279   E9           MOV     A,R1
+    359                          PRINTF("csma: could not allocate queuebuf, dropping packet\n");
+    360                      }
+    361                      memb_free(&packet_memb, q);
+   \                     ??send_packet_4:
+   \   00027A                ; Setup parameters for call to function memb_free
+   \   00027A   EE           MOV     A,R6
+   \   00027B   FC           MOV     R4,A
+   \   00027C   EF           MOV     A,R7
+   \   00027D   FD           MOV     R5,A
+   \   00027E   7A..         MOV     R2,#packet_memb & 0xff
+   \   000280   7B..         MOV     R3,#(packet_memb >> 8) & 0xff
+   \   000282   12....       LCALL   ??memb_free?relay
+   \   000285   E9           MOV     A,R1
+    362                      PRINTF("csma: could not allocate queuebuf, dropping packet\n");
+    363                  }
+    364                  /* The packet allocation failed. Remove and free neighbor entry if empty. */
+    365                  if(list_length(n->queued_packet_list) == 0) {
+   \                     ??send_packet_3:
+   \   000286                ; Setup parameters for call to function list_length
+   \   000286   E5..         MOV     A,?V0 + 6
+   \   000288   2419         ADD     A,#0x19
+   \   00028A   F582         MOV     DPL,A
+   \   00028C   E5..         MOV     A,?V0 + 7
+   \   00028E   3400         ADDC    A,#0x0
+   \   000290   F583         MOV     DPH,A
+   \   000292   E0           MOVX    A,@DPTR
+   \   000293   FA           MOV     R2,A
+   \   000294   A3           INC     DPTR
+   \   000295   E0           MOVX    A,@DPTR
+   \   000296   FB           MOV     R3,A
+   \   000297   12....       LCALL   ??list_length?relay
+   \   00029A   8A..         MOV     ?V0 + 4,R2
+   \   00029C   8B..         MOV     ?V0 + 5,R3
+   \   00029E   E5..         MOV     A,?V0 + 4
+   \   0002A0   45..         ORL     A,?V0 + 5
+   \   0002A2   701B         JNZ     ??send_packet_2
+    366                      list_remove(neighbor_list, n);
+   \   0002A4                ; Setup parameters for call to function list_remove
+   \   0002A4   AC..         MOV     R4,?V0 + 6
+   \   0002A6   AD..         MOV     R5,?V0 + 7
+   \   0002A8   90....       MOV     DPTR,#neighbor_list
+   \   0002AB   E0           MOVX    A,@DPTR
+   \   0002AC   FA           MOV     R2,A
+   \   0002AD   A3           INC     DPTR
+   \   0002AE   E0           MOVX    A,@DPTR
+   \   0002AF   FB           MOV     R3,A
+   \   0002B0   12....       LCALL   ??list_remove?relay
+    367                      memb_free(&neighbor_memb, n);
+   \   0002B3                ; Setup parameters for call to function memb_free
+   \   0002B3   AC..         MOV     R4,?V0 + 6
+   \   0002B5   AD..         MOV     R5,?V0 + 7
+   \   0002B7   7A..         MOV     R2,#neighbor_memb & 0xff
+   \   0002B9   7B..         MOV     R3,#(neighbor_memb >> 8) & 0xff
+   \   0002BB   12....       LCALL   ??memb_free?relay
+   \   0002BE   E9           MOV     A,R1
+    368                  }
+    369                  PRINTF("csma: could not allocate packet, dropping packet\n");
+    370              } else {
+    371                  PRINTF("csma: could not allocate neighbor, dropping packet\n");
+    372              }
+    373              mac_call_sent_callback(sent, ptr, MAC_TX_ERR, 1);
+   \                     ??send_packet_2:
+   \   0002BF                ; Setup parameters for call to function mac_call_sent_callback
+   \   0002BF   75..01       MOV     ?V0 + 4,#0x1
+   \   0002C2   75..00       MOV     ?V0 + 5,#0x0
+   \   0002C5   78..         MOV     R0,#?V0 + 4
+   \   0002C7   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0002CA   75..04       MOV     ?V0 + 4,#0x4
+   \   0002CD   75..00       MOV     ?V0 + 5,#0x0
+   \   0002D0   78..         MOV     R0,#?V0 + 4
+   \   0002D2   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0002D5   AC..         MOV     R4,?V0 + 0
+   \   0002D7   AD..         MOV     R5,?V0 + 1
+   \   0002D9   AA..         MOV     R2,?V0 + 2
+   \   0002DB   AB..         MOV     R3,?V0 + 3
+   \   0002DD   12....       LCALL   ??mac_call_sent_callback?relay
+   \   0002E0   7404         MOV     A,#0x4
+   \   0002E2   12....       LCALL   ?DEALLOC_XSTACK8
+    374          }
+   \                     ??send_packet_13:
+   \   0002E5   7F0A         MOV     R7,#0xa
+   \   0002E7   02....       LJMP    ?BANKED_LEAVE_XDATA
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \                     ??seqno:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+    375          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    376              static void
+    377          input_packet(void)
+   \                     input_packet:
+    378          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    379              NETSTACK_NETWORK.input();
+   \   000004                ; Setup parameters for indirect call
+   \   000004   90....       MOV     DPTR,#sicslowpan_driver + 4
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   F8           MOV     R0,A
+   \   000009   A3           INC     DPTR
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F583         MOV     DPH,A
+   \   00000D   8882         MOV     DPL,R0
+   \   00000F   12....       LCALL   ?CALL_IND
+    380          }
+   \   000012   D083         POP     DPH
+   \   000014   D082         POP     DPL
+   \   000016   02....       LJMP    ?BRET
+    381          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    382              static int
+    383          on(void)
+   \                     on:
+    384          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    385              return NETSTACK_RDC.on();
+   \   000004                ; Setup parameters for indirect call
+   \   000004   90....       MOV     DPTR,#nullrdc_driver + 10
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   F8           MOV     R0,A
+   \   000009   A3           INC     DPTR
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F583         MOV     DPH,A
+   \   00000D   8882         MOV     DPL,R0
+   \   00000F   12....       LCALL   ?CALL_IND
+   \   000012   D083         POP     DPH
+   \   000014   D082         POP     DPL
+   \   000016   02....       LJMP    ?BRET
+    386          }
+    387          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    388              static int
+    389          off(int keep_radio_on)
+   \                     off:
+    390          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    391              return NETSTACK_RDC.off(keep_radio_on);
+   \   000004                ; Setup parameters for indirect call
+   \   000004   90....       MOV     DPTR,#nullrdc_driver + 12
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   F8           MOV     R0,A
+   \   000009   A3           INC     DPTR
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F583         MOV     DPH,A
+   \   00000D   8882         MOV     DPL,R0
+   \   00000F   12....       LCALL   ?CALL_IND
+   \   000012   D083         POP     DPH
+   \   000014   D082         POP     DPL
+   \   000016   02....       LJMP    ?BRET
+    392          }
+    393          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    394              static unsigned short
+    395          channel_check_interval(void)
+   \                     channel_check_interval:
+    396          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    397              if(NETSTACK_RDC.channel_check_interval) {
+   \   000004   90....       MOV     DPTR,#nullrdc_driver + 14
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   F8           MOV     R0,A
+   \   000009   A3           INC     DPTR
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F9           MOV     R1,A
+   \   00000C   E8           MOV     A,R0
+   \   00000D   49           ORL     A,R1
+   \   00000E   6010         JZ      ??channel_check_interval_0
+    398                  return NETSTACK_RDC.channel_check_interval();
+   \   000010                ; Setup parameters for indirect call
+   \   000010   90....       MOV     DPTR,#nullrdc_driver + 14
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   F8           MOV     R0,A
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F583         MOV     DPH,A
+   \   000019   8882         MOV     DPL,R0
+   \   00001B   12....       LCALL   ?CALL_IND
+   \   00001E   8004         SJMP    ??channel_check_interval_1
+    399              }
+    400              return 0;
+   \                     ??channel_check_interval_0:
+   \   000020   7A00         MOV     R2,#0x0
+   \   000022   7B00         MOV     R3,#0x0
+   \                     ??channel_check_interval_1:
+   \   000024   D083         POP     DPH
+   \   000026   D082         POP     DPL
+   \   000028   02....       LJMP    ?BRET
+    401          }
+    402          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    403              static void
+    404          init(void)
+   \                     init:
+    405          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    406              memb_init(&packet_memb);
+   \   000004                ; Setup parameters for call to function memb_init
+   \   000004   7A..         MOV     R2,#packet_memb & 0xff
+   \   000006   7B..         MOV     R3,#(packet_memb >> 8) & 0xff
+   \   000008   12....       LCALL   ??memb_init?relay
+    407              memb_init(&metadata_memb);
+   \   00000B                ; Setup parameters for call to function memb_init
+   \   00000B   7A..         MOV     R2,#metadata_memb & 0xff
+   \   00000D   7B..         MOV     R3,#(metadata_memb >> 8) & 0xff
+   \   00000F   12....       LCALL   ??memb_init?relay
+    408              memb_init(&neighbor_memb);
+   \   000012                ; Setup parameters for call to function memb_init
+   \   000012   7A..         MOV     R2,#neighbor_memb & 0xff
+   \   000014   7B..         MOV     R3,#(neighbor_memb >> 8) & 0xff
+   \   000016   12....       LCALL   ??memb_init?relay
+    409          }
+   \   000019   D083         POP     DPH
+   \   00001B   D082         POP     DPL
+   \   00001D   02....       LJMP    ?BRET
+    410          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+    411          const struct mac_driver csma_driver = {
+   \                     csma_driver:
+   \   000000                DS 14
+   \   00000E                REQUIRE `?<Initializer for csma_driver>`
+   \   00000E                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "CSMA">>`:
+   \   000000   43534D41     DB "CSMA"
+   \            00      
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for neighbor_memb>`:
+   \   000000   1B00         DW 27
+   \   000002   0200         DW 2
+   \   000004   ....         DW neighbor_memb_memb_count
+   \   000006   ....         DW neighbor_memb_memb_mem
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for packet_memb>`:
+   \   000000   0600         DW 6
+   \   000002   0600         DW 6
+   \   000004   ....         DW packet_memb_memb_count
+   \   000006   ....         DW packet_memb_memb_mem
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for metadata_memb>`:
+   \   000000   0500         DW 5
+   \   000002   0600         DW 6
+   \   000004   ....         DW metadata_memb_memb_count
+   \   000006   ....         DW metadata_memb_memb_mem
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for neighbor_list>`:
+   \   000000   ....         DW neighbor_list_list
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for csma_driver>`:
+   \   000000   ....         DW `?<Constant "CSMA">`
+   \   000002   ....         DW ??init?relay
+   \   000004   ....         DW ??send_packet?relay
+   \   000006   ....         DW ??input_packet?relay
+   \   000008   ....         DW ??on?relay
+   \   00000A   ....         DW ??off?relay
+   \   00000C   ....         DW ??channel_check_interval?relay
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??neighbor_queue_from_addr?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    neighbor_queue_from_addr
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??default_timebase?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    default_timebase
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??transmit_packet_list?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    transmit_packet_list
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??free_packet?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    free_packet
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??packet_sent?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    packet_sent
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??send_packet?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    send_packet
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??input_packet?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    input_packet
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??on?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    on
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??off?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    off
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??channel_check_interval?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    channel_check_interval
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    init
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "CSMA">`:
+   \   000000                DS 5
+   \   000005                REQUIRE `?<Initializer for <Constant "CSMA">>`
+   \   000005                REQUIRE __INIT_XDATA_I
+    412              "CSMA",
+    413              init,
+    414              send_packet,
+    415              input_packet,
+    416              on,
+    417              off,
+    418              channel_check_interval,
+    419          };
+    420          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       2      0      0  channel_check_interval
+       0      0     34  default_timebase
+       0      0     40  free_packet
+                          0 0 16 -> ctimer_set
+                          0 0 12 -> ctimer_stop
+                          0 0 16 -> default_timebase
+                          0 0 12 -> list_head
+                          0 0 12 -> list_remove
+                          0 0 12 -> memb_free
+                          0 0 12 -> queuebuf_free
+       2      0      0  init
+                          2 0  0 -> memb_init
+       2      0      0  input_packet
+       0      0     30  neighbor_queue_from_addr
+                          0 0 12 -> list_head
+                          0 0 12 -> list_item_next
+                          0 0 12 -> rimeaddr_cmp
+       2      0      0  off
+       2      0      0  on
+       0      0     30  packet_sent
+                          0 0 28 -> ctimer_set
+                          0 0 24 -> default_timebase
+                          0 0 24 -> free_packet
+                          0 0 24 -> list_head
+                          0 0 24 -> list_item_next
+                          0 0 28 -> mac_call_sent_callback
+                          0 0 24 -> packetbuf_attr
+                          0 0 24 -> queuebuf_attr
+                          0 0 24 -> queuebuf_update_attr_from_packetbuf
+                          0 0 24 -> random_rand
+       1      0     22  send_packet
+                          0 0 22 -> ctimer_set
+                          0 0 18 -> list_add
+                          0 0 18 -> list_head
+                          0 0 18 -> list_init
+                          0 0 18 -> list_length
+                          0 0 18 -> list_push
+                          0 0 18 -> list_remove
+                          0 0 22 -> mac_call_sent_callback
+                          0 0 18 -> memb_alloc
+                          0 0 18 -> memb_free
+                          0 0 18 -> neighbor_queue_from_addr
+                          0 0 18 -> packetbuf_addr
+                          0 0 18 -> packetbuf_attr
+                          0 0 18 -> packetbuf_set_attr
+                          0 0 18 -> queuebuf_new_from_packetbuf
+                          0 0 18 -> rimeaddr_copy
+       0      0     14  transmit_packet_list
+                          0 0 12 -> list_head
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       5  ?<Constant "CSMA">
+       5  ?<Initializer for <Constant "CSMA">>
+      14  ?<Initializer for csma_driver>
+       8  ?<Initializer for metadata_memb>
+       2  ?<Initializer for neighbor_list>
+       8  ?<Initializer for neighbor_memb>
+       8  ?<Initializer for packet_memb>
+       6  ??channel_check_interval?relay
+       6  ??default_timebase?relay
+       6  ??free_packet?relay
+       6  ??init?relay
+       6  ??input_packet?relay
+       6  ??neighbor_queue_from_addr?relay
+       6  ??off?relay
+       6  ??on?relay
+       6  ??packet_sent?relay
+       6  ??send_packet?relay
+       6  ??transmit_packet_list?relay
+      43  channel_check_interval
+      14  csma_driver
+      40  default_timebase
+     254  free_packet
+      32  init
+      25  input_packet
+       8  metadata_memb
+       6  metadata_memb_memb_count
+      30  metadata_memb_memb_mem
+       2  neighbor_list
+       2  neighbor_list_list
+       8  neighbor_memb
+       2  neighbor_memb_memb_count
+      54  neighbor_memb_memb_mem
+      89  neighbor_queue_from_addr
+      25  off
+      25  on
+       8  packet_memb
+       6  packet_memb_memb_count
+      36  packet_memb_memb_mem
+     614  packet_sent
+     746  send_packet
+       2  seqno
+      84  transmit_packet_list
+
+ 
+ 1 977 bytes in segment BANKED_CODE
+    66 bytes in segment BANK_RELAYS
+    45 bytes in segment XDATA_I
+    45 bytes in segment XDATA_ID
+   138 bytes in segment XDATA_Z
+ 
+ 2 088 bytes of CODE  memory
+   183 bytes of XDATA memory
+
+Errors: none
+Warnings: none

@@ -1,0 +1,1566 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:48 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\net\mac\framer-802154.c     /
+//    Command line       =  D:\myWork\myWork\core\net\mac\framer-802154.c -D  /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\framer-802154.s51                         /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME `framer-802154`
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?ALLOC_XSTACK8
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?V0
+        EXTERN ?XSP
+        EXTERN ?XSTACK_DISP0_8
+        EXTERN __INIT_XDATA_I
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??create?relay,0203H
+        FUNCTION ??is_broadcast_addr?relay,0203H
+        FUNCTION ??parse?relay,0203H
+        FUNCTION create,021603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 62, STACK
+        PUBLIC framer_802154
+        FUNCTION is_broadcast_addr,0203H
+        ARGFRAME XSTACK, 58, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 9, STACK
+        FUNCTION parse,021603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+frame802154_create  SYMBOL "frame802154_create"
+??frame802154_create?relay SYMBOL "?relay", frame802154_create
+frame802154_hdrlen  SYMBOL "frame802154_hdrlen"
+??frame802154_hdrlen?relay SYMBOL "?relay", frame802154_hdrlen
+frame802154_parse   SYMBOL "frame802154_parse"
+??frame802154_parse?relay SYMBOL "?relay", frame802154_parse
+memset              SYMBOL "memset"
+??memset?relay      SYMBOL "?relay", memset
+packetbuf_addr      SYMBOL "packetbuf_addr"
+??packetbuf_addr?relay SYMBOL "?relay", packetbuf_addr
+packetbuf_attr      SYMBOL "packetbuf_attr"
+??packetbuf_attr?relay SYMBOL "?relay", packetbuf_attr
+packetbuf_datalen   SYMBOL "packetbuf_datalen"
+??packetbuf_datalen?relay SYMBOL "?relay", packetbuf_datalen
+packetbuf_dataptr   SYMBOL "packetbuf_dataptr"
+??packetbuf_dataptr?relay SYMBOL "?relay", packetbuf_dataptr
+packetbuf_hdralloc  SYMBOL "packetbuf_hdralloc"
+??packetbuf_hdralloc?relay SYMBOL "?relay", packetbuf_hdralloc
+packetbuf_hdrptr    SYMBOL "packetbuf_hdrptr"
+??packetbuf_hdrptr?relay SYMBOL "?relay", packetbuf_hdrptr
+packetbuf_hdrreduce SYMBOL "packetbuf_hdrreduce"
+??packetbuf_hdrreduce?relay SYMBOL "?relay", packetbuf_hdrreduce
+packetbuf_set_addr  SYMBOL "packetbuf_set_addr"
+??packetbuf_set_addr?relay SYMBOL "?relay", packetbuf_set_addr
+packetbuf_set_attr  SYMBOL "packetbuf_set_attr"
+??packetbuf_set_attr?relay SYMBOL "?relay", packetbuf_set_attr
+random_rand         SYMBOL "random_rand"
+??random_rand?relay SYMBOL "?relay", random_rand
+rimeaddr_cmp        SYMBOL "rimeaddr_cmp"
+??rimeaddr_cmp?relay SYMBOL "?relay", rimeaddr_cmp
+rimeaddr_copy       SYMBOL "rimeaddr_copy"
+??rimeaddr_copy?relay SYMBOL "?relay", rimeaddr_copy
+
+        EXTERN ??frame802154_create?relay
+        FUNCTION ??frame802154_create?relay,00H
+        EXTERN ??frame802154_hdrlen?relay
+        FUNCTION ??frame802154_hdrlen?relay,00H
+        EXTERN ??frame802154_parse?relay
+        FUNCTION ??frame802154_parse?relay,00H
+        EXTERN ??memset?relay
+        FUNCTION ??memset?relay,00H
+        EXTERN ??packetbuf_addr?relay
+        FUNCTION ??packetbuf_addr?relay,00H
+        EXTERN ??packetbuf_attr?relay
+        FUNCTION ??packetbuf_attr?relay,00H
+        EXTERN ??packetbuf_datalen?relay
+        FUNCTION ??packetbuf_datalen?relay,00H
+        EXTERN ??packetbuf_dataptr?relay
+        FUNCTION ??packetbuf_dataptr?relay,00H
+        EXTERN ??packetbuf_hdralloc?relay
+        FUNCTION ??packetbuf_hdralloc?relay,00H
+        EXTERN ??packetbuf_hdrptr?relay
+        FUNCTION ??packetbuf_hdrptr?relay,00H
+        EXTERN ??packetbuf_hdrreduce?relay
+        FUNCTION ??packetbuf_hdrreduce?relay,00H
+        EXTERN ??packetbuf_set_addr?relay
+        FUNCTION ??packetbuf_set_addr?relay,00H
+        EXTERN ??packetbuf_set_attr?relay
+        FUNCTION ??packetbuf_set_attr?relay,00H
+        EXTERN ??random_rand?relay
+        FUNCTION ??random_rand?relay,00H
+        EXTERN ??rimeaddr_cmp?relay
+        FUNCTION ??rimeaddr_cmp?relay,00H
+        EXTERN ??rimeaddr_copy?relay
+        FUNCTION ??rimeaddr_copy?relay,00H
+        EXTERN frame802154_create
+        FUNCTION frame802154_create,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 62, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN frame802154_hdrlen
+        FUNCTION frame802154_hdrlen,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN frame802154_parse
+        FUNCTION frame802154_parse,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memset
+        FUNCTION memset,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 62, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_addr
+        FUNCTION packetbuf_addr,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_attr
+        FUNCTION packetbuf_attr,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_datalen
+        FUNCTION packetbuf_datalen,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_dataptr
+        FUNCTION packetbuf_dataptr,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_hdralloc
+        FUNCTION packetbuf_hdralloc,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_hdrptr
+        FUNCTION packetbuf_hdrptr,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 62, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_hdrreduce
+        FUNCTION packetbuf_hdrreduce,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 58, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_set_addr
+        FUNCTION packetbuf_set_addr,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 58, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN packetbuf_set_attr
+        FUNCTION packetbuf_set_attr,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN random_rand
+        FUNCTION random_rand,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN rimeaddr_cmp
+        FUNCTION rimeaddr_cmp,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN rimeaddr_copy
+        FUNCTION rimeaddr_copy,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN rimeaddr_node_addr
+        EXTERN rimeaddr_null
+
+// D:\myWork\myWork\core\net\mac\framer-802154.c
+//    1 /*
+//    2  * Copyright (c) 2009, Swedish Institute of Computer Science.
+//    3  * All rights reserved.
+//    4  *
+//    5  * Redistribution and use in source and binary forms, with or without
+//    6  * modification, are permitted provided that the following conditions
+//    7  * are met:
+//    8  * 1. Redistributions of source code must retain the above copyright
+//    9  *    notice, this list of conditions and the following disclaimer.
+//   10  * 2. Redistributions in binary form must reproduce the above copyright
+//   11  *    notice, this list of conditions and the following disclaimer in the
+//   12  *    documentation and/or other materials provided with the distribution.
+//   13  * 3. Neither the name of the Institute nor the names of its contributors
+//   14  *    may be used to endorse or promote products derived from this software
+//   15  *    without specific prior written permission.
+//   16  *
+//   17  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   18  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   19  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   20  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   21  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   22  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   23  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   24  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   25  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   26  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   27  * SUCH DAMAGE.
+//   28  *
+//   29  */
+//   30 
+//   31 /**
+//   32  * \file
+//   33  *         MAC framer for IEEE 802.15.4
+//   34  * \author
+//   35  *         Niclas Finne <nfi@sics.se>
+//   36  *         Joakim Eriksson <joakime@sics.se>
+//   37  */
+//   38 
+//   39 #include "net/mac/framer-802154.h"
+//   40 #include "net/mac/frame802154.h"
+//   41 #include "net/packetbuf.h"
+//   42 #include "lib/random.h"
+//   43 #include <string.h>
+//   44 
+//   45 #define DEBUG 0
+//   46 
+//   47 #if DEBUG
+//   48 #include <stdio.h>
+//   49 #define PRINTF(...) printf(__VA_ARGS__)
+//   50 #define PRINTADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7])
+//   51 #else
+//   52 #define PRINTF(...)
+//   53 #define PRINTADDR(addr)
+//   54 #endif
+//   55 
+//   56 /**  \brief The sequence number (0x00 - 0xff) added to the transmitted
+//   57  *   data or MAC command frame. The default is a random value within
+//   58  *   the range.
+//   59  */
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   60 static uint8_t mac_dsn;
+mac_dsn:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+//   61 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   62 static uint8_t initialized = 0;
+initialized:
+        DS 1
+        REQUIRE __INIT_XDATA_Z
+//   63 
+//   64 /**  \brief The 16-bit identifier of the PAN on which the device is
+//   65  *   sending to.  If this value is 0xffff, the device is not
+//   66  *   associated.
+//   67  */
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA16
+//   68 static const uint16_t mac_dst_pan_id = IEEE802154_PANID;
+mac_dst_pan_id:
+        DS 2
+        REQUIRE `?<Initializer for mac_dst_pan_id>`
+        REQUIRE __INIT_XDATA_I
+//   69 
+//   70 /**  \brief The 16-bit identifier of the PAN on which the device is
+//   71  *   operating.  If this value is 0xffff, the device is not
+//   72  *   associated.
+//   73  */
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA16
+//   74 static const uint16_t mac_src_pan_id = IEEE802154_PANID;
+mac_src_pan_id:
+        DS 2
+        REQUIRE `?<Initializer for mac_src_pan_id>`
+        REQUIRE __INIT_XDATA_I
+//   75 
+//   76 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   77 static int
+//   78 is_broadcast_addr(uint8_t mode, uint8_t *addr)
+is_broadcast_addr:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function is_broadcast_addr
+        CODE
+//   79 {
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+//   80   int i = mode == FRAME802154_SHORTADDRMODE ? 2 : 8;
+        MOV     A,#0x2
+        XRL     A,R1
+        JNZ     ??is_broadcast_addr_0
+        MOV     R4,#0x2
+        MOV     R5,#0x0
+        SJMP    ??is_broadcast_addr_1
+??is_broadcast_addr_0:
+        MOV     R4,#0x8
+        MOV     R5,#0x0
+//   81   while(i-- > 0) {
+??is_broadcast_addr_1:
+        MOV     A,R4
+        MOV     R6,A
+        MOV     A,R5
+        MOV     R7,A
+        MOV     A,R6
+        ADD     A,#-0x1
+        MOV     R4,A
+        MOV     A,R7
+        ADDC    A,#-0x1
+        MOV     R5,A
+        CLR     C
+        MOV     A,R6
+        SUBB    A,#0x1
+        MOV     A,R7
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JC      ??is_broadcast_addr_2
+//   82     if(addr[i] != 0xff) {
+        MOV     A,R2
+        ADD     A,R4
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,R5
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+        JZ      ??is_broadcast_addr_1
+//   83       return 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??is_broadcast_addr_3
+//   84     }
+//   85   }
+//   86   return 1;
+??is_broadcast_addr_2:
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+??is_broadcast_addr_3:
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock0
+//   87 }
+//   88 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   89 static int
+//   90 create(void)
+create:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function create
+        CODE
+//   91 {
+        FUNCALL create, memset
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 62, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 62, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, random_rand
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, packetbuf_attr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, packetbuf_addr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, rimeaddr_cmp
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, packetbuf_attr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, packetbuf_attr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, packetbuf_attr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, packetbuf_set_attr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, packetbuf_addr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, rimeaddr_cmp
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, packetbuf_addr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, rimeaddr_copy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, rimeaddr_copy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, packetbuf_dataptr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, packetbuf_datalen
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, frame802154_hdrlen
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, packetbuf_hdralloc
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, packetbuf_hdrptr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 62, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 62, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL create, frame802154_create
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 62, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 62, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 48
+        MOV     A,#-0x30
+        LCALL   ?ALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 60)
+//   92   frame802154_t params;
+//   93   int len;
+//   94 
+//   95   /* init to zeros */
+//   96   memset(&params, 0, sizeof(params));
+        ; Setup parameters for call to function memset
+        MOV     ?V0 + 0,#0x30
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 62)
+        MOV     R4,#0x0
+        MOV     R5,#0x0
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOV     R2,DPL
+        MOV     R3,DPH
+        LCALL   ??memset?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 60)
+//   97 
+//   98   if(!initialized) {
+        MOV     DPTR,#initialized
+        MOVX    A,@DPTR
+        JNZ     ??create_0
+//   99     initialized = 1;
+        MOV     DPTR,#initialized
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  100     mac_dsn = random_rand() & 0xff;
+        ; Setup parameters for call to function random_rand
+        LCALL   ??random_rand?relay
+        MOV     A,R2
+        MOV     DPTR,#mac_dsn
+        MOVX    @DPTR,A
+//  101   }
+//  102 
+//  103   /* Build the FCF. */
+//  104   params.fcf.frame_type = FRAME802154_DATAFRAME;
+??create_0:
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  105   params.fcf.security_enabled = 0;
+        MOV     A,#0x1
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  106   params.fcf.frame_pending = packetbuf_attr(PACKETBUF_ATTR_PENDING);
+        ; Setup parameters for call to function packetbuf_attr
+        MOV     R1,#0x12
+        LCALL   ??packetbuf_attr?relay
+        MOV     A,R2
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  107   if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
+        ; Setup parameters for call to function rimeaddr_cmp
+        MOV     R4,#rimeaddr_null & 0xff
+        MOV     R5,#(rimeaddr_null >> 8) & 0xff
+        MOV     R7,A
+        MOV     A,R4
+        MOV     R6,A
+        MOV     A,R5
+        MOV     R7,A
+        ; Setup parameters for call to function packetbuf_addr
+        MOV     R1,#0x19
+        LCALL   ??packetbuf_addr?relay
+        MOV     R5,A
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        LCALL   ??rimeaddr_cmp?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??create_1
+//  108     params.fcf.ack_required = 0;
+        MOV     A,#0x3
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+        SJMP    ??create_2
+//  109   } else {
+//  110     params.fcf.ack_required = packetbuf_attr(PACKETBUF_ATTR_MAC_ACK);
+??create_1:
+        ; Setup parameters for call to function packetbuf_attr
+        MOV     R1,#0xb
+        LCALL   ??packetbuf_attr?relay
+        MOV     A,R2
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,#0x3
+        LCALL   ?XSTACK_DISP0_8
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  111   }
+//  112   params.fcf.panid_compression = 0;
+??create_2:
+        MOV     A,#0x4
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  113 
+//  114   /* Insert IEEE 802.15.4 (2003) version bit. */
+//  115   params.fcf.frame_version = FRAME802154_IEEE802154_2003;
+        MOV     A,#0x6
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  116 
+//  117   /* Increment and set the data sequence number. */
+//  118   if(packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO)) {
+        ; Setup parameters for call to function packetbuf_attr
+        MOV     R1,#0xa
+        LCALL   ??packetbuf_attr?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??create_3
+//  119     params.seq = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
+        ; Setup parameters for call to function packetbuf_attr
+        MOV     R1,#0xa
+        LCALL   ??packetbuf_attr?relay
+        MOV     A,R2
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,#0x8
+        LCALL   ?XSTACK_DISP0_8
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+        SJMP    ??create_4
+//  120   } else {
+//  121     params.seq = mac_dsn++;
+??create_3:
+        MOV     DPTR,#mac_dsn
+        MOVX    A,@DPTR
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,#0x8
+        LCALL   ?XSTACK_DISP0_8
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+        MOV     DPTR,#mac_dsn
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+//  122     packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, params.seq);
+        ; Setup parameters for call to function packetbuf_set_attr
+        MOV     A,#0x8
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     R1,#0xa
+        LCALL   ??packetbuf_set_attr?relay
+//  123   }
+//  124 /*   params.seq = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID); */
+//  125 
+//  126   /* Complete the addressing fields. */
+//  127   /**
+//  128      \todo For phase 1 the addresses are all long. We'll need a mechanism
+//  129      in the rime attributes to tell the mac to use long or short for phase 2.
+//  130   */
+//  131   if(sizeof(rimeaddr_t) == 2) {
+//  132     /* Use short address mode if rimeaddr size is short. */
+//  133     params.fcf.src_addr_mode = FRAME802154_SHORTADDRMODE;
+??create_4:
+        MOV     A,#0x7
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+//  134   } else {
+//  135     params.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
+//  136   }
+//  137   params.dest_pid = mac_dst_pan_id;
+        MOV     DPTR,#mac_dst_pan_id
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,#0x9
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  138 
+//  139   /*
+//  140    *  If the output address is NULL in the Rime buf, then it is broadcast
+//  141    *  on the 802.15.4 network.
+//  142    */
+//  143   if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
+        ; Setup parameters for call to function rimeaddr_cmp
+        MOV     R4,#rimeaddr_null & 0xff
+        MOV     R5,#(rimeaddr_null >> 8) & 0xff
+        MOV     R7,A
+        MOV     A,R4
+        MOV     R6,A
+        MOV     A,R5
+        MOV     R7,A
+        ; Setup parameters for call to function packetbuf_addr
+        MOV     R1,#0x19
+        LCALL   ??packetbuf_addr?relay
+        MOV     R5,A
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        LCALL   ??rimeaddr_cmp?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??create_5
+//  144     /* Broadcast requires short address mode. */
+//  145     params.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
+        MOV     A,#0x5
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+//  146     params.dest_addr[0] = 0xFF;
+        MOV     A,#0xb
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#-0x1
+        MOVX    @DPTR,A
+//  147     params.dest_addr[1] = 0xFF;
+        MOV     A,#0xc
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#-0x1
+        MOVX    @DPTR,A
+        SJMP    ??create_6
+//  148 
+//  149   } else {
+//  150     rimeaddr_copy((rimeaddr_t *)&params.dest_addr,
+//  151                   packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+??create_5:
+        ; Setup parameters for call to function rimeaddr_copy
+        ; Setup parameters for call to function packetbuf_addr
+        MOV     R1,#0x19
+        LCALL   ??packetbuf_addr?relay
+        MOV     A,R2
+        MOV     R4,A
+        MOV     A,R3
+        MOV     R5,A
+        MOV     A,#0xb
+        LCALL   ?XSTACK_DISP0_8
+        MOV     R2,DPL
+        MOV     R3,DPH
+        LCALL   ??rimeaddr_copy?relay
+//  152     /* Use short address mode if rimeaddr size is small */
+//  153     if(sizeof(rimeaddr_t) == 2) {
+//  154       params.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
+        MOV     A,#0x5
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,#0x2
+        MOVX    @DPTR,A
+//  155     } else {
+//  156       params.fcf.dest_addr_mode = FRAME802154_LONGADDRMODE;
+//  157     }
+//  158   }
+//  159 
+//  160   /* Set the source PAN ID to the global variable. */
+//  161   params.src_pid = mac_src_pan_id;
+??create_6:
+        MOV     DPTR,#mac_src_pan_id
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,#0x13
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//  162 
+//  163   /*
+//  164    * Set up the source address using only the long address mode for
+//  165    * phase 1.
+//  166    */
+//  167   rimeaddr_copy((rimeaddr_t *)&params.src_addr, &rimeaddr_node_addr);
+        ; Setup parameters for call to function rimeaddr_copy
+        MOV     R4,#rimeaddr_node_addr & 0xff
+        MOV     R5,#(rimeaddr_node_addr >> 8) & 0xff
+        MOV     A,#0x15
+        LCALL   ?XSTACK_DISP0_8
+        MOV     R2,DPL
+        MOV     R3,DPH
+        LCALL   ??rimeaddr_copy?relay
+//  168 
+//  169   params.payload = packetbuf_dataptr();
+        ; Setup parameters for call to function packetbuf_dataptr
+        LCALL   ??packetbuf_dataptr?relay
+        MOV     A,#0x2d
+        LCALL   ?XSTACK_DISP0_8
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//  170   params.payload_len = packetbuf_datalen();
+        ; Setup parameters for call to function packetbuf_datalen
+        LCALL   ??packetbuf_datalen?relay
+        MOV     A,R2
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,#0x2f
+        LCALL   ?XSTACK_DISP0_8
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  171   len = frame802154_hdrlen(&params);
+        ; Setup parameters for call to function frame802154_hdrlen
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOV     R2,DPL
+        MOV     R3,DPH
+        LCALL   ??frame802154_hdrlen?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     ?V0 + 0,?V0 + 2
+        MOV     ?V0 + 1,?V0 + 3
+//  172   if(packetbuf_hdralloc(len)) {
+        ; Setup parameters for call to function packetbuf_hdralloc
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        LCALL   ??packetbuf_hdralloc?relay
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JZ      ??create_7
+//  173     frame802154_create(&params, packetbuf_hdrptr(), len);
+        ; Setup parameters for call to function frame802154_create
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 62)
+        ; Setup parameters for call to function packetbuf_hdrptr
+        LCALL   ??packetbuf_hdrptr?relay
+        MOV     A,R2
+        MOV     R4,A
+        MOV     A,R3
+        MOV     R5,A
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOV     R2,DPL
+        MOV     R3,DPH
+        LCALL   ??frame802154_create?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 60)
+//  174 
+//  175     PRINTF("15.4-OUT: %2X", params.fcf.frame_type);
+//  176     PRINTADDR(params.dest_addr.u8);
+//  177     PRINTF("%d %u (%u)\n", len, packetbuf_datalen(), packetbuf_totlen());
+//  178 
+//  179     return len;
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+        SJMP    ??create_8
+//  180   } else {
+//  181     PRINTF("15.4-OUT: too large header: %u\n", len);
+//  182     return FRAMER_FAILED;
+??create_7:
+        MOV     R2,#-0x1
+        MOV     R3,#-0x1
+??create_8:
+        MOV     A,#0x30
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//  183   }
+//  184 }
+//  185 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  186 static int
+//  187 parse(void)
+parse:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function parse
+        CODE
+//  188 {
+        FUNCALL parse, packetbuf_datalen
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 58, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 58, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL parse, packetbuf_dataptr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL parse, frame802154_parse
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 60, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 60, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL parse, packetbuf_hdrreduce
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 58, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 58, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL parse, is_broadcast_addr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 58, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 58, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL parse, packetbuf_set_addr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 58, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 58, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL parse, packetbuf_set_addr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 58, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 58, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL parse, packetbuf_set_attr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 58, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 58, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL parse, packetbuf_set_attr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 58, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 58, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 48
+        MOV     A,#-0x30
+        LCALL   ?ALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 58)
+//  189   frame802154_t frame;
+//  190   int len;
+//  191   len = packetbuf_datalen();
+        ; Setup parameters for call to function packetbuf_datalen
+        LCALL   ??packetbuf_datalen?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R6,?V0 + 0
+        MOV     R7,?V0 + 1
+//  192   if(frame802154_parse(packetbuf_dataptr(), len, &frame) &&
+//  193      packetbuf_hdrreduce(len - frame.payload_len)) {
+        ; Setup parameters for call to function frame802154_parse
+        MOV     DPL,?XSP + 0
+        MOV     DPH,?XSP + 1
+        MOV     ?V0 + 0,DPL
+        MOV     ?V0 + 1,DPH
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 60)
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R7,A
+        MOV     A,R4
+        MOV     R6,A
+        MOV     A,R5
+        MOV     R7,A
+        ; Setup parameters for call to function packetbuf_dataptr
+        LCALL   ??packetbuf_dataptr?relay
+        MOV     R5,A
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        LCALL   ??frame802154_parse?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 58)
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     $+5
+        LJMP    ??parse_0 & 0xFFFF
+        ; Setup parameters for call to function packetbuf_hdrreduce
+        MOV     A,#0x2f
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,R6
+        CLR     C
+        SUBB    A,R0
+        MOV     R2,A
+        MOV     A,R7
+        SUBB    A,R1
+        MOV     R3,A
+        LCALL   ??packetbuf_hdrreduce?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     $+5
+        LJMP    ??parse_0 & 0xFFFF
+//  194     if(frame.fcf.dest_addr_mode) {
+        MOV     A,#0x5
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        JZ      ??parse_1
+//  195       if(frame.dest_pid != mac_src_pan_id &&
+//  196          frame.dest_pid != FRAME802154_BROADCASTPANDID) {
+        MOV     A,#0x9
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#mac_src_pan_id
+        MOVX    A,@DPTR
+        XRL     A,R0
+        JNZ     ??parse_2
+        INC     DPTR
+        MOVX    A,@DPTR
+        XRL     A,R1
+??parse_2:
+        JZ      ??parse_3
+        MOV     A,#0x9
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+        JNZ     ??parse_4
+        INC     DPTR
+        MOVX    A,@DPTR
+        XRL     A,#0xff
+??parse_4:
+        JZ      ??parse_3
+//  197         /* Packet to another PAN */
+//  198         PRINTF("15.4: for another pan %u\n", frame.dest_pid);
+//  199         return FRAMER_FAILED;
+        MOV     R2,#-0x1
+        MOV     R3,#-0x1
+        SJMP    ??parse_5
+//  200       }
+//  201       if(!is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
+??parse_3:
+        ; Setup parameters for call to function is_broadcast_addr
+        MOV     A,#0xb
+        LCALL   ?XSTACK_DISP0_8
+        MOV     R2,DPL
+        MOV     R3,DPH
+        MOV     A,#0x5
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R1,A
+        LCALL   ??is_broadcast_addr?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     ??parse_1
+//  202         packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (rimeaddr_t *)&frame.dest_addr);
+        ; Setup parameters for call to function packetbuf_set_addr
+        MOV     A,#0xb
+        LCALL   ?XSTACK_DISP0_8
+        MOV     R2,DPL
+        MOV     R3,DPH
+        MOV     R1,#0x19
+        LCALL   ??packetbuf_set_addr?relay
+//  203       }
+//  204     }
+//  205     packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (rimeaddr_t *)&frame.src_addr);
+??parse_1:
+        ; Setup parameters for call to function packetbuf_set_addr
+        MOV     A,#0x15
+        LCALL   ?XSTACK_DISP0_8
+        MOV     R2,DPL
+        MOV     R3,DPH
+        MOV     R1,#0x18
+        LCALL   ??packetbuf_set_addr?relay
+//  206     packetbuf_set_attr(PACKETBUF_ATTR_PENDING, frame.fcf.frame_pending);
+        ; Setup parameters for call to function packetbuf_set_attr
+        MOV     A,#0x2
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     R1,#0x12
+        LCALL   ??packetbuf_set_attr?relay
+//  207     /*    packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, frame.fcf.ack_required);*/
+//  208     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, frame.seq);
+        ; Setup parameters for call to function packetbuf_set_attr
+        MOV     A,#0x8
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     R1,#0xd
+        LCALL   ??packetbuf_set_attr?relay
+//  209 
+//  210     PRINTF("15.4-IN: %2X", frame.fcf.frame_type);
+//  211     PRINTADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER));
+//  212     PRINTADDR(packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+//  213     PRINTF("%u (%u)\n", packetbuf_datalen(), len);
+//  214 
+//  215     return len - frame.payload_len;
+        MOV     A,#0x2f
+        LCALL   ?XSTACK_DISP0_8
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,R6
+        CLR     C
+        SUBB    A,R0
+        MOV     R2,A
+        MOV     A,R7
+        SUBB    A,R1
+        MOV     R3,A
+        SJMP    ??parse_5
+//  216   }
+//  217   return FRAMER_FAILED;
+??parse_0:
+        MOV     R2,#-0x1
+        MOV     R3,#-0x1
+??parse_5:
+        MOV     A,#0x30
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 10)
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//  218 }
+//  219 /*---------------------------------------------------------------------------*/
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA32
+//  220 const struct framer framer_802154 = {
+framer_802154:
+        DS 4
+        REQUIRE `?<Initializer for framer_802154>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for mac_dst_pan_id>`:
+        DATA16
+        DW 21577
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for mac_src_pan_id>`:
+        DATA16
+        DW 21577
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for framer_802154>`:
+        DATA16
+        DW ??create?relay
+        DW ??parse?relay
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??is_broadcast_addr?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    is_broadcast_addr
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??create?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    create
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??parse?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    parse
+
+        END
+//  221   create, parse
+//  222 };
+// 
+// 851 bytes in segment BANKED_CODE
+//  18 bytes in segment BANK_RELAYS
+//   8 bytes in segment XDATA_I
+//   8 bytes in segment XDATA_ID
+//   2 bytes in segment XDATA_Z
+// 
+// 877 bytes of CODE  memory
+//  10 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

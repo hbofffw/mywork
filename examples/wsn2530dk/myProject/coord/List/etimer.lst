@@ -1,0 +1,1551 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:48 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\sys\etimer.c                 #
+#    Command line       =  D:\myWork\myWork\core\sys\etimer.c -D              #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\etimer.lst                                  #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\etimer.r51                                   #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\sys\etimer.c
+      1          /**
+      2           * \addtogroup etimer
+      3           * @{
+      4           */
+      5          
+      6          /**
+      7           * \file
+      8           * Event timer library implementation.
+      9           * \author
+     10           * Adam Dunkels <adam@sics.se>
+     11           */
+     12          
+     13          /*
+     14           * Copyright (c) 2004, Swedish Institute of Computer Science.
+     15           * All rights reserved.
+     16           *
+     17           * Redistribution and use in source and binary forms, with or without
+     18           * modification, are permitted provided that the following conditions
+     19           * are met:
+     20           * 1. Redistributions of source code must retain the above copyright
+     21           *    notice, this list of conditions and the following disclaimer.
+     22           * 2. Redistributions in binary form must reproduce the above copyright
+     23           *    notice, this list of conditions and the following disclaimer in the
+     24           *    documentation and/or other materials provided with the distribution.
+     25           * 3. Neither the name of the Institute nor the names of its contributors
+     26           *    may be used to endorse or promote products derived from this software
+     27           *    without specific prior written permission.
+     28           *
+     29           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     30           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     31           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     32           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     33           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     34           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     35           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     36           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     37           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     38           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     39           * SUCH DAMAGE.
+     40           *
+     41           * This file is part of the Contiki operating system.
+     42           *
+     43           * Author: Adam Dunkels <adam@sics.se>
+     44           *
+     45           */
+     46          
+     47          #include "contiki-conf.h"
+     48          
+     49          #include "sys/etimer.h"
+     50          #include "sys/process.h"
+     51          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     52          static struct etimer *timerlist;
+   \                     timerlist:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     53          static clock_time_t next_expiration;
+   \                     next_expiration:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     54          
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     55          PROCESS(etimer_process, "Event timer");
+   \                     etimer_process:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for etimer_process>`
+   \   000008                REQUIRE __INIT_XDATA_I
+     56          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     57          static void
+     58          update_time(void)
+   \                     update_time:
+     59          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+     60            clock_time_t tdist;
+     61            clock_time_t now;
+     62            struct etimer *t;
+     63          
+     64            if (timerlist == NULL) {
+   \   000005   90....       MOV     DPTR,#timerlist
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   F8           MOV     R0,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   F9           MOV     R1,A
+   \   00000D   E8           MOV     A,R0
+   \   00000E   49           ORL     A,R1
+   \   00000F   700D         JNZ     ??update_time_0
+     65              next_expiration = 0;
+   \   000011   90....       MOV     DPTR,#next_expiration
+   \   000014   7400         MOV     A,#0x0
+   \   000016   F0           MOVX    @DPTR,A
+   \   000017   A3           INC     DPTR
+   \   000018   7400         MOV     A,#0x0
+   \   00001A   F0           MOVX    @DPTR,A
+   \   00001B   02....       LJMP    ??update_time_1 & 0xFFFF
+     66            } else {
+     67              now = clock_time();
+   \                     ??update_time_0:
+   \   00001E                ; Setup parameters for call to function clock_time
+   \   00001E   12....       LCALL   ??clock_time?relay
+   \   000021   8A..         MOV     ?V0 + 0,R2
+   \   000023   8B..         MOV     ?V0 + 1,R3
+   \   000025   AC..         MOV     R4,?V0 + 0
+   \   000027   AD..         MOV     R5,?V0 + 1
+     68              t = timerlist;
+   \   000029   90....       MOV     DPTR,#timerlist
+   \   00002C   E0           MOVX    A,@DPTR
+   \   00002D   FA           MOV     R2,A
+   \   00002E   A3           INC     DPTR
+   \   00002F   E0           MOVX    A,@DPTR
+   \   000030   FB           MOV     R3,A
+     69              /* Must calculate distance to next time into account due to wraps */
+     70              tdist = t->timer.start + t->timer.interval - now;
+   \   000031   8A82         MOV     DPL,R2
+   \   000033   8B83         MOV     DPH,R3
+   \   000035   E0           MOVX    A,@DPTR
+   \   000036   F8           MOV     R0,A
+   \   000037   A3           INC     DPTR
+   \   000038   E0           MOVX    A,@DPTR
+   \   000039   F9           MOV     R1,A
+   \   00003A   8A82         MOV     DPL,R2
+   \   00003C   8B83         MOV     DPH,R3
+   \   00003E   A3           INC     DPTR
+   \   00003F   A3           INC     DPTR
+   \   000040   E0           MOVX    A,@DPTR
+   \   000041   28           ADD     A,R0
+   \   000042   F8           MOV     R0,A
+   \   000043   A3           INC     DPTR
+   \   000044   E0           MOVX    A,@DPTR
+   \   000045   39           ADDC    A,R1
+   \   000046   F9           MOV     R1,A
+   \   000047   E8           MOV     A,R0
+   \   000048   C3           CLR     C
+   \   000049   9C           SUBB    A,R4
+   \   00004A   F8           MOV     R0,A
+   \   00004B   E9           MOV     A,R1
+   \   00004C   9D           SUBB    A,R5
+   \   00004D   F9           MOV     R1,A
+     71              for(t = t->next; t != NULL; t = t->next) {
+   \   00004E   8A82         MOV     DPL,R2
+   \   000050   8B83         MOV     DPH,R3
+   \   000052   A3           INC     DPTR
+   \   000053   A3           INC     DPTR
+   \   000054   A3           INC     DPTR
+   \   000055   A3           INC     DPTR
+   \   000056   E0           MOVX    A,@DPTR
+   \   000057   FA           MOV     R2,A
+   \   000058   A3           INC     DPTR
+   \   000059   E0           MOVX    A,@DPTR
+   \   00005A   FB           MOV     R3,A
+   \   00005B   804E         SJMP    ??update_time_2
+     72                if(t->timer.start + t->timer.interval - now < tdist) {
+   \                     ??update_time_3:
+   \   00005D   8A82         MOV     DPL,R2
+   \   00005F   8B83         MOV     DPH,R3
+   \   000061   E0           MOVX    A,@DPTR
+   \   000062   FE           MOV     R6,A
+   \   000063   A3           INC     DPTR
+   \   000064   E0           MOVX    A,@DPTR
+   \   000065   FF           MOV     R7,A
+   \   000066   8A82         MOV     DPL,R2
+   \   000068   8B83         MOV     DPH,R3
+   \   00006A   A3           INC     DPTR
+   \   00006B   A3           INC     DPTR
+   \   00006C   E0           MOVX    A,@DPTR
+   \   00006D   2E           ADD     A,R6
+   \   00006E   FE           MOV     R6,A
+   \   00006F   A3           INC     DPTR
+   \   000070   E0           MOVX    A,@DPTR
+   \   000071   3F           ADDC    A,R7
+   \   000072   FF           MOV     R7,A
+   \   000073   EE           MOV     A,R6
+   \   000074   C3           CLR     C
+   \   000075   9C           SUBB    A,R4
+   \   000076   FE           MOV     R6,A
+   \   000077   EF           MOV     A,R7
+   \   000078   9D           SUBB    A,R5
+   \   000079   FF           MOV     R7,A
+   \   00007A   C3           CLR     C
+   \   00007B   EE           MOV     A,R6
+   \   00007C   98           SUBB    A,R0
+   \   00007D   EF           MOV     A,R7
+   \   00007E   99           SUBB    A,R1
+   \   00007F   501D         JNC     ??update_time_4
+     73          	tdist = t->timer.start + t->timer.interval - now;
+   \   000081   8A82         MOV     DPL,R2
+   \   000083   8B83         MOV     DPH,R3
+   \   000085   E0           MOVX    A,@DPTR
+   \   000086   F8           MOV     R0,A
+   \   000087   A3           INC     DPTR
+   \   000088   E0           MOVX    A,@DPTR
+   \   000089   F9           MOV     R1,A
+   \   00008A   8A82         MOV     DPL,R2
+   \   00008C   8B83         MOV     DPH,R3
+   \   00008E   A3           INC     DPTR
+   \   00008F   A3           INC     DPTR
+   \   000090   E0           MOVX    A,@DPTR
+   \   000091   28           ADD     A,R0
+   \   000092   F8           MOV     R0,A
+   \   000093   A3           INC     DPTR
+   \   000094   E0           MOVX    A,@DPTR
+   \   000095   39           ADDC    A,R1
+   \   000096   F9           MOV     R1,A
+   \   000097   E8           MOV     A,R0
+   \   000098   C3           CLR     C
+   \   000099   9C           SUBB    A,R4
+   \   00009A   F8           MOV     R0,A
+   \   00009B   E9           MOV     A,R1
+   \   00009C   9D           SUBB    A,R5
+   \   00009D   F9           MOV     R1,A
+     74                }
+     75              }
+   \                     ??update_time_4:
+   \   00009E   8A82         MOV     DPL,R2
+   \   0000A0   8B83         MOV     DPH,R3
+   \   0000A2   A3           INC     DPTR
+   \   0000A3   A3           INC     DPTR
+   \   0000A4   A3           INC     DPTR
+   \   0000A5   A3           INC     DPTR
+   \   0000A6   E0           MOVX    A,@DPTR
+   \   0000A7   FA           MOV     R2,A
+   \   0000A8   A3           INC     DPTR
+   \   0000A9   E0           MOVX    A,@DPTR
+   \   0000AA   FB           MOV     R3,A
+   \                     ??update_time_2:
+   \   0000AB   EA           MOV     A,R2
+   \   0000AC   4B           ORL     A,R3
+   \   0000AD   70AE         JNZ     ??update_time_3
+     76              next_expiration = now + tdist;
+   \   0000AF   EC           MOV     A,R4
+   \   0000B0   28           ADD     A,R0
+   \   0000B1   F8           MOV     R0,A
+   \   0000B2   ED           MOV     A,R5
+   \   0000B3   39           ADDC    A,R1
+   \   0000B4   F9           MOV     R1,A
+   \   0000B5   90....       MOV     DPTR,#next_expiration
+   \   0000B8   E8           MOV     A,R0
+   \   0000B9   F0           MOVX    @DPTR,A
+   \   0000BA   A3           INC     DPTR
+   \   0000BB   E9           MOV     A,R1
+   \   0000BC   F0           MOVX    @DPTR,A
+     77            }
+     78          }
+   \                     ??update_time_1:
+   \   0000BD   7F02         MOV     R7,#0x2
+   \   0000BF   02....       LJMP    ?BANKED_LEAVE_XDATA
+     79          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     80          PROCESS_THREAD(etimer_process, ev, data)
+   \                     process_thread_etimer_process:
+     81          {
+   \   000000   74EE         MOV     A,#-0x12
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 18
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 2,R2
+   \   000007   8B..         MOV     ?V0 + 3,R3
+   \   000009   89..         MOV     ?V0 + 6,R1
+   \   00000B   8C..         MOV     ?V0 + 4,R4
+   \   00000D   8D..         MOV     ?V0 + 5,R5
+     82            struct etimer *t, *u;
+     83          	
+     84            PROCESS_BEGIN();
+   \   00000F   7A01         MOV     R2,#0x1
+   \   000011   85..82       MOV     DPL,?V0 + 2
+   \   000014   85..83       MOV     DPH,?V0 + 3
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   F5..         MOV     ?V0 + 0,A
+   \   00001A   A3           INC     DPTR
+   \   00001B   E0           MOVX    A,@DPTR
+   \   00001C   F5..         MOV     ?V0 + 1,A
+   \   00001E   78..         MOV     R0,#?V0 + 0
+   \   000020   12....       LCALL   ?US_SWITCH_SPARSE
+   \                     `?<Jumptable for process_thread_etimer_process>_0`:
+   \   000023   0000         DW        0
+   \   000025   0200         DW        2
+   \   000027   0000         DW        0
+   \   000029   ....         DW        ??process_thread_etimer_process_0
+   \   00002B   5900         DW        89
+   \   00002D   ....         DW        ??process_thread_etimer_process_1
+   \   00002F   ....         DW        ??process_thread_etimer_process_2
+     85          
+     86            timerlist = NULL;
+   \                     ??process_thread_etimer_process_0:
+   \   000031   90....       MOV     DPTR,#timerlist
+   \   000034   7400         MOV     A,#0x0
+   \   000036   F0           MOVX    @DPTR,A
+   \   000037   A3           INC     DPTR
+   \   000038   7400         MOV     A,#0x0
+   \   00003A   F0           MOVX    @DPTR,A
+     87            
+     88            while(1) {
+     89              PROCESS_YIELD();
+   \                     ??process_thread_etimer_process_3:
+   \   00003B   7A00         MOV     R2,#0x0
+   \   00003D   85..82       MOV     DPL,?V0 + 2
+   \   000040   85..83       MOV     DPH,?V0 + 3
+   \   000043   7459         MOV     A,#0x59
+   \   000045   F0           MOVX    @DPTR,A
+   \   000046   A3           INC     DPTR
+   \   000047   7400         MOV     A,#0x0
+   \   000049   F0           MOVX    @DPTR,A
+   \                     ??process_thread_etimer_process_1:
+   \   00004A   EA           MOV     A,R2
+   \   00004B   7005         JNZ     ??process_thread_etimer_process_4
+   \   00004D   7901         MOV     R1,#0x1
+   \   00004F   02....       LJMP    ??process_thread_etimer_process_5 & 0xFFFF
+     90          
+     91              if(ev == PROCESS_EVENT_EXITED) {
+   \                     ??process_thread_etimer_process_4:
+   \   000052   7487         MOV     A,#-0x79
+   \   000054   65..         XRL     A,?V0 + 6
+   \   000056   6003         JZ      $+5
+   \   000058   02....       LJMP    ??process_thread_etimer_process_6 & 0xFFFF
+     92                struct process *p = data;
+   \   00005B   AA..         MOV     R2,?V0 + 4
+   \   00005D   AB..         MOV     R3,?V0 + 5
+   \   00005F   801C         SJMP    ??process_thread_etimer_process_7
+     93          
+     94                while(timerlist != NULL && timerlist->p == p) {
+     95          	timerlist = timerlist->next;
+   \                     ??process_thread_etimer_process_8:
+   \   000061   90....       MOV     DPTR,#timerlist
+   \   000064   E0           MOVX    A,@DPTR
+   \   000065   F8           MOV     R0,A
+   \   000066   A3           INC     DPTR
+   \   000067   E0           MOVX    A,@DPTR
+   \   000068   F583         MOV     DPH,A
+   \   00006A   8882         MOV     DPL,R0
+   \   00006C   A3           INC     DPTR
+   \   00006D   A3           INC     DPTR
+   \   00006E   A3           INC     DPTR
+   \   00006F   A3           INC     DPTR
+   \   000070   E0           MOVX    A,@DPTR
+   \   000071   F8           MOV     R0,A
+   \   000072   A3           INC     DPTR
+   \   000073   E0           MOVX    A,@DPTR
+   \   000074   F9           MOV     R1,A
+   \   000075   90....       MOV     DPTR,#timerlist
+   \   000078   E8           MOV     A,R0
+   \   000079   F0           MOVX    @DPTR,A
+   \   00007A   A3           INC     DPTR
+   \   00007B   E9           MOV     A,R1
+   \   00007C   F0           MOVX    @DPTR,A
+     96                }
+   \                     ??process_thread_etimer_process_7:
+   \   00007D   90....       MOV     DPTR,#timerlist
+   \   000080   E0           MOVX    A,@DPTR
+   \   000081   F8           MOV     R0,A
+   \   000082   A3           INC     DPTR
+   \   000083   E0           MOVX    A,@DPTR
+   \   000084   F9           MOV     R1,A
+   \   000085   E8           MOV     A,R0
+   \   000086   49           ORL     A,R1
+   \   000087   601E         JZ      ??process_thread_etimer_process_9
+   \   000089   90....       MOV     DPTR,#timerlist
+   \   00008C   E0           MOVX    A,@DPTR
+   \   00008D   F8           MOV     R0,A
+   \   00008E   A3           INC     DPTR
+   \   00008F   E0           MOVX    A,@DPTR
+   \   000090   C8           XCH     A,R0
+   \   000091   2406         ADD     A,#0x6
+   \   000093   F582         MOV     DPL,A
+   \   000095   E8           MOV     A,R0
+   \   000096   3400         ADDC    A,#0x0
+   \   000098   F583         MOV     DPH,A
+   \   00009A   E0           MOVX    A,@DPTR
+   \   00009B   F8           MOV     R0,A
+   \   00009C   A3           INC     DPTR
+   \   00009D   E0           MOVX    A,@DPTR
+   \   00009E   F9           MOV     R1,A
+   \   00009F   EA           MOV     A,R2
+   \   0000A0   68           XRL     A,R0
+   \   0000A1   7002         JNZ     ??process_thread_etimer_process_10
+   \   0000A3   EB           MOV     A,R3
+   \   0000A4   69           XRL     A,R1
+   \                     ??process_thread_etimer_process_10:
+   \   0000A5   60BA         JZ      ??process_thread_etimer_process_8
+     97          
+     98                if(timerlist != NULL) {
+   \                     ??process_thread_etimer_process_9:
+   \   0000A7   90....       MOV     DPTR,#timerlist
+   \   0000AA   E0           MOVX    A,@DPTR
+   \   0000AB   F8           MOV     R0,A
+   \   0000AC   A3           INC     DPTR
+   \   0000AD   E0           MOVX    A,@DPTR
+   \   0000AE   F9           MOV     R1,A
+   \   0000AF   E8           MOV     A,R0
+   \   0000B0   49           ORL     A,R1
+   \   0000B1   6088         JZ      ??process_thread_etimer_process_3
+     99          	t = timerlist;
+   \   0000B3   90....       MOV     DPTR,#timerlist
+   \   0000B6   E0           MOVX    A,@DPTR
+   \   0000B7   FE           MOV     R6,A
+   \   0000B8   A3           INC     DPTR
+   \   0000B9   E0           MOVX    A,@DPTR
+   \   0000BA   FF           MOV     R7,A
+   \   0000BB   8026         SJMP    ??process_thread_etimer_process_11
+    100          	while(t->next != NULL) {
+    101          	  if(t->next->p == p) {
+    102          	    t->next = t->next->next;
+   \                     ??process_thread_etimer_process_12:
+   \   0000BD   8E82         MOV     DPL,R6
+   \   0000BF   8F83         MOV     DPH,R7
+   \   0000C1   A3           INC     DPTR
+   \   0000C2   A3           INC     DPTR
+   \   0000C3   A3           INC     DPTR
+   \   0000C4   A3           INC     DPTR
+   \   0000C5   E0           MOVX    A,@DPTR
+   \   0000C6   F8           MOV     R0,A
+   \   0000C7   A3           INC     DPTR
+   \   0000C8   E0           MOVX    A,@DPTR
+   \   0000C9   F583         MOV     DPH,A
+   \   0000CB   8882         MOV     DPL,R0
+   \   0000CD   A3           INC     DPTR
+   \   0000CE   A3           INC     DPTR
+   \   0000CF   A3           INC     DPTR
+   \   0000D0   A3           INC     DPTR
+   \   0000D1   E0           MOVX    A,@DPTR
+   \   0000D2   F8           MOV     R0,A
+   \   0000D3   A3           INC     DPTR
+   \   0000D4   E0           MOVX    A,@DPTR
+   \   0000D5   F9           MOV     R1,A
+   \   0000D6   8E82         MOV     DPL,R6
+   \   0000D8   8F83         MOV     DPH,R7
+   \   0000DA   A3           INC     DPTR
+   \   0000DB   A3           INC     DPTR
+   \   0000DC   A3           INC     DPTR
+   \   0000DD   A3           INC     DPTR
+   \   0000DE   E8           MOV     A,R0
+   \   0000DF   F0           MOVX    @DPTR,A
+   \   0000E0   A3           INC     DPTR
+   \   0000E1   E9           MOV     A,R1
+   \   0000E2   F0           MOVX    @DPTR,A
+    103          	  } else
+   \                     ??process_thread_etimer_process_11:
+   \   0000E3   8E82         MOV     DPL,R6
+   \   0000E5   8F83         MOV     DPH,R7
+   \   0000E7   A3           INC     DPTR
+   \   0000E8   A3           INC     DPTR
+   \   0000E9   A3           INC     DPTR
+   \   0000EA   A3           INC     DPTR
+   \   0000EB   E0           MOVX    A,@DPTR
+   \   0000EC   F8           MOV     R0,A
+   \   0000ED   A3           INC     DPTR
+   \   0000EE   E0           MOVX    A,@DPTR
+   \   0000EF   F9           MOV     R1,A
+   \   0000F0   E8           MOV     A,R0
+   \   0000F1   49           ORL     A,R1
+   \   0000F2   6032         JZ      ??process_thread_etimer_process_13
+   \   0000F4   8E82         MOV     DPL,R6
+   \   0000F6   8F83         MOV     DPH,R7
+   \   0000F8   A3           INC     DPTR
+   \   0000F9   A3           INC     DPTR
+   \   0000FA   A3           INC     DPTR
+   \   0000FB   A3           INC     DPTR
+   \   0000FC   E0           MOVX    A,@DPTR
+   \   0000FD   F8           MOV     R0,A
+   \   0000FE   A3           INC     DPTR
+   \   0000FF   E0           MOVX    A,@DPTR
+   \   000100   C8           XCH     A,R0
+   \   000101   2406         ADD     A,#0x6
+   \   000103   F582         MOV     DPL,A
+   \   000105   E8           MOV     A,R0
+   \   000106   3400         ADDC    A,#0x0
+   \   000108   F583         MOV     DPH,A
+   \   00010A   E0           MOVX    A,@DPTR
+   \   00010B   F8           MOV     R0,A
+   \   00010C   A3           INC     DPTR
+   \   00010D   E0           MOVX    A,@DPTR
+   \   00010E   F9           MOV     R1,A
+   \   00010F   EA           MOV     A,R2
+   \   000110   68           XRL     A,R0
+   \   000111   7002         JNZ     ??process_thread_etimer_process_14
+   \   000113   EB           MOV     A,R3
+   \   000114   69           XRL     A,R1
+   \                     ??process_thread_etimer_process_14:
+   \   000115   60A6         JZ      ??process_thread_etimer_process_12
+    104          	    t = t->next;
+   \   000117   8E82         MOV     DPL,R6
+   \   000119   8F83         MOV     DPH,R7
+   \   00011B   A3           INC     DPTR
+   \   00011C   A3           INC     DPTR
+   \   00011D   A3           INC     DPTR
+   \   00011E   A3           INC     DPTR
+   \   00011F   E0           MOVX    A,@DPTR
+   \   000120   FE           MOV     R6,A
+   \   000121   A3           INC     DPTR
+   \   000122   E0           MOVX    A,@DPTR
+   \   000123   FF           MOV     R7,A
+   \   000124   80BD         SJMP    ??process_thread_etimer_process_11
+    105          	}
+    106                }
+    107                continue;
+   \                     ??process_thread_etimer_process_13:
+   \   000126   02....       LJMP    ??process_thread_etimer_process_3 & 0xFFFF
+    108              } else if(ev != PROCESS_EVENT_POLL) {
+   \                     ??process_thread_etimer_process_6:
+   \   000129   7482         MOV     A,#-0x7e
+   \   00012B   65..         XRL     A,?V0 + 6
+   \   00012D   602A         JZ      ??process_thread_etimer_process_15
+    109                continue;
+   \   00012F   02....       LJMP    ??process_thread_etimer_process_3 & 0xFFFF
+    110              }
+    111          
+    112            again:
+    113              
+    114              u = NULL;
+    115              
+    116              for(t = timerlist; t != NULL; t = t->next) {
+    117                if(timer_expired(&t->timer)) {
+    118          	if(process_post(t->p, PROCESS_EVENT_TIMER, t) == PROCESS_ERR_OK) {
+    119          	  
+    120          	  /* Reset the process ID of the event timer, to signal that the
+    121          	     etimer has expired. This is later checked in the
+    122          	     etimer_expired() function. */
+    123          	  t->p = PROCESS_NONE;
+    124          	  if(u != NULL) {
+    125          	    u->next = t->next;
+    126          	  } else {
+    127          	    timerlist = t->next;
+   \                     ??process_thread_etimer_process_16:
+   \   000132   8E82         MOV     DPL,R6
+   \   000134   8F83         MOV     DPH,R7
+   \   000136   A3           INC     DPTR
+   \   000137   A3           INC     DPTR
+   \   000138   A3           INC     DPTR
+   \   000139   A3           INC     DPTR
+   \   00013A   E0           MOVX    A,@DPTR
+   \   00013B   F8           MOV     R0,A
+   \   00013C   A3           INC     DPTR
+   \   00013D   E0           MOVX    A,@DPTR
+   \   00013E   F9           MOV     R1,A
+   \   00013F   90....       MOV     DPTR,#timerlist
+   \   000142   E8           MOV     A,R0
+   \   000143   F0           MOVX    @DPTR,A
+   \   000144   A3           INC     DPTR
+   \   000145   E9           MOV     A,R1
+   \   000146   F0           MOVX    @DPTR,A
+    128          	  }
+    129          	  t->next = NULL;
+   \                     ??process_thread_etimer_process_17:
+   \   000147   8E82         MOV     DPL,R6
+   \   000149   8F83         MOV     DPH,R7
+   \   00014B   A3           INC     DPTR
+   \   00014C   A3           INC     DPTR
+   \   00014D   A3           INC     DPTR
+   \   00014E   A3           INC     DPTR
+   \   00014F   7400         MOV     A,#0x0
+   \   000151   F0           MOVX    @DPTR,A
+   \   000152   A3           INC     DPTR
+   \   000153   7400         MOV     A,#0x0
+   \   000155   F0           MOVX    @DPTR,A
+    130          	  update_time();
+   \   000156                ; Setup parameters for call to function update_time
+   \   000156   12....       LCALL   ??update_time?relay
+    131          	  goto again;
+   \                     ??process_thread_etimer_process_15:
+   \   000159   75..00       MOV     ?V0 + 0,#0x0
+   \   00015C   75..00       MOV     ?V0 + 1,#0x0
+   \   00015F   90....       MOV     DPTR,#timerlist
+   \   000162   E0           MOVX    A,@DPTR
+   \   000163   FE           MOV     R6,A
+   \   000164   A3           INC     DPTR
+   \   000165   E0           MOVX    A,@DPTR
+   \   000166   FF           MOV     R7,A
+   \   000167   8014         SJMP    ??process_thread_etimer_process_18
+    132          	} else {
+    133          	  etimer_request_poll();
+   \                     ??process_thread_etimer_process_19:
+   \   000169                ; Setup parameters for call to function etimer_request_poll
+   \   000169   12....       LCALL   ??etimer_request_poll?relay
+    134          	}
+    135                }
+    136                u = t;
+   \                     ??process_thread_etimer_process_20:
+   \   00016C   8E..         MOV     ?V0 + 0,R6
+   \   00016E   8F..         MOV     ?V0 + 1,R7
+   \   000170   8E82         MOV     DPL,R6
+   \   000172   8F83         MOV     DPH,R7
+   \   000174   A3           INC     DPTR
+   \   000175   A3           INC     DPTR
+   \   000176   A3           INC     DPTR
+   \   000177   A3           INC     DPTR
+   \   000178   E0           MOVX    A,@DPTR
+   \   000179   FE           MOV     R6,A
+   \   00017A   A3           INC     DPTR
+   \   00017B   E0           MOVX    A,@DPTR
+   \   00017C   FF           MOV     R7,A
+   \                     ??process_thread_etimer_process_18:
+   \   00017D   EE           MOV     A,R6
+   \   00017E   4F           ORL     A,R7
+   \   00017F   7003         JNZ     $+5
+   \   000181   02....       LJMP    ??process_thread_etimer_process_3 & 0xFFFF
+   \   000184                ; Setup parameters for call to function timer_expired
+   \   000184   EE           MOV     A,R6
+   \   000185   FA           MOV     R2,A
+   \   000186   EF           MOV     A,R7
+   \   000187   FB           MOV     R3,A
+   \   000188   12....       LCALL   ??timer_expired?relay
+   \   00018B   8A..         MOV     ?V0 + 8,R2
+   \   00018D   8B..         MOV     ?V0 + 9,R3
+   \   00018F   E5..         MOV     A,?V0 + 8
+   \   000191   45..         ORL     A,?V0 + 9
+   \   000193   60D7         JZ      ??process_thread_etimer_process_20
+   \   000195                ; Setup parameters for call to function process_post
+   \   000195   EE           MOV     A,R6
+   \   000196   FC           MOV     R4,A
+   \   000197   EF           MOV     A,R7
+   \   000198   FD           MOV     R5,A
+   \   000199   7988         MOV     R1,#-0x78
+   \   00019B   8E82         MOV     DPL,R6
+   \   00019D   8F83         MOV     DPH,R7
+   \   00019F   A3           INC     DPTR
+   \   0001A0   A3           INC     DPTR
+   \   0001A1   A3           INC     DPTR
+   \   0001A2   A3           INC     DPTR
+   \   0001A3   A3           INC     DPTR
+   \   0001A4   A3           INC     DPTR
+   \   0001A5   E0           MOVX    A,@DPTR
+   \   0001A6   FA           MOV     R2,A
+   \   0001A7   A3           INC     DPTR
+   \   0001A8   E0           MOVX    A,@DPTR
+   \   0001A9   FB           MOV     R3,A
+   \   0001AA   12....       LCALL   ??process_post?relay
+   \   0001AD   8A..         MOV     ?V0 + 8,R2
+   \   0001AF   8B..         MOV     ?V0 + 9,R3
+   \   0001B1   E5..         MOV     A,?V0 + 8
+   \   0001B3   45..         ORL     A,?V0 + 9
+   \   0001B5   70B2         JNZ     ??process_thread_etimer_process_19
+   \   0001B7   8E82         MOV     DPL,R6
+   \   0001B9   8F83         MOV     DPH,R7
+   \   0001BB   A3           INC     DPTR
+   \   0001BC   A3           INC     DPTR
+   \   0001BD   A3           INC     DPTR
+   \   0001BE   A3           INC     DPTR
+   \   0001BF   A3           INC     DPTR
+   \   0001C0   A3           INC     DPTR
+   \   0001C1   7400         MOV     A,#0x0
+   \   0001C3   F0           MOVX    @DPTR,A
+   \   0001C4   A3           INC     DPTR
+   \   0001C5   7400         MOV     A,#0x0
+   \   0001C7   F0           MOVX    @DPTR,A
+   \   0001C8   E5..         MOV     A,?V0 + 0
+   \   0001CA   45..         ORL     A,?V0 + 1
+   \   0001CC   7003         JNZ     $+5
+   \   0001CE   02....       LJMP    ??process_thread_etimer_process_16 & 0xFFFF
+   \   0001D1   8E82         MOV     DPL,R6
+   \   0001D3   8F83         MOV     DPH,R7
+   \   0001D5   A3           INC     DPTR
+   \   0001D6   A3           INC     DPTR
+   \   0001D7   A3           INC     DPTR
+   \   0001D8   A3           INC     DPTR
+   \   0001D9   E0           MOVX    A,@DPTR
+   \   0001DA   F8           MOV     R0,A
+   \   0001DB   A3           INC     DPTR
+   \   0001DC   E0           MOVX    A,@DPTR
+   \   0001DD   F9           MOV     R1,A
+   \   0001DE   85..82       MOV     DPL,?V0 + 0
+   \   0001E1   85..83       MOV     DPH,?V0 + 1
+   \   0001E4   A3           INC     DPTR
+   \   0001E5   A3           INC     DPTR
+   \   0001E6   A3           INC     DPTR
+   \   0001E7   A3           INC     DPTR
+   \   0001E8   E8           MOV     A,R0
+   \   0001E9   F0           MOVX    @DPTR,A
+   \   0001EA   A3           INC     DPTR
+   \   0001EB   E9           MOV     A,R1
+   \   0001EC   F0           MOVX    @DPTR,A
+   \   0001ED   02....       LJMP    ??process_thread_etimer_process_17 & 0xFFFF
+    137              }
+    138              
+    139            }
+    140            
+    141            PROCESS_END();
+   \                     ??process_thread_etimer_process_2:
+   \   0001F0   7A00         MOV     R2,#0x0
+   \   0001F2   85..82       MOV     DPL,?V0 + 2
+   \   0001F5   85..83       MOV     DPH,?V0 + 3
+   \   0001F8   7400         MOV     A,#0x0
+   \   0001FA   F0           MOVX    @DPTR,A
+   \   0001FB   A3           INC     DPTR
+   \   0001FC   7400         MOV     A,#0x0
+   \   0001FE   F0           MOVX    @DPTR,A
+   \   0001FF   7903         MOV     R1,#0x3
+   \                     ??process_thread_etimer_process_5:
+   \   000201   7F0A         MOV     R7,#0xa
+   \   000203   02....       LJMP    ?BANKED_LEAVE_XDATA
+    142          }
+    143          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    144          void
+    145          etimer_request_poll(void)
+   \                     etimer_request_poll:
+    146          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    147            process_poll(&etimer_process);
+   \   000004                ; Setup parameters for call to function process_poll
+   \   000004   7A..         MOV     R2,#etimer_process & 0xff
+   \   000006   7B..         MOV     R3,#(etimer_process >> 8) & 0xff
+   \   000008   12....       LCALL   ??process_poll?relay
+    148          }
+   \   00000B   D083         POP     DPH
+   \   00000D   D082         POP     DPL
+   \   00000F   02....       LJMP    ?BRET
+    149          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    150          static void
+    151          add_timer(struct etimer *timer)
+   \                     add_timer:
+    152          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    153            struct etimer *t;
+    154          
+    155            etimer_request_poll();
+   \   000009                ; Setup parameters for call to function etimer_request_poll
+   \   000009   12....       LCALL   ??etimer_request_poll?relay
+    156          
+    157            if(timer->p != PROCESS_NONE) {
+   \   00000C   8E82         MOV     DPL,R6
+   \   00000E   8F83         MOV     DPH,R7
+   \   000010   A3           INC     DPTR
+   \   000011   A3           INC     DPTR
+   \   000012   A3           INC     DPTR
+   \   000013   A3           INC     DPTR
+   \   000014   A3           INC     DPTR
+   \   000015   A3           INC     DPTR
+   \   000016   E0           MOVX    A,@DPTR
+   \   000017   F8           MOV     R0,A
+   \   000018   A3           INC     DPTR
+   \   000019   E0           MOVX    A,@DPTR
+   \   00001A   F9           MOV     R1,A
+   \   00001B   E8           MOV     A,R0
+   \   00001C   49           ORL     A,R1
+   \   00001D   6047         JZ      ??add_timer_0
+    158              for(t = timerlist; t != NULL; t = t->next) {
+   \   00001F   90....       MOV     DPTR,#timerlist
+   \   000022   E0           MOVX    A,@DPTR
+   \   000023   F8           MOV     R0,A
+   \   000024   A3           INC     DPTR
+   \   000025   E0           MOVX    A,@DPTR
+   \   000026   F9           MOV     R1,A
+   \   000027   8882         MOV     DPL,R0
+   \   000029   8983         MOV     DPH,R1
+   \   00002B   800D         SJMP    ??add_timer_1
+   \                     ??add_timer_2:
+   \   00002D   A3           INC     DPTR
+   \   00002E   A3           INC     DPTR
+   \   00002F   A3           INC     DPTR
+   \   000030   A3           INC     DPTR
+   \   000031   E0           MOVX    A,@DPTR
+   \   000032   F8           MOV     R0,A
+   \   000033   A3           INC     DPTR
+   \   000034   E0           MOVX    A,@DPTR
+   \   000035   F9           MOV     R1,A
+   \   000036   8882         MOV     DPL,R0
+   \   000038   8983         MOV     DPH,R1
+   \                     ??add_timer_1:
+   \   00003A   E582         MOV     A,DPL
+   \   00003C   4583         ORL     A,DPH
+   \   00003E   6026         JZ      ??add_timer_0
+    159                if(t == timer) {
+   \   000040   EE           MOV     A,R6
+   \   000041   6582         XRL     A,DPL
+   \   000043   7003         JNZ     ??add_timer_3
+   \   000045   EF           MOV     A,R7
+   \   000046   6583         XRL     A,DPH
+   \                     ??add_timer_3:
+   \   000048   70E3         JNZ     ??add_timer_2
+    160          	/* Timer already on list, bail out. */
+    161                  timer->p = PROCESS_CURRENT();
+   \   00004A   90....       MOV     DPTR,#process_current
+   \   00004D   E0           MOVX    A,@DPTR
+   \   00004E   F8           MOV     R0,A
+   \   00004F   A3           INC     DPTR
+   \   000050   E0           MOVX    A,@DPTR
+   \   000051   F9           MOV     R1,A
+   \   000052   8E82         MOV     DPL,R6
+   \   000054   8F83         MOV     DPH,R7
+   \   000056   A3           INC     DPTR
+   \   000057   A3           INC     DPTR
+   \   000058   A3           INC     DPTR
+   \   000059   A3           INC     DPTR
+   \   00005A   A3           INC     DPTR
+   \   00005B   A3           INC     DPTR
+   \   00005C   E8           MOV     A,R0
+   \   00005D   F0           MOVX    @DPTR,A
+   \   00005E   A3           INC     DPTR
+   \   00005F   E9           MOV     A,R1
+   \   000060   F0           MOVX    @DPTR,A
+    162          	update_time();
+   \   000061                ; Setup parameters for call to function update_time
+   \   000061   12....       LCALL   ??update_time?relay
+    163          	return;
+   \   000064   8037         SJMP    ??add_timer_4
+    164                }
+    165              }
+    166            }
+    167          
+    168            /* Timer not on list. */
+    169            timer->p = PROCESS_CURRENT();
+   \                     ??add_timer_0:
+   \   000066   90....       MOV     DPTR,#process_current
+   \   000069   E0           MOVX    A,@DPTR
+   \   00006A   F8           MOV     R0,A
+   \   00006B   A3           INC     DPTR
+   \   00006C   E0           MOVX    A,@DPTR
+   \   00006D   F9           MOV     R1,A
+   \   00006E   8E82         MOV     DPL,R6
+   \   000070   8F83         MOV     DPH,R7
+   \   000072   A3           INC     DPTR
+   \   000073   A3           INC     DPTR
+   \   000074   A3           INC     DPTR
+   \   000075   A3           INC     DPTR
+   \   000076   A3           INC     DPTR
+   \   000077   A3           INC     DPTR
+   \   000078   E8           MOV     A,R0
+   \   000079   F0           MOVX    @DPTR,A
+   \   00007A   A3           INC     DPTR
+   \   00007B   E9           MOV     A,R1
+   \   00007C   F0           MOVX    @DPTR,A
+    170            timer->next = timerlist;
+   \   00007D   90....       MOV     DPTR,#timerlist
+   \   000080   E0           MOVX    A,@DPTR
+   \   000081   F8           MOV     R0,A
+   \   000082   A3           INC     DPTR
+   \   000083   E0           MOVX    A,@DPTR
+   \   000084   F9           MOV     R1,A
+   \   000085   8E82         MOV     DPL,R6
+   \   000087   8F83         MOV     DPH,R7
+   \   000089   A3           INC     DPTR
+   \   00008A   A3           INC     DPTR
+   \   00008B   A3           INC     DPTR
+   \   00008C   A3           INC     DPTR
+   \   00008D   E8           MOV     A,R0
+   \   00008E   F0           MOVX    @DPTR,A
+   \   00008F   A3           INC     DPTR
+   \   000090   E9           MOV     A,R1
+   \   000091   F0           MOVX    @DPTR,A
+    171            timerlist = timer;
+   \   000092   90....       MOV     DPTR,#timerlist
+   \   000095   EE           MOV     A,R6
+   \   000096   F0           MOVX    @DPTR,A
+   \   000097   A3           INC     DPTR
+   \   000098   EF           MOV     A,R7
+   \   000099   F0           MOVX    @DPTR,A
+    172          
+    173            update_time();
+   \   00009A                ; Setup parameters for call to function update_time
+   \   00009A   12....       LCALL   ??update_time?relay
+    174          }
+   \                     ??add_timer_4:
+   \   00009D   7F01         MOV     R7,#0x1
+   \   00009F   02....       LJMP    ?BANKED_LEAVE_XDATA
+    175          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    176          void
+    177          etimer_set(struct etimer *et, clock_time_t interval)
+   \                     etimer_set:
+    178          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    179            timer_set(&et->timer, interval);
+   \   000009                ; Setup parameters for call to function timer_set
+   \   000009   EE           MOV     A,R6
+   \   00000A   FA           MOV     R2,A
+   \   00000B   EF           MOV     A,R7
+   \   00000C   FB           MOV     R3,A
+   \   00000D   12....       LCALL   ??timer_set?relay
+    180            add_timer(et);
+   \   000010                ; Setup parameters for call to function add_timer
+   \   000010   EE           MOV     A,R6
+   \   000011   FA           MOV     R2,A
+   \   000012   EF           MOV     A,R7
+   \   000013   FB           MOV     R3,A
+   \   000014   12....       LCALL   ??add_timer?relay
+    181          }
+   \   000017   7F01         MOV     R7,#0x1
+   \   000019   02....       LJMP    ?BANKED_LEAVE_XDATA
+    182          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    183          void
+    184          etimer_reset(struct etimer *et)
+   \                     etimer_reset:
+    185          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    186            timer_reset(&et->timer);
+   \   000009                ; Setup parameters for call to function timer_reset
+   \   000009   EE           MOV     A,R6
+   \   00000A   FA           MOV     R2,A
+   \   00000B   EF           MOV     A,R7
+   \   00000C   FB           MOV     R3,A
+   \   00000D   12....       LCALL   ??timer_reset?relay
+    187            add_timer(et);
+   \   000010                ; Setup parameters for call to function add_timer
+   \   000010   EE           MOV     A,R6
+   \   000011   FA           MOV     R2,A
+   \   000012   EF           MOV     A,R7
+   \   000013   FB           MOV     R3,A
+   \   000014   12....       LCALL   ??add_timer?relay
+    188          }
+   \   000017   7F01         MOV     R7,#0x1
+   \   000019   02....       LJMP    ?BANKED_LEAVE_XDATA
+    189          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    190          void
+    191          etimer_restart(struct etimer *et)
+   \                     etimer_restart:
+    192          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    193            timer_restart(&et->timer);
+   \   000009                ; Setup parameters for call to function timer_restart
+   \   000009   EE           MOV     A,R6
+   \   00000A   FA           MOV     R2,A
+   \   00000B   EF           MOV     A,R7
+   \   00000C   FB           MOV     R3,A
+   \   00000D   12....       LCALL   ??timer_restart?relay
+    194            add_timer(et);
+   \   000010                ; Setup parameters for call to function add_timer
+   \   000010   EE           MOV     A,R6
+   \   000011   FA           MOV     R2,A
+   \   000012   EF           MOV     A,R7
+   \   000013   FB           MOV     R3,A
+   \   000014   12....       LCALL   ??add_timer?relay
+    195          }
+   \   000017   7F01         MOV     R7,#0x1
+   \   000019   02....       LJMP    ?BANKED_LEAVE_XDATA
+    196          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    197          void
+    198          etimer_adjust(struct etimer *et, int timediff)
+   \                     etimer_adjust:
+    199          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    200            et->timer.start += timediff;
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   2C           ADD     A,R4
+   \   00000A   F0           MOVX    @DPTR,A
+   \   00000B   A3           INC     DPTR
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   3D           ADDC    A,R5
+   \   00000E   F0           MOVX    @DPTR,A
+    201            update_time();
+   \   00000F                ; Setup parameters for call to function update_time
+   \   00000F   12....       LCALL   ??update_time?relay
+    202          }
+   \   000012   D083         POP     DPH
+   \   000014   D082         POP     DPL
+   \   000016   02....       LJMP    ?BRET
+    203          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    204          int
+    205          etimer_expired(struct etimer *et)
+   \                     etimer_expired:
+    206          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    207            return et->p == PROCESS_NONE;
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   A3           INC     DPTR
+   \   000009   A3           INC     DPTR
+   \   00000A   A3           INC     DPTR
+   \   00000B   A3           INC     DPTR
+   \   00000C   A3           INC     DPTR
+   \   00000D   A3           INC     DPTR
+   \   00000E   E0           MOVX    A,@DPTR
+   \   00000F   F8           MOV     R0,A
+   \   000010   A3           INC     DPTR
+   \   000011   E0           MOVX    A,@DPTR
+   \   000012   F9           MOV     R1,A
+   \   000013   E8           MOV     A,R0
+   \   000014   49           ORL     A,R1
+   \   000015   7004         JNZ     ??etimer_expired_0
+   \   000017   D2F0         SETB    B.0
+   \   000019   8002         SJMP    ??etimer_expired_1
+   \                     ??etimer_expired_0:
+   \   00001B   C2F0         CLR     B.0
+   \                     ??etimer_expired_1:
+   \   00001D   A2F0         MOV     C,B.0
+   \   00001F   E4           CLR     A
+   \   000020   33           RLC     A
+   \   000021   FA           MOV     R2,A
+   \   000022   7B00         MOV     R3,#0x0
+   \   000024   D083         POP     DPH
+   \   000026   D082         POP     DPL
+   \   000028   02....       LJMP    ?BRET
+    208          }
+    209          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    210          clock_time_t
+    211          etimer_expiration_time(struct etimer *et)
+   \                     etimer_expiration_time:
+    212          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    213            return et->timer.start + et->timer.interval;
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   F8           MOV     R0,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   F9           MOV     R1,A
+   \   00000D   8A82         MOV     DPL,R2
+   \   00000F   8B83         MOV     DPH,R3
+   \   000011   A3           INC     DPTR
+   \   000012   A3           INC     DPTR
+   \   000013   E0           MOVX    A,@DPTR
+   \   000014   28           ADD     A,R0
+   \   000015   FA           MOV     R2,A
+   \   000016   A3           INC     DPTR
+   \   000017   E0           MOVX    A,@DPTR
+   \   000018   39           ADDC    A,R1
+   \   000019   FB           MOV     R3,A
+   \   00001A   D083         POP     DPH
+   \   00001C   D082         POP     DPL
+   \   00001E   02....       LJMP    ?BRET
+    214          }
+    215          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    216          clock_time_t
+    217          etimer_start_time(struct etimer *et)
+   \                     etimer_start_time:
+    218          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    219            return et->timer.start;
+   \   000004   8A82         MOV     DPL,R2
+   \   000006   8B83         MOV     DPH,R3
+   \   000008   E0           MOVX    A,@DPTR
+   \   000009   FA           MOV     R2,A
+   \   00000A   A3           INC     DPTR
+   \   00000B   E0           MOVX    A,@DPTR
+   \   00000C   FB           MOV     R3,A
+   \   00000D   D083         POP     DPH
+   \   00000F   D082         POP     DPL
+   \   000011   02....       LJMP    ?BRET
+    220          }
+    221          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    222          int
+    223          etimer_pending(void)
+   \                     etimer_pending:
+    224          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    225            return timerlist != NULL;
+   \   000004   90....       MOV     DPTR,#timerlist
+   \   000007   E0           MOVX    A,@DPTR
+   \   000008   F8           MOV     R0,A
+   \   000009   A3           INC     DPTR
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   F9           MOV     R1,A
+   \   00000C   E8           MOV     A,R0
+   \   00000D   49           ORL     A,R1
+   \   00000E   6004         JZ      ??etimer_pending_0
+   \   000010   D2F0         SETB    B.0
+   \   000012   8002         SJMP    ??etimer_pending_1
+   \                     ??etimer_pending_0:
+   \   000014   C2F0         CLR     B.0
+   \                     ??etimer_pending_1:
+   \   000016   A2F0         MOV     C,B.0
+   \   000018   E4           CLR     A
+   \   000019   33           RLC     A
+   \   00001A   FA           MOV     R2,A
+   \   00001B   7B00         MOV     R3,#0x0
+   \   00001D   D083         POP     DPH
+   \   00001F   D082         POP     DPL
+   \   000021   02....       LJMP    ?BRET
+    226          }
+    227          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    228          clock_time_t
+    229          etimer_next_expiration_time(void)
+   \                     etimer_next_expiration_time:
+    230          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    231            return etimer_pending() ? next_expiration : 0;
+   \   000005                ; Setup parameters for call to function etimer_pending
+   \   000005   12....       LCALL   ??etimer_pending?relay
+   \   000008   8A..         MOV     ?V0 + 0,R2
+   \   00000A   8B..         MOV     ?V0 + 1,R3
+   \   00000C   E5..         MOV     A,?V0 + 0
+   \   00000E   45..         ORL     A,?V0 + 1
+   \   000010   600A         JZ      ??etimer_next_expiration_time_0
+   \   000012   90....       MOV     DPTR,#next_expiration
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   FA           MOV     R2,A
+   \   000017   A3           INC     DPTR
+   \   000018   E0           MOVX    A,@DPTR
+   \   000019   FB           MOV     R3,A
+   \   00001A   8004         SJMP    ??etimer_next_expiration_time_1
+   \                     ??etimer_next_expiration_time_0:
+   \   00001C   7A00         MOV     R2,#0x0
+   \   00001E   7B00         MOV     R3,#0x0
+   \                     ??etimer_next_expiration_time_1:
+   \   000020   7F02         MOV     R7,#0x2
+   \   000022   02....       LJMP    ?BANKED_LEAVE_XDATA
+    232          }
+    233          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    234          void
+    235          etimer_stop(struct etimer *et)
+   \                     etimer_stop:
+    236          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+    237            struct etimer *t;
+    238          
+    239            /* First check if et is the first event timer on the list. */
+    240            if(et == timerlist) {
+   \   000009   90....       MOV     DPTR,#timerlist
+   \   00000C   E0           MOVX    A,@DPTR
+   \   00000D   F8           MOV     R0,A
+   \   00000E   A3           INC     DPTR
+   \   00000F   E0           MOVX    A,@DPTR
+   \   000010   F9           MOV     R1,A
+   \   000011   EE           MOV     A,R6
+   \   000012   68           XRL     A,R0
+   \   000013   7002         JNZ     ??etimer_stop_0
+   \   000015   EF           MOV     A,R7
+   \   000016   69           XRL     A,R1
+   \                     ??etimer_stop_0:
+   \   000017   7021         JNZ     ??etimer_stop_1
+    241              timerlist = timerlist->next;
+   \   000019   90....       MOV     DPTR,#timerlist
+   \   00001C   E0           MOVX    A,@DPTR
+   \   00001D   F8           MOV     R0,A
+   \   00001E   A3           INC     DPTR
+   \   00001F   E0           MOVX    A,@DPTR
+   \   000020   F583         MOV     DPH,A
+   \   000022   8882         MOV     DPL,R0
+   \   000024   A3           INC     DPTR
+   \   000025   A3           INC     DPTR
+   \   000026   A3           INC     DPTR
+   \   000027   A3           INC     DPTR
+   \   000028   E0           MOVX    A,@DPTR
+   \   000029   F8           MOV     R0,A
+   \   00002A   A3           INC     DPTR
+   \   00002B   E0           MOVX    A,@DPTR
+   \   00002C   F9           MOV     R1,A
+   \   00002D   90....       MOV     DPTR,#timerlist
+   \   000030   E8           MOV     A,R0
+   \   000031   F0           MOVX    @DPTR,A
+   \   000032   A3           INC     DPTR
+   \   000033   E9           MOV     A,R1
+   \   000034   F0           MOVX    @DPTR,A
+    242              update_time();
+   \   000035                ; Setup parameters for call to function update_time
+   \   000035   12....       LCALL   ??update_time?relay
+   \   000038   8051         SJMP    ??etimer_stop_2
+    243            } else {
+    244              /* Else walk through the list and try to find the item before the
+    245                 et timer. */
+    246              for(t = timerlist; t != NULL && t->next != et; t = t->next);
+   \                     ??etimer_stop_1:
+   \   00003A   90....       MOV     DPTR,#timerlist
+   \   00003D   E0           MOVX    A,@DPTR
+   \   00003E   F8           MOV     R0,A
+   \   00003F   A3           INC     DPTR
+   \   000040   E0           MOVX    A,@DPTR
+   \   000041   F9           MOV     R1,A
+   \   000042   800D         SJMP    ??etimer_stop_3
+   \                     ??etimer_stop_4:
+   \   000044   8882         MOV     DPL,R0
+   \   000046   8983         MOV     DPH,R1
+   \   000048   A3           INC     DPTR
+   \   000049   A3           INC     DPTR
+   \   00004A   A3           INC     DPTR
+   \   00004B   A3           INC     DPTR
+   \   00004C   E0           MOVX    A,@DPTR
+   \   00004D   F8           MOV     R0,A
+   \   00004E   A3           INC     DPTR
+   \   00004F   E0           MOVX    A,@DPTR
+   \   000050   F9           MOV     R1,A
+   \                     ??etimer_stop_3:
+   \   000051   E8           MOV     A,R0
+   \   000052   49           ORL     A,R1
+   \   000053   6015         JZ      ??etimer_stop_5
+   \   000055   8882         MOV     DPL,R0
+   \   000057   8983         MOV     DPH,R1
+   \   000059   A3           INC     DPTR
+   \   00005A   A3           INC     DPTR
+   \   00005B   A3           INC     DPTR
+   \   00005C   A3           INC     DPTR
+   \   00005D   E0           MOVX    A,@DPTR
+   \   00005E   FA           MOV     R2,A
+   \   00005F   A3           INC     DPTR
+   \   000060   E0           MOVX    A,@DPTR
+   \   000061   FB           MOV     R3,A
+   \   000062   EE           MOV     A,R6
+   \   000063   6A           XRL     A,R2
+   \   000064   7002         JNZ     ??etimer_stop_6
+   \   000066   EF           MOV     A,R7
+   \   000067   6B           XRL     A,R3
+   \                     ??etimer_stop_6:
+   \   000068   70DA         JNZ     ??etimer_stop_4
+    247          
+    248              if(t != NULL) {
+   \                     ??etimer_stop_5:
+   \   00006A   E8           MOV     A,R0
+   \   00006B   49           ORL     A,R1
+   \   00006C   601D         JZ      ??etimer_stop_2
+    249                /* We've found the item before the event timer that we are about
+    250          	 to remove. We point the items next pointer to the event after
+    251          	 the removed item. */
+    252                t->next = et->next;
+   \   00006E   8E82         MOV     DPL,R6
+   \   000070   8F83         MOV     DPH,R7
+   \   000072   A3           INC     DPTR
+   \   000073   A3           INC     DPTR
+   \   000074   A3           INC     DPTR
+   \   000075   A3           INC     DPTR
+   \   000076   E0           MOVX    A,@DPTR
+   \   000077   FA           MOV     R2,A
+   \   000078   A3           INC     DPTR
+   \   000079   E0           MOVX    A,@DPTR
+   \   00007A   FB           MOV     R3,A
+   \   00007B   8882         MOV     DPL,R0
+   \   00007D   8983         MOV     DPH,R1
+   \   00007F   A3           INC     DPTR
+   \   000080   A3           INC     DPTR
+   \   000081   A3           INC     DPTR
+   \   000082   A3           INC     DPTR
+   \   000083   EA           MOV     A,R2
+   \   000084   F0           MOVX    @DPTR,A
+   \   000085   A3           INC     DPTR
+   \   000086   EB           MOV     A,R3
+   \   000087   F0           MOVX    @DPTR,A
+    253          
+    254                update_time();
+   \   000088                ; Setup parameters for call to function update_time
+   \   000088   12....       LCALL   ??update_time?relay
+    255              }
+    256            }
+    257          
+    258            /* Remove the next pointer from the item to be removed. */
+    259            et->next = NULL;
+   \                     ??etimer_stop_2:
+   \   00008B   8E82         MOV     DPL,R6
+   \   00008D   8F83         MOV     DPH,R7
+   \   00008F   A3           INC     DPTR
+   \   000090   A3           INC     DPTR
+   \   000091   A3           INC     DPTR
+   \   000092   A3           INC     DPTR
+   \   000093   7400         MOV     A,#0x0
+   \   000095   F0           MOVX    @DPTR,A
+   \   000096   A3           INC     DPTR
+   \   000097   7400         MOV     A,#0x0
+   \   000099   F0           MOVX    @DPTR,A
+    260            /* Set the timer as expired */
+    261            et->p = PROCESS_NONE;
+   \   00009A   8E82         MOV     DPL,R6
+   \   00009C   8F83         MOV     DPH,R7
+   \   00009E   A3           INC     DPTR
+   \   00009F   A3           INC     DPTR
+   \   0000A0   A3           INC     DPTR
+   \   0000A1   A3           INC     DPTR
+   \   0000A2   A3           INC     DPTR
+   \   0000A3   A3           INC     DPTR
+   \   0000A4   7400         MOV     A,#0x0
+   \   0000A6   F0           MOVX    @DPTR,A
+   \   0000A7   A3           INC     DPTR
+   \   0000A8   7400         MOV     A,#0x0
+   \   0000AA   F0           MOVX    @DPTR,A
+    262          }
+   \   0000AB   7F01         MOV     R7,#0x1
+   \   0000AD   02....       LJMP    ?BANKED_LEAVE_XDATA
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for etimer_process>`:
+   \   000000   0000         DW 0H
+   \   000002   ....         DW ??process_thread_etimer_process?relay
+   \   000004   00000000     DB 0, 0, 0, 0
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??update_time?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    update_time
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_thread_etimer_process?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_thread_etimer_process
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??etimer_request_poll?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    etimer_request_poll
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??add_timer?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    add_timer
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??etimer_set?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    etimer_set
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??etimer_reset?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    etimer_reset
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??etimer_restart?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    etimer_restart
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??etimer_adjust?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    etimer_adjust
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??etimer_expired?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    etimer_expired
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??etimer_expiration_time?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    etimer_expiration_time
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??etimer_start_time?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    etimer_start_time
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??etimer_pending?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    etimer_pending
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??etimer_next_expiration_time?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    etimer_next_expiration_time
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??etimer_stop?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    etimer_stop
+    263          /*---------------------------------------------------------------------------*/
+    264          /** @} */
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     18  add_timer
+                          0 0  9 -> etimer_request_poll
+                          0 0  9 -> update_time
+       2      0      0  etimer_adjust
+                          2 0  0 -> update_time
+       2      0      0  etimer_expiration_time
+       2      0      0  etimer_expired
+       0      0     10  etimer_next_expiration_time
+                          0 0 10 -> etimer_pending
+       2      0     10  etimer_pending
+       2      0     18  etimer_request_poll
+                          2 0  0 -> process_poll
+       0      0      9  etimer_reset
+                          0 0  9 -> add_timer
+                          0 0  9 -> timer_reset
+       0      0      9  etimer_restart
+                          0 0  9 -> add_timer
+                          0 0  9 -> timer_restart
+       0      0      9  etimer_set
+                          0 0  9 -> add_timer
+                          0 0  9 -> timer_set
+       2      0      0  etimer_start_time
+       0      0      9  etimer_stop
+                          0 0  9 -> update_time
+       0      0     18  process_thread_etimer_process
+                          0 0 18 -> etimer_request_poll
+                          0 0 18 -> process_post
+                          0 0 18 -> timer_expired
+                          0 0 18 -> update_time
+       0      0     28  update_time
+                          0 0 10 -> clock_time
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       8  ?<Initializer for etimer_process>
+       6  ??add_timer?relay
+       6  ??etimer_adjust?relay
+       6  ??etimer_expiration_time?relay
+       6  ??etimer_expired?relay
+       6  ??etimer_next_expiration_time?relay
+       6  ??etimer_pending?relay
+       6  ??etimer_request_poll?relay
+       6  ??etimer_reset?relay
+       6  ??etimer_restart?relay
+       6  ??etimer_set?relay
+       6  ??etimer_start_time?relay
+       6  ??etimer_stop?relay
+       6  ??process_thread_etimer_process?relay
+       6  ??update_time?relay
+     162  add_timer
+      25  etimer_adjust
+      33  etimer_expiration_time
+      43  etimer_expired
+      37  etimer_next_expiration_time
+      36  etimer_pending
+       8  etimer_process
+      18  etimer_request_poll
+      28  etimer_reset
+      28  etimer_restart
+      28  etimer_set
+      20  etimer_start_time
+     176  etimer_stop
+       2  next_expiration
+     518  process_thread_etimer_process
+       2  timerlist
+     194  update_time
+
+ 
+ 1 346 bytes in segment BANKED_CODE
+    84 bytes in segment BANK_RELAYS
+     8 bytes in segment XDATA_I
+     8 bytes in segment XDATA_ID
+     4 bytes in segment XDATA_Z
+ 
+ 1 438 bytes of CODE  memory
+    12 bytes of XDATA memory
+
+Errors: none
+Warnings: none

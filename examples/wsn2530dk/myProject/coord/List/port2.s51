@@ -1,0 +1,466 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:37 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\cpu\cc253x\dev\port2.c           /
+//    Command line       =  D:\myWork\myWork\cpu\cc253x\dev\port2.c -D        /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\port2.s51                                 /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME port2
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN __INIT_XDATA_Z
+
+        PUBLIC ??cc253x_p2_register_handler?relay
+        FUNCTION ??cc253x_p2_register_handler?relay,0203H
+        PUBLIC ??cc253x_p2_unregister_handler?relay
+        FUNCTION ??cc253x_p2_unregister_handler?relay,0203H
+        PUBWEAK IEN2
+        PUBLIC cc253x_p2_register_handler
+        FUNCTION cc253x_p2_register_handler,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC cc253x_p2_unregister_handler
+        FUNCTION cc253x_p2_unregister_handler,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC handlers
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+cc253x_p2_register_handler SYMBOL "cc253x_p2_register_handler"
+??cc253x_p2_register_handler?relay SYMBOL "?relay", cc253x_p2_register_handler
+cc253x_p2_unregister_handler SYMBOL "cc253x_p2_unregister_handler"
+??cc253x_p2_unregister_handler?relay SYMBOL "?relay", cc253x_p2_unregister_handler
+
+
+        ASEGN SFR_AN:DATA:NOROOT,09aH
+// unsigned char volatile __sfr IEN2
+IEN2:
+        DATA8
+        DS 1
+// D:\myWork\myWork\cpu\cc253x\dev\port2.c
+//    1 /*
+//    2 Copyright (c) 2012, Philippe Retornaz
+//    3 Copyright (c) 2012, EPFL STI IMT LSRO1 -- Mobots group
+//    4 All rights reserved.
+//    5 
+//    6 Redistribution and use in source and binary forms, with or without
+//    7 modification, are permitted provided that the following conditions
+//    8 are met:
+//    9 1. Redistributions of source code must retain the above copyright
+//   10    notice, this list of conditions and the following disclaimer.
+//   11 2. Redistributions in binary form must reproduce the above copyright
+//   12    notice, this list of conditions and the following disclaimer in the
+//   13    documentation and/or other materials provided with the distribution.
+//   14 3. The name of the author may not be used to endorse or promote
+//   15    products derived from this software without specific prior
+//   16    written permission.
+//   17 
+//   18 THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+//   19 OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+//   20 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   21 ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+//   22 DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   23 DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+//   24 GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+//   25 INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+//   26 WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+//   27 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+//   28 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//   29 */
+//   30 
+//   31 #include "cc253x.h"
+//   32 #include "port2.h"
+//   33 
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA16
+//   34 struct cc253x_p2_handler *handlers = NULL;
+handlers:
+        DS 2
+        REQUIRE __INIT_XDATA_Z
+//   35 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   36 void
+//   37 cc253x_p2_register_handler(struct cc253x_p2_handler *h)
+cc253x_p2_register_handler:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function cc253x_p2_register_handler
+        CODE
+//   38 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   39   uint8_t flags;
+//   40 
+//   41   if(!h) {
+        MOV     A,R2
+        ORL     A,R3
+        JZ      ??cc253x_p2_register_handler_0
+//   42     return;
+//   43   }
+//   44 
+//   45   cc253x_p2_irq_disable(flags);
+        MOV     A,0x9a
+        ANL     A,#0x2
+        MOV     R4,A
+        ANL     0x9a,#0xfd
+//   46 
+//   47   h->next = handlers;
+        MOV     DPTR,#handlers
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPL,R2
+        MOV     DPH,R3
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+//   48   handlers = h;
+        MOV     DPTR,#handlers
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//   49 
+//   50   cc253x_p2_irq_enable(flags);
+        MOV     A,R4
+        ORL     0x9a,A
+//   51 }
+??cc253x_p2_register_handler_0:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock0
+        REQUIRE IEN2
+//   52 
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   53 void
+//   54 cc253x_p2_unregister_handler(struct cc253x_p2_handler *remove)
+cc253x_p2_unregister_handler:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function cc253x_p2_unregister_handler
+        CODE
+//   55 {
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+//   56   uint8_t flags;
+//   57   struct cc253x_p2_handler *h = handlers;
+        MOV     DPTR,#handlers
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+//   58 
+//   59   // Protect against dumb users
+//   60   if(!h || !remove) {
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??cc253x_p2_unregister_handler_0
+        MOV     A,R2
+        ORL     A,R3
+        JZ      ??cc253x_p2_unregister_handler_0
+//   61     return;
+//   62   }
+//   63 
+//   64   cc253x_p2_irq_disable(flags);
+        MOV     A,0x9a
+        ANL     A,#0x2
+        MOV     R6,A
+        ANL     0x9a,#0xfd
+//   65 
+//   66   if(h == remove) {
+        MOV     A,R2
+        XRL     A,R0
+        JNZ     ??cc253x_p2_unregister_handler_1
+        MOV     A,R3
+        XRL     A,R1
+??cc253x_p2_unregister_handler_1:
+        JNZ     ??cc253x_p2_unregister_handler_2
+//   67     // First element in the list
+//   68     handlers = h->next;
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     DPTR,#handlers
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        SJMP    ??cc253x_p2_unregister_handler_3
+//   69   } else {
+//   70     while(h->next) {
+//   71       if(h->next == remove) {
+//   72         h->next = h->next->next;
+//   73         break;
+//   74       }
+//   75       h = h->next;
+??cc253x_p2_unregister_handler_4:
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+??cc253x_p2_unregister_handler_2:
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     A,R4
+        ORL     A,R5
+        JZ      ??cc253x_p2_unregister_handler_3
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOVX    A,@DPTR
+        MOV     R4,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R5,A
+        MOV     A,R2
+        XRL     A,R4
+        JNZ     ??cc253x_p2_unregister_handler_5
+        MOV     A,R3
+        XRL     A,R5
+??cc253x_p2_unregister_handler_5:
+        JNZ     ??cc253x_p2_unregister_handler_4
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     DPH,A
+        MOV     DPL,R2
+        MOVX    A,@DPTR
+        MOV     R2,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R3,A
+        MOV     DPL,R0
+        MOV     DPH,R1
+        MOV     A,R2
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R3
+        MOVX    @DPTR,A
+//   76     }
+//   77   }
+//   78 
+//   79   cc253x_p2_irq_enable(flags);
+??cc253x_p2_unregister_handler_3:
+        MOV     A,R6
+        ORL     0x9a,A
+//   80 }
+??cc253x_p2_unregister_handler_0:
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+        REQUIRE IEN2
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??cc253x_p2_register_handler?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    cc253x_p2_register_handler
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??cc253x_p2_unregister_handler?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    cc253x_p2_unregister_handler
+
+        END
+// 
+// 180 bytes in segment BANKED_CODE
+//  12 bytes in segment BANK_RELAYS
+//   1 byte  in segment SFR_AN
+//   2 bytes in segment XDATA_Z
+// 
+// 192 bytes of CODE  memory
+//   0 bytes of DATA  memory (+ 1 byte shared)
+//   2 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

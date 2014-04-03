@@ -1,0 +1,194 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:51 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\cpu\cc253x\stack.c                #
+#    Command line       =  D:\myWork\myWork\cpu\cc253x\stack.c -D             #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\stack.lst                                   #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\stack.r51                                    #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\cpu\cc253x\stack.c
+      1          /*
+      2           * Copyright (c) 2011, George Oikonomou - <oikonomou@users.sourceforge.net>
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           * This file is part of the Contiki operating system.
+     30           */
+     31          
+     32          /**
+     33           * \file
+     34           *         8051 stack debugging facilities
+     35           *
+     36           * \author
+     37           *         George Oikonomou - <oikonomou@users.sourceforge.net>
+     38           *         Philippe Retornaz (EPFL)
+     39           *         YoCiHou - <www.iotdev.net>
+     40           */
+     41          #include "contiki.h"
+     42          
+     43          #ifndef STACK_POISON
+     44          #define STACK_POISON 0xAA
+     45          #endif
+     46          
+
+   \                                 In  segment DATA_Z, align 1, keep-with-next
+     47          CC_AT_DATA uint8_t sp;
+   \                     `sp`:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_DATA_Z
+     48          
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     49          void
+     50          stack_poison(void)
+   \                     stack_poison:
+     51          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+     52            /*fill unused satck with constant STACK_POISON 0xAA(170)*/
+     53            asm("mov r1, SP\n"
+     54                "poison_loop:\n"
+     55                "inc r1\n"
+     56                "mov @r1, #170\n"
+     57                "cjne r1, #0xFF, poison_loop"
+     58                  );
+   \   000000   A981         mov r1, SP
+   \                     ??poison_loop:
+   \   000002   09           inc r1
+   \   000003   77AA         mov @r1, #170
+   \   000005   B9FFFA       cjne r1, #0xFF, ??poison_loop
+     59          }
+   \   000008   02....       LJMP    ?BRET
+     60          
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     61          uint8_t
+     62          stack_get_max(void)
+   \                     stack_get_max:
+     63          {
+   \   000000                ; Saved register size: 0
+   \   000000                ; Auto size: 0
+     64            uint8_t __data *sp = (uint8_t __data *)0xff;
+   \   000000   7AFF         MOV     R2,#-0x1
+     65            uint8_t free = 0;
+   \   000002   7900         MOV     R1,#0x0
+   \   000004   8001         SJMP    ??stack_get_max_0
+     66          
+     67            while(*sp-- == STACK_POISON) {
+     68              free++;
+   \                     ??stack_get_max_1:
+   \   000006   09           INC     R1
+     69            }
+   \                     ??stack_get_max_0:
+   \   000007   EA           MOV     A,R2
+   \   000008   F8           MOV     R0,A
+   \   000009   74FF         MOV     A,#-0x1
+   \   00000B   28           ADD     A,R0
+   \   00000C   FA           MOV     R2,A
+   \   00000D   E6           MOV     A,@R0
+   \   00000E   64AA         XRL     A,#0xaa
+   \   000010   60F4         JZ      ??stack_get_max_1
+     70          
+     71            return 0xff - free;
+   \   000012   74FF         MOV     A,#-0x1
+   \   000014   C3           CLR     C
+   \   000015   99           SUBB    A,R1
+   \   000016   F9           MOV     R1,A
+   \   000017   02....       LJMP    ?BRET
+     72          }
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??stack_poison?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    stack_poison
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??stack_get_max?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    stack_get_max
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0      0  stack_get_max
+       0      0      0  stack_poison
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       6  ??stack_get_max?relay
+       6  ??stack_poison?relay
+       1  sp
+      26  stack_get_max
+      11  stack_poison
+
+ 
+ 37 bytes in segment BANKED_CODE
+ 12 bytes in segment BANK_RELAYS
+  1 byte  in segment DATA_Z
+ 
+ 49 bytes of CODE memory
+  1 byte  of DATA memory
+
+Errors: none
+Warnings: none

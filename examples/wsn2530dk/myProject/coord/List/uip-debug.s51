@@ -1,0 +1,601 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:52 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\platform\wsn2530dk\uip-debug.c   /
+//    Command line       =  D:\myWork\myWork\platform\wsn2530dk\uip-debug.c   /
+//                          -D AUTOSTART_ENABLE -D PROJECT_CONF_H -lC         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\uip-debug.s51                             /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME `uip-debug`
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?V0
+        EXTERN __INIT_XDATA_I
+
+        PUBLIC ??uip_debug_ipaddr_print?relay
+        FUNCTION ??uip_debug_ipaddr_print?relay,0203H
+        PUBLIC ??uip_debug_lladdr_print?relay
+        FUNCTION ??uip_debug_lladdr_print?relay,0203H
+        PUBLIC uip_debug_ipaddr_print
+        FUNCTION uip_debug_ipaddr_print,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        PUBLIC uip_debug_lladdr_print
+        FUNCTION uip_debug_lladdr_print,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+puthex              SYMBOL "puthex"
+??puthex?relay      SYMBOL "?relay", puthex
+putstring           SYMBOL "putstring"
+??putstring?relay   SYMBOL "?relay", putstring
+uip_debug_ipaddr_print SYMBOL "uip_debug_ipaddr_print"
+??uip_debug_ipaddr_print?relay SYMBOL "?relay", uip_debug_ipaddr_print
+uip_debug_lladdr_print SYMBOL "uip_debug_lladdr_print"
+??uip_debug_lladdr_print?relay SYMBOL "?relay", uip_debug_lladdr_print
+
+        EXTERN ??puthex?relay
+        FUNCTION ??puthex?relay,00H
+        EXTERN ??putstring?relay
+        FUNCTION ??putstring?relay,00H
+        EXTERN puthex
+        FUNCTION puthex,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN putstring
+        FUNCTION putstring,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+// D:\myWork\myWork\platform\wsn2530dk\uip-debug.c
+//    1 /*
+//    2  * Copyright (c) 2010, Swedish Institute of Computer Science.
+//    3  * All rights reserved.
+//    4  *
+//    5  * Redistribution and use in source and binary forms, with or without
+//    6  * modification, are permitted provided that the following conditions
+//    7  * are met:
+//    8  * 1. Redistributions of source code must retain the above copyright
+//    9  *    notice, this list of conditions and the following disclaimer.
+//   10  * 2. Redistributions in binary form must reproduce the above copyright
+//   11  *    notice, this list of conditions and the following disclaimer in the
+//   12  *    documentation and/or other materials provided with the distribution.
+//   13  * 3. Neither the name of the Institute nor the names of its contributors
+//   14  *    may be used to endorse or promote products derived from this software
+//   15  *    without specific prior written permission.
+//   16  *
+//   17  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   18  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   19  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   20  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   21  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   22  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   23  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   24  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   25  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   26  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   27  * SUCH DAMAGE.
+//   28  *
+//   29  */
+//   30 
+//   31 /**
+//   32  * \file
+//   33  *         A set of debugging tools
+//   34  * \author
+//   35  *         Nicolas Tsiftes <nvt@sics.se>
+//   36  *         Niclas Finne <nfi@sics.se>
+//   37  *         Joakim Eriksson <joakime@sics.se>
+//   38  */
+//   39 
+//   40 #include "net/uip-debug.h"
+//   41 #include "debug.h"
+//   42 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   43 void
+//   44 uip_debug_ipaddr_print(const uip_ipaddr_t *addr)
+uip_debug_ipaddr_print:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function uip_debug_ipaddr_print
+        CODE
+//   45 {
+        FUNCALL uip_debug_ipaddr_print, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_debug_ipaddr_print, puthex
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_debug_ipaddr_print, puthex
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_debug_ipaddr_print, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xe
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 14)
+        ; Saved register size: 14
+        ; Auto size: 0
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+//   46 #if UIP_CONF_IPV6
+//   47   uint16_t a;
+//   48   unsigned int i;
+//   49   int f;
+//   50   for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
+        MOV     ?V0 + 2,#0x0
+        MOV     ?V0 + 3,#0x0
+        MOV     ?V0 + 4,#0x0
+        MOV     ?V0 + 5,#0x0
+        SJMP    ??uip_debug_ipaddr_print_0
+//   51     a = (addr->u8[i] << 8) + addr->u8[i + 1];
+//   52     if(a == 0 && f >= 0) {
+//   53       if(f++ == 0) {
+//   54         putstring("::");
+//   55       }
+//   56     } else {
+//   57       if(f > 0) {
+//   58         f = -1;
+//   59       } else if(i > 0) {
+??uip_debug_ipaddr_print_1:
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JZ      ??uip_debug_ipaddr_print_2
+//   60         putstring(":");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant ":">` & 0xff
+        MOV     R3,#(`?<Constant ":">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//   61       }
+//   62       puthex(a >> 8);
+??uip_debug_ipaddr_print_2:
+        ; Setup parameters for call to function puthex
+        MOV     A,R6
+        MOV     R0,A
+        MOV     A,R7
+        MOV     R1,A
+        CLR     A
+        MOV     A,R1
+        MOV     R0,A
+        MOV     R1,A
+        LCALL   ??puthex?relay
+//   63       puthex(a & 0xFF);
+        ; Setup parameters for call to function puthex
+        MOV     A,R6
+        MOV     R1,A
+        LCALL   ??puthex?relay
+??uip_debug_ipaddr_print_3:
+        MOV     A,?V0 + 2
+        ADD     A,#0x2
+        MOV     ?V0 + 2,A
+        MOV     A,?V0 + 3
+        ADDC    A,#0x0
+        MOV     ?V0 + 3,A
+??uip_debug_ipaddr_print_0:
+        CLR     C
+        MOV     A,?V0 + 2
+        SUBB    A,#0x10
+        MOV     A,?V0 + 3
+        SUBB    A,#0x0
+        JNC     ??uip_debug_ipaddr_print_4
+        MOV     A,?V0 + 0
+        ADD     A,?V0 + 2
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,?V0 + 3
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,?V0 + 0
+        ADD     A,?V0 + 2
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,?V0 + 3
+        MOV     DPH,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,R0
+        ADD     A,R2
+        MOV     R6,A
+        MOV     A,R1
+        ADDC    A,R3
+        MOV     R7,A
+        MOV     A,R6
+        ORL     A,R7
+        JNZ     ??uip_debug_ipaddr_print_5
+        CLR     C
+        MOV     A,?V0 + 4
+        SUBB    A,#0x0
+        MOV     A,?V0 + 5
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JC      ??uip_debug_ipaddr_print_5
+        MOV     R0,?V0 + 4
+        MOV     R1,?V0 + 5
+        MOV     A,R0
+        ADD     A,#0x1
+        MOV     ?V0 + 4,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     ?V0 + 5,A
+        MOV     A,R0
+        ORL     A,R1
+        JNZ     ??uip_debug_ipaddr_print_3
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant "::">` & 0xff
+        MOV     R3,#(`?<Constant "::">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+        SJMP    ??uip_debug_ipaddr_print_3
+??uip_debug_ipaddr_print_5:
+        CLR     C
+        MOV     A,?V0 + 4
+        SUBB    A,#0x1
+        MOV     A,?V0 + 5
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     $+5
+        LJMP    ??uip_debug_ipaddr_print_1 & 0xFFFF
+        MOV     ?V0 + 4,#-0x1
+        MOV     ?V0 + 5,#-0x1
+        LJMP    ??uip_debug_ipaddr_print_2 & 0xFFFF
+//   64     }
+//   65   }
+//   66 #else /* UIP_CONF_IPV6 */
+//   67   PRINTA("%u.%u.%u.%u", addr->u8[0], addr->u8[1], addr->u8[2], addr->u8[3]);
+//   68 #endif /* UIP_CONF_IPV6 */
+//   69 }
+??uip_debug_ipaddr_print_4:
+        MOV     R7,#0x6
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock0
+//   70 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   71 void
+//   72 uip_debug_lladdr_print(const uip_lladdr_t *addr)
+uip_debug_lladdr_print:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function uip_debug_lladdr_print
+        CODE
+//   73 {
+        FUNCALL uip_debug_lladdr_print, putstring
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_debug_lladdr_print, puthex
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//   74   unsigned int i;
+//   75   for(i = 0; i < sizeof(uip_lladdr_t); i++) {
+        MOV     ?V0 + 0,#0x0
+        MOV     ?V0 + 1,#0x0
+        SJMP    ??uip_debug_lladdr_print_0
+//   76     if(i > 0) {
+??uip_debug_lladdr_print_1:
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JZ      ??uip_debug_lladdr_print_2
+//   77       putstring(":");
+        ; Setup parameters for call to function putstring
+        MOV     R2,#`?<Constant ":">` & 0xff
+        MOV     R3,#(`?<Constant ":">` >> 8) & 0xff
+        LCALL   ??putstring?relay
+//   78     }
+//   79     puthex(addr->addr[i]);
+??uip_debug_lladdr_print_2:
+        ; Setup parameters for call to function puthex
+        MOV     A,R6
+        ADD     A,?V0 + 0
+        MOV     DPL,A
+        MOV     A,R7
+        ADDC    A,?V0 + 1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R1,A
+        LCALL   ??puthex?relay
+//   80   }
+        MOV     A,?V0 + 0
+        ADD     A,#0x1
+        MOV     ?V0 + 0,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     ?V0 + 1,A
+??uip_debug_lladdr_print_0:
+        CLR     C
+        MOV     A,?V0 + 0
+        SUBB    A,#0x8
+        MOV     A,?V0 + 1
+        SUBB    A,#0x0
+        JC      ??uip_debug_lladdr_print_1
+//   81 }
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant "::">>`:
+        DB "::"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for <Constant ":">>`:
+        DB ":"
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_debug_ipaddr_print?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_debug_ipaddr_print
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_debug_lladdr_print?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_debug_lladdr_print
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+`?<Constant "::">`:
+        DS 3
+        REQUIRE `?<Initializer for <Constant "::">>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA16
+`?<Constant ":">`:
+        DS 2
+        REQUIRE `?<Initializer for <Constant ":">>`
+        REQUIRE __INIT_XDATA_I
+
+        END
+//   82 /*---------------------------------------------------------------------------*/
+// 
+// 270 bytes in segment BANKED_CODE
+//  12 bytes in segment BANK_RELAYS
+//   5 bytes in segment XDATA_I
+//   5 bytes in segment XDATA_ID
+// 
+// 287 bytes of CODE  memory
+//   5 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

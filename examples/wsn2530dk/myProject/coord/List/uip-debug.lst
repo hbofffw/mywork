@@ -1,0 +1,364 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:52 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\platform\wsn2530dk\uip-debug.c    #
+#    Command line       =  D:\myWork\myWork\platform\wsn2530dk\uip-debug.c    #
+#                          -D AUTOSTART_ENABLE -D PROJECT_CONF_H -lC          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\uip-debug.lst                               #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\uip-debug.r51                                #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\platform\wsn2530dk\uip-debug.c
+      1          /*
+      2           * Copyright (c) 2010, Swedish Institute of Computer Science.
+      3           * All rights reserved.
+      4           *
+      5           * Redistribution and use in source and binary forms, with or without
+      6           * modification, are permitted provided that the following conditions
+      7           * are met:
+      8           * 1. Redistributions of source code must retain the above copyright
+      9           *    notice, this list of conditions and the following disclaimer.
+     10           * 2. Redistributions in binary form must reproduce the above copyright
+     11           *    notice, this list of conditions and the following disclaimer in the
+     12           *    documentation and/or other materials provided with the distribution.
+     13           * 3. Neither the name of the Institute nor the names of its contributors
+     14           *    may be used to endorse or promote products derived from this software
+     15           *    without specific prior written permission.
+     16           *
+     17           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     18           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     19           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     20           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     21           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     22           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     23           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     24           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     25           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     26           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     27           * SUCH DAMAGE.
+     28           *
+     29           */
+     30          
+     31          /**
+     32           * \file
+     33           *         A set of debugging tools
+     34           * \author
+     35           *         Nicolas Tsiftes <nvt@sics.se>
+     36           *         Niclas Finne <nfi@sics.se>
+     37           *         Joakim Eriksson <joakime@sics.se>
+     38           */
+     39          
+     40          #include "net/uip-debug.h"
+     41          #include "debug.h"
+     42          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     43          void
+     44          uip_debug_ipaddr_print(const uip_ipaddr_t *addr)
+   \                     uip_debug_ipaddr_print:
+     45          {
+   \   000000   74F2         MOV     A,#-0xe
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 14
+   \   000005                ; Auto size: 0
+   \   000005   8A..         MOV     ?V0 + 0,R2
+   \   000007   8B..         MOV     ?V0 + 1,R3
+     46          #if UIP_CONF_IPV6
+     47            uint16_t a;
+     48            unsigned int i;
+     49            int f;
+     50            for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
+   \   000009   75..00       MOV     ?V0 + 2,#0x0
+   \   00000C   75..00       MOV     ?V0 + 3,#0x0
+   \   00000F   75..00       MOV     ?V0 + 4,#0x0
+   \   000012   75..00       MOV     ?V0 + 5,#0x0
+   \   000015   8029         SJMP    ??uip_debug_ipaddr_print_0
+     51              a = (addr->u8[i] << 8) + addr->u8[i + 1];
+     52              if(a == 0 && f >= 0) {
+     53                if(f++ == 0) {
+     54                  putstring("::");
+     55                }
+     56              } else {
+     57                if(f > 0) {
+     58                  f = -1;
+     59                } else if(i > 0) {
+   \                     ??uip_debug_ipaddr_print_1:
+   \   000017   E5..         MOV     A,?V0 + 2
+   \   000019   45..         ORL     A,?V0 + 3
+   \   00001B   6007         JZ      ??uip_debug_ipaddr_print_2
+     60                  putstring(":");
+   \   00001D                ; Setup parameters for call to function putstring
+   \   00001D   7A..         MOV     R2,#`?<Constant ":">` & 0xff
+   \   00001F   7B..         MOV     R3,#(`?<Constant ":">` >> 8) & 0xff
+   \   000021   12....       LCALL   ??putstring?relay
+     61                }
+     62                puthex(a >> 8);
+   \                     ??uip_debug_ipaddr_print_2:
+   \   000024                ; Setup parameters for call to function puthex
+   \   000024   EE           MOV     A,R6
+   \   000025   F8           MOV     R0,A
+   \   000026   EF           MOV     A,R7
+   \   000027   F9           MOV     R1,A
+   \   000028   E4           CLR     A
+   \   000029   E9           MOV     A,R1
+   \   00002A   F8           MOV     R0,A
+   \   00002B   F9           MOV     R1,A
+   \   00002C   12....       LCALL   ??puthex?relay
+     63                puthex(a & 0xFF);
+   \   00002F                ; Setup parameters for call to function puthex
+   \   00002F   EE           MOV     A,R6
+   \   000030   F9           MOV     R1,A
+   \   000031   12....       LCALL   ??puthex?relay
+   \                     ??uip_debug_ipaddr_print_3:
+   \   000034   E5..         MOV     A,?V0 + 2
+   \   000036   2402         ADD     A,#0x2
+   \   000038   F5..         MOV     ?V0 + 2,A
+   \   00003A   E5..         MOV     A,?V0 + 3
+   \   00003C   3400         ADDC    A,#0x0
+   \   00003E   F5..         MOV     ?V0 + 3,A
+   \                     ??uip_debug_ipaddr_print_0:
+   \   000040   C3           CLR     C
+   \   000041   E5..         MOV     A,?V0 + 2
+   \   000043   9410         SUBB    A,#0x10
+   \   000045   E5..         MOV     A,?V0 + 3
+   \   000047   9400         SUBB    A,#0x0
+   \   000049   5075         JNC     ??uip_debug_ipaddr_print_4
+   \   00004B   E5..         MOV     A,?V0 + 0
+   \   00004D   25..         ADD     A,?V0 + 2
+   \   00004F   F582         MOV     DPL,A
+   \   000051   E5..         MOV     A,?V0 + 1
+   \   000053   35..         ADDC    A,?V0 + 3
+   \   000055   F583         MOV     DPH,A
+   \   000057   E0           MOVX    A,@DPTR
+   \   000058   F8           MOV     R0,A
+   \   000059   7900         MOV     R1,#0x0
+   \   00005B   E4           CLR     A
+   \   00005C   C8           XCH     A,R0
+   \   00005D   F9           MOV     R1,A
+   \   00005E   E5..         MOV     A,?V0 + 0
+   \   000060   25..         ADD     A,?V0 + 2
+   \   000062   F582         MOV     DPL,A
+   \   000064   E5..         MOV     A,?V0 + 1
+   \   000066   35..         ADDC    A,?V0 + 3
+   \   000068   F583         MOV     DPH,A
+   \   00006A   A3           INC     DPTR
+   \   00006B   E0           MOVX    A,@DPTR
+   \   00006C   FA           MOV     R2,A
+   \   00006D   7B00         MOV     R3,#0x0
+   \   00006F   E8           MOV     A,R0
+   \   000070   2A           ADD     A,R2
+   \   000071   FE           MOV     R6,A
+   \   000072   E9           MOV     A,R1
+   \   000073   3B           ADDC    A,R3
+   \   000074   FF           MOV     R7,A
+   \   000075   EE           MOV     A,R6
+   \   000076   4F           ORL     A,R7
+   \   000077   702B         JNZ     ??uip_debug_ipaddr_print_5
+   \   000079   C3           CLR     C
+   \   00007A   E5..         MOV     A,?V0 + 4
+   \   00007C   9400         SUBB    A,#0x0
+   \   00007E   E5..         MOV     A,?V0 + 5
+   \   000080   9400         SUBB    A,#0x0
+   \   000082   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   000084   65D0         XRL     A,PSW
+   \   000086   33           RLC     A
+   \   000087   401B         JC      ??uip_debug_ipaddr_print_5
+   \   000089   A8..         MOV     R0,?V0 + 4
+   \   00008B   A9..         MOV     R1,?V0 + 5
+   \   00008D   E8           MOV     A,R0
+   \   00008E   2401         ADD     A,#0x1
+   \   000090   F5..         MOV     ?V0 + 4,A
+   \   000092   E9           MOV     A,R1
+   \   000093   3400         ADDC    A,#0x0
+   \   000095   F5..         MOV     ?V0 + 5,A
+   \   000097   E8           MOV     A,R0
+   \   000098   49           ORL     A,R1
+   \   000099   7099         JNZ     ??uip_debug_ipaddr_print_3
+   \   00009B                ; Setup parameters for call to function putstring
+   \   00009B   7A..         MOV     R2,#`?<Constant "::">` & 0xff
+   \   00009D   7B..         MOV     R3,#(`?<Constant "::">` >> 8) & 0xff
+   \   00009F   12....       LCALL   ??putstring?relay
+   \   0000A2   8090         SJMP    ??uip_debug_ipaddr_print_3
+   \                     ??uip_debug_ipaddr_print_5:
+   \   0000A4   C3           CLR     C
+   \   0000A5   E5..         MOV     A,?V0 + 4
+   \   0000A7   9401         SUBB    A,#0x1
+   \   0000A9   E5..         MOV     A,?V0 + 5
+   \   0000AB   9400         SUBB    A,#0x0
+   \   0000AD   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   0000AF   65D0         XRL     A,PSW
+   \   0000B1   33           RLC     A
+   \   0000B2   5003         JNC     $+5
+   \   0000B4   02....       LJMP    ??uip_debug_ipaddr_print_1 & 0xFFFF
+   \   0000B7   75..FF       MOV     ?V0 + 4,#-0x1
+   \   0000BA   75..FF       MOV     ?V0 + 5,#-0x1
+   \   0000BD   02....       LJMP    ??uip_debug_ipaddr_print_2 & 0xFFFF
+     64              }
+     65            }
+     66          #else /* UIP_CONF_IPV6 */
+     67            PRINTA("%u.%u.%u.%u", addr->u8[0], addr->u8[1], addr->u8[2], addr->u8[3]);
+     68          #endif /* UIP_CONF_IPV6 */
+     69          }
+   \                     ??uip_debug_ipaddr_print_4:
+   \   0000C0   7F06         MOV     R7,#0x6
+   \   0000C2   02....       LJMP    ?BANKED_LEAVE_XDATA
+     70          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     71          void
+     72          uip_debug_lladdr_print(const uip_lladdr_t *addr)
+   \                     uip_debug_lladdr_print:
+     73          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+     74            unsigned int i;
+     75            for(i = 0; i < sizeof(uip_lladdr_t); i++) {
+   \   000009   75..00       MOV     ?V0 + 0,#0x0
+   \   00000C   75..00       MOV     ?V0 + 1,#0x0
+   \   00000F   8028         SJMP    ??uip_debug_lladdr_print_0
+     76              if(i > 0) {
+   \                     ??uip_debug_lladdr_print_1:
+   \   000011   E5..         MOV     A,?V0 + 0
+   \   000013   45..         ORL     A,?V0 + 1
+   \   000015   6007         JZ      ??uip_debug_lladdr_print_2
+     77                putstring(":");
+   \   000017                ; Setup parameters for call to function putstring
+   \   000017   7A..         MOV     R2,#`?<Constant ":">` & 0xff
+   \   000019   7B..         MOV     R3,#(`?<Constant ":">` >> 8) & 0xff
+   \   00001B   12....       LCALL   ??putstring?relay
+     78              }
+     79              puthex(addr->addr[i]);
+   \                     ??uip_debug_lladdr_print_2:
+   \   00001E                ; Setup parameters for call to function puthex
+   \   00001E   EE           MOV     A,R6
+   \   00001F   25..         ADD     A,?V0 + 0
+   \   000021   F582         MOV     DPL,A
+   \   000023   EF           MOV     A,R7
+   \   000024   35..         ADDC    A,?V0 + 1
+   \   000026   F583         MOV     DPH,A
+   \   000028   E0           MOVX    A,@DPTR
+   \   000029   F9           MOV     R1,A
+   \   00002A   12....       LCALL   ??puthex?relay
+     80            }
+   \   00002D   E5..         MOV     A,?V0 + 0
+   \   00002F   2401         ADD     A,#0x1
+   \   000031   F5..         MOV     ?V0 + 0,A
+   \   000033   E5..         MOV     A,?V0 + 1
+   \   000035   3400         ADDC    A,#0x0
+   \   000037   F5..         MOV     ?V0 + 1,A
+   \                     ??uip_debug_lladdr_print_0:
+   \   000039   C3           CLR     C
+   \   00003A   E5..         MOV     A,?V0 + 0
+   \   00003C   9408         SUBB    A,#0x8
+   \   00003E   E5..         MOV     A,?V0 + 1
+   \   000040   9400         SUBB    A,#0x0
+   \   000042   40CD         JC      ??uip_debug_lladdr_print_1
+     81          }
+   \   000044   7F02         MOV     R7,#0x2
+   \   000046   02....       LJMP    ?BANKED_LEAVE_XDATA
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "::">>`:
+   \   000000   3A3A00       DB "::"
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant ":">>`:
+   \   000000   3A00         DB ":"
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_debug_ipaddr_print?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_debug_ipaddr_print
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??uip_debug_lladdr_print?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    uip_debug_lladdr_print
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "::">`:
+   \   000000                DS 3
+   \   000003                REQUIRE `?<Initializer for <Constant "::">>`
+   \   000003                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant ":">`:
+   \   000000                DS 2
+   \   000002                REQUIRE `?<Initializer for <Constant ":">>`
+   \   000002                REQUIRE __INIT_XDATA_I
+     82          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     14  uip_debug_ipaddr_print
+                          0 0 14 -> puthex
+                          0 0 14 -> putstring
+       0      0     10  uip_debug_lladdr_print
+                          0 0 10 -> puthex
+                          0 0 10 -> putstring
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       2  ?<Constant ":">
+       3  ?<Constant "::">
+       2  ?<Initializer for <Constant ":">>
+       3  ?<Initializer for <Constant "::">>
+       6  ??uip_debug_ipaddr_print?relay
+       6  ??uip_debug_lladdr_print?relay
+     197  uip_debug_ipaddr_print
+      73  uip_debug_lladdr_print
+
+ 
+ 270 bytes in segment BANKED_CODE
+  12 bytes in segment BANK_RELAYS
+   5 bytes in segment XDATA_I
+   5 bytes in segment XDATA_ID
+ 
+ 287 bytes of CODE  memory
+   5 bytes of XDATA memory
+
+Errors: none
+Warnings: none

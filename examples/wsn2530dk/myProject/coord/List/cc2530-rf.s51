@@ -1,0 +1,2044 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:45 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\cpu\cc253x\dev\cc2530-rf.c       /
+//    Command line       =  D:\myWork\myWork\cpu\cc253x\dev\cc2530-rf.c -D    /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\cc2530-rf.s51                             /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME `cc2530-rf`
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?L_ADD_TO_X
+        EXTERN ?V0
+        EXTERN __INIT_DATA_Z
+        EXTERN __INIT_XDATA_I
+
+        PUBLIC ??cc2530_rf_channel_set?relay
+        FUNCTION ??cc2530_rf_channel_set?relay,0203H
+        PUBLIC ??cc2530_rf_power_set?relay
+        FUNCTION ??cc2530_rf_power_set?relay,0203H
+        PUBLIC ??cc2530_rf_set_addr?relay
+        FUNCTION ??cc2530_rf_set_addr?relay,0203H
+        FUNCTION ??channel_clear?relay,0203H
+        FUNCTION ??init?relay,0203H
+        FUNCTION ??off?relay,0203H
+        FUNCTION ??on?relay,0203H
+        FUNCTION ??pending_packet?relay,0203H
+        FUNCTION ??prepare?relay,0203H
+        FUNCTION ??read?relay,0203H
+        FUNCTION ??receiving_packet?relay,0203H
+        FUNCTION ??send?relay,0203H
+        FUNCTION ??transmit?relay,0203H
+        PUBWEAK RFD
+        PUBWEAK RFST
+        PUBWEAK T1CNTH
+        PUBWEAK T1CNTL
+        PUBLIC cc2530_rf_channel_set
+        FUNCTION cc2530_rf_channel_set,021203H
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC cc2530_rf_driver
+        PUBLIC cc2530_rf_power_set
+        FUNCTION cc2530_rf_power_set,0203H
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC cc2530_rf_set_addr
+        FUNCTION cc2530_rf_set_addr,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        FUNCTION channel_clear,0603H
+        ARGFRAME XSTACK, 13, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        FUNCTION init,021603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        FUNCTION off,0603H
+        ARGFRAME XSTACK, 13, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 12, STACK
+        FUNCTION on,0603H
+        ARGFRAME XSTACK, 13, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME ISTACK, 2, STACK
+        FUNCTION pending_packet,0603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        FUNCTION prepare,021603H
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 12, STACK
+        FUNCTION `read`,021603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 10, STACK
+        FUNCTION receiving_packet,0603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        FUNCTION send,021603H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        FUNCTION transmit,021603H
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 13, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+clock_delay_usec    SYMBOL "clock_delay_usec"
+??clock_delay_usec?relay SYMBOL "?relay", clock_delay_usec
+packetbuf_set_attr  SYMBOL "packetbuf_set_attr"
+??packetbuf_set_attr?relay SYMBOL "?relay", packetbuf_set_attr
+cc2530_rf_channel_set SYMBOL "cc2530_rf_channel_set"
+??cc2530_rf_channel_set?relay SYMBOL "?relay", cc2530_rf_channel_set
+cc2530_rf_power_set SYMBOL "cc2530_rf_power_set"
+??cc2530_rf_power_set?relay SYMBOL "?relay", cc2530_rf_power_set
+cc2530_rf_set_addr  SYMBOL "cc2530_rf_set_addr"
+??cc2530_rf_set_addr?relay SYMBOL "?relay", cc2530_rf_set_addr
+
+        EXTERN ??clock_delay_usec?relay
+        FUNCTION ??clock_delay_usec?relay,00H
+        EXTERN ??packetbuf_set_attr?relay
+        FUNCTION ??packetbuf_set_attr?relay,00H
+        EXTERN clock_delay_usec
+        FUNCTION clock_delay_usec,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 13, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN energest_current_mode
+        EXTERN energest_current_time
+        EXTERN energest_total_time
+        EXTERN packetbuf_set_attr
+        FUNCTION packetbuf_set_attr,0202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN rimeaddr_node_addr
+
+
+        ASEGN SFR_AN:DATA:NOROOT,0d9H
+// unsigned char volatile __sfr RFD
+RFD:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0e1H
+// unsigned char volatile __sfr RFST
+RFST:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0e2H
+// unsigned char volatile __sfr T1CNTL
+T1CNTL:
+        DATA8
+        DS 1
+
+        ASEGN SFR_AN:DATA:NOROOT,0e3H
+// unsigned char volatile __sfr T1CNTH
+T1CNTH:
+        DATA8
+        DS 1
+// D:\myWork\myWork\cpu\cc253x\dev\cc2530-rf.c
+//    1 /*
+//    2  * Copyright (c) 2012, YoCiHou - < www.iotdev.net >
+//    3  * All rights reserved.
+//    4  *
+//    5  * Redistribution and use in source and binary forms, with or without
+//    6  * modification, are permitted provided that the following conditions
+//    7  * are met:
+//    8  * 1. Redistributions of source code must retain the above copyright
+//    9  *    notice, this list of conditions and the following disclaimer.
+//   10  * 2. Redistributions in binary form must reproduce the above copyright
+//   11  *    notice, this list of conditions and the following disclaimer in the
+//   12  *    documentation and/or other materials provided with the distribution.
+//   13  * 3. Neither the name of the Institute nor the names of its contributors
+//   14  *    may be used to endorse or promote products derived from this software
+//   15  *    without specific prior written permission.
+//   16  *
+//   17  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   18  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   19  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   20  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   21  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   22  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   23  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   24  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   25  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   26  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   27  * SUCH DAMAGE.
+//   28  *
+//   29  * This file is part of the Contiki operating system.
+//   30  */
+//   31 
+//   32 /**
+//   33  * \file
+//   34  *         Implementation of the cc2530 RF driver
+//   35  *
+//   36  * \author
+//   37  *         George Oikonomou - <oikonomou@users.sourceforge.net>
+//   38  *         YoCiHou - < www.iotdev.net >
+//   39  */
+//   40 #include "contiki.h"
+//   41 #include "dev/radio.h"
+//   42 #include "dev/cc2530-rf.h"
+//   43 #include "cc253x.h"
+//   44 #include "sfr-bits.h"
+//   45 #include "sys/clock.h"
+//   46 #include "sys/rtimer.h"
+//   47 
+//   48 #include "net/packetbuf.h"
+//   49 #include "net/rime/rimestats.h"
+//   50 #include "net/rime/rimeaddr.h"
+//   51 #include "net/netstack.h"
+//   52 
+//   53 #include <string.h>
+//   54 /*---------------------------------------------------------------------------*/
+//   55 #define CHECKSUM_LEN 2
+//   56 /*---------------------------------------------------------------------------*/
+//   57 #if CC2530_RF_CONF_LEDS
+//   58 #define CC2530_RF_LEDS CC2530_RF_CONF_LEDS
+//   59 #else
+//   60 #define CC2530_RF_LEDS 0
+//   61 #endif
+//   62 
+//   63 #if CC2530_RF_LEDS
+//   64 #include "dev/leds.h"
+//   65 #define RF_RX_LED_ON()		leds_on(LEDS_RED);
+//   66 #define RF_RX_LED_OFF()		leds_off(LEDS_RED);
+//   67 #define RF_TX_LED_ON()		leds_on(LEDS_GREEN);
+//   68 #define RF_TX_LED_OFF()		leds_off(LEDS_GREEN);
+//   69 #else
+//   70 #define RF_RX_LED_ON()
+//   71 #define RF_RX_LED_OFF()
+//   72 #define RF_TX_LED_ON()
+//   73 #define RF_TX_LED_OFF()
+//   74 #endif
+//   75 /*---------------------------------------------------------------------------*/
+//   76 #define DEBUG 0
+//   77 #if DEBUG
+//   78 #include "debug.h"
+//   79 #define PUTSTRING(...) putstring(__VA_ARGS__)
+//   80 #define PUTHEX(...) puthex(__VA_ARGS__)
+//   81 #else
+//   82 #define PUTSTRING(...)
+//   83 #define PUTHEX(...)
+//   84 #endif
+//   85 /*---------------------------------------------------------------------------*/
+//   86 /* Local RF Flags */
+//   87 #define RX_ACTIVE  0x80
+//   88 #define WAS_OFF    0x10
+//   89 #define RF_ON      0x01
+//   90 
+//   91 /* Bit Masks for the last byte in the RX FIFO */
+//   92 #define CRC_BIT_MASK 0x80
+//   93 #define LQI_BIT_MASK 0x7F
+//   94 /* RSSI Offset */
+//   95 #define RSSI_OFFSET    73
+//   96 
+//   97 /* 192 ms, radio off -> on interval */
+//   98 #define ONOFF_TIME                    RTIMER_ARCH_SECOND / 3125
+//   99 
+//  100 /*---------------------------------------------------------------------------*/
+//  101 #if CC2530_RF_CONF_HEXDUMP
+//  102 #include "dev/io-arch.h"
+//  103 static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 }; /* Snif */
+//  104 #endif
+//  105 /*---------------------------------------------------------------------------*/
+//  106 #ifdef CC2530_RF_CONF_AUTOACK
+//  107 #define CC2530_RF_AUTOACK CC2530_RF_CONF_AUTOACK
+//  108 #else
+//  109 #define CC2530_RF_AUTOACK 1
+//  110 #endif
+//  111 /*---------------------------------------------------------------------------*/
+
+        RSEG DATA_Z:DATA:NOROOT(0)
+        DATA8
+//  112 static uint8_t CC_AT_DATA rf_flags;
+rf_flags:
+        DS 1
+        REQUIRE __INIT_DATA_Z
+//  113 
+//  114 static int on(void); /* prepare() needs our prototype */
+//  115 static int off(void); /* transmit() needs our prototype */
+//  116 static int channel_clear(void); /* transmit() needs our prototype */
+//  117 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  118 int8_t
+//  119 cc2530_rf_channel_set(uint8_t channel)
+cc2530_rf_channel_set:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function cc2530_rf_channel_set
+        CODE
+//  120 {
+        FUNCALL cc2530_rf_channel_set, off
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL cc2530_rf_channel_set, on
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R6,A
+//  121   PUTSTRING("RF: Set Chan\n");
+//  122 
+//  123   if((channel < CC2530_RF_CHANNEL_MIN) || (channel > CC2530_RF_CHANNEL_MAX)) {
+        MOV     A,R6
+        CLR     C
+        SUBB    A,#0xb
+        CLR     C
+        SUBB    A,#0x10
+        JC      ??cc2530_rf_channel_set_0
+//  124     return -1;
+        MOV     R1,#-0x1
+        SJMP    ??cc2530_rf_channel_set_1
+//  125   }
+//  126 
+//  127   /* Changes to FREQCTRL take effect after the next recalibration */
+//  128   off();
+??cc2530_rf_channel_set_0:
+        ; Setup parameters for call to function off
+        LCALL   ??off?relay
+//  129   FREQCTRL = (CC2530_RF_CHANNEL_MIN
+//  130       + (channel - CC2530_RF_CHANNEL_MIN) * CC2530_RF_CHANNEL_SPACING);
+        MOV     B,#0x5
+        MOV     A,R6
+        MUL     AB
+        ADD     A,#-0x2c
+        MOV     DPTR,#0x618f
+        MOVX    @DPTR,A
+//  131   on();
+        ; Setup parameters for call to function on
+        LCALL   ??on?relay
+//  132 
+//  133   return (int8_t) channel;
+        MOV     A,R6
+        MOV     R1,A
+??cc2530_rf_channel_set_1:
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock0
+//  134 }
+//  135 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  136 uint8_t
+//  137 cc2530_rf_power_set(uint8_t new_power)
+cc2530_rf_power_set:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function cc2530_rf_power_set
+        CODE
+//  138 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R0,A
+//  139   PUTSTRING("RF: Set Power\n");
+//  140   /* off() */
+//  141   TXPOWER = new_power;
+        MOV     DPTR,#0x6190
+        MOVX    @DPTR,A
+//  142   /* on() */
+//  143 
+//  144   return TXPOWER;
+        MOV     DPTR,#0x6190
+        MOVX    A,@DPTR
+        MOV     R1,A
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock1
+//  145 }
+//  146 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  147 void
+//  148 cc2530_rf_set_addr(uint16_t pan)
+cc2530_rf_set_addr:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function cc2530_rf_set_addr
+        CODE
+//  149 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  150 #if RIMEADDR_SIZE==8 /* EXT_ADDR[7:0] is ignored when using short addresses */
+//  151   int i;
+//  152   for(i = (RIMEADDR_SIZE - 1); i >= 0; --i) {
+//  153     ((uint8_t *)&EXT_ADDR0)[i] = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 1 - i];
+//  154   }
+//  155 #endif
+//  156 
+//  157   PAN_ID0 = pan & 0xFF;
+        MOV     A,R2
+        MOV     DPTR,#0x6172
+        MOVX    @DPTR,A
+//  158   PAN_ID1 = pan >> 8;
+        CLR     A
+        MOV     A,R3
+        MOV     R2,A
+        MOV     DPTR,#0x6173
+        MOVX    @DPTR,A
+//  159 
+//  160   SHORT_ADDR0 = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 1];
+        MOV     DPTR,#rimeaddr_node_addr + 1
+        MOVX    A,@DPTR
+        MOV     DPTR,#0x6174
+        MOVX    @DPTR,A
+//  161   SHORT_ADDR1 = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 2];
+        MOV     DPTR,#rimeaddr_node_addr
+        MOVX    A,@DPTR
+        MOV     DPTR,#0x6175
+        MOVX    @DPTR,A
+//  162 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock2
+//  163 /*---------------------------------------------------------------------------*/
+//  164 /* Netstack API radio driver functions */
+//  165 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  166 static int
+//  167 init(void)
+init:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function init
+        CODE
+//  168 {
+        FUNCALL init, cc2530_rf_power_set
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL init, cc2530_rf_channel_set
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  169   PUTSTRING("RF: Init\n");
+//  170 
+//  171   if(rf_flags & RF_ON) {
+        MOV     A,rf_flags
+        MOV     C,0xE0 /* A   */.0
+        JNC     ??init_0
+//  172     return 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??init_1
+//  173   }
+//  174   //added by dongbo huang,address filter by cc2530 hardware?
+//  175   FRMFILT0 = 0x0D;
+??init_0:
+        MOV     DPTR,#0x6180
+        MOV     A,#0xd
+        MOVX    @DPTR,A
+//  176 
+//  177 #if CC2530_RF_LOW_POWER_RX
+//  178   /* Reduce RX power consumption current to 20mA at the cost of sensitivity */
+//  179   RXCTRL = 0x00;
+//  180   FSCTRL = 0x50;
+//  181 #else
+//  182   RXCTRL = 0x3F;
+        MOV     DPTR,#0x61ab
+        MOV     A,#0x3f
+        MOVX    @DPTR,A
+//  183   FSCTRL = 0x55;
+        MOV     DPTR,#0x61ac
+        MOV     A,#0x55
+        MOVX    @DPTR,A
+//  184 #endif /* CC2530_RF_LOW_POWER_RX */
+//  185 
+//  186   CCACTRL0 = CC2530_RF_CCA_THRES;
+        MOV     DPTR,#0x6196
+        MOV     A,#-0x8
+        MOVX    @DPTR,A
+//  187 
+//  188   /*
+//  189    * According to the user guide, these registers must be updated from their
+//  190    * defaults for optimal performance
+//  191    *
+//  192    * Table 23-6, Sec. 23.15.1, p. 259
+//  193    */
+//  194   TXFILTCFG = 0x09; /* TX anti-aliasing filter */
+        MOV     DPTR,#0x61fa
+        MOV     A,#0x9
+        MOVX    @DPTR,A
+//  195   AGCCTRL1 = 0x15;  /* AGC target value */
+        MOV     DPTR,#0x61b2
+        MOV     A,#0x15
+        MOVX    @DPTR,A
+//  196   FSCAL1 = 0x00;    /* Reduce the VCO leakage */
+        MOV     DPTR,#0x61ae
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  197 
+//  198   /* Auto ACKs and CRC calculation, default RX and TX modes with FIFOs */
+//  199   FRMCTRL0 = FRMCTRL0_AUTOCRC;
+        MOV     DPTR,#0x6189
+        MOV     A,#0x40
+        MOVX    @DPTR,A
+//  200 #if CC2530_RF_AUTOACK
+//  201   FRMCTRL0 |= FRMCTRL0_AUTOACK;
+        MOV     DPTR,#0x6189
+        MOVX    A,@DPTR
+        SETB    0xE0 /* A   */.5
+        MOVX    @DPTR,A
+//  202 #endif
+//  203 
+//  204   /* Disable source address matching and autopend */
+//  205   SRCMATCH = 0; /* investigate */
+        MOV     DPTR,#0x6182
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  206 
+//  207   /* MAX FIFOP threshold */
+//  208   FIFOPCTRL = CC2530_RF_MAX_PACKET_LEN;
+        MOV     DPTR,#0x6194
+        MOV     A,#0x7f
+        MOVX    @DPTR,A
+//  209 
+//  210   cc2530_rf_power_set(CC2530_RF_TX_POWER);
+        ; Setup parameters for call to function cc2530_rf_power_set
+        MOV     R1,#-0x2b
+        LCALL   ??cc2530_rf_power_set?relay
+        MOV     A,R1
+//  211   cc2530_rf_channel_set(CC2530_RF_CHANNEL);
+        ; Setup parameters for call to function cc2530_rf_channel_set
+        MOV     R1,#0x19
+        LCALL   ??cc2530_rf_channel_set?relay
+        MOV     A,R1
+//  212 
+//  213   RF_TX_LED_ON();
+//  214   RF_RX_LED_ON();
+//  215 
+//  216   rf_flags |= RF_ON;
+        ORL     rf_flags,#0x1
+//  217 
+//  218   return 1;
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+??init_1:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock3
+//  219 }
+//  220 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  221 static int
+//  222 prepare(const void *payload, unsigned short payload_len)
+prepare:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function prepare
+        CODE
+//  223 {
+        FUNCALL prepare, on
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 12, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 12, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,R4
+        MOV     R6,A
+        MOV     A,R5
+        MOV     R7,A
+//  224   uint8_t i;
+//  225 
+//  226   PUTSTRING("RF: Prepare 0x");
+//  227   PUTHEX(payload_len + CHECKSUM_LEN);
+//  228   PUTSTRING(" bytes\n");
+//  229 
+//  230   /*
+//  231    * When we transmit in very quick bursts, make sure previous transmission
+//  232    * is not still in progress before re-writing to the TX FIFO
+//  233    */
+//  234   while(FSMSTAT1 & FSMSTAT1_TX_ACTIVE);
+??prepare_0:
+        MOV     DPTR,#0x6193
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.1
+        JC      ??prepare_0
+//  235 
+//  236   if((rf_flags & RX_ACTIVE) == 0) {
+        MOV     A,rf_flags
+        MOV     C,0xE0 /* A   */.7
+        JC      ??prepare_1
+//  237     on();
+        ; Setup parameters for call to function on
+        LCALL   ??on?relay
+//  238   }
+//  239 
+//  240   CC2530_CSP_ISFLUSHTX();
+??prepare_1:
+        MOV     0xe1,#-0x12
+        MOV     0xe1,#-0x12
+//  241 
+//  242   PUTSTRING("RF: data = ");
+//  243   /* Send the phy length byte first */
+//  244   RFD = payload_len + CHECKSUM_LEN; /* Payload plus FCS */
+        MOV     A,R6
+        ADD     A,#0x2
+        MOV     0xd9,A
+//  245   for(i = 0; i < payload_len; i++) {
+        MOV     R0,#0x0
+        SJMP    ??prepare_2
+//  246     RFD = ((unsigned char *)(payload))[i];
+??prepare_3:
+        MOV     ?V0 + 2,R0
+        MOV     ?V0 + 3,#0x0
+        MOV     A,?V0 + 0
+        ADD     A,?V0 + 2
+        MOV     DPL,A
+        MOV     A,?V0 + 1
+        ADDC    A,?V0 + 3
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     0xd9,A
+//  247     PUTHEX(((unsigned char *)(payload))[i]);
+//  248   }
+        INC     R0
+??prepare_2:
+        MOV     ?V0 + 2,R0
+        MOV     ?V0 + 3,#0x0
+        CLR     C
+        MOV     A,?V0 + 2
+        SUBB    A,R6
+        MOV     A,?V0 + 3
+        SUBB    A,R7
+        JC      ??prepare_3
+//  249   PUTSTRING("\n");
+//  250 
+//  251   /* Leave space for the FCS */
+//  252   RFD = 0;
+        MOV     0xd9,#0x0
+//  253   RFD = 0;
+        MOV     0xd9,#0x0
+//  254 
+//  255   return 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock4
+        REQUIRE RFST
+        REQUIRE RFD
+//  256 }
+//  257 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  258 static int
+//  259 transmit(unsigned short transmit_len)
+transmit:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function transmit
+        CODE
+//  260 {
+        FUNCALL transmit, on
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 13, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 13, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL transmit, channel_clear
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 13, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 13, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL transmit, clock_delay_usec
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 13, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 13, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL transmit, off
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 13, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 13, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xd
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 13)
+        ; Saved register size: 13
+        ; Auto size: 0
+//  261   uint8_t counter;
+//  262   int ret = RADIO_TX_ERR;
+        MOV     R6,#0x1
+        MOV     R7,#0x0
+//  263   rtimer_clock_t t0;
+//  264   transmit_len; /* hush the warning */
+//  265 
+//  266   if(!(rf_flags & RX_ACTIVE)) {
+        MOV     A,rf_flags
+        MOV     C,0xE0 /* A   */.7
+        JC      ??transmit_0
+//  267     t0 = RTIMER_NOW();
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R6,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R7,A
+//  268     on();
+        ; Setup parameters for call to function on
+        LCALL   ??on?relay
+//  269     rf_flags |= WAS_OFF;
+        ORL     rf_flags,#0x10
+//  270     while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ONOFF_TIME));
+??transmit_1:
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     A,R0
+        CLR     C
+        SUBB    A,R6
+        MOV     R0,A
+        MOV     A,R1
+        SUBB    A,R7
+        MOV     R1,A
+        MOV     A,R0
+        CLR     C
+        SUBB    A,#0x5
+        MOV     R0,A
+        MOV     A,R1
+        SUBB    A,#0x0
+        MOV     R1,A
+        CLR     C
+        MOV     A,R0
+        SUBB    A,#0x0
+        MOV     A,R1
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JC      ??transmit_1
+//  271   }
+//  272 
+//  273   if(channel_clear() == CC2530_RF_CCA_BUSY) {
+??transmit_0:
+        ; Setup parameters for call to function channel_clear
+        LCALL   ??channel_clear?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     A,?V0 + 0
+        ORL     A,?V0 + 1
+        JNZ     ??transmit_2
+//  274     RIMESTATS_ADD(contentiondrop);
+//  275     return RADIO_TX_COLLISION;
+        MOV     R2,#0x2
+        MOV     R3,#0x0
+        LJMP    ??transmit_3 & 0xFFFF
+//  276   }
+//  277 
+//  278   /*
+//  279    * prepare() double checked that TX_ACTIVE is low. If SFD is high we are
+//  280    * receiving. Abort transmission and bail out with RADIO_TX_COLLISION
+//  281    */
+//  282   if(FSMSTAT1 & FSMSTAT1_SFD) {
+??transmit_2:
+        MOV     DPTR,#0x6193
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.5
+        JNC     ??transmit_4
+//  283     RIMESTATS_ADD(contentiondrop);
+//  284     return RADIO_TX_COLLISION;
+        MOV     R2,#0x2
+        MOV     R3,#0x0
+        LJMP    ??transmit_3 & 0xFFFF
+//  285   }
+//  286 
+//  287   /* Start the transmission */
+//  288   RF_TX_LED_ON();
+//  289   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+??transmit_4:
+        MOV     DPTR,#energest_current_mode + 7
+        MOVX    A,@DPTR
+        JZ      ??transmit_5
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R2,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R3,A
+        MOV     DPTR,#energest_current_time + 14
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R2
+        CLR     C
+        SUBB    A,R0
+        MOV     ?V0 + 0,A
+        MOV     A,R3
+        SUBB    A,R1
+        MOV     ?V0 + 1,A
+        CLR     A
+        MOV     ?V0 + 2,A
+        MOV     ?V0 + 3,A
+        MOV     DPTR,#energest_total_time + 28
+        MOV     R0,#?V0 + 0
+        LCALL   ?L_ADD_TO_X
+        MOV     DPTR,#energest_current_mode + 7
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  290   ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
+??transmit_5:
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     DPTR,#energest_current_time + 12
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        MOV     DPTR,#energest_current_mode + 6
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  291 
+//  292   CC2530_CSP_ISTXON();
+        MOV     0xe1,#-0x17
+//  293 
+//  294   counter = 0;
+        MOV     R6,#0x0
+        SJMP    ??transmit_6
+//  295   while(!(FSMSTAT1 & FSMSTAT1_TX_ACTIVE) && (counter++ < 3)) {
+//  296     clock_delay_usec(6);
+??transmit_7:
+        ; Setup parameters for call to function clock_delay_usec
+        MOV     R2,#0x6
+        MOV     R3,#0x0
+        LCALL   ??clock_delay_usec?relay
+//  297   }
+??transmit_6:
+        MOV     DPTR,#0x6193
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.1
+        JC      ??transmit_8
+        MOV     ?V0 + 4,R6
+        MOV     A,#0x1
+        ADD     A,?V0 + 4
+        MOV     R6,A
+        MOV     A,?V0 + 4
+        CLR     C
+        SUBB    A,#0x3
+        JC      ??transmit_7
+//  298 
+//  299   if(!(FSMSTAT1 & FSMSTAT1_TX_ACTIVE)) {
+??transmit_8:
+        MOV     DPTR,#0x6193
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.1
+        JC      ??transmit_9
+//  300     PUTSTRING("RF: TX never active.\n");
+//  301     CC2530_CSP_ISFLUSHTX();
+        MOV     0xe1,#-0x12
+        MOV     0xe1,#-0x12
+//  302     ret = RADIO_TX_ERR;
+        MOV     R6,#0x1
+        MOV     R7,#0x0
+        SJMP    ??transmit_10
+//  303   } else {
+//  304     /* Wait for the transmission to finish */
+//  305     while(FSMSTAT1 & FSMSTAT1_TX_ACTIVE);
+??transmit_9:
+        MOV     DPTR,#0x6193
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.1
+        JC      ??transmit_9
+//  306     ret = RADIO_TX_OK;
+        MOV     R6,#0x0
+        MOV     R7,#0x0
+//  307   }
+//  308   ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
+??transmit_10:
+        MOV     DPTR,#energest_current_mode + 6
+        MOVX    A,@DPTR
+        JZ      ??transmit_11
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R2,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R3,A
+        MOV     DPTR,#energest_current_time + 12
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R2
+        CLR     C
+        SUBB    A,R0
+        MOV     ?V0 + 0,A
+        MOV     A,R3
+        SUBB    A,R1
+        MOV     ?V0 + 1,A
+        CLR     A
+        MOV     ?V0 + 2,A
+        MOV     ?V0 + 3,A
+        MOV     DPTR,#energest_total_time + 24
+        MOV     R0,#?V0 + 0
+        LCALL   ?L_ADD_TO_X
+        MOV     DPTR,#energest_current_mode + 6
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  309   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+??transmit_11:
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     DPTR,#energest_current_time + 14
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        MOV     DPTR,#energest_current_mode + 7
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  310 
+//  311   if(rf_flags & WAS_OFF) {
+        MOV     A,rf_flags
+        MOV     C,0xE0 /* A   */.4
+        JNC     ??transmit_12
+//  312     off();
+        ; Setup parameters for call to function off
+        LCALL   ??off?relay
+//  313   }
+//  314 
+//  315   RIMESTATS_ADD(lltx);
+//  316 
+//  317   RF_TX_LED_OFF();
+//  318 
+//  319   /* OK, sent. We are now ready to send more */
+//  320   return ret;
+??transmit_12:
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+??transmit_3:
+        MOV     R7,#0x5
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock5
+        REQUIRE T1CNTL
+        REQUIRE T1CNTH
+        REQUIRE RFST
+//  321 }
+//  322 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  323 static int
+//  324 send(void *payload, unsigned short payload_len)
+send:
+          CFI Block cfiBlock6 Using cfiCommon0
+          CFI Function send
+        CODE
+//  325 {
+        FUNCALL send, prepare
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL send, transmit
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R4
+        MOV     R6,A
+        MOV     A,R5
+        MOV     R7,A
+//  326   prepare(payload, payload_len);
+        ; Setup parameters for call to function prepare
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        LCALL   ??prepare?relay
+//  327   return transmit(payload_len);
+        ; Setup parameters for call to function transmit
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+        LCALL   ??transmit?relay
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock6
+//  328 }
+//  329 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  330 static int
+//  331 read(void *buf, unsigned short bufsize)
+`read`:
+          CFI Block cfiBlock7 Using cfiCommon0
+          CFI Function `read`
+        CODE
+//  332 {
+        FUNCALL `read`, packetbuf_set_attr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL `read`, packetbuf_set_attr
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  333   uint8_t i;
+//  334   uint8_t len;
+//  335   uint8_t crc_corr;
+//  336   int8_t rssi;
+//  337 
+//  338   PUTSTRING("RF: Read\n");
+//  339 
+//  340   /* Check the length */
+//  341   len = RFD;
+        MOV     A,0xd9
+        MOV     R6,A
+//  342 
+//  343   /* Check for validity */
+//  344   if(len > CC2530_RF_MAX_PACKET_LEN) {
+        MOV     A,R6
+        CLR     C
+        SUBB    A,#-0x80
+        JC      ??read_0
+//  345     /* Oops, we must be out of sync. */
+//  346     PUTSTRING("RF: bad sync\n");
+//  347 
+//  348     RIMESTATS_ADD(badsynch);
+//  349     CC2530_CSP_ISFLUSHRX();
+        MOV     0xe1,#-0x13
+        MOV     0xe1,#-0x13
+//  350     return 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LJMP    ??read_1 & 0xFFFF
+//  351   }
+//  352 
+//  353   if(len <= CC2530_RF_MIN_PACKET_LEN) {
+??read_0:
+        MOV     A,R6
+        CLR     C
+        SUBB    A,#0x5
+        JNC     ??read_2
+//  354     PUTSTRING("RF: too short\n");
+//  355 
+//  356     RIMESTATS_ADD(tooshort);
+//  357     CC2530_CSP_ISFLUSHRX();
+        MOV     0xe1,#-0x13
+        MOV     0xe1,#-0x13
+//  358     return 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        LJMP    ??read_1 & 0xFFFF
+//  359   }
+//  360 
+//  361   if(len - CHECKSUM_LEN > bufsize) {
+??read_2:
+        MOV     ?V0 + 0,R6
+        MOV     ?V0 + 1,#0x0
+        MOV     A,?V0 + 0
+        ADD     A,#-0x2
+        MOV     R0,A
+        MOV     A,?V0 + 1
+        ADDC    A,#-0x1
+        MOV     R1,A
+        CLR     C
+        MOV     A,R4
+        SUBB    A,R0
+        MOV     A,R5
+        SUBB    A,R1
+        JNC     ??read_3
+//  362     PUTSTRING("RF: too long\n");
+//  363 
+//  364     RIMESTATS_ADD(toolong);
+//  365     CC2530_CSP_ISFLUSHRX();
+        MOV     0xe1,#-0x13
+        MOV     0xe1,#-0x13
+//  366     return 0;
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??read_1
+//  367   }
+//  368 
+//  369 #if CC2530_RF_CONF_HEXDUMP
+//  370   /* If we reach here, chances are the FIFO is holding a valid frame */
+//  371   io_arch_writeb(magic[0]);
+//  372   io_arch_writeb(magic[1]);
+//  373   io_arch_writeb(magic[2]);
+//  374   io_arch_writeb(magic[3]);
+//  375   io_arch_writeb(len);
+//  376 #endif
+//  377 
+//  378   RF_RX_LED_ON();
+//  379 
+//  380   PUTSTRING("RF: read (0x");
+//  381   PUTHEX(len);
+//  382   PUTSTRING(" bytes) = ");
+//  383   len -= CHECKSUM_LEN;
+??read_3:
+        MOV     A,#-0x2
+        ADD     A,R6
+        MOV     R6,A
+//  384   for(i = 0; i < len; ++i) {
+        MOV     R0,#0x0
+        SJMP    ??read_4
+//  385     ((unsigned char *)(buf))[i] = RFD;
+??read_5:
+        MOV     A,0xd9
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     ?V0 + 0,R0
+        MOV     ?V0 + 1,#0x0
+        MOV     A,R2
+        ADD     A,?V0 + 0
+        MOV     DPL,A
+        MOV     A,R3
+        ADDC    A,?V0 + 1
+        MOV     DPH,A
+        POP     A
+          CFI CFA_SP SP+0
+        MOVX    @DPTR,A
+//  386 #if CC2530_RF_CONF_HEXDUMP
+//  387     io_arch_writeb(((unsigned char *)(buf))[i]);
+//  388 #endif
+//  389     PUTHEX(((unsigned char *)(buf))[i]);
+//  390   }
+        INC     R0
+??read_4:
+        MOV     A,R0
+        CLR     C
+        SUBB    A,R6
+        JC      ??read_5
+//  391   PUTSTRING("\n");
+//  392 
+//  393   /* Read the RSSI and CRC/Corr bytes */
+//  394   rssi = ((int8_t) RFD) - RSSI_OFFSET;
+        MOV     A,0xd9
+        ADD     A,#-0x49
+        MOV     R0,A
+//  395   crc_corr = RFD;
+        MOV     A,0xd9
+        MOV     ?V0 + 0,A
+//  396 
+//  397 #if CC2530_RF_CONF_HEXDUMP
+//  398   io_arch_writeb(rssi);
+//  399   io_arch_writeb(crc_corr);
+//  400   io_arch_flush();
+//  401 #endif
+//  402 
+//  403   /* MS bit CRC OK/Not OK, 7 LS Bits, Correlation value */
+//  404   if(crc_corr & CRC_BIT_MASK) {
+        MOV     A,?V0 + 0
+        MOV     C,0xE0 /* A   */.7
+        JNC     ??read_6
+//  405     packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
+        ; Setup parameters for call to function packetbuf_set_attr
+        MOV     A,R0
+        MOV     R2,A
+        RLC     A
+        SUBB    A,0xE0 /* A   */
+        MOV     R3,A
+        MOV     R1,#0x4
+        LCALL   ??packetbuf_set_attr?relay
+//  406     packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, crc_corr & LQI_BIT_MASK);
+        ; Setup parameters for call to function packetbuf_set_attr
+        MOV     ?V0 + 1,#0x0
+        MOV     A,?V0 + 0
+        ANL     A,#0x7f
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ANL     A,#0x0
+        MOV     R3,A
+        MOV     R1,#0x3
+        LCALL   ??packetbuf_set_attr?relay
+//  407     RIMESTATS_ADD(llrx);
+//  408   } else {
+//  409     RIMESTATS_ADD(badcrc);
+//  410     CC2530_CSP_ISFLUSHRX();
+//  411     RF_RX_LED_OFF();
+//  412     return 0;
+//  413   }
+//  414 
+//  415   /* If FIFOP==1 and FIFO==0 then we had a FIFO overflow at some point. */
+//  416   if((FSMSTAT1 & (FSMSTAT1_FIFO | FSMSTAT1_FIFOP)) == FSMSTAT1_FIFOP) {
+        MOV     DPTR,#0x6193
+        MOVX    A,@DPTR
+        ANL     A,#0xc0
+        XRL     A,#0x40
+        JNZ     ??read_7
+//  417     /*
+//  418      * If we reach here means that there might be more intact packets in the
+//  419      * FIFO despite the overflow. This can happen with bursts of small packets.
+//  420      *
+//  421      * Only flush if the FIFO is actually empty. If not, then next pass we will
+//  422      * pick up one more packet or flush due to an error.
+//  423      */
+//  424     if(!RXFIFOCNT) {
+        MOV     DPTR,#0x619b
+        MOVX    A,@DPTR
+        JNZ     ??read_7
+//  425       CC2530_CSP_ISFLUSHRX();
+        MOV     0xe1,#-0x13
+        MOV     0xe1,#-0x13
+//  426     }
+//  427   }
+//  428 
+//  429   RF_RX_LED_OFF();
+//  430 
+//  431   return (len);
+??read_7:
+        MOV     ?V0 + 0,R6
+        MOV     ?V0 + 1,#0x0
+        MOV     R2,?V0 + 0
+        MOV     R3,?V0 + 1
+??read_1:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+??read_6:
+        MOV     0xe1,#-0x13
+        MOV     0xe1,#-0x13
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        SJMP    ??read_1
+          CFI EndBlock cfiBlock7
+        REQUIRE RFD
+        REQUIRE RFST
+//  432 }
+//  433 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  434 static int
+//  435 channel_clear(void)
+channel_clear:
+          CFI Block cfiBlock8 Using cfiCommon0
+          CFI Function channel_clear
+        CODE
+//  436 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  437   if(FSMSTAT1 & FSMSTAT1_CCA) {
+        MOV     DPTR,#0x6193
+        MOVX    A,@DPTR
+        MOV     C,0xE0 /* A   */.4
+        JNC     ??channel_clear_0
+//  438     return CC2530_RF_CCA_CLEAR;
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+        SJMP    ??channel_clear_1
+//  439   }
+//  440   return CC2530_RF_CCA_BUSY;
+??channel_clear_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??channel_clear_1:
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock8
+//  441 }
+//  442 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  443 static int
+//  444 receiving_packet(void)
+receiving_packet:
+          CFI Block cfiBlock9 Using cfiCommon0
+          CFI Function receiving_packet
+        CODE
+//  445 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  446   PUTSTRING("RF: Receiving\n");
+//  447 
+//  448   /*
+//  449    * SFD high while transmitting and receiving.
+//  450    * TX_ACTIVE high only when transmitting
+//  451    *
+//  452    * FSMSTAT1 & (TX_ACTIVE | SFD) == SFD <=> receiving
+//  453    */
+//  454   return (FSMSTAT1 & (FSMSTAT1_TX_ACTIVE | FSMSTAT1_SFD) == FSMSTAT1_SFD);
+        MOV     DPTR,#0x6193
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock9
+//  455 }
+//  456 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  457 static int
+//  458 pending_packet(void)
+pending_packet:
+          CFI Block cfiBlock10 Using cfiCommon0
+          CFI Function pending_packet
+        CODE
+//  459 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  460   return (FSMSTAT1 & FSMSTAT1_FIFOP);
+        MOV     DPTR,#0x6193
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     R1,#0x0
+        ANL     A,#0x40
+        MOV     R2,A
+        MOV     A,R1
+        ANL     A,#0x0
+        MOV     R3,A
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock10
+//  461 }
+//  462 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  463 static int
+//  464 on(void)
+on:
+          CFI Block cfiBlock11 Using cfiCommon0
+          CFI Function on
+        CODE
+//  465 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//  466   if(!(rf_flags & RX_ACTIVE)) {
+        MOV     A,rf_flags
+        MOV     C,0xE0 /* A   */.7
+        JC      ??on_0
+//  467     CC2530_CSP_ISFLUSHRX();
+        MOV     0xe1,#-0x13
+        MOV     0xe1,#-0x13
+//  468     CC2530_CSP_ISRXON();
+        MOV     0xe1,#-0x1d
+//  469 
+//  470     rf_flags |= RX_ACTIVE;
+        ORL     rf_flags,#0x80
+//  471   }
+//  472 
+//  473   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+??on_0:
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R0,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R1,A
+        MOV     DPTR,#energest_current_time + 14
+        MOV     A,R0
+        MOVX    @DPTR,A
+        INC     DPTR
+        MOV     A,R1
+        MOVX    @DPTR,A
+        MOV     DPTR,#energest_current_mode + 7
+        MOV     A,#0x1
+        MOVX    @DPTR,A
+//  474   return 1;
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock11
+        REQUIRE RFST
+        REQUIRE T1CNTL
+        REQUIRE T1CNTH
+//  475 }
+//  476 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  477 static int
+//  478 off(void)
+off:
+          CFI Block cfiBlock12 Using cfiCommon0
+          CFI Function off
+        CODE
+//  479 {
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+//  480   CC2530_CSP_ISRFOFF();
+        MOV     0xe1,#-0x11
+//  481   CC2530_CSP_ISFLUSHRX();
+        MOV     0xe1,#-0x13
+        MOV     0xe1,#-0x13
+//  482 
+//  483   rf_flags &= ~RX_ACTIVE;
+        ANL     rf_flags,#0x7f
+//  484 
+//  485   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+        MOV     DPTR,#energest_current_mode + 7
+        MOVX    A,@DPTR
+        JZ      ??off_0
+        MOV     A,0xe2
+        MOV     R2,A
+        MOV     R3,#0x0
+        MOV     A,0xe3
+        MOV     R0,A
+        MOV     R1,#0x0
+        CLR     A
+        XCH     A,R0
+        MOV     R1,A
+        MOV     A,R2
+        ADD     A,R0
+        MOV     R2,A
+        MOV     A,R3
+        ADDC    A,R1
+        MOV     R3,A
+        MOV     DPTR,#energest_current_time + 14
+        MOVX    A,@DPTR
+        MOV     R0,A
+        INC     DPTR
+        MOVX    A,@DPTR
+        MOV     R1,A
+        MOV     A,R2
+        CLR     C
+        SUBB    A,R0
+        MOV     ?V0 + 0,A
+        MOV     A,R3
+        SUBB    A,R1
+        MOV     ?V0 + 1,A
+        CLR     A
+        MOV     ?V0 + 2,A
+        MOV     ?V0 + 3,A
+        MOV     DPTR,#energest_total_time + 28
+        MOV     R0,#?V0 + 0
+        LCALL   ?L_ADD_TO_X
+        MOV     DPTR,#energest_current_mode + 7
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  486   return 1;
+??off_0:
+        MOV     R2,#0x1
+        MOV     R3,#0x0
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock12
+        REQUIRE RFST
+        REQUIRE T1CNTL
+        REQUIRE T1CNTH
+//  487 }
+//  488 /*---------------------------------------------------------------------------*/
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+//  489 const struct radio_driver cc2530_rf_driver = {
+cc2530_rf_driver:
+        DS 20
+        REQUIRE `?<Initializer for cc2530_rf_driver>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for cc2530_rf_driver>`:
+        DATA16
+        DW ??init?relay
+        DW ??prepare?relay
+        DW ??transmit?relay
+        DW ??send?relay
+        DW ??read?relay
+        DW ??channel_clear?relay
+        DW ??receiving_packet?relay
+        DW ??pending_packet?relay
+        DW ??on?relay
+        DW ??off?relay
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??cc2530_rf_channel_set?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    cc2530_rf_channel_set
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??cc2530_rf_power_set?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    cc2530_rf_power_set
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??cc2530_rf_set_addr?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    cc2530_rf_set_addr
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??init?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    init
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??prepare?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    prepare
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??transmit?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    transmit
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??send?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    send
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??read?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    `read`
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??channel_clear?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    channel_clear
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??receiving_packet?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    receiving_packet
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??pending_packet?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    pending_packet
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??on?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    on
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??off?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    off
+
+        END
+//  490   init,
+//  491   prepare,
+//  492   transmit,
+//  493   send,
+//  494   read,
+//  495   channel_clear,
+//  496   receiving_packet,
+//  497   pending_packet,
+//  498   on,
+//  499   off,
+//  500 };
+//  501 /*---------------------------------------------------------------------------*/
+// 
+// 1 170 bytes in segment BANKED_CODE
+//    78 bytes in segment BANK_RELAYS
+//     1 byte  in segment DATA_Z
+//     4 bytes in segment SFR_AN
+//    20 bytes in segment XDATA_I
+//    20 bytes in segment XDATA_ID
+// 
+// 1 268 bytes of CODE  memory
+//     1 byte  of DATA  memory (+ 4 bytes shared)
+//    20 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: 2

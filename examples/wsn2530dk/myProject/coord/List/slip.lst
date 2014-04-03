@@ -1,0 +1,1546 @@
+###############################################################################
+#                                                                             #
+# IAR C/C++ Compiler V8.20.2.41139 for 8051             03/Apr/2014  10:45:44 #
+# Copyright 2004-2013 IAR Systems AB.                                         #
+#                                                                             #
+#    Core               =  plain                                              #
+#    Code model         =  banked                                             #
+#    Data model         =  large                                              #
+#    Calling convention =  xdata reentrant                                    #
+#    Constant location  =  data                                               #
+#    Dptr setup         =  1,16                                               #
+#                                                                             #
+#    Source file        =  D:\myWork\myWork\core\dev\slip.c                   #
+#    Command line       =  D:\myWork\myWork\core\dev\slip.c -D                #
+#                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC             #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\ -lA D:\myWork\myWork\examples\wsn2530dk\my #
+#                          Project\coord\List\ --diag_suppress                #
+#                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o          #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\ -e --no_cse --no_unroll --no_inline         #
+#                          --no_code_motion --no_tbaa --debug --core=plain    #
+#                          --dptr=16,1 --data_model=large                     #
+#                          --code_model=banked --calling_convention=xdata_ree #
+#                          ntrant --place_constants=data --nr_virtual_regs    #
+#                          16 --preinclude D:\myWork\myWork\examples\wsn2530d #
+#                          k\myProject\..\..\..\cpu\cc253x\cc253x.h -I        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\cpu\cc253x\ -I D:\myWork\myWork\examples\wsn2 #
+#                          530dk\myProject\..\..\..\platform\wsn2530dk\ -I    #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\. #
+#                          .\..\core\ -I D:\myWork\myWork\examples\wsn2530dk\ #
+#                          myProject\..\..\..\apps\ -I                        #
+#                          D:\myWork\myWork\examples\wsn2530dk\myProject\ -Ol #
+#    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\List\slip.lst                                    #
+#    Object file        =  D:\myWork\myWork\examples\wsn2530dk\myProject\coor #
+#                          d\Obj\slip.r51                                     #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+D:\myWork\myWork\core\dev\slip.c
+      1          /* -*- C -*- */
+      2          /*
+      3           * Copyright (c) 2005, Swedish Institute of Computer Science
+      4           * All rights reserved.
+      5           *
+      6           * Redistribution and use in source and binary forms, with or without
+      7           * modification, are permitted provided that the following conditions
+      8           * are met:
+      9           * 1. Redistributions of source code must retain the above copyright
+     10           *    notice, this list of conditions and the following disclaimer.
+     11           * 2. Redistributions in binary form must reproduce the above copyright
+     12           *    notice, this list of conditions and the following disclaimer in the
+     13           *    documentation and/or other materials provided with the distribution.
+     14           * 3. Neither the name of the Institute nor the names of its contributors
+     15           *    may be used to endorse or promote products derived from this software
+     16           *    without specific prior written permission.
+     17           *
+     18           * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+     19           * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     20           * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     21           * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+     22           * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+     23           * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+     24           * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+     25           * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+     26           * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+     27           * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+     28           * SUCH DAMAGE.
+     29           *
+     30           * This file is part of the Contiki operating system.
+     31           *
+     32           */
+     33          
+     34          
+     35          #include <stdio.h>
+     36          #include <string.h>
+     37          
+     38          #include "contiki.h"
+     39          
+     40          #include "net/uip.h"
+     41          #include "net/uip-fw.h"
+     42          #define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+     43          
+     44          #include "dev/slip.h"
+     45          
+     46          #define SLIP_END     0300
+     47          #define SLIP_ESC     0333
+     48          #define SLIP_ESC_END 0334
+     49          #define SLIP_ESC_ESC 0335
+     50          
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+     51          PROCESS(slip_process, "SLIP driver");
+   \                     slip_process:
+   \   000000                DS 8
+   \   000008                REQUIRE `?<Initializer for slip_process>`
+   \   000008                REQUIRE __INIT_XDATA_I
+     52          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     53          uint8_t slip_active;
+   \                     slip_active:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+     54          
+     55          #if 1
+     56          #define SLIP_STATISTICS(statement)
+     57          #else
+     58          uint16_t slip_rubbish, slip_twopackets, slip_overflow, slip_ip_drop;
+     59          #define SLIP_STATISTICS(statement) statement
+     60          #endif
+     61          
+     62          /* Must be at least one byte larger than UIP_BUFSIZE! */
+     63          #define RX_BUFSIZE (UIP_BUFSIZE - UIP_LLH_LEN + 16)
+     64          
+     65          enum {
+     66            STATE_TWOPACKETS = 0,	/* We have 2 packets and drop incoming data. */
+     67            STATE_OK = 1,
+     68            STATE_ESC = 2,
+     69            STATE_RUBBISH = 3,
+     70          };
+     71          
+     72          /*
+     73           * Variables begin and end manage the buffer space in a cyclic
+     74           * fashion. The first used byte is at begin and end is one byte past
+     75           * the last. I.e. [begin, end) is the actively used space.
+     76           *
+     77           * If begin != pkt_end we have a packet at [begin, pkt_end),
+     78           * furthermore, if state == STATE_TWOPACKETS we have one more packet at
+     79           * [pkt_end, end). If more bytes arrive in state STATE_TWOPACKETS
+     80           * they are discarded.
+     81           */
+     82          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     83          static uint8_t state = STATE_TWOPACKETS;
+   \                     state:
+   \   000000                DS 1
+   \   000001                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     84          static uint16_t begin, end;
+   \                     begin:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+   \                     end:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     85          static uint8_t rxbuf[RX_BUFSIZE];
+   \                     rxbuf:
+   \   000000                DS 256
+   \   000100                REQUIRE __INIT_XDATA_Z
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     86          static uint16_t pkt_end;		/* SLIP_END tracker. */
+   \                     pkt_end:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     87          
+
+   \                                 In  segment XDATA_Z, align 1, keep-with-next
+     88          static void (* input_callback)(void) = NULL;
+   \                     input_callback:
+   \   000000                DS 2
+   \   000002                REQUIRE __INIT_XDATA_Z
+     89          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+     90          void
+     91          slip_set_input_callback(void (*c)(void))
+   \                     slip_set_input_callback:
+     92          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+     93            input_callback = c;
+   \   000004   90....       MOV     DPTR,#input_callback
+   \   000007   EA           MOV     A,R2
+   \   000008   F0           MOVX    @DPTR,A
+   \   000009   A3           INC     DPTR
+   \   00000A   EB           MOV     A,R3
+   \   00000B   F0           MOVX    @DPTR,A
+     94          }
+   \   00000C   D083         POP     DPH
+   \   00000E   D082         POP     DPL
+   \   000010   02....       LJMP    ?BRET
+     95          /*---------------------------------------------------------------------------*/
+     96          /* slip_send: forward (IPv4) packets with {UIP_FW_NETIF(..., slip_send)}
+     97           * was used in slip-bridge.c
+     98           */
+     99          //#if WITH_UIP
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    100          uint8_t
+    101          slip_send(void)
+   \                     slip_send:
+    102          {
+   \   000000   74F6         MOV     A,#-0xa
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 10
+   \   000005                ; Auto size: 0
+    103            uint16_t i;
+    104            uint8_t *ptr;
+    105            uint8_t c;
+    106          
+    107            slip_arch_writeb(SLIP_END);
+   \   000005                ; Setup parameters for call to function slip_arch_writeb
+   \   000005   79C0         MOV     R1,#-0x40
+   \   000007   12....       LCALL   ??slip_arch_writeb?relay
+    108          
+    109            ptr = &uip_buf[UIP_LLH_LEN];
+   \   00000A   7E..         MOV     R6,#uip_aligned_buf & 0xff
+   \   00000C   7F..         MOV     R7,#(uip_aligned_buf >> 8) & 0xff
+    110            for(i = 0; i < uip_len; ++i) {
+   \   00000E   75..00       MOV     ?V0 + 0,#0x0
+   \   000011   75..00       MOV     ?V0 + 1,#0x0
+   \   000014   801B         SJMP    ??slip_send_0
+    111              if(i == UIP_TCPIP_HLEN) {
+    112                ptr = (uint8_t *)uip_appdata;
+    113              }
+    114              c = *ptr++;
+    115              if(c == SLIP_END) {
+    116                slip_arch_writeb(SLIP_ESC);
+    117                c = SLIP_ESC_END;
+    118              } else if(c == SLIP_ESC) {
+   \                     ??slip_send_1:
+   \   000016   74DB         MOV     A,#-0x25
+   \   000018   69           XRL     A,R1
+   \   000019   7007         JNZ     ??slip_send_2
+    119                slip_arch_writeb(SLIP_ESC);
+   \   00001B                ; Setup parameters for call to function slip_arch_writeb
+   \   00001B   79DB         MOV     R1,#-0x25
+   \   00001D   12....       LCALL   ??slip_arch_writeb?relay
+    120                c = SLIP_ESC_ESC;
+   \   000020   79DD         MOV     R1,#-0x23
+    121              }
+    122              slip_arch_writeb(c);
+   \                     ??slip_send_2:
+   \   000022                ; Setup parameters for call to function slip_arch_writeb
+   \   000022   12....       LCALL   ??slip_arch_writeb?relay
+   \   000025   E5..         MOV     A,?V0 + 0
+   \   000027   2401         ADD     A,#0x1
+   \   000029   F5..         MOV     ?V0 + 0,A
+   \   00002B   E5..         MOV     A,?V0 + 1
+   \   00002D   3400         ADDC    A,#0x0
+   \   00002F   F5..         MOV     ?V0 + 1,A
+   \                     ??slip_send_0:
+   \   000031   90....       MOV     DPTR,#uip_len
+   \   000034   E0           MOVX    A,@DPTR
+   \   000035   F8           MOV     R0,A
+   \   000036   A3           INC     DPTR
+   \   000037   E0           MOVX    A,@DPTR
+   \   000038   F9           MOV     R1,A
+   \   000039   C3           CLR     C
+   \   00003A   E5..         MOV     A,?V0 + 0
+   \   00003C   98           SUBB    A,R0
+   \   00003D   E5..         MOV     A,?V0 + 1
+   \   00003F   99           SUBB    A,R1
+   \   000040   5031         JNC     ??slip_send_3
+   \   000042   743C         MOV     A,#0x3c
+   \   000044   65..         XRL     A,?V0 + 0
+   \   000046   7004         JNZ     ??slip_send_4
+   \   000048   7400         MOV     A,#0x0
+   \   00004A   65..         XRL     A,?V0 + 1
+   \                     ??slip_send_4:
+   \   00004C   7008         JNZ     ??slip_send_5
+   \   00004E   90....       MOV     DPTR,#uip_appdata
+   \   000051   E0           MOVX    A,@DPTR
+   \   000052   FE           MOV     R6,A
+   \   000053   A3           INC     DPTR
+   \   000054   E0           MOVX    A,@DPTR
+   \   000055   FF           MOV     R7,A
+   \                     ??slip_send_5:
+   \   000056   8E82         MOV     DPL,R6
+   \   000058   8F83         MOV     DPH,R7
+   \   00005A   E0           MOVX    A,@DPTR
+   \   00005B   F9           MOV     R1,A
+   \   00005C   8E82         MOV     DPL,R6
+   \   00005E   8F83         MOV     DPH,R7
+   \   000060   A3           INC     DPTR
+   \   000061   AE82         MOV     R6,DPL
+   \   000063   AF83         MOV     R7,DPH
+   \   000065   74C0         MOV     A,#-0x40
+   \   000067   69           XRL     A,R1
+   \   000068   70AC         JNZ     ??slip_send_1
+   \   00006A                ; Setup parameters for call to function slip_arch_writeb
+   \   00006A   79DB         MOV     R1,#-0x25
+   \   00006C   12....       LCALL   ??slip_arch_writeb?relay
+   \   00006F   79DC         MOV     R1,#-0x24
+   \   000071   80AF         SJMP    ??slip_send_2
+    123            }
+    124            slip_arch_writeb(SLIP_END);
+   \                     ??slip_send_3:
+   \   000073                ; Setup parameters for call to function slip_arch_writeb
+   \   000073   79C0         MOV     R1,#-0x40
+   \   000075   12....       LCALL   ??slip_arch_writeb?relay
+    125          
+    126            return UIP_FW_OK;
+   \   000078   7900         MOV     R1,#0x0
+   \   00007A   7F02         MOV     R7,#0x2
+   \   00007C   02....       LJMP    ?BANKED_LEAVE_XDATA
+    127          }
+    128          //#endif /* WITH_UIP */
+    129          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    130          uint8_t
+    131          slip_write(const void *_ptr, int len)
+   \                     slip_write:
+    132          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   8C..         MOV     ?V0 + 0,R4
+   \   000007   8D..         MOV     ?V0 + 1,R5
+    133            const uint8_t *ptr = _ptr;
+   \   000009   EA           MOV     A,R2
+   \   00000A   FE           MOV     R6,A
+   \   00000B   EB           MOV     A,R3
+   \   00000C   FF           MOV     R7,A
+    134            uint16_t i;
+    135            uint8_t c;
+    136          
+    137            slip_arch_writeb(SLIP_END);
+   \   00000D                ; Setup parameters for call to function slip_arch_writeb
+   \   00000D   79C0         MOV     R1,#-0x40
+   \   00000F   12....       LCALL   ??slip_arch_writeb?relay
+    138          
+    139            for(i = 0; i < len; ++i) {
+   \   000012   75..00       MOV     ?V0 + 2,#0x0
+   \   000015   75..00       MOV     ?V0 + 3,#0x0
+   \   000018   801B         SJMP    ??slip_write_0
+    140              c = *ptr++;
+    141              if(c == SLIP_END) {
+    142                slip_arch_writeb(SLIP_ESC);
+    143                c = SLIP_ESC_END;
+    144              } else if(c == SLIP_ESC) {
+   \                     ??slip_write_1:
+   \   00001A   74DB         MOV     A,#-0x25
+   \   00001C   69           XRL     A,R1
+   \   00001D   7007         JNZ     ??slip_write_2
+    145                slip_arch_writeb(SLIP_ESC);
+   \   00001F                ; Setup parameters for call to function slip_arch_writeb
+   \   00001F   79DB         MOV     R1,#-0x25
+   \   000021   12....       LCALL   ??slip_arch_writeb?relay
+    146                c = SLIP_ESC_ESC;
+   \   000024   79DD         MOV     R1,#-0x23
+    147              }
+    148              slip_arch_writeb(c);
+   \                     ??slip_write_2:
+   \   000026                ; Setup parameters for call to function slip_arch_writeb
+   \   000026   12....       LCALL   ??slip_arch_writeb?relay
+   \   000029   E5..         MOV     A,?V0 + 2
+   \   00002B   2401         ADD     A,#0x1
+   \   00002D   F5..         MOV     ?V0 + 2,A
+   \   00002F   E5..         MOV     A,?V0 + 3
+   \   000031   3400         ADDC    A,#0x0
+   \   000033   F5..         MOV     ?V0 + 3,A
+   \                     ??slip_write_0:
+   \   000035   C3           CLR     C
+   \   000036   E5..         MOV     A,?V0 + 2
+   \   000038   95..         SUBB    A,?V0 + 0
+   \   00003A   E5..         MOV     A,?V0 + 3
+   \   00003C   95..         SUBB    A,?V0 + 1
+   \   00003E   501D         JNC     ??slip_write_3
+   \   000040   8E82         MOV     DPL,R6
+   \   000042   8F83         MOV     DPH,R7
+   \   000044   E0           MOVX    A,@DPTR
+   \   000045   F9           MOV     R1,A
+   \   000046   8E82         MOV     DPL,R6
+   \   000048   8F83         MOV     DPH,R7
+   \   00004A   A3           INC     DPTR
+   \   00004B   AE82         MOV     R6,DPL
+   \   00004D   AF83         MOV     R7,DPH
+   \   00004F   74C0         MOV     A,#-0x40
+   \   000051   69           XRL     A,R1
+   \   000052   70C6         JNZ     ??slip_write_1
+   \   000054                ; Setup parameters for call to function slip_arch_writeb
+   \   000054   79DB         MOV     R1,#-0x25
+   \   000056   12....       LCALL   ??slip_arch_writeb?relay
+   \   000059   79DC         MOV     R1,#-0x24
+   \   00005B   80C9         SJMP    ??slip_write_2
+    149            }
+    150            slip_arch_writeb(SLIP_END);
+   \                     ??slip_write_3:
+   \   00005D                ; Setup parameters for call to function slip_arch_writeb
+   \   00005D   79C0         MOV     R1,#-0x40
+   \   00005F   12....       LCALL   ??slip_arch_writeb?relay
+    151          
+    152            return len;
+   \   000062   A9..         MOV     R1,?V0 + 0
+   \   000064   7F04         MOV     R7,#0x4
+   \   000066   02....       LJMP    ?BANKED_LEAVE_XDATA
+    153          }
+    154          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    155          static void
+    156          rxbuf_init(void)
+   \                     rxbuf_init:
+    157          {
+   \   000000   C082         PUSH    DPL
+   \   000002   C083         PUSH    DPH
+   \   000004                ; Saved register size: 2
+   \   000004                ; Auto size: 0
+    158            begin = end = pkt_end = 0;
+   \   000004   7800         MOV     R0,#0x0
+   \   000006   7900         MOV     R1,#0x0
+   \   000008   90....       MOV     DPTR,#pkt_end
+   \   00000B   E8           MOV     A,R0
+   \   00000C   F0           MOVX    @DPTR,A
+   \   00000D   A3           INC     DPTR
+   \   00000E   E9           MOV     A,R1
+   \   00000F   F0           MOVX    @DPTR,A
+   \   000010   90....       MOV     DPTR,#end
+   \   000013   E8           MOV     A,R0
+   \   000014   F0           MOVX    @DPTR,A
+   \   000015   A3           INC     DPTR
+   \   000016   E9           MOV     A,R1
+   \   000017   F0           MOVX    @DPTR,A
+   \   000018   90....       MOV     DPTR,#begin
+   \   00001B   E8           MOV     A,R0
+   \   00001C   F0           MOVX    @DPTR,A
+   \   00001D   A3           INC     DPTR
+   \   00001E   E9           MOV     A,R1
+   \   00001F   F0           MOVX    @DPTR,A
+    159            state = STATE_OK;
+   \   000020   90....       MOV     DPTR,#state
+   \   000023   7401         MOV     A,#0x1
+   \   000025   F0           MOVX    @DPTR,A
+    160          }
+   \   000026   D083         POP     DPH
+   \   000028   D082         POP     DPL
+   \   00002A   02....       LJMP    ?BRET
+    161          /*---------------------------------------------------------------------------*/
+    162          /* Upper half does the polling. */
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    163          static uint16_t
+    164          slip_poll_handler(uint8_t *outbuf, uint16_t blen)
+   \                     slip_poll_handler:
+    165          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   8C..         MOV     ?V0 + 0,R4
+   \   00000B   8D..         MOV     ?V0 + 1,R5
+    166            /* This is a hack and won't work across buffer edge! */
+    167            if(rxbuf[begin] == 'C') {
+   \   00000D   90....       MOV     DPTR,#begin
+   \   000010   E0           MOVX    A,@DPTR
+   \   000011   24..         ADD     A,#rxbuf & 0xff
+   \   000013   F8           MOV     R0,A
+   \   000014   A3           INC     DPTR
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   34..         ADDC    A,#(rxbuf >> 8) & 0xff
+   \   000018   F9           MOV     R1,A
+   \   000019   8882         MOV     DPL,R0
+   \   00001B   8983         MOV     DPH,R1
+   \   00001D   E0           MOVX    A,@DPTR
+   \   00001E   6443         XRL     A,#0x43
+   \   000020   6003         JZ      $+5
+   \   000022   02....       LJMP    ??slip_poll_handler_0 & 0xFFFF
+    168              int i;
+    169              if(begin < end && (end - begin) >= 6
+    170                 && memcmp(&rxbuf[begin], "CLIENT", 6) == 0) {
+   \   000025   90....       MOV     DPTR,#begin
+   \   000028   C082         PUSH    DPL
+   \   00002A   C083         PUSH    DPH
+   \   00002C   90....       MOV     DPTR,#end
+   \   00002F   E0           MOVX    A,@DPTR
+   \   000030   F8           MOV     R0,A
+   \   000031   A3           INC     DPTR
+   \   000032   E0           MOVX    A,@DPTR
+   \   000033   F9           MOV     R1,A
+   \   000034   D083         POP     DPH
+   \   000036   D082         POP     DPL
+   \   000038   C3           CLR     C
+   \   000039   E0           MOVX    A,@DPTR
+   \   00003A   98           SUBB    A,R0
+   \   00003B   A3           INC     DPTR
+   \   00003C   E0           MOVX    A,@DPTR
+   \   00003D   99           SUBB    A,R1
+   \   00003E   4003         JC      $+5
+   \   000040   02....       LJMP    ??slip_poll_handler_0 & 0xFFFF
+   \   000043   90....       MOV     DPTR,#end
+   \   000046   C082         PUSH    DPL
+   \   000048   C083         PUSH    DPH
+   \   00004A   90....       MOV     DPTR,#begin
+   \   00004D   E0           MOVX    A,@DPTR
+   \   00004E   F8           MOV     R0,A
+   \   00004F   A3           INC     DPTR
+   \   000050   E0           MOVX    A,@DPTR
+   \   000051   F9           MOV     R1,A
+   \   000052   D083         POP     DPH
+   \   000054   D082         POP     DPL
+   \   000056   E0           MOVX    A,@DPTR
+   \   000057   C3           CLR     C
+   \   000058   98           SUBB    A,R0
+   \   000059   F8           MOV     R0,A
+   \   00005A   A3           INC     DPTR
+   \   00005B   E0           MOVX    A,@DPTR
+   \   00005C   99           SUBB    A,R1
+   \   00005D   F9           MOV     R1,A
+   \   00005E   C3           CLR     C
+   \   00005F   E8           MOV     A,R0
+   \   000060   9406         SUBB    A,#0x6
+   \   000062   E9           MOV     A,R1
+   \   000063   9400         SUBB    A,#0x0
+   \   000065   5003         JNC     $+5
+   \   000067   02....       LJMP    ??slip_poll_handler_0 & 0xFFFF
+   \   00006A                ; Setup parameters for call to function memcmp
+   \   00006A   75..06       MOV     ?V0 + 2,#0x6
+   \   00006D   75..00       MOV     ?V0 + 3,#0x0
+   \   000070   78..         MOV     R0,#?V0 + 2
+   \   000072   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   000075   7C..         MOV     R4,#`?<Constant "CLIENT">` & 0xff
+   \   000077   7D..         MOV     R5,#(`?<Constant "CLIENT">` >> 8) & 0xff
+   \   000079   90....       MOV     DPTR,#begin
+   \   00007C   E0           MOVX    A,@DPTR
+   \   00007D   24..         ADD     A,#rxbuf & 0xff
+   \   00007F   FA           MOV     R2,A
+   \   000080   A3           INC     DPTR
+   \   000081   E0           MOVX    A,@DPTR
+   \   000082   34..         ADDC    A,#(rxbuf >> 8) & 0xff
+   \   000084   FB           MOV     R3,A
+   \   000085   12....       LCALL   ??memcmp?relay
+   \   000088   7402         MOV     A,#0x2
+   \   00008A   12....       LCALL   ?DEALLOC_XSTACK8
+   \   00008D   8A..         MOV     ?V0 + 2,R2
+   \   00008F   8B..         MOV     ?V0 + 3,R3
+   \   000091   E5..         MOV     A,?V0 + 2
+   \   000093   45..         ORL     A,?V0 + 3
+   \   000095   705E         JNZ     ??slip_poll_handler_0
+    171                state = STATE_TWOPACKETS;	/* Interrupts do nothing. */
+   \   000097   90....       MOV     DPTR,#state
+   \   00009A   7400         MOV     A,#0x0
+   \   00009C   F0           MOVX    @DPTR,A
+    172                memset(&rxbuf[begin], 0x0, 6);
+   \   00009D                ; Setup parameters for call to function memset
+   \   00009D   75..06       MOV     ?V0 + 0,#0x6
+   \   0000A0   75..00       MOV     ?V0 + 1,#0x0
+   \   0000A3   78..         MOV     R0,#?V0 + 0
+   \   0000A5   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   0000A8   7C00         MOV     R4,#0x0
+   \   0000AA   7D00         MOV     R5,#0x0
+   \   0000AC   90....       MOV     DPTR,#begin
+   \   0000AF   E0           MOVX    A,@DPTR
+   \   0000B0   24..         ADD     A,#rxbuf & 0xff
+   \   0000B2   FA           MOV     R2,A
+   \   0000B3   A3           INC     DPTR
+   \   0000B4   E0           MOVX    A,@DPTR
+   \   0000B5   34..         ADDC    A,#(rxbuf >> 8) & 0xff
+   \   0000B7   FB           MOV     R3,A
+   \   0000B8   12....       LCALL   ??memset?relay
+   \   0000BB   7402         MOV     A,#0x2
+   \   0000BD   12....       LCALL   ?DEALLOC_XSTACK8
+    173                
+    174                rxbuf_init();
+   \   0000C0                ; Setup parameters for call to function rxbuf_init
+   \   0000C0   12....       LCALL   ??rxbuf_init?relay
+    175                
+    176                for(i = 0; i < 13; i++) {
+   \   0000C3   7E00         MOV     R6,#0x0
+   \   0000C5   7F00         MOV     R7,#0x0
+   \   0000C7   8017         SJMP    ??slip_poll_handler_1
+    177          	slip_arch_writeb("CLIENTSERVER\300"[i]);
+   \                     ??slip_poll_handler_2:
+   \   0000C9                ; Setup parameters for call to function slip_arch_writeb
+   \   0000C9   74..         MOV     A,#`?<Constant "CLIENTSERVER\\300">` & 0xff
+   \   0000CB   2E           ADD     A,R6
+   \   0000CC   F582         MOV     DPL,A
+   \   0000CE   74..         MOV     A,#(`?<Constant "CLIENTSERVER\\300">` >> 8) & 0xff
+   \   0000D0   3F           ADDC    A,R7
+   \   0000D1   F583         MOV     DPH,A
+   \   0000D3   E0           MOVX    A,@DPTR
+   \   0000D4   F9           MOV     R1,A
+   \   0000D5   12....       LCALL   ??slip_arch_writeb?relay
+    178                }
+   \   0000D8   EE           MOV     A,R6
+   \   0000D9   2401         ADD     A,#0x1
+   \   0000DB   FE           MOV     R6,A
+   \   0000DC   EF           MOV     A,R7
+   \   0000DD   3400         ADDC    A,#0x0
+   \   0000DF   FF           MOV     R7,A
+   \                     ??slip_poll_handler_1:
+   \   0000E0   C3           CLR     C
+   \   0000E1   EE           MOV     A,R6
+   \   0000E2   940D         SUBB    A,#0xd
+   \   0000E4   EF           MOV     A,R7
+   \   0000E5   9400         SUBB    A,#0x0
+   \   0000E7   A2D2         MOV     C,0xD0 /* PSW */.2
+   \   0000E9   65D0         XRL     A,PSW
+   \   0000EB   33           RLC     A
+   \   0000EC   40DB         JC      ??slip_poll_handler_2
+    179                return 0;
+   \   0000EE   7A00         MOV     R2,#0x0
+   \   0000F0   7B00         MOV     R3,#0x0
+   \   0000F2   02....       LJMP    ??slip_poll_handler_3 & 0xFFFF
+    180              }
+    181            }
+    182          #ifdef SLIP_CONF_ANSWER_MAC_REQUEST
+    183            else if(rxbuf[begin] == '?') { 
+    184              /* Used by tapslip6 to request mac for auto configure */
+    185              int i, j;
+    186              char* hexchar = "0123456789abcdef";
+    187              if(begin < end && (end - begin) >= 2
+    188                 && rxbuf[begin + 1] == 'M') {
+    189                state = STATE_TWOPACKETS; /* Interrupts do nothing. */
+    190                rxbuf[begin] = 0;
+    191                rxbuf[begin + 1] = 0;
+    192                
+    193                rxbuf_init();
+    194                
+    195                rimeaddr_t addr = get_mac_addr();
+    196                /* this is just a test so far... just to see if it works */
+    197                slip_arch_writeb('!');
+    198                slip_arch_writeb('M');
+    199                for(j = 0; j < 8; j++) {
+    200                  slip_arch_writeb(hexchar[addr.u8[j] >> 4]);
+    201                  slip_arch_writeb(hexchar[addr.u8[j] & 15]);
+    202                }
+    203                slip_arch_writeb(SLIP_END);
+    204                return 0;
+    205              }
+    206            }
+    207          #endif /* SLIP_CONF_ANSWER_MAC_REQUEST */
+    208          
+    209            /*
+    210             * Interrupt can not change begin but may change pkt_end.
+    211             * If pkt_end != begin it will not change again.
+    212             */
+    213            if(begin != pkt_end) {
+   \                     ??slip_poll_handler_0:
+   \   0000F5   90....       MOV     DPTR,#begin
+   \   0000F8   E0           MOVX    A,@DPTR
+   \   0000F9   F8           MOV     R0,A
+   \   0000FA   A3           INC     DPTR
+   \   0000FB   E0           MOVX    A,@DPTR
+   \   0000FC   F9           MOV     R1,A
+   \   0000FD   90....       MOV     DPTR,#pkt_end
+   \   000100   E0           MOVX    A,@DPTR
+   \   000101   68           XRL     A,R0
+   \   000102   7003         JNZ     ??slip_poll_handler_4
+   \   000104   A3           INC     DPTR
+   \   000105   E0           MOVX    A,@DPTR
+   \   000106   69           XRL     A,R1
+   \                     ??slip_poll_handler_4:
+   \   000107   7003         JNZ     $+5
+   \   000109   02....       LJMP    ??slip_poll_handler_5 & 0xFFFF
+    214              uint16_t len;
+    215          
+    216              if(begin < pkt_end) {
+   \   00010C   90....       MOV     DPTR,#begin
+   \   00010F   C082         PUSH    DPL
+   \   000111   C083         PUSH    DPH
+   \   000113   90....       MOV     DPTR,#pkt_end
+   \   000116   E0           MOVX    A,@DPTR
+   \   000117   F8           MOV     R0,A
+   \   000118   A3           INC     DPTR
+   \   000119   E0           MOVX    A,@DPTR
+   \   00011A   F9           MOV     R1,A
+   \   00011B   D083         POP     DPH
+   \   00011D   D082         POP     DPL
+   \   00011F   C3           CLR     C
+   \   000120   E0           MOVX    A,@DPTR
+   \   000121   98           SUBB    A,R0
+   \   000122   A3           INC     DPTR
+   \   000123   E0           MOVX    A,@DPTR
+   \   000124   99           SUBB    A,R1
+   \   000125   5051         JNC     ??slip_poll_handler_6
+    217                len = pkt_end - begin;
+   \   000127   90....       MOV     DPTR,#pkt_end
+   \   00012A   C082         PUSH    DPL
+   \   00012C   C083         PUSH    DPH
+   \   00012E   90....       MOV     DPTR,#begin
+   \   000131   E0           MOVX    A,@DPTR
+   \   000132   F8           MOV     R0,A
+   \   000133   A3           INC     DPTR
+   \   000134   E0           MOVX    A,@DPTR
+   \   000135   F9           MOV     R1,A
+   \   000136   D083         POP     DPH
+   \   000138   D082         POP     DPL
+   \   00013A   E0           MOVX    A,@DPTR
+   \   00013B   C3           CLR     C
+   \   00013C   98           SUBB    A,R0
+   \   00013D   F5..         MOV     ?V0 + 2,A
+   \   00013F   A3           INC     DPTR
+   \   000140   E0           MOVX    A,@DPTR
+   \   000141   99           SUBB    A,R1
+   \   000142   F5..         MOV     ?V0 + 3,A
+    218                if(len > blen) {
+   \   000144   C3           CLR     C
+   \   000145   E5..         MOV     A,?V0 + 0
+   \   000147   95..         SUBB    A,?V0 + 2
+   \   000149   E5..         MOV     A,?V0 + 1
+   \   00014B   95..         SUBB    A,?V0 + 3
+   \   00014D   5009         JNC     ??slip_poll_handler_7
+    219          	len = 0;
+   \   00014F   75..00       MOV     ?V0 + 2,#0x0
+   \   000152   75..00       MOV     ?V0 + 3,#0x0
+   \   000155   02....       LJMP    ??slip_poll_handler_8 & 0xFFFF
+    220                } else {
+    221          	memcpy(outbuf, &rxbuf[begin], len);
+   \                     ??slip_poll_handler_7:
+   \   000158                ; Setup parameters for call to function memcpy
+   \   000158   78..         MOV     R0,#?V0 + 2
+   \   00015A   12....       LCALL   ?PUSH_XSTACK_I_TWO
+   \   00015D   90....       MOV     DPTR,#begin
+   \   000160   E0           MOVX    A,@DPTR
+   \   000161   24..         ADD     A,#rxbuf & 0xff
+   \   000163   FC           MOV     R4,A
+   \   000164   A3           INC     DPTR
+   \   000165   E0           MOVX    A,@DPTR
+   \   000166   34..         ADDC    A,#(rxbuf >> 8) & 0xff
+   \   000168   FD           MOV     R5,A
+   \   000169   EE           MOV     A,R6
+   \   00016A   FA           MOV     R2,A
+   \   00016B   EF           MOV     A,R7
+   \   00016C   FB           MOV     R3,A
+   \   00016D   12....       LCALL   ??memcpy?relay
+   \   000170   7402         MOV     A,#0x2
+   \   000172   12....       LCALL   ?DEALLOC_XSTACK8
+   \   000175   02....       LJMP    ??slip_poll_handler_8 & 0xFFFF
+    222                }
+    223              } else {
+    224                len = (RX_BUFSIZE - begin) + (pkt_end - 0);
+   \                     ??slip_poll_handler_6:
+   \   000178   90....       MOV     DPTR,#begin
+   \   00017B   E0           MOVX    A,@DPTR
+   \   00017C   F8           MOV     R0,A
+   \   00017D   A3           INC     DPTR
+   \   00017E   E0           MOVX    A,@DPTR
+   \   00017F   F9           MOV     R1,A
+   \   000180   7400         MOV     A,#0x0
+   \   000182   C3           CLR     C
+   \   000183   98           SUBB    A,R0
+   \   000184   F8           MOV     R0,A
+   \   000185   7401         MOV     A,#0x1
+   \   000187   99           SUBB    A,R1
+   \   000188   F9           MOV     R1,A
+   \   000189   90....       MOV     DPTR,#pkt_end
+   \   00018C   E0           MOVX    A,@DPTR
+   \   00018D   28           ADD     A,R0
+   \   00018E   F5..         MOV     ?V0 + 2,A
+   \   000190   A3           INC     DPTR
+   \   000191   E0           MOVX    A,@DPTR
+   \   000192   39           ADDC    A,R1
+   \   000193   F5..         MOV     ?V0 + 3,A
+    225                if(len > blen) {
+   \   000195   C3           CLR     C
+   \   000196   E5..         MOV     A,?V0 + 0
+   \   000198   95..         SUBB    A,?V0 + 2
+   \   00019A   E5..         MOV     A,?V0 + 1
+   \   00019C   95..         SUBB    A,?V0 + 3
+   \   00019E   5008         JNC     ??slip_poll_handler_9
+    226          	len = 0;
+   \   0001A0   75..00       MOV     ?V0 + 2,#0x0
+   \   0001A3   75..00       MOV     ?V0 + 3,#0x0
+   \   0001A6   806A         SJMP    ??slip_poll_handler_8
+    227                } else {
+    228          	unsigned i;
+    229          	for(i = begin; i < RX_BUFSIZE; i++) {
+   \                     ??slip_poll_handler_9:
+   \   0001A8   90....       MOV     DPTR,#begin
+   \   0001AB   E0           MOVX    A,@DPTR
+   \   0001AC   F8           MOV     R0,A
+   \   0001AD   A3           INC     DPTR
+   \   0001AE   E0           MOVX    A,@DPTR
+   \   0001AF   F9           MOV     R1,A
+   \   0001B0   8021         SJMP    ??slip_poll_handler_10
+    230          	  *outbuf++ = rxbuf[i];
+   \                     ??slip_poll_handler_11:
+   \   0001B2   74..         MOV     A,#rxbuf & 0xff
+   \   0001B4   28           ADD     A,R0
+   \   0001B5   F582         MOV     DPL,A
+   \   0001B7   74..         MOV     A,#(rxbuf >> 8) & 0xff
+   \   0001B9   39           ADDC    A,R1
+   \   0001BA   F583         MOV     DPH,A
+   \   0001BC   E0           MOVX    A,@DPTR
+   \   0001BD   8E82         MOV     DPL,R6
+   \   0001BF   8F83         MOV     DPH,R7
+   \   0001C1   F0           MOVX    @DPTR,A
+   \   0001C2   8E82         MOV     DPL,R6
+   \   0001C4   8F83         MOV     DPH,R7
+   \   0001C6   A3           INC     DPTR
+   \   0001C7   AE82         MOV     R6,DPL
+   \   0001C9   AF83         MOV     R7,DPH
+    231          	}
+   \   0001CB   E8           MOV     A,R0
+   \   0001CC   2401         ADD     A,#0x1
+   \   0001CE   F8           MOV     R0,A
+   \   0001CF   E9           MOV     A,R1
+   \   0001D0   3400         ADDC    A,#0x0
+   \   0001D2   F9           MOV     R1,A
+   \                     ??slip_poll_handler_10:
+   \   0001D3   C3           CLR     C
+   \   0001D4   E8           MOV     A,R0
+   \   0001D5   9400         SUBB    A,#0x0
+   \   0001D7   E9           MOV     A,R1
+   \   0001D8   9401         SUBB    A,#0x1
+   \   0001DA   40D6         JC      ??slip_poll_handler_11
+    232          	for(i = 0; i < pkt_end; i++) {
+   \   0001DC   7800         MOV     R0,#0x0
+   \   0001DE   7900         MOV     R1,#0x0
+   \   0001E0   8021         SJMP    ??slip_poll_handler_12
+    233          	  *outbuf++ = rxbuf[i];
+   \                     ??slip_poll_handler_13:
+   \   0001E2   74..         MOV     A,#rxbuf & 0xff
+   \   0001E4   28           ADD     A,R0
+   \   0001E5   F582         MOV     DPL,A
+   \   0001E7   74..         MOV     A,#(rxbuf >> 8) & 0xff
+   \   0001E9   39           ADDC    A,R1
+   \   0001EA   F583         MOV     DPH,A
+   \   0001EC   E0           MOVX    A,@DPTR
+   \   0001ED   8E82         MOV     DPL,R6
+   \   0001EF   8F83         MOV     DPH,R7
+   \   0001F1   F0           MOVX    @DPTR,A
+   \   0001F2   8E82         MOV     DPL,R6
+   \   0001F4   8F83         MOV     DPH,R7
+   \   0001F6   A3           INC     DPTR
+   \   0001F7   AE82         MOV     R6,DPL
+   \   0001F9   AF83         MOV     R7,DPH
+    234          	}
+   \   0001FB   E8           MOV     A,R0
+   \   0001FC   2401         ADD     A,#0x1
+   \   0001FE   F8           MOV     R0,A
+   \   0001FF   E9           MOV     A,R1
+   \   000200   3400         ADDC    A,#0x0
+   \   000202   F9           MOV     R1,A
+   \                     ??slip_poll_handler_12:
+   \   000203   90....       MOV     DPTR,#pkt_end
+   \   000206   E0           MOVX    A,@DPTR
+   \   000207   FA           MOV     R2,A
+   \   000208   A3           INC     DPTR
+   \   000209   E0           MOVX    A,@DPTR
+   \   00020A   FB           MOV     R3,A
+   \   00020B   C3           CLR     C
+   \   00020C   E8           MOV     A,R0
+   \   00020D   9A           SUBB    A,R2
+   \   00020E   E9           MOV     A,R1
+   \   00020F   9B           SUBB    A,R3
+   \   000210   40D0         JC      ??slip_poll_handler_13
+    235                }
+    236              }
+    237          
+    238              /* Remove data from buffer together with the copied packet. */
+    239              begin = pkt_end;
+   \                     ??slip_poll_handler_8:
+   \   000212   90....       MOV     DPTR,#pkt_end
+   \   000215   E0           MOVX    A,@DPTR
+   \   000216   F8           MOV     R0,A
+   \   000217   A3           INC     DPTR
+   \   000218   E0           MOVX    A,@DPTR
+   \   000219   F9           MOV     R1,A
+   \   00021A   90....       MOV     DPTR,#begin
+   \   00021D   E8           MOV     A,R0
+   \   00021E   F0           MOVX    @DPTR,A
+   \   00021F   A3           INC     DPTR
+   \   000220   E9           MOV     A,R1
+   \   000221   F0           MOVX    @DPTR,A
+    240              if(state == STATE_TWOPACKETS) {
+   \   000222   90....       MOV     DPTR,#state
+   \   000225   E0           MOVX    A,@DPTR
+   \   000226   701D         JNZ     ??slip_poll_handler_14
+    241                pkt_end = end;
+   \   000228   90....       MOV     DPTR,#end
+   \   00022B   E0           MOVX    A,@DPTR
+   \   00022C   F8           MOV     R0,A
+   \   00022D   A3           INC     DPTR
+   \   00022E   E0           MOVX    A,@DPTR
+   \   00022F   F9           MOV     R1,A
+   \   000230   90....       MOV     DPTR,#pkt_end
+   \   000233   E8           MOV     A,R0
+   \   000234   F0           MOVX    @DPTR,A
+   \   000235   A3           INC     DPTR
+   \   000236   E9           MOV     A,R1
+   \   000237   F0           MOVX    @DPTR,A
+    242                state = STATE_OK;		/* Assume no bytes where lost! */
+   \   000238   90....       MOV     DPTR,#state
+   \   00023B   7401         MOV     A,#0x1
+   \   00023D   F0           MOVX    @DPTR,A
+    243                
+    244                /* One more packet is buffered, need to be polled again! */
+    245                process_poll(&slip_process);
+   \   00023E                ; Setup parameters for call to function process_poll
+   \   00023E   7A..         MOV     R2,#slip_process & 0xff
+   \   000240   7B..         MOV     R3,#(slip_process >> 8) & 0xff
+   \   000242   12....       LCALL   ??process_poll?relay
+    246              }
+    247              return len;
+   \                     ??slip_poll_handler_14:
+   \   000245   AA..         MOV     R2,?V0 + 2
+   \   000247   AB..         MOV     R3,?V0 + 3
+   \   000249   8004         SJMP    ??slip_poll_handler_3
+    248            }
+    249          
+    250            return 0;
+   \                     ??slip_poll_handler_5:
+   \   00024B   7A00         MOV     R2,#0x0
+   \   00024D   7B00         MOV     R3,#0x0
+   \                     ??slip_poll_handler_3:
+   \   00024F   7F04         MOV     R7,#0x4
+   \   000251   02....       LJMP    ?BANKED_LEAVE_XDATA
+    251          }
+    252          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    253          PROCESS_THREAD(slip_process, ev, data)
+   \                     process_thread_slip_process:
+    254          {
+   \   000000   74F4         MOV     A,#-0xc
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 12
+   \   000005                ; Auto size: 0
+   \   000005   EA           MOV     A,R2
+   \   000006   FE           MOV     R6,A
+   \   000007   EB           MOV     A,R3
+   \   000008   FF           MOV     R7,A
+   \   000009   89..         MOV     ?V0 + 0,R1
+    255            PROCESS_BEGIN();
+   \   00000B   7A01         MOV     R2,#0x1
+   \   00000D   8E82         MOV     DPL,R6
+   \   00000F   8F83         MOV     DPH,R7
+   \   000011   E0           MOVX    A,@DPTR
+   \   000012   F5..         MOV     ?V0 + 2,A
+   \   000014   A3           INC     DPTR
+   \   000015   E0           MOVX    A,@DPTR
+   \   000016   F5..         MOV     ?V0 + 3,A
+   \   000018   78..         MOV     R0,#?V0 + 2
+   \   00001A   12....       LCALL   ?US_SWITCH_SPARSE
+   \                     `?<Jumptable for process_thread_slip_process>_0`:
+   \   00001D   0000         DW        0
+   \   00001F   0200         DW        2
+   \   000021   0000         DW        0
+   \   000023   ....         DW        ??process_thread_slip_process_0
+   \   000025   0401         DW        260
+   \   000027   ....         DW        ??process_thread_slip_process_1
+   \   000029   ....         DW        ??process_thread_slip_process_2
+    256          
+    257            rxbuf_init();
+   \                     ??process_thread_slip_process_0:
+   \   00002B                ; Setup parameters for call to function rxbuf_init
+   \   00002B   12....       LCALL   ??rxbuf_init?relay
+    258          
+    259            while(1) {
+    260              PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+   \                     ??process_thread_slip_process_3:
+   \   00002E   7A00         MOV     R2,#0x0
+   \   000030   8E82         MOV     DPL,R6
+   \   000032   8F83         MOV     DPH,R7
+   \   000034   7404         MOV     A,#0x4
+   \   000036   F0           MOVX    @DPTR,A
+   \   000037   A3           INC     DPTR
+   \   000038   7401         MOV     A,#0x1
+   \   00003A   F0           MOVX    @DPTR,A
+   \                     ??process_thread_slip_process_1:
+   \   00003B   EA           MOV     A,R2
+   \   00003C   6006         JZ      ??process_thread_slip_process_4
+   \   00003E   7482         MOV     A,#-0x7e
+   \   000040   65..         XRL     A,?V0 + 0
+   \   000042   6004         JZ      ??process_thread_slip_process_5
+   \                     ??process_thread_slip_process_4:
+   \   000044   7901         MOV     R1,#0x1
+   \   000046   8053         SJMP    ??process_thread_slip_process_6
+    261              
+    262              slip_active = 1;
+   \                     ??process_thread_slip_process_5:
+   \   000048   90....       MOV     DPTR,#slip_active
+   \   00004B   7401         MOV     A,#0x1
+   \   00004D   F0           MOVX    @DPTR,A
+    263          
+    264              /* Move packet from rxbuf to buffer provided by uIP. */
+    265              uip_len = slip_poll_handler(&uip_buf[UIP_LLH_LEN],
+    266          				UIP_BUFSIZE - UIP_LLH_LEN);
+   \   00004E                ; Setup parameters for call to function slip_poll_handler
+   \   00004E   7CF0         MOV     R4,#-0x10
+   \   000050   7D00         MOV     R5,#0x0
+   \   000052   7A..         MOV     R2,#uip_aligned_buf & 0xff
+   \   000054   7B..         MOV     R3,#(uip_aligned_buf >> 8) & 0xff
+   \   000056   12....       LCALL   ??slip_poll_handler?relay
+   \   000059   90....       MOV     DPTR,#uip_len
+   \   00005C   EA           MOV     A,R2
+   \   00005D   F0           MOVX    @DPTR,A
+   \   00005E   A3           INC     DPTR
+   \   00005F   EB           MOV     A,R3
+   \   000060   F0           MOVX    @DPTR,A
+    267          #if !UIP_CONF_IPV6
+    268              if(uip_len == 4 && strncmp((char*)&uip_buf[UIP_LLH_LEN], "?IPA", 4) == 0) {
+    269                char buf[8];
+    270                memcpy(&buf[0], "=IPA", 4);
+    271                memcpy(&buf[4], &uip_hostaddr, 4);
+    272                if(input_callback) {
+    273          	input_callback();
+    274                }
+    275                slip_write(buf, 8);
+    276              } else if(uip_len > 0
+    277                 && uip_len == (((uint16_t)(BUF->len[0]) << 8) + BUF->len[1])
+    278                 && uip_ipchksum() == 0xffff) {
+    279          #define IP_DF   0x40
+    280                if(BUF->ipid[0] == 0 && BUF->ipid[1] == 0 && BUF->ipoffset[0] & IP_DF) {
+    281          	static uint16_t ip_id;
+    282          	uint16_t nid = ip_id++;
+    283          	BUF->ipid[0] = nid >> 8;
+    284          	BUF->ipid[1] = nid;
+    285          	nid = uip_htons(nid);
+    286          	nid = ~nid;		/* negate */
+    287          	BUF->ipchksum += nid;	/* add */
+    288          	if(BUF->ipchksum < nid) { /* 1-complement overflow? */
+    289          	  BUF->ipchksum++;
+    290          	}
+    291                }
+    292          #ifdef SLIP_CONF_TCPIP_INPUT
+    293                SLIP_CONF_TCPIP_INPUT();
+    294          #else
+    295                tcpip_input();
+    296          #endif
+    297              } else {
+    298                uip_len = 0;
+    299                SLIP_STATISTICS(slip_ip_drop++);
+    300              }
+    301          #else /* UIP_CONF_IPV6 */
+    302              if(uip_len > 0) {
+   \   000061   90....       MOV     DPTR,#uip_len
+   \   000064   E0           MOVX    A,@DPTR
+   \   000065   F8           MOV     R0,A
+   \   000066   A3           INC     DPTR
+   \   000067   E0           MOVX    A,@DPTR
+   \   000068   F9           MOV     R1,A
+   \   000069   E8           MOV     A,R0
+   \   00006A   49           ORL     A,R1
+   \   00006B   60C1         JZ      ??process_thread_slip_process_3
+    303                if(input_callback) {
+   \   00006D   90....       MOV     DPTR,#input_callback
+   \   000070   E0           MOVX    A,@DPTR
+   \   000071   F8           MOV     R0,A
+   \   000072   A3           INC     DPTR
+   \   000073   E0           MOVX    A,@DPTR
+   \   000074   F9           MOV     R1,A
+   \   000075   E8           MOV     A,R0
+   \   000076   49           ORL     A,R1
+   \   000077   600E         JZ      ??process_thread_slip_process_7
+    304                  input_callback();
+   \   000079                ; Setup parameters for indirect call
+   \   000079   90....       MOV     DPTR,#input_callback
+   \   00007C   E0           MOVX    A,@DPTR
+   \   00007D   F8           MOV     R0,A
+   \   00007E   A3           INC     DPTR
+   \   00007F   E0           MOVX    A,@DPTR
+   \   000080   F583         MOV     DPH,A
+   \   000082   8882         MOV     DPL,R0
+   \   000084   12....       LCALL   ?CALL_IND
+    305                }
+    306          #ifdef SLIP_CONF_TCPIP_INPUT
+    307                SLIP_CONF_TCPIP_INPUT();
+    308          #else
+    309                tcpip_input();
+   \                     ??process_thread_slip_process_7:
+   \   000087                ; Setup parameters for call to function tcpip_input
+   \   000087   12....       LCALL   ??tcpip_input?relay
+   \   00008A   80A2         SJMP    ??process_thread_slip_process_3
+    310          #endif
+    311              }
+    312          #endif /* UIP_CONF_IPV6 */
+    313            }
+    314          
+    315            PROCESS_END();
+   \                     ??process_thread_slip_process_2:
+   \   00008C   7A00         MOV     R2,#0x0
+   \   00008E   8E82         MOV     DPL,R6
+   \   000090   8F83         MOV     DPH,R7
+   \   000092   7400         MOV     A,#0x0
+   \   000094   F0           MOVX    @DPTR,A
+   \   000095   A3           INC     DPTR
+   \   000096   7400         MOV     A,#0x0
+   \   000098   F0           MOVX    @DPTR,A
+   \   000099   7903         MOV     R1,#0x3
+   \                     ??process_thread_slip_process_6:
+   \   00009B   7F04         MOV     R7,#0x4
+   \   00009D   02....       LJMP    ?BANKED_LEAVE_XDATA
+    316          }
+    317          /*---------------------------------------------------------------------------*/
+
+   \                                 In  segment BANKED_CODE, align 1, keep-with-next
+    318          int
+    319          slip_input_byte(unsigned char c)
+   \                     slip_input_byte:
+    320          {
+   \   000000   74F7         MOV     A,#-0x9
+   \   000002   12....       LCALL   ?BANKED_ENTER_XDATA
+   \   000005                ; Saved register size: 9
+   \   000005                ; Auto size: 0
+   \   000005   E9           MOV     A,R1
+   \   000006   FE           MOV     R6,A
+    321            switch(state) {
+   \   000007   90....       MOV     DPTR,#state
+   \   00000A   E0           MOVX    A,@DPTR
+   \   00000B   601E         JZ      ??slip_input_byte_0
+   \   00000D   14           DEC     A
+   \   00000E   6058         JZ      ??slip_input_byte_1
+   \   000010   14           DEC     A
+   \   000011   601F         JZ      ??slip_input_byte_2
+   \   000013   14           DEC     A
+   \   000014   6003         JZ      $+5
+   \   000016   02....       LJMP    ??slip_input_byte_3 & 0xFFFF
+    322            case STATE_RUBBISH:
+    323              if(c == SLIP_END) {
+   \   000019   74C0         MOV     A,#-0x40
+   \   00001B   6E           XRL     A,R6
+   \   00001C   7006         JNZ     ??slip_input_byte_4
+    324                state = STATE_OK;
+   \   00001E   90....       MOV     DPTR,#state
+   \   000021   7401         MOV     A,#0x1
+   \   000023   F0           MOVX    @DPTR,A
+    325              }
+    326              return 0;
+   \                     ??slip_input_byte_4:
+   \   000024   7A00         MOV     R2,#0x0
+   \   000026   7B00         MOV     R3,#0x0
+   \   000028   02....       LJMP    ??slip_input_byte_5 & 0xFFFF
+    327              
+    328            case STATE_TWOPACKETS:       /* Two packets are already buffered! */
+    329              return 0;
+   \                     ??slip_input_byte_0:
+   \   00002B   7A00         MOV     R2,#0x0
+   \   00002D   7B00         MOV     R3,#0x0
+   \   00002F   02....       LJMP    ??slip_input_byte_5 & 0xFFFF
+    330          
+    331            case STATE_ESC:
+    332              if(c == SLIP_ESC_END) {
+   \                     ??slip_input_byte_2:
+   \   000032   74DC         MOV     A,#-0x24
+   \   000034   6E           XRL     A,R6
+   \   000035   700B         JNZ     ??slip_input_byte_6
+    333                c = SLIP_END;
+   \   000037   7EC0         MOV     R6,#-0x40
+    334              } else if(c == SLIP_ESC_ESC) {
+    335                c = SLIP_ESC;
+    336              } else {
+    337                state = STATE_RUBBISH;
+    338                SLIP_STATISTICS(slip_rubbish++);
+    339                end = pkt_end;		/* remove rubbish */
+    340                return 0;
+    341              }
+    342              state = STATE_OK;
+   \                     ??slip_input_byte_7:
+   \   000039   90....       MOV     DPTR,#state
+   \   00003C   7401         MOV     A,#0x1
+   \   00003E   F0           MOVX    @DPTR,A
+    343              break;
+   \   00003F   02....       LJMP    ??slip_input_byte_3 & 0xFFFF
+   \                     ??slip_input_byte_6:
+   \   000042   74DD         MOV     A,#-0x23
+   \   000044   6E           XRL     A,R6
+   \   000045   7004         JNZ     ??slip_input_byte_8
+   \   000047   7EDB         MOV     R6,#-0x25
+   \   000049   80EE         SJMP    ??slip_input_byte_7
+   \                     ??slip_input_byte_8:
+   \   00004B   90....       MOV     DPTR,#state
+   \   00004E   7403         MOV     A,#0x3
+   \   000050   F0           MOVX    @DPTR,A
+   \   000051   90....       MOV     DPTR,#pkt_end
+   \   000054   E0           MOVX    A,@DPTR
+   \   000055   F8           MOV     R0,A
+   \   000056   A3           INC     DPTR
+   \   000057   E0           MOVX    A,@DPTR
+   \   000058   F9           MOV     R1,A
+   \   000059   90....       MOV     DPTR,#end
+   \   00005C   E8           MOV     A,R0
+   \   00005D   F0           MOVX    @DPTR,A
+   \   00005E   A3           INC     DPTR
+   \   00005F   E9           MOV     A,R1
+   \   000060   F0           MOVX    @DPTR,A
+   \   000061   7A00         MOV     R2,#0x0
+   \   000063   7B00         MOV     R3,#0x0
+   \   000065   02....       LJMP    ??slip_input_byte_5 & 0xFFFF
+    344          
+    345            case STATE_OK:
+    346              if(c == SLIP_ESC) {
+   \                     ??slip_input_byte_1:
+   \   000068   74DB         MOV     A,#-0x25
+   \   00006A   6E           XRL     A,R6
+   \   00006B   700D         JNZ     ??slip_input_byte_9
+    347                state = STATE_ESC;
+   \   00006D   90....       MOV     DPTR,#state
+   \   000070   7402         MOV     A,#0x2
+   \   000072   F0           MOVX    @DPTR,A
+    348                return 0;
+   \   000073   7A00         MOV     R2,#0x0
+   \   000075   7B00         MOV     R3,#0x0
+   \   000077   02....       LJMP    ??slip_input_byte_5 & 0xFFFF
+    349              } else if(c == SLIP_END) {
+   \                     ??slip_input_byte_9:
+   \   00007A   74C0         MOV     A,#-0x40
+   \   00007C   6E           XRL     A,R6
+   \   00007D   7055         JNZ     ??slip_input_byte_3
+    350          	/*
+    351          	 * We have a new packet, possibly of zero length.
+    352          	 *
+    353          	 * There may already be one packet buffered.
+    354          	 */
+    355                if(end != pkt_end) {	/* Non zero length. */
+   \   00007F   90....       MOV     DPTR,#end
+   \   000082   E0           MOVX    A,@DPTR
+   \   000083   F8           MOV     R0,A
+   \   000084   A3           INC     DPTR
+   \   000085   E0           MOVX    A,@DPTR
+   \   000086   F9           MOV     R1,A
+   \   000087   90....       MOV     DPTR,#pkt_end
+   \   00008A   E0           MOVX    A,@DPTR
+   \   00008B   68           XRL     A,R0
+   \   00008C   7003         JNZ     ??slip_input_byte_10
+   \   00008E   A3           INC     DPTR
+   \   00008F   E0           MOVX    A,@DPTR
+   \   000090   69           XRL     A,R1
+   \                     ??slip_input_byte_10:
+   \   000091   603A         JZ      ??slip_input_byte_11
+    356          	if(begin == pkt_end) {	/* None buffered. */
+   \   000093   90....       MOV     DPTR,#begin
+   \   000096   E0           MOVX    A,@DPTR
+   \   000097   F8           MOV     R0,A
+   \   000098   A3           INC     DPTR
+   \   000099   E0           MOVX    A,@DPTR
+   \   00009A   F9           MOV     R1,A
+   \   00009B   90....       MOV     DPTR,#pkt_end
+   \   00009E   E0           MOVX    A,@DPTR
+   \   00009F   68           XRL     A,R0
+   \   0000A0   7003         JNZ     ??slip_input_byte_12
+   \   0000A2   A3           INC     DPTR
+   \   0000A3   E0           MOVX    A,@DPTR
+   \   0000A4   69           XRL     A,R1
+   \                     ??slip_input_byte_12:
+   \   0000A5   7012         JNZ     ??slip_input_byte_13
+    357          	  pkt_end = end;
+   \   0000A7   90....       MOV     DPTR,#end
+   \   0000AA   E0           MOVX    A,@DPTR
+   \   0000AB   F8           MOV     R0,A
+   \   0000AC   A3           INC     DPTR
+   \   0000AD   E0           MOVX    A,@DPTR
+   \   0000AE   F9           MOV     R1,A
+   \   0000AF   90....       MOV     DPTR,#pkt_end
+   \   0000B2   E8           MOV     A,R0
+   \   0000B3   F0           MOVX    @DPTR,A
+   \   0000B4   A3           INC     DPTR
+   \   0000B5   E9           MOV     A,R1
+   \   0000B6   F0           MOVX    @DPTR,A
+   \   0000B7   8006         SJMP    ??slip_input_byte_14
+    358          	} else {
+    359          	  state = STATE_TWOPACKETS;
+   \                     ??slip_input_byte_13:
+   \   0000B9   90....       MOV     DPTR,#state
+   \   0000BC   7400         MOV     A,#0x0
+   \   0000BE   F0           MOVX    @DPTR,A
+    360          	  SLIP_STATISTICS(slip_twopackets++);
+    361          	}
+    362          	process_poll(&slip_process);
+   \                     ??slip_input_byte_14:
+   \   0000BF                ; Setup parameters for call to function process_poll
+   \   0000BF   7A..         MOV     R2,#slip_process & 0xff
+   \   0000C1   7B..         MOV     R3,#(slip_process >> 8) & 0xff
+   \   0000C3   12....       LCALL   ??process_poll?relay
+    363          	return 1;
+   \   0000C6   7A01         MOV     R2,#0x1
+   \   0000C8   7B00         MOV     R3,#0x0
+   \   0000CA   02....       LJMP    ??slip_input_byte_5 & 0xFFFF
+    364                }
+    365                return 0;
+   \                     ??slip_input_byte_11:
+   \   0000CD   7A00         MOV     R2,#0x0
+   \   0000CF   7B00         MOV     R3,#0x0
+   \   0000D1   02....       LJMP    ??slip_input_byte_5 & 0xFFFF
+    366              }
+    367              break;
+    368            }
+    369          
+    370            /* add_char: */
+    371            {
+    372              unsigned next;
+    373              next = end + 1;
+   \                     ??slip_input_byte_3:
+   \   0000D4   90....       MOV     DPTR,#end
+   \   0000D7   E0           MOVX    A,@DPTR
+   \   0000D8   2401         ADD     A,#0x1
+   \   0000DA   F8           MOV     R0,A
+   \   0000DB   A3           INC     DPTR
+   \   0000DC   E0           MOVX    A,@DPTR
+   \   0000DD   3400         ADDC    A,#0x0
+   \   0000DF   F9           MOV     R1,A
+    374              if(next == RX_BUFSIZE) {
+   \   0000E0   7400         MOV     A,#0x0
+   \   0000E2   68           XRL     A,R0
+   \   0000E3   7003         JNZ     ??slip_input_byte_15
+   \   0000E5   7401         MOV     A,#0x1
+   \   0000E7   69           XRL     A,R1
+   \                     ??slip_input_byte_15:
+   \   0000E8   7004         JNZ     ??slip_input_byte_16
+    375                next = 0;
+   \   0000EA   7800         MOV     R0,#0x0
+   \   0000EC   7900         MOV     R1,#0x0
+    376              }
+    377              if(next == begin) {		/* rxbuf is full */
+   \                     ??slip_input_byte_16:
+   \   0000EE   90....       MOV     DPTR,#begin
+   \   0000F1   E0           MOVX    A,@DPTR
+   \   0000F2   68           XRL     A,R0
+   \   0000F3   7003         JNZ     ??slip_input_byte_17
+   \   0000F5   A3           INC     DPTR
+   \   0000F6   E0           MOVX    A,@DPTR
+   \   0000F7   69           XRL     A,R1
+   \                     ??slip_input_byte_17:
+   \   0000F8   701C         JNZ     ??slip_input_byte_18
+    378                state = STATE_RUBBISH;
+   \   0000FA   90....       MOV     DPTR,#state
+   \   0000FD   7403         MOV     A,#0x3
+   \   0000FF   F0           MOVX    @DPTR,A
+    379                SLIP_STATISTICS(slip_overflow++);
+    380                end = pkt_end;		/* remove rubbish */
+   \   000100   90....       MOV     DPTR,#pkt_end
+   \   000103   E0           MOVX    A,@DPTR
+   \   000104   F8           MOV     R0,A
+   \   000105   A3           INC     DPTR
+   \   000106   E0           MOVX    A,@DPTR
+   \   000107   F9           MOV     R1,A
+   \   000108   90....       MOV     DPTR,#end
+   \   00010B   E8           MOV     A,R0
+   \   00010C   F0           MOVX    @DPTR,A
+   \   00010D   A3           INC     DPTR
+   \   00010E   E9           MOV     A,R1
+   \   00010F   F0           MOVX    @DPTR,A
+    381                return 0;
+   \   000110   7A00         MOV     R2,#0x0
+   \   000112   7B00         MOV     R3,#0x0
+   \   000114   8049         SJMP    ??slip_input_byte_5
+    382              }
+    383              rxbuf[end] = c;
+   \                     ??slip_input_byte_18:
+   \   000116   EE           MOV     A,R6
+   \   000117   C0E0         PUSH    A
+   \   000119   90....       MOV     DPTR,#end
+   \   00011C   E0           MOVX    A,@DPTR
+   \   00011D   24..         ADD     A,#rxbuf & 0xff
+   \   00011F   FA           MOV     R2,A
+   \   000120   A3           INC     DPTR
+   \   000121   E0           MOVX    A,@DPTR
+   \   000122   34..         ADDC    A,#(rxbuf >> 8) & 0xff
+   \   000124   FB           MOV     R3,A
+   \   000125   8A82         MOV     DPL,R2
+   \   000127   8B83         MOV     DPH,R3
+   \   000129   D0E0         POP     A
+   \   00012B   F0           MOVX    @DPTR,A
+    384              end = next;
+   \   00012C   90....       MOV     DPTR,#end
+   \   00012F   E8           MOV     A,R0
+   \   000130   F0           MOVX    @DPTR,A
+   \   000131   A3           INC     DPTR
+   \   000132   E9           MOV     A,R1
+   \   000133   F0           MOVX    @DPTR,A
+    385            }
+    386          
+    387            /* There could be a separate poll routine for this. */
+    388            if(c == 'T' && rxbuf[begin] == 'C') {
+   \   000134   7454         MOV     A,#0x54
+   \   000136   6E           XRL     A,R6
+   \   000137   7022         JNZ     ??slip_input_byte_19
+   \   000139   90....       MOV     DPTR,#begin
+   \   00013C   E0           MOVX    A,@DPTR
+   \   00013D   24..         ADD     A,#rxbuf & 0xff
+   \   00013F   F8           MOV     R0,A
+   \   000140   A3           INC     DPTR
+   \   000141   E0           MOVX    A,@DPTR
+   \   000142   34..         ADDC    A,#(rxbuf >> 8) & 0xff
+   \   000144   F9           MOV     R1,A
+   \   000145   8882         MOV     DPL,R0
+   \   000147   8983         MOV     DPH,R1
+   \   000149   E0           MOVX    A,@DPTR
+   \   00014A   6443         XRL     A,#0x43
+   \   00014C   700D         JNZ     ??slip_input_byte_19
+    389              process_poll(&slip_process);
+   \   00014E                ; Setup parameters for call to function process_poll
+   \   00014E   7A..         MOV     R2,#slip_process & 0xff
+   \   000150   7B..         MOV     R3,#(slip_process >> 8) & 0xff
+   \   000152   12....       LCALL   ??process_poll?relay
+    390              return 1;
+   \   000155   7A01         MOV     R2,#0x1
+   \   000157   7B00         MOV     R3,#0x0
+   \   000159   8004         SJMP    ??slip_input_byte_5
+    391            }
+    392          
+    393            return 0;
+   \                     ??slip_input_byte_19:
+   \   00015B   7A00         MOV     R2,#0x0
+   \   00015D   7B00         MOV     R3,#0x0
+   \                     ??slip_input_byte_5:
+   \   00015F   7F01         MOV     R7,#0x1
+   \   000161   02....       LJMP    ?BANKED_LEAVE_XDATA
+    394          }
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "CLIENT">>`:
+   \   000000   434C4945     DB "CLIENT"
+   \            4E5400  
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for <Constant "CLIENTSERVER\\300"`:
+   \   000000   434C4945     DB "CLIENTSERVER\300"
+   \            4E545345
+   \            52564552
+   \            C000    
+
+   \                                 In  segment XDATA_ID, align 1, keep-with-next
+   \                     `?<Initializer for slip_process>`:
+   \   000000   0000         DW 0H
+   \   000002   ....         DW ??process_thread_slip_process?relay
+   \   000004   00000000     DB 0, 0, 0, 0
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??slip_set_input_callback?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    slip_set_input_callback
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??slip_send?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    slip_send
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??slip_write?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    slip_write
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??rxbuf_init?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    rxbuf_init
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??slip_poll_handler?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    slip_poll_handler
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??process_thread_slip_process?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    process_thread_slip_process
+
+   \                                 In  segment BANK_RELAYS, align 1
+   \                     ??slip_input_byte?relay:
+   \   000000   12....       LCALL   ?BDISPATCH
+   \   000003   ......       DC24    slip_input_byte
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "CLIENT">`:
+   \   000000                DS 7
+   \   000007                REQUIRE `?<Initializer for <Constant "CLIENT">>`
+   \   000007                REQUIRE __INIT_XDATA_I
+
+   \                                 In  segment XDATA_I, align 1, keep-with-next
+   \                     `?<Constant "CLIENTSERVER\\300">`:
+   \   000000                DS 14
+   \   00000E                REQUIRE `?<Initializer for <Constant "CLIENTSERVER\\300"`
+   \   00000E                REQUIRE __INIT_XDATA_I
+    395          /*---------------------------------------------------------------------------*/
+
+   Maximum stack usage in bytes:
+
+   ISTACK PSTACK XSTACK Function
+   ------ ------ ------ --------
+       0      0     12  process_thread_slip_process
+                          0 0 12 -> rxbuf_init
+                          0 0 12 -> slip_poll_handler
+                          0 0 12 -> tcpip_input
+       2      0     12  rxbuf_init
+       1      0      9  slip_input_byte
+                          0 0  9 -> process_poll
+       2      0     26  slip_poll_handler
+                          0 0 14 -> memcmp
+                          0 0 14 -> memcpy
+                          0 0 14 -> memset
+                          0 0 12 -> process_poll
+                          0 0 12 -> rxbuf_init
+                          0 0 12 -> slip_arch_writeb
+       0      0     10  slip_send
+                          0 0 10 -> slip_arch_writeb
+       2      0      0  slip_set_input_callback
+       0      0     12  slip_write
+                          0 0 12 -> slip_arch_writeb
+
+
+   Segment part sizes:
+
+   Bytes  Function/Label
+   -----  --------------
+       7  ?<Constant "CLIENT">
+      14  ?<Constant "CLIENTSERVER\300">
+       7  ?<Initializer for <Constant "CLIENT">>
+      14  ?<Initializer for <Constant "CLIENTSERVER\300"
+       8  ?<Initializer for slip_process>
+       6  ??process_thread_slip_process?relay
+       6  ??rxbuf_init?relay
+       6  ??slip_input_byte?relay
+       6  ??slip_poll_handler?relay
+       6  ??slip_send?relay
+       6  ??slip_set_input_callback?relay
+       6  ??slip_write?relay
+       2  begin
+       2  end
+       2  input_callback
+       2  pkt_end
+     160  process_thread_slip_process
+     256  rxbuf
+      45  rxbuf_init
+       1  slip_active
+     356  slip_input_byte
+     596  slip_poll_handler
+       8  slip_process
+     127  slip_send
+      19  slip_set_input_callback
+     105  slip_write
+       1  state
+
+ 
+ 1 408 bytes in segment BANKED_CODE
+    42 bytes in segment BANK_RELAYS
+    29 bytes in segment XDATA_I
+    29 bytes in segment XDATA_ID
+   266 bytes in segment XDATA_Z
+ 
+ 1 479 bytes of CODE  memory
+   295 bytes of XDATA memory
+
+Errors: none
+Warnings: none

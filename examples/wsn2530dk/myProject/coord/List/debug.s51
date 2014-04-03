@@ -1,0 +1,605 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:47 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\platform\wsn2530dk\debug.c       /
+//    Command line       =  D:\myWork\myWork\platform\wsn2530dk\debug.c -D    /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\debug.s51                                 /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME debug
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?V0
+        EXTERN __INIT_XDATA_I
+
+        PUBLIC ??putbin?relay
+        FUNCTION ??putbin?relay,0203H
+        PUBLIC ??putdec?relay
+        FUNCTION ??putdec?relay,0203H
+        PUBLIC ??puthex?relay
+        FUNCTION ??puthex?relay,0203H
+        PUBLIC ??putstring?relay
+        FUNCTION ??putstring?relay,0203H
+        PUBLIC putbin
+        FUNCTION putbin,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        PUBLIC putdec
+        FUNCTION putdec,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 1, STACK
+        LOCFRAME XSTACK, 11, STACK
+        PUBLIC puthex
+        FUNCTION puthex,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC putstring
+        FUNCTION putstring,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+putbin              SYMBOL "putbin"
+??putbin?relay      SYMBOL "?relay", putbin
+putdec              SYMBOL "putdec"
+??putdec?relay      SYMBOL "?relay", putdec
+puthex              SYMBOL "puthex"
+??puthex?relay      SYMBOL "?relay", puthex
+putstring           SYMBOL "putstring"
+??putstring?relay   SYMBOL "?relay", putstring
+
+        EXTERN putchar
+        FUNCTION putchar,0202H
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 11, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+// D:\myWork\myWork\platform\wsn2530dk\debug.c
+//    1 /**
+//    2  * \file
+//    3  *
+//    4  *   Definition of some debugging functions.
+//    5  *
+//    6  *   putstring() and puthex() are from msp430/watchdog.c
+//    7  *
+//    8  * \author
+//    9  *         George Oikonomou - <oikonomou@users.sourceforge.net>
+//   10  */
+//   11 
+//   12 #include "8051def.h"
+//   13 #include "debug.h"
+//   14 
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+//   15 static const char hexconv[] = "0123456789abcdef";
+hexconv:
+        DS 17
+        REQUIRE `?<Initializer for hexconv>`
+        REQUIRE __INIT_XDATA_I
+
+        RSEG XDATA_I:XDATA:NOROOT(0)
+        DATA8
+//   16 static const char binconv[] = "01";
+binconv:
+        DS 3
+        REQUIRE `?<Initializer for binconv>`
+        REQUIRE __INIT_XDATA_I
+//   17 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   18 void
+//   19 putstring(char *s)
+putstring:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function putstring
+        CODE
+//   20 {
+        FUNCALL putstring, putchar
+        LOCFRAME ISTACK, 2, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 0, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 2, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 0, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+        MOV     DPL,R2
+        MOV     DPH,R3
+        SJMP    ??putstring_0
+//   21   while(*s) {
+//   22     putchar(*s++);
+??putstring_1:
+        ; Setup parameters for call to function putchar
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        LCALL   putchar & 0xFFFF
+        INC     DPTR
+//   23   }
+??putstring_0:
+        MOVX    A,@DPTR
+        JNZ     ??putstring_1
+//   24 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock0
+//   25 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   26 void
+//   27 puthex(uint8_t c)
+puthex:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function puthex
+        CODE
+//   28 {
+        FUNCALL puthex, putchar
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL puthex, putchar
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R6,A
+//   29   putchar(hexconv[c >> 4]);
+        ; Setup parameters for call to function putchar
+        MOV     A,R6
+        SWAP    A
+        ANL     A,#0xf
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#hexconv & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#(hexconv >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        LCALL   putchar & 0xFFFF
+//   30   putchar(hexconv[c & 0x0f]);
+        ; Setup parameters for call to function putchar
+        MOV     ?V0 + 0,R6
+        MOV     ?V0 + 1,#0x0
+        MOV     A,?V0 + 0
+        ANL     A,#0xf
+        MOV     R0,A
+        MOV     A,?V0 + 1
+        ANL     A,#0x0
+        MOV     R1,A
+        MOV     A,#hexconv & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#(hexconv >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        LCALL   putchar & 0xFFFF
+//   31 }
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock1
+//   32 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   33 void
+//   34 putbin(uint8_t c)
+putbin:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function putbin
+        CODE
+//   35 {
+        FUNCALL putbin, putchar
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 9, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 9, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x9
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 9)
+        ; Saved register size: 9
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R6,A
+//   36   unsigned char i = 0x80;
+        MOV     R7,#-0x80
+        SJMP    ??putbin_0
+//   37   while(i) {
+//   38     putchar(binconv[(c & i) != 0]);
+??putbin_1:
+        CLR     B.0
+??putbin_2:
+        ; Setup parameters for call to function putchar
+        MOV     C,B.0
+        CLR     A
+        RLC     A
+        MOV     R0,A
+        MOV     R1,#0x0
+        MOV     A,#binconv & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#(binconv >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R2,A
+        MOV     R3,#0x0
+        LCALL   putchar & 0xFFFF
+//   39     i >>= 1;
+        MOV     A,R7
+        CLR     C
+        RRC     A
+        MOV     R7,A
+??putbin_0:
+        MOV     A,R7
+        JZ      ??putbin_3
+        MOV     A,R6
+        ANL     A,R7
+        JZ      ??putbin_1
+        SETB    B.0
+        SJMP    ??putbin_2
+//   40   }
+//   41 }
+??putbin_3:
+        MOV     R7,#0x1
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//   42 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   43 void
+//   44 putdec(uint8_t c)
+putdec:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function putdec
+        CODE
+//   45 {
+        FUNCALL putdec, putchar
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 11, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 11, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xb
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 11)
+        ; Saved register size: 11
+        ; Auto size: 0
+        MOV     A,R1
+        MOV     R6,A
+//   46   uint8_t div;
+//   47   uint8_t hassent = 0;
+        MOV     ?V0 + 2,#0x0
+//   48   for(div = 100; div > 0; div /= 10) {
+        MOV     R7,#0x64
+        SJMP    ??putdec_0
+//   49     uint8_t disp = c / div;
+??putdec_1:
+        MOV     A,R7
+        MOV     B,A
+        MOV     A,R6
+        DIV     AB
+        MOV     ?V0 + 0,A
+//   50     c %= div;
+        MOV     A,R6
+        PUSH    A
+          CFI CFA_SP SP+-1
+        MOV     A,R7
+        MOV     B,A
+        POP     A
+          CFI CFA_SP SP+0
+        DIV     AB
+        MOV     A,B
+        MOV     R6,B
+//   51     if((disp != 0) || (hassent) || (div == 1)) {
+        MOV     A,?V0 + 0
+        JNZ     ??putdec_2
+        MOV     A,?V0 + 2
+        JNZ     ??putdec_2
+        MOV     A,#0x1
+        XRL     A,R7
+        JNZ     ??putdec_3
+//   52       hassent = 1;
+??putdec_2:
+        MOV     ?V0 + 2,#0x1
+//   53       putchar('0' + disp);
+        ; Setup parameters for call to function putchar
+        MOV     ?V0 + 1,#0x0
+        MOV     A,?V0 + 0
+        ADD     A,#0x30
+        MOV     R2,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     R3,A
+        LCALL   putchar & 0xFFFF
+//   54     }
+//   55   }
+??putdec_3:
+        MOV     B,#0xa
+        MOV     A,R7
+        DIV     AB
+        MOV     R7,A
+??putdec_0:
+        MOV     A,R7
+        CLR     C
+        SUBB    A,#0x1
+        JNC     ??putdec_1
+//   56 }
+        MOV     R7,#0x3
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock3
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for hexconv>`:
+        DB "0123456789abcdef"
+
+        RSEG XDATA_ID:CODE:NOROOT(0)
+`?<Initializer for binconv>`:
+        DB "01"
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??putstring?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    putstring
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??puthex?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    puthex
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??putbin?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    putbin
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??putdec?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    putdec
+
+        END
+// 
+// 236 bytes in segment BANKED_CODE
+//  24 bytes in segment BANK_RELAYS
+//  20 bytes in segment XDATA_I
+//  20 bytes in segment XDATA_ID
+// 
+// 280 bytes of CODE  memory
+//  20 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none

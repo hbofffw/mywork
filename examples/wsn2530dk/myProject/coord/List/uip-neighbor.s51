@@ -1,0 +1,1169 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                                                            /
+// IAR C/C++ Compiler V8.20.2.41139 for 8051            03/Apr/2014  10:45:54 /
+// Copyright 2004-2013 IAR Systems AB.                                        /
+//                                                                            /
+//    Core               =  plain                                             /
+//    Code model         =  banked                                            /
+//    Data model         =  large                                             /
+//    Calling convention =  xdata reentrant                                   /
+//    Constant location  =  data                                              /
+//    Dptr setup         =  1,16                                              /
+//                                                                            /
+//    Source file        =  D:\myWork\myWork\core\net\uip-neighbor.c          /
+//    Command line       =  D:\myWork\myWork\core\net\uip-neighbor.c -D       /
+//                          AUTOSTART_ENABLE -D PROJECT_CONF_H -lC            /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\ -lA D:\myWork\myWork\examples\wsn2530dk\ /
+//                          myProject\coord\List\ --diag_suppress             /
+//                          Pa050,Pa082,Pe550 --diag_warning Pe144 -o         /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\Obj\ -e --no_cse --no_unroll --no_inline       /
+//                          --no_code_motion --no_tbaa --debug --core=plain   /
+//                          --dptr=16,1 --data_model=large                    /
+//                          --code_model=banked --calling_convention=xdata_re /
+//                          entrant --place_constants=data --nr_virtual_regs  /
+//                          16 --preinclude D:\myWork\myWork\examples\wsn2530 /
+//                          dk\myProject\..\..\..\cpu\cc253x\cc253x.h -I      /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\..\ /
+//                          ..\..\cpu\cc253x\ -I D:\myWork\myWork\examples\ws /
+//                          n2530dk\myProject\..\..\..\platform\wsn2530dk\    /
+//                          -I D:\myWork\myWork\examples\wsn2530dk\myProject\ /
+//                          ..\..\..\core\ -I D:\myWork\myWork\examples\wsn25 /
+//                          30dk\myProject\..\..\..\apps\ -I                  /
+//                          D:\myWork\myWork\examples\wsn2530dk\myProject\    /
+//                          -Ol                                               /
+//    List file          =  D:\myWork\myWork\examples\wsn2530dk\myProject\coo /
+//                          rd\List\uip-neighbor.s51                          /
+//                                                                            /
+//                                                                            /
+///////////////////////////////////////////////////////////////////////////////
+
+        NAME `uip-neighbor`
+
+        RTMODEL "__SystemLibrary", "CLib"
+        RTMODEL "__calling_convention", "xdata_reentrant"
+        RTMODEL "__code_model", "banked"
+        RTMODEL "__core", "plain"
+        RTMODEL "__data_model", "large"
+        RTMODEL "__dptr_size", "16"
+        RTMODEL "__extended_stack", "disabled"
+        RTMODEL "__location_for_constants", "data"
+        RTMODEL "__number_of_dptrs", "1"
+        RTMODEL "__rt_version", "1"
+
+        RSEG DOVERLAY:DATA:NOROOT(0)
+        RSEG IOVERLAY:IDATA:NOROOT(0)
+        RSEG ISTACK:IDATA:NOROOT(0)
+        RSEG PSTACK:XDATA:NOROOT(0)
+        RSEG XSTACK:XDATA:NOROOT(0)
+
+        EXTERN ?BANKED_ENTER_XDATA
+        EXTERN ?BANKED_LEAVE_XDATA
+        EXTERN ?BDISPATCH
+        EXTERN ?BRET
+        EXTERN ?DEALLOC_XSTACK8
+        EXTERN ?PUSH_XSTACK_I_TWO
+        EXTERN ?V0
+        EXTERN __INIT_XDATA_Z
+
+        FUNCTION ??find_entry?relay,0203H
+        PUBLIC ??uip_neighbor_add?relay
+        FUNCTION ??uip_neighbor_add?relay,0203H
+        PUBLIC ??uip_neighbor_init?relay
+        FUNCTION ??uip_neighbor_init?relay,0203H
+        PUBLIC ??uip_neighbor_lookup?relay
+        FUNCTION ??uip_neighbor_lookup?relay,0203H
+        PUBLIC ??uip_neighbor_periodic?relay
+        FUNCTION ??uip_neighbor_periodic?relay,0203H
+        PUBLIC ??uip_neighbor_update?relay
+        FUNCTION ??uip_neighbor_update?relay,0203H
+        FUNCTION find_entry,021203H
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        LOCFRAME XSTACK, 14, STACK
+        PUBLIC uip_neighbor_add
+        FUNCTION uip_neighbor_add,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        PUBLIC uip_neighbor_init
+        FUNCTION uip_neighbor_init,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC uip_neighbor_lookup
+        FUNCTION uip_neighbor_lookup,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        PUBLIC uip_neighbor_periodic
+        FUNCTION uip_neighbor_periodic,0203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME ISTACK, 2, STACK
+        PUBLIC uip_neighbor_update
+        FUNCTION uip_neighbor_update,021203H
+        ARGFRAME XSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        
+          CFI Names cfiNames0
+          CFI StackFrame CFA_SP SP IDATA
+          CFI StackFrame CFA_PSP16 PSP16 XDATA
+          CFI StackFrame CFA_XSP16 XSP16 XDATA
+          CFI StaticOverlayFrame CFA_IOVERLAY IOVERLAY
+          CFI StaticOverlayFrame CFA_DOVERLAY DOVERLAY
+          CFI Resource `PSW.CY`:1, `B.BR0`:1, `B.BR1`:1, `B.BR2`:1, `B.BR3`:1
+          CFI Resource `B.BR4`:1, `B.BR5`:1, `B.BR6`:1, `B.BR7`:1, `VB.BR8`:1
+          CFI Resource `VB.BR9`:1, `VB.BR10`:1, `VB.BR11`:1, `VB.BR12`:1
+          CFI Resource `VB.BR13`:1, `VB.BR14`:1, `VB.BR15`:1, VB:8, B:8, A:8
+          CFI Resource PSW:8, DPL0:8, DPH0:8, R0:8, R1:8, R2:8, R3:8, R4:8, R5:8
+          CFI Resource R6:8, R7:8, V0:8, V1:8, V2:8, V3:8, V4:8, V5:8, V6:8, V7:8
+          CFI Resource V8:8, V9:8, V10:8, V11:8, V12:8, V13:8, V14:8, V15:8, SP:8
+          CFI Resource PSPH:8, PSPL:8, PSP16:16, XSPH:8, XSPL:8, XSP16:16
+          CFI VirtualResource ?RET:24
+          CFI Resource ?BRET_EXT:8
+          CFI VirtualResource ?RET_HIGH:8, ?RET_LOW:8
+          CFI ResourceParts PSP16 PSPH, PSPL
+          CFI ResourceParts XSP16 XSPH, XSPL
+          CFI ResourceParts ?RET ?BRET_EXT, ?RET_HIGH, ?RET_LOW
+          CFI EndNames cfiNames0
+        
+          CFI Common cfiCommon0 Using cfiNames0
+          CFI CodeAlign 1
+          CFI DataAlign -1
+          CFI ReturnAddress ?RET CODE
+          CFI CFA_DOVERLAY Used
+          CFI CFA_IOVERLAY Used
+          CFI CFA_SP SP+-3
+          CFI CFA_PSP16 PSP16+0
+          CFI CFA_XSP16 XSP16+0
+          CFI `PSW.CY` SameValue
+          CFI `B.BR0` SameValue
+          CFI `B.BR1` SameValue
+          CFI `B.BR2` SameValue
+          CFI `B.BR3` SameValue
+          CFI `B.BR4` SameValue
+          CFI `B.BR5` SameValue
+          CFI `B.BR6` SameValue
+          CFI `B.BR7` SameValue
+          CFI `VB.BR8` SameValue
+          CFI `VB.BR9` SameValue
+          CFI `VB.BR10` SameValue
+          CFI `VB.BR11` SameValue
+          CFI `VB.BR12` SameValue
+          CFI `VB.BR13` SameValue
+          CFI `VB.BR14` SameValue
+          CFI `VB.BR15` SameValue
+          CFI VB SameValue
+          CFI B Undefined
+          CFI A Undefined
+          CFI PSW SameValue
+          CFI DPL0 SameValue
+          CFI DPH0 SameValue
+          CFI R0 Undefined
+          CFI R1 Undefined
+          CFI R2 Undefined
+          CFI R3 Undefined
+          CFI R4 Undefined
+          CFI R5 Undefined
+          CFI R6 SameValue
+          CFI R7 SameValue
+          CFI V0 SameValue
+          CFI V1 SameValue
+          CFI V2 SameValue
+          CFI V3 SameValue
+          CFI V4 SameValue
+          CFI V5 SameValue
+          CFI V6 SameValue
+          CFI V7 SameValue
+          CFI V8 SameValue
+          CFI V9 SameValue
+          CFI V10 SameValue
+          CFI V11 SameValue
+          CFI V12 SameValue
+          CFI V13 SameValue
+          CFI V14 SameValue
+          CFI V15 SameValue
+          CFI PSPH Undefined
+          CFI PSPL Undefined
+          CFI XSPH Undefined
+          CFI XSPL Undefined
+          CFI ?RET Concat
+          CFI ?BRET_EXT Frame(CFA_SP, 3)
+          CFI ?RET_HIGH Frame(CFA_SP, 2)
+          CFI ?RET_LOW Frame(CFA_SP, 1)
+          CFI EndCommon cfiCommon0
+        
+memcmp              SYMBOL "memcmp"
+??memcmp?relay      SYMBOL "?relay", memcmp
+memcpy              SYMBOL "memcpy"
+??memcpy?relay      SYMBOL "?relay", memcpy
+uip_neighbor_add    SYMBOL "uip_neighbor_add"
+??uip_neighbor_add?relay SYMBOL "?relay", uip_neighbor_add
+uip_neighbor_init   SYMBOL "uip_neighbor_init"
+??uip_neighbor_init?relay SYMBOL "?relay", uip_neighbor_init
+uip_neighbor_lookup SYMBOL "uip_neighbor_lookup"
+??uip_neighbor_lookup?relay SYMBOL "?relay", uip_neighbor_lookup
+uip_neighbor_periodic SYMBOL "uip_neighbor_periodic"
+??uip_neighbor_periodic?relay SYMBOL "?relay", uip_neighbor_periodic
+uip_neighbor_update SYMBOL "uip_neighbor_update"
+??uip_neighbor_update?relay SYMBOL "?relay", uip_neighbor_update
+
+        EXTERN ??memcmp?relay
+        FUNCTION ??memcmp?relay,00H
+        EXTERN ??memcpy?relay
+        FUNCTION ??memcpy?relay,00H
+        EXTERN memcmp
+        FUNCTION memcmp,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        EXTERN memcpy
+        FUNCTION memcpy,010202H
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+
+// D:\myWork\myWork\core\net\uip-neighbor.c
+//    1 /*
+//    2  * Copyright (c) 2006, Swedish Institute of Computer Science.
+//    3  * All rights reserved.
+//    4  *
+//    5  * Redistribution and use in source and binary forms, with or without
+//    6  * modification, are permitted provided that the following conditions
+//    7  * are met:
+//    8  * 1. Redistributions of source code must retain the above copyright
+//    9  *    notice, this list of conditions and the following disclaimer.
+//   10  * 2. Redistributions in binary form must reproduce the above copyright
+//   11  *    notice, this list of conditions and the following disclaimer in the
+//   12  *    documentation and/or other materials provided with the distribution.
+//   13  * 3. Neither the name of the Institute nor the names of its contributors
+//   14  *    may be used to endorse or promote products derived from this software
+//   15  *    without specific prior written permission.
+//   16  *
+//   17  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+//   18  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+//   19  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+//   20  * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+//   21  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+//   22  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+//   23  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+//   24  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+//   25  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+//   26  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+//   27  * SUCH DAMAGE.
+//   28  *
+//   29  * This file is part of the Contiki operating system.
+//   30  *
+//   31  */
+//   32 
+//   33 /**
+//   34  * \file
+//   35  *         Database of link-local neighbors, used by IPv6 code and
+//   36  *         to be used by a future ARP code rewrite.
+//   37  * \author
+//   38  *         Adam Dunkels <adam@sics.se>
+//   39  */
+//   40 
+//   41 #include "net/uip-neighbor.h"
+//   42 
+//   43 #include <string.h>
+//   44 #include <stdio.h>
+//   45 
+//   46 #define MAX_TIME 128
+//   47 
+//   48 #ifdef UIP_NEIGHBOR_CONF_ENTRIES
+//   49 #define ENTRIES UIP_NEIGHBOR_CONF_ENTRIES
+//   50 #else /* UIP_NEIGHBOR_CONF_ENTRIES */
+//   51 #define ENTRIES 8
+//   52 #endif /* UIP_NEIGHBOR_CONF_ENTRIES */
+//   53 
+//   54 struct neighbor_entry {
+//   55   uip_ipaddr_t ipaddr;
+//   56   struct uip_neighbor_addr addr;
+//   57   uint8_t time;
+//   58 };
+
+        RSEG XDATA_Z:XDATA:NOROOT(0)
+        DATA8
+//   59 static struct neighbor_entry entries[ENTRIES];
+entries:
+        DS 184
+        REQUIRE __INIT_XDATA_Z
+//   60 
+//   61 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   62 void
+//   63 uip_neighbor_init(void)
+uip_neighbor_init:
+          CFI Block cfiBlock0 Using cfiCommon0
+          CFI Function uip_neighbor_init
+        CODE
+//   64 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   65   int i;
+//   66 
+//   67   for(i = 0; i < ENTRIES; ++i) {
+        MOV     R0,#0x0
+        MOV     R1,#0x0
+        SJMP    ??uip_neighbor_init_0
+//   68     entries[i].time = MAX_TIME;
+??uip_neighbor_init_1:
+        MOV     A,R0
+        MOV     R2,A
+        MOV     A,R1
+        MOV     R3,A
+        MOV     A,R2
+        MOV     B,#0x17
+        MUL     AB
+        XCH     A,R2
+        MOV     R4,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R4
+        MOV     R4,A
+        MOV     B,#0x17
+        MOV     A,R3
+        MUL     AB
+        ADD     A,R4
+        MOV     R3,A
+        MOV     A,#(entries + 22) & 0xff
+        ADD     A,R2
+        MOV     DPL,A
+        MOV     A,#((entries + 22) >> 8) & 0xff
+        ADDC    A,R3
+        MOV     DPH,A
+        MOV     A,#-0x80
+        MOVX    @DPTR,A
+//   69   }
+        MOV     A,R0
+        ADD     A,#0x1
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R1,A
+??uip_neighbor_init_0:
+        CLR     C
+        MOV     A,R0
+        SUBB    A,#0x8
+        MOV     A,R1
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JC      ??uip_neighbor_init_1
+//   70 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock0
+//   71 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   72 void
+//   73 uip_neighbor_periodic(void)
+uip_neighbor_periodic:
+          CFI Block cfiBlock1 Using cfiCommon0
+          CFI Function uip_neighbor_periodic
+        CODE
+//   74 {
+        PUSH    DPL
+          CFI DPL0 Frame(CFA_SP, 4)
+          CFI CFA_SP SP+-4
+        PUSH    DPH
+          CFI DPH0 Frame(CFA_SP, 5)
+          CFI CFA_SP SP+-5
+        ; Saved register size: 2
+        ; Auto size: 0
+//   75   int i;
+//   76 
+//   77   for(i = 0; i < ENTRIES; ++i) {
+        MOV     R0,#0x0
+        MOV     R1,#0x0
+        SJMP    ??uip_neighbor_periodic_0
+//   78     if(entries[i].time < MAX_TIME) {
+??uip_neighbor_periodic_1:
+        MOV     A,R0
+        MOV     R2,A
+        MOV     A,R1
+        MOV     R3,A
+        MOV     A,R2
+        MOV     B,#0x17
+        MUL     AB
+        XCH     A,R2
+        MOV     R4,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R4
+        MOV     R4,A
+        MOV     B,#0x17
+        MOV     A,R3
+        MUL     AB
+        ADD     A,R4
+        MOV     R3,A
+        MOV     A,#(entries + 22) & 0xff
+        ADD     A,R2
+        MOV     DPL,A
+        MOV     A,#((entries + 22) >> 8) & 0xff
+        ADDC    A,R3
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        CLR     C
+        SUBB    A,#-0x80
+        JNC     ??uip_neighbor_periodic_2
+//   79       entries[i].time++;
+        MOV     A,R0
+        MOV     R2,A
+        MOV     A,R1
+        MOV     R3,A
+        MOV     A,R2
+        MOV     B,#0x17
+        MUL     AB
+        XCH     A,R2
+        MOV     R4,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R4
+        MOV     R4,A
+        MOV     B,#0x17
+        MOV     A,R3
+        MUL     AB
+        ADD     A,R4
+        MOV     R3,A
+        MOV     A,#(entries + 22) & 0xff
+        ADD     A,R2
+        MOV     DPL,A
+        MOV     A,#((entries + 22) >> 8) & 0xff
+        ADDC    A,R3
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        ADD     A,#0x1
+        MOVX    @DPTR,A
+//   80     }
+//   81   }
+??uip_neighbor_periodic_2:
+        MOV     A,R0
+        ADD     A,#0x1
+        MOV     R0,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R1,A
+??uip_neighbor_periodic_0:
+        CLR     C
+        MOV     A,R0
+        SUBB    A,#0x8
+        MOV     A,R1
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JC      ??uip_neighbor_periodic_1
+//   82 }
+        POP     DPH
+          CFI DPH0 SameValue
+          CFI CFA_SP SP+-4
+        POP     DPL
+          CFI DPL0 SameValue
+          CFI CFA_SP SP+-3
+        LJMP    ?BRET
+          CFI EndBlock cfiBlock1
+//   83 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//   84 void
+//   85 uip_neighbor_add(uip_ipaddr_t *ipaddr, struct uip_neighbor_addr *addr)
+uip_neighbor_add:
+          CFI Block cfiBlock2 Using cfiCommon0
+          CFI Function uip_neighbor_add
+        CODE
+//   86 {
+        FUNCALL uip_neighbor_add, memcmp
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_neighbor_add, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        FUNCALL uip_neighbor_add, memcpy
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 20, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 20, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0x12
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V9 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V8 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V7 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI V5 load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI V4 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-13)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-14)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-15)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-16)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-17)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-18)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 18)
+        ; Saved register size: 18
+        ; Auto size: 0
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     ?V0 + 4,R4
+        MOV     ?V0 + 5,R5
+//   87   int i, oldest;
+//   88   uint8_t oldest_time;
+//   89 
+//   90   /*  printf("Adding neighbor with link address %02x:%02x:%02x:%02x:%02x:%02x\n",
+//   91 	 addr->addr.addr[0], addr->addr.addr[1], addr->addr.addr[2], addr->addr.addr[3],
+//   92 	 addr->addr.addr[4], addr->addr.addr[5]);*/
+//   93   
+//   94   /* Find the first unused entry or the oldest used entry. */
+//   95   oldest_time = 0;
+        MOV     ?V0 + 6,#0x0
+//   96   oldest = 0;
+        MOV     ?V0 + 2,#0x0
+        MOV     ?V0 + 3,#0x0
+//   97   for(i = 0; i < ENTRIES; ++i) {
+        MOV     R6,#0x0
+        MOV     R7,#0x0
+        SJMP    ??uip_neighbor_add_0
+//   98     if(entries[i].time == MAX_TIME) {
+//   99       oldest = i;
+//  100       break;
+//  101     }
+//  102     if(uip_ipaddr_cmp(&entries[i].ipaddr, ipaddr)) {
+//  103       oldest = i;
+//  104       break;
+//  105     }
+//  106     if(entries[i].time > oldest_time) {
+??uip_neighbor_add_1:
+        MOV     A,R6
+        MOV     R0,A
+        MOV     A,R7
+        MOV     R1,A
+        MOV     A,R0
+        MOV     B,#0x17
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x17
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#(entries + 22) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((entries + 22) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     R0,A
+        MOV     A,?V0 + 6
+        CLR     C
+        SUBB    A,R0
+        JNC     ??uip_neighbor_add_2
+//  107       oldest = i;
+        MOV     ?V0 + 2,R6
+        MOV     ?V0 + 3,R7
+//  108       oldest_time = entries[i].time;
+        MOV     A,R6
+        MOV     R0,A
+        MOV     A,R7
+        MOV     R1,A
+        MOV     A,R0
+        MOV     B,#0x17
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x17
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#(entries + 22) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((entries + 22) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        MOV     ?V0 + 6,A
+//  109     }
+??uip_neighbor_add_2:
+        MOV     A,R6
+        ADD     A,#0x1
+        MOV     R6,A
+        MOV     A,R7
+        ADDC    A,#0x0
+        MOV     R7,A
+??uip_neighbor_add_0:
+        CLR     C
+        MOV     A,R6
+        SUBB    A,#0x8
+        MOV     A,R7
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     ??uip_neighbor_add_3
+        MOV     A,R6
+        MOV     R0,A
+        MOV     A,R7
+        MOV     R1,A
+        MOV     A,R0
+        MOV     B,#0x17
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x17
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#(entries + 22) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((entries + 22) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOVX    A,@DPTR
+        XRL     A,#0x80
+        JNZ     ??uip_neighbor_add_4
+        MOV     ?V0 + 2,R6
+        MOV     ?V0 + 3,R7
+        SJMP    ??uip_neighbor_add_3
+??uip_neighbor_add_4:
+        ; Setup parameters for call to function memcmp
+        MOV     ?V0 + 8,#0x10
+        MOV     ?V0 + 9,#0x0
+        MOV     R0,#?V0 + 8
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     A,R6
+        MOV     R0,A
+        MOV     A,R7
+        MOV     R1,A
+        MOV     A,R0
+        MOV     B,#0x17
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x17
+        MOV     A,R1
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#entries & 0xff
+        ADD     A,R0
+        MOV     R2,A
+        MOV     A,#(entries >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R3,A
+        LCALL   ??memcmp?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 18)
+        MOV     ?V0 + 8,R2
+        MOV     ?V0 + 9,R3
+        MOV     A,?V0 + 8
+        ORL     A,?V0 + 9
+        JZ      $+5
+        LJMP    ??uip_neighbor_add_1 & 0xFFFF
+        MOV     ?V0 + 2,R6
+        MOV     ?V0 + 3,R7
+//  110   }
+//  111 
+//  112   /* Use the oldest or first free entry (either pointed to by the
+//  113      "oldest" variable). */
+//  114   entries[oldest].time = 0;
+??uip_neighbor_add_3:
+        MOV     R0,?V0 + 2
+        MOV     R1,?V0 + 3
+        MOV     A,R0
+        MOV     B,#0x17
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x17
+        MOV     A,?V0 + 3
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#(entries + 22) & 0xff
+        ADD     A,R0
+        MOV     DPL,A
+        MOV     A,#((entries + 22) >> 8) & 0xff
+        ADDC    A,R1
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  115   uip_ipaddr_copy(&entries[oldest].ipaddr, ipaddr);
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 6,#0x10
+        MOV     ?V0 + 7,#0x0
+        MOV     R0,#?V0 + 6
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     R4,?V0 + 0
+        MOV     R5,?V0 + 1
+        MOV     R0,?V0 + 2
+        MOV     R1,?V0 + 3
+        MOV     A,R0
+        MOV     B,#0x17
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x17
+        MOV     A,?V0 + 3
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#entries & 0xff
+        ADD     A,R0
+        MOV     R2,A
+        MOV     A,#(entries >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 18)
+//  116   memcpy(&entries[oldest].addr, addr, sizeof(struct uip_neighbor_addr));
+        ; Setup parameters for call to function memcpy
+        MOV     ?V0 + 0,#0x6
+        MOV     ?V0 + 1,#0x0
+        MOV     R0,#?V0 + 0
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 20)
+        MOV     R4,?V0 + 4
+        MOV     R5,?V0 + 5
+        MOV     A,?V0 + 2
+        MOV     B,#0x17
+        MUL     AB
+        XCH     A,?V0 + 2
+        MOV     R0,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R0
+        MOV     R0,A
+        MOV     B,#0x17
+        MOV     A,?V0 + 3
+        MUL     AB
+        ADD     A,R0
+        MOV     ?V0 + 3,A
+        MOV     A,#(entries + 16) & 0xff
+        ADD     A,?V0 + 2
+        MOV     R2,A
+        MOV     A,#((entries + 16) >> 8) & 0xff
+        ADDC    A,?V0 + 3
+        MOV     R3,A
+        LCALL   ??memcpy?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 18)
+//  117 }
+        MOV     R7,#0xa
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock2
+//  118 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  119 static struct neighbor_entry *
+//  120 find_entry(uip_ipaddr_t *ipaddr)
+find_entry:
+          CFI Block cfiBlock3 Using cfiCommon0
+          CFI Function find_entry
+        CODE
+//  121 {
+        FUNCALL find_entry, memcmp
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 14, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 14, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xc
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V3 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V2 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-11)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-12)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 12)
+        ; Saved register size: 12
+        ; Auto size: 0
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+//  122   int i;
+//  123   
+//  124   for(i = 0; i < ENTRIES; ++i) {
+        MOV     ?V0 + 0,#0x0
+        MOV     ?V0 + 1,#0x0
+        SJMP    ??find_entry_0
+??find_entry_1:
+        MOV     A,?V0 + 0
+        ADD     A,#0x1
+        MOV     ?V0 + 0,A
+        MOV     A,?V0 + 1
+        ADDC    A,#0x0
+        MOV     ?V0 + 1,A
+??find_entry_0:
+        CLR     C
+        MOV     A,?V0 + 0
+        SUBB    A,#0x8
+        MOV     A,?V0 + 1
+        SUBB    A,#0x0
+        MOV     C,0xD0 /* PSW */.2
+        XRL     A,PSW
+        RLC     A
+        JNC     ??find_entry_2
+//  125     if(uip_ipaddr_cmp(&entries[i].ipaddr, ipaddr)) {
+        ; Setup parameters for call to function memcmp
+        MOV     ?V0 + 2,#0x10
+        MOV     ?V0 + 3,#0x0
+        MOV     R0,#?V0 + 2
+        LCALL   ?PUSH_XSTACK_I_TWO
+          CFI CFA_XSP16 add(XSP16, 14)
+        MOV     A,R6
+        MOV     R4,A
+        MOV     A,R7
+        MOV     R5,A
+        MOV     R0,?V0 + 0
+        MOV     R1,?V0 + 1
+        MOV     A,R0
+        MOV     B,#0x17
+        MUL     AB
+        XCH     A,R0
+        MOV     R2,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R2
+        MOV     R2,A
+        MOV     B,#0x17
+        MOV     A,?V0 + 1
+        MUL     AB
+        ADD     A,R2
+        MOV     R1,A
+        MOV     A,#entries & 0xff
+        ADD     A,R0
+        MOV     R2,A
+        MOV     A,#(entries >> 8) & 0xff
+        ADDC    A,R1
+        MOV     R3,A
+        LCALL   ??memcmp?relay
+        MOV     A,#0x2
+        LCALL   ?DEALLOC_XSTACK8
+          CFI CFA_XSP16 add(XSP16, 12)
+        MOV     ?V0 + 2,R2
+        MOV     ?V0 + 3,R3
+        MOV     A,?V0 + 2
+        ORL     A,?V0 + 3
+        JNZ     ??find_entry_1
+//  126       return &entries[i];
+        MOV     A,?V0 + 0
+        MOV     B,#0x17
+        MUL     AB
+        XCH     A,?V0 + 0
+        MOV     R0,B
+        MOV     B,#0x0
+        MUL     AB
+        ADD     A,R0
+        MOV     R0,A
+        MOV     B,#0x17
+        MOV     A,?V0 + 1
+        MUL     AB
+        ADD     A,R0
+        MOV     ?V0 + 1,A
+        MOV     A,#entries & 0xff
+        ADD     A,?V0 + 0
+        MOV     R2,A
+        MOV     A,#(entries >> 8) & 0xff
+        ADDC    A,?V0 + 1
+        MOV     R3,A
+        SJMP    ??find_entry_3
+//  127     }
+//  128   }
+//  129   return NULL;
+??find_entry_2:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??find_entry_3:
+        MOV     R7,#0x4
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock3
+//  130 }
+//  131 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  132 void
+//  133 uip_neighbor_update(uip_ipaddr_t *ipaddr)
+uip_neighbor_update:
+          CFI Block cfiBlock4 Using cfiCommon0
+          CFI Function uip_neighbor_update
+        CODE
+//  134 {
+        FUNCALL uip_neighbor_update, find_entry
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  135   struct neighbor_entry *e;
+//  136 
+//  137   e = find_entry(ipaddr);
+        ; Setup parameters for call to function find_entry
+        LCALL   ??find_entry?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R0,?V0 + 0
+        MOV     R1,?V0 + 1
+//  138   if(e != NULL) {
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??uip_neighbor_update_0
+//  139     e->time = 0;
+        MOV     A,R0
+        ADD     A,#0x16
+        MOV     DPL,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     DPH,A
+        MOV     A,#0x0
+        MOVX    @DPTR,A
+//  140   }
+//  141 }
+??uip_neighbor_update_0:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock4
+//  142 /*---------------------------------------------------------------------------*/
+
+        RSEG BANKED_CODE:CODE:NOROOT(0)
+//  143 struct uip_neighbor_addr *
+//  144 uip_neighbor_lookup(uip_ipaddr_t *ipaddr)
+uip_neighbor_lookup:
+          CFI Block cfiBlock5 Using cfiCommon0
+          CFI Function uip_neighbor_lookup
+        CODE
+//  145 {
+        FUNCALL uip_neighbor_lookup, find_entry
+        LOCFRAME ISTACK, 0, STACK
+        LOCFRAME PSTACK, 0, STACK
+        LOCFRAME XSTACK, 10, STACK
+        LOCFRAME IOVERLAY, 0, STATIC
+        LOCFRAME DOVERLAY, 0, STATIC
+        ARGFRAME ISTACK, 0, STACK
+        ARGFRAME PSTACK, 0, STACK
+        ARGFRAME XSTACK, 10, STACK
+        ARGFRAME IOVERLAY, 0, STATIC
+        ARGFRAME DOVERLAY, 0, STATIC
+        MOV     A,#-0xa
+        LCALL   ?BANKED_ENTER_XDATA
+          CFI DPH0 load(1, XDATA, add(CFA_XSP16, literal(-1)))
+          CFI DPL0 load(1, XDATA, add(CFA_XSP16, literal(-2)))
+          CFI ?BRET_EXT load(1, XDATA, add(CFA_XSP16, literal(-3)))
+          CFI ?RET_HIGH load(1, XDATA, add(CFA_XSP16, literal(-4)))
+          CFI ?RET_LOW load(1, XDATA, add(CFA_XSP16, literal(-5)))
+          CFI R7 load(1, XDATA, add(CFA_XSP16, literal(-6)))
+          CFI V1 load(1, XDATA, add(CFA_XSP16, literal(-7)))
+          CFI V0 load(1, XDATA, add(CFA_XSP16, literal(-8)))
+          CFI VB load(1, XDATA, add(CFA_XSP16, literal(-9)))
+          CFI R6 load(1, XDATA, add(CFA_XSP16, literal(-10)))
+          CFI CFA_SP SP+0
+          CFI CFA_XSP16 add(XSP16, 10)
+        ; Saved register size: 10
+        ; Auto size: 0
+//  146   struct neighbor_entry *e;
+//  147 
+//  148   e = find_entry(ipaddr);
+        ; Setup parameters for call to function find_entry
+        LCALL   ??find_entry?relay
+        MOV     ?V0 + 0,R2
+        MOV     ?V0 + 1,R3
+        MOV     R0,?V0 + 0
+        MOV     R1,?V0 + 1
+//  149   if(e != NULL) {
+        MOV     A,R0
+        ORL     A,R1
+        JZ      ??uip_neighbor_lookup_0
+//  150     /*    printf("Lookup neighbor with link address %02x:%02x:%02x:%02x:%02x:%02x\n",
+//  151 	   e->addr.addr.addr[0], e->addr.addr.addr[1], e->addr.addr.addr[2], e->addr.addr.addr[3],
+//  152 	   e->addr.addr.addr[4], e->addr.addr.addr[5]);*/
+//  153 
+//  154     return &e->addr;
+        MOV     A,R0
+        ADD     A,#0x10
+        MOV     R2,A
+        MOV     A,R1
+        ADDC    A,#0x0
+        MOV     R3,A
+        SJMP    ??uip_neighbor_lookup_1
+//  155   }
+//  156   return NULL;
+??uip_neighbor_lookup_0:
+        MOV     R2,#0x0
+        MOV     R3,#0x0
+??uip_neighbor_lookup_1:
+        MOV     R7,#0x2
+        LJMP    ?BANKED_LEAVE_XDATA
+          CFI EndBlock cfiBlock5
+//  157 }
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_neighbor_init?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_neighbor_init
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_neighbor_periodic?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_neighbor_periodic
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_neighbor_add?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_neighbor_add
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??find_entry?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    find_entry
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_neighbor_update?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_neighbor_update
+
+        RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??uip_neighbor_lookup?relay:
+        CODE
+        LCALL   ?BDISPATCH
+        DATA24
+        DC24    uip_neighbor_lookup
+
+        END
+//  158 /*---------------------------------------------------------------------------*/
+// 
+// 844 bytes in segment BANKED_CODE
+//  36 bytes in segment BANK_RELAYS
+// 184 bytes in segment XDATA_Z
+// 
+// 880 bytes of CODE  memory
+// 184 bytes of XDATA memory
+//
+//Errors: none
+//Warnings: none
